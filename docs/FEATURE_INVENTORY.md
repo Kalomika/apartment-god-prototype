@@ -28,6 +28,11 @@ Every change must be additive or corrective. If a feature existed before, it mus
 - Characters can move between floors.
 - Characters can perform object actions.
 - Characters can show readable mood or intent feedback.
+- Characters must have visible body language, not only static colored dots.
+- Walking must show arm and leg cycling.
+- Sitting must look different from standing.
+- Sleeping or napping must show a lying-down pose.
+- Social activities should use readable two-character body poses when possible.
 
 ## Baseline needs
 
@@ -66,6 +71,7 @@ Every change must be additive or corrective. If a feature existed before, it mus
 - Cozy/date/family-friendly intimate relationship flow must not be removed.
 - Horror TV can trigger spooked/cuddle-style response.
 - Girlfriend can request food, movie, cuddle, or shower/freshness attention.
+- Tickle, cuddle, kiss, and hold-hands actions should animate both participants, not just one character.
 
 ## Baseline dog features
 
@@ -76,6 +82,7 @@ Every change must be additive or corrective. If a feature existed before, it mus
 - Fetch should start with proximity, then the dog retrieves the thrown ball and returns.
 - Feed dog through dog bowl.
 - Dog can wander or act autonomously.
+- Dog should have visible body motion for walking, fetch, and idle feedback.
 
 ## Baseline TV and media features
 
@@ -85,6 +92,10 @@ Every change must be additive or corrective. If a feature existed before, it mus
 - Horror produces spooked tone.
 - Sports produces hyped tone.
 - TV glow or visual feedback should be visible.
+- Pretend music should be available without using licensed audio.
+- Phone music should allow genre selection.
+- Music genres should provide mood or skill-adjacent effects.
+- A stereo object can represent room music and should be interactable when present.
 
 ## Baseline offsite features
 
@@ -108,7 +119,7 @@ Every change must be additive or corrective. If a feature existed before, it mus
 ## Required layout behavior
 
 - The game canvas must never stretch or squash characters.
-- The 1280 by 720 game buffer must preserve its 16:9 aspect ratio.
+- The playable apartment canvas should preserve the actual playable view without dead unused space.
 - On portrait phones, the game occupies a stable top region and the HUD scrolls beneath it.
 - On tablets, the game scales up while preserving the entire playable view.
 - On landscape screens, the game should sit beside the HUD.
@@ -122,11 +133,15 @@ Before merging any branch, verify:
 - Dog menu appears when resident is selected and dog is clicked.
 - Kiss, cuddle, pet, train, and fetch are visible.
 - Characters are not visually squashed.
+- Walking visibly cycles arms and legs.
+- Sitting and sleeping look different from standing.
+- Social activities visibly animate at least the active participant, and ideally both.
 - Existing object actions still appear.
 - Dog fetch still works.
 - Offsite door actions still work.
 - TV channels still work.
 - Stairs still work.
+- Phone music works without licensed audio.
 
 ## New requested systems
 
@@ -155,6 +170,7 @@ Before merging any branch, verify:
 - Character can also walk to laptop and order items there.
 - Phone/laptop can order food, workout gear, furniture, parts, or services.
 - Phone/laptop actions should cost money when appropriate.
+- Phone can start pretend music and allow genre selection.
 
 ### Autonomy permissions
 
