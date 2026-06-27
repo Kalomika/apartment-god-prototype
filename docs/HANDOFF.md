@@ -2,7 +2,7 @@
 
 ## Current status
 
-Apartment God Prototype is live, but the codebase needs a modular rebuild before continued feature expansion.
+Apartment God Prototype is live and has been converted into a modular codebase. Current work is focused on restoring and improving life-sim readability while preserving every original feature.
 
 Live URL:
 
@@ -16,34 +16,63 @@ Do not modify:
 
 Kalomika/ai-rpg-engine
 
-## Current issue
+## Current source of truth
 
-The current prototype has too much gameplay, rendering, state, UI, movement, and interaction logic concentrated in `src/main.js`. This made large connector-based patching unreliable. Future work should use real git and smaller modules.
+Feature inventory:
 
-## Current handoff source
+`docs/FEATURE_INVENTORY.md`
 
-Primary issue:
+Development log:
+
+`docs/DEVELOPMENT_LOG.md`
+
+Primary handoff issue:
 
 https://github.com/Kalomika/apartment-god-prototype/issues/1
 
-## Known files or cleanup items
+## Latest pass
 
-- `scripts/build-qol.js` may exist and should be removed if it is still present. It is unused and harmless, but clutter.
-- Keep the current static Render build behavior compatible with `dist`.
+Latest commit:
 
-## Next coding pass
+`52b43d6acc7ba7e160b768bf35b7851e32f81fc4`
 
-1. Clone the repo using real git.
-2. Create a working branch such as `modular-v2`.
-3. Confirm backup branch exists or create one from current main.
-4. Split `src/main.js` into focused modules.
-5. Preserve current gameplay behavior.
-6. Add or confirm `npm run check`.
-7. Run `npm install`, `npm run check`, and `npm run build`.
-8. Commit with a clear message.
-9. Update this file and `docs/DEVELOPMENT_LOG.md` before ending.
-10. Merge to main only when the build is verified.
-11. Confirm the Render site opens.
+Implemented:
+
+- Visible walk-cycle body animation with arms and legs.
+- Distinct sitting pose.
+- Distinct lying/sleeping pose.
+- Social/tickle/cuddle/kiss/hold-hands pose handling.
+- Both participants now animate during social actions.
+- Dog movement now includes legs/tail feedback.
+- Pretend phone music with selectable genres.
+- Genre effects for fun, social, stamina, calm/hype, and small intellect gains for some genres.
+- Dynamic stereo object when music starts.
+- Stereo rendering and stereo interaction hook.
+- Feature inventory updated so animation and pretend music cannot be dropped by future refactors.
+
+## Known limitations
+
+- Render deployment must be allowed time to rebuild after each main commit.
+- Animation is symbolic canvas body-language, not full sprite-sheet animation yet.
+- Pretend music is silent intentionally to avoid licensing issues.
+- Social poses are readable approximations and should be refined with stronger choreography later.
+- A full furniture-populated-start versus empty-start mode is not implemented yet.
+- Long-term aging/lifetime calendar is intentionally deferred.
+
+## Next recommended test pass
+
+On mobile, verify:
+
+1. Character walk cycles show arms and legs.
+2. Sitting actions look seated.
+3. Sleep/nap looks lying down.
+4. Tickle/cuddle/kiss animate both characters.
+5. Dog pet/train/fetch still appears.
+6. Phone: Music opens a genre prompt.
+7. Choosing rap, rock, classical, jazz, afrobeat, or electronic starts pretend music.
+8. Stereo appears in the living room after music starts.
+9. Clock/status overlay remains visible.
+10. Game canvas is not squashed.
 
 ## Required completion report
 
