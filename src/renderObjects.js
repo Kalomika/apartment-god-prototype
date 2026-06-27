@@ -28,6 +28,7 @@ function drawObject(ctx, o, state, active) {
   if (o.kind === 'stairs') return stairs(ctx, o);
   if (o.kind === 'bookshelf') return bookshelf(ctx, o);
   if (o.kind === 'workout') return workout(ctx, o);
+  if (o.kind === 'stereo') return stereo(ctx, o, state);
   roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#667085');
 }
 
@@ -46,3 +47,4 @@ function light(ctx, o, state) { const room = roomAt(o.x, o.y, o.floor); ctx.fill
 function stairs(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#3b4656'); ctx.strokeStyle = '#93a0b3'; for (let y = o.y + 12; y < o.y + o.h; y += 14) { ctx.beginPath(); ctx.moveTo(o.x + 12, y); ctx.lineTo(o.x + o.w - 12, y); ctx.stroke(); } }
 function bookshelf(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#6c4b33'); for (let y = o.y + 14; y < o.y + o.h - 8; y += 24) { ctx.fillStyle = '#d7a45f'; ctx.fillRect(o.x + 8, y, o.w - 16, 5); ctx.fillStyle = '#8fb3e8'; ctx.fillRect(o.x + 12, y + 7, 10, 14); ctx.fillStyle = '#e88fae'; ctx.fillRect(o.x + 28, y + 7, 8, 14); ctx.fillStyle = '#90d68c'; ctx.fillRect(o.x + 42, y + 7, 12, 14); } }
 function workout(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#45505e'); ctx.strokeStyle = '#d7e1f0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(o.x + 12, o.y + 22); ctx.lineTo(o.x + o.w - 12, o.y + 22); ctx.stroke(); ctx.fillStyle = '#d7e1f0'; ctx.fillRect(o.x + 8, o.y + 14, 8, 16); ctx.fillRect(o.x + o.w - 16, o.y + 14, 8, 16); }
+function stereo(ctx, o, state) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#202735'); ctx.fillStyle = '#0f141e'; ctx.beginPath(); ctx.arc(o.x + 16, o.y + 18, 10, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(o.x + o.w - 16, o.y + 18, 10, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = state.music ? '#f1c66a' : '#6a7280'; ctx.font = '900 13px system-ui'; ctx.fillText(state.music ? '♪' : 'ST', o.x + 24, o.y + 23); }
