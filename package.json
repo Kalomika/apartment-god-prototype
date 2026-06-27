@@ -1,11 +1,11 @@
 {
   "name": "apartment-god-prototype",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node scripts/build.js",
-    "check": "node --check src/main.js",
+    "check": "node scripts/check.js",
     "start": "node scripts/dev-server.js"
   },
   "devDependencies": {}
