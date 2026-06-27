@@ -4,41 +4,34 @@ const menu = document.getElementById('interaction-menu');
 const $ = id => document.getElementById(id);
 
 const ui = {
-  selectedName: $('selected-name'),
-  currentAction: $('current-action'),
-  needs: $('needs'),
-  worldState: $('world-state'),
-  log: $('log'),
-  floor0: $('floor-0'),
-  floor1: $('floor-1'),
-  speed1: $('speed-1'),
-  speed3: $('speed-3'),
-  pause: $('pause'),
-  reset: $('reset')
+  selectedName: $('selected-name'), currentAction: $('current-action'), needs: $('needs'),
+  worldState: $('world-state'), log: $('log'), floor0: $('floor-0'), floor1: $('floor-1'),
+  speed1: $('speed-1'), speed3: $('speed-3'), pause: $('pause'), reset: $('reset')
 };
 
-const needKeys = ['hunger', 'hygiene', 'energy', 'fun', 'bladder', 'social', 'stamina'];
+const needKeys = ['hunger','hygiene','energy','fun','bladder','social','stamina'];
 const colors = { bg:'#171a22', room:'#303848', room2:'#384154', obj:'#59647a', hot:'#f1c66a', text:'#f0f2f7', mute:'#aab2c5' };
-const view = { x: 0, y: 0, scale: 1 };
-let lastTap = { time: 0, x: -9999, y: -9999, objectId: null };
+const view = { x:0, y:0, scale:1 };
+let lastTap = { time:0, x:-9999, y:-9999, objectId:null };
+let state, last = performance.now();
 
 const floors = [
   {
-    name: 'Floor 1',
-    rooms: [r(80,70,430,230,'Living Room'), r(535,70,360,230,'Kitchen'), r(80,330,360,230,'Bathroom'), r(465,330,430,230,'Entry')],
-    objects: [
+    name:'Floor 1',
+    rooms:[r(80,70,430,230,'Living Room'),r(535,70,360,230,'Kitchen'),r(80,330,360,230,'Bathroom'),r(465,330,430,230,'Entry')],
+    objects:[
       o('couch','Couch',170,150,120,50,['watchTv','relax']), o('tv','TV',335,115,80,50,['watchTv','watchComedy','watchHorror','watchSports']),
       o('fridge','Fridge',600,120,75,85,['snack','cook']), o('stove','Stove',735,120,90,65,['cook']),
       o('sink','Sink',605,225,90,50,['clean']), o('shower','Shower',125,380,100,85,['shower','clean']),
-      o('toilet','Toilet',275,390,70,65,['toilet']), o('door','Front Door',780,430,95,65,['work','leave']),
+      o('toilet','Toilet',275,390,70,65,['toilet']), o('door','Front Door',780,430,95,65,['work','leave','mall','movies']),
       o('light1','Light Switch',462,90,55,42,['toggleLight']), o('stairs','Stairs Up',505,410,105,90,['stairsUp'],1)
     ]
   },
   {
-    name: 'Floor 2',
-    rooms: [r(95,85,405,250,'Bedroom'), r(530,85,350,250,'Office'), r(95,365,360,170,'Pet Corner'), r(485,365,395,170,'Hall')],
-    objects: [
-      o('bed','Bed',175,170,170,90,['sleep','relax']), o('desk','Desk',600,155,140,75,['workHome','play','phone']),
+    name:'Floor 2',
+    rooms:[r(95,85,405,250,'Bedroom'),r(530,85,350,250,'Office'),r(95,365,360,170,'Pet Corner'),r(485,365,395,170,'Hall')],
+    objects:[
+      o('bed','Bed',175,170,170,90,['sleep','relax']), o('desk','Laptop Desk',600,155,140,75,['workHome','play','phone','shop']),
       o('dogbowl','Dog Bowl',170,420,82,50,['feedDog']), o('light2','Light Switch',830,95,55,42,['toggleLight']),
       o('stairs2','Stairs Down',530,410,105,90,['stairsDown'],0)
     ]
@@ -47,29 +40,36 @@ const floors = [
 
 const actionInfo = {
   shower:['Taking shower',5,{hygiene:38,fun:4,stamina:8}], clean:['Cleaning',4,{hygiene:-3,fun:-2,stamina:-7}], toilet:['Using toilet',2,{bladder:45}],
-  watchTv:['Watching TV',6,{fun:28,social:2,energy:-3,stamina:8}], watchComedy:['Watching comedy',6,{fun:34,social:4,energy:-3,stamina:8}],
-  watchHorror:['Watching horror',6,{fun:22,social:8,energy:-4,stamina:5}], watchSports:['Watching sports',6,{fun:29,energy:-4,stamina:5}],
+  watchTv:['Watching TV',6,{fun:28,social:2,energy:-3,stamina:8}], watchComedy:['Comedy Channel',6,{fun:34,social:4,energy:-3,stamina:8}],
+  watchHorror:['Horror Channel',6,{fun:22,social:8,energy:-4,stamina:5}], watchSports:['Sports Channel',6,{fun:29,energy:-4,stamina:5}],
   relax:['Relaxing',5,{energy:12,fun:8,stamina:16}], snack:['Getting snack',3,{hunger:26,fun:2,stamina:4}],
   cook:['Cooking meal',6,{hunger:44,fun:5,energy:-5,stamina:-6}], sleep:['Sleeping',9,{energy:45,hunger:-8,bladder:-8,stamina:55}],
-  work:['At work',14,{energy:-22,fun:-12,social:4,stamina:-22},35], leave:['Stepping outside',4,{fun:8,social:4,stamina:-4}],
+  work:['Going to work',1,{}], leave:['Quick errand',1,{}], mall:['Shopping trip',1,{}], movies:['Movie theater',1,{}], date:['Date night',1,{}],
   stairsUp:['Going upstairs',1,{stamina:-4}], stairsDown:['Going downstairs',1,{stamina:-3}], workHome:['Working at desk',8,{energy:-12,fun:-5,stamina:-8},12],
   play:['Playing game',5,{fun:25,energy:-3,stamina:5}], feedDog:['Feeding dog',3,{social:12,fun:5,stamina:-2}],
-  toggleLight:['Toggling lights',1,{}], phone:['Using phone',3,{social:8,fun:4}], cozy:['Cozy time',10,{fun:18,social:28,energy:-8,stamina:-10}]
+  toggleLight:['Toggling lights',1,{}], phone:['Using phone',3,{social:8,fun:4}], shop:['Shopping online',3,{fun:5,social:1}], cozy:['Cozy time',10,{fun:18,social:28,energy:-8,stamina:-10}]
+};
+
+const tvChannels = {
+  watchTv:{title:'Channel Surfing',emoji:'📺',tone:'relaxed',caption:'A soft blue glow washes the room.'},
+  watchComedy:{title:'Comedy Night',emoji:'😂',tone:'happy',caption:'Bright sitcom blocks and laugh-track energy.'},
+  watchHorror:{title:'Late Horror',emoji:'😱',tone:'spooked',caption:'A dark frame flickers, something waits in the shadows.'},
+  watchSports:{title:'Sports Live',emoji:'🏀',tone:'hyped',caption:'Fast cuts, scoreboard lights, crowd noise.'}
+};
+
+const offsitePlans = {
+  work:{title:'Work Shift',hours:8,seconds:5.5,pay:55,effects:{energy:-24,fun:-10,social:5,stamina:-18},returnText:'came home from work'},
+  leave:{title:'Quick Errand',hours:1.5,seconds:3,pay:0,effects:{fun:6,social:4,stamina:-4},returnText:'came back from errands'},
+  mall:{title:'Mall Trip',hours:2.5,seconds:4,pay:-18,effects:{fun:18,social:8,energy:-6,stamina:-7},returnText:'came back from the mall'},
+  movies:{title:'Movie Theater',hours:3,seconds:4.5,pay:-14,effects:{fun:28,social:6,energy:-5},returnText:'came back from the movies'},
+  date:{title:'Date Night',hours:3.5,seconds:5,pay:-30,effects:{fun:24,social:22,energy:-8,stamina:-6},returnText:'came home from date night'}
 };
 
 const moodDefs = {
-  neutral: { emoji:'🙂', next:null, duration:0 },
-  smile: { emoji:'😊', next:'neutral', duration:12 },
-  bigSmile: { emoji:'😁', next:'smile', duration:10 },
-  calm: { emoji:'😌', next:'neutral', duration:14 },
-  sad: { emoji:'😔', next:'neutral', duration:12 },
-  annoyed: { emoji:'😒', next:'neutral', duration:10 },
-  tired: { emoji:'🥱', next:'neutral', duration:12 },
-  love: { emoji:'🥰', next:'smile', duration:14 },
-  playful: { emoji:'😜', next:'smile', duration:10 },
-  hungry: { emoji:'🍽️', next:'neutral', duration:10 },
-  phone: { emoji:'📱', next:'neutral', duration:8 },
-  dogHappy: { emoji:'🐶', next:'neutral', duration:12 }
+  neutral:{emoji:'🙂',next:null,duration:0}, smile:{emoji:'😊',next:'neutral',duration:12}, bigSmile:{emoji:'😁',next:'smile',duration:10},
+  calm:{emoji:'😌',next:'neutral',duration:14}, sad:{emoji:'😔',next:'neutral',duration:12}, annoyed:{emoji:'😒',next:'neutral',duration:10},
+  tired:{emoji:'🥱',next:'neutral',duration:12}, love:{emoji:'🥰',next:'smile',duration:14}, playful:{emoji:'😜',next:'smile',duration:10},
+  hungry:{emoji:'🍽️',next:'neutral',duration:10}, phone:{emoji:'📱',next:'neutral',duration:8}, dogHappy:{emoji:'🐶',next:'neutral',duration:12}, spooked:{emoji:'😨',next:'neutral',duration:8}, hyped:{emoji:'😮',next:'smile',duration:8}
 };
 
 function r(x,y,w,h,label){return {x,y,w,h,label};}
@@ -77,19 +77,13 @@ function o(id,label,x,y,w,h,actions,toFloor=null){return {id,label,x,y,w,h,actio
 function person(id,name,x,y,floor,color){
   return {id,name,x,y,floor,color,radius:18,target:null,action:null,selected:false,off:false,bubble:'',bubbleT:0,pending:null,remote:null,moveMode:'walk',facing:-Math.PI/2,step:0,mood:'neutral',moodT:0,relation:62,cozyCount:0,fetching:null,needs:{hunger:72,hygiene:70,energy:76,fun:62,bladder:70,social:62,stamina:82}};
 }
-
-let state, last = performance.now();
 function fresh(){
   return {
     floor:0, selected:'resident', day:1, mins:8*60, speed:1, paused:false, money:48, hover:null,
-    fetchMode:false, ball:null, phoneOpen:false, phoneRinging:null, nextCall:8*60+80,
+    fetchMode:false, ball:null, phoneOpen:false, phoneRinging:null, nextCall:8*60+80, timeLapse:null, tvPanel:null,
     house:{lights:[true,true], electricity:0, billDay:30, monthlyBill:0, relationship:62, expecting:false, expectingDays:0, baby:false},
-    logs:['Prototype loaded. Tap to walk, double tap to run. Tap people for social actions.'],
-    entities:{
-      resident:person('resident','Resident',170,420,0,'#67b7ff'),
-      girlfriend:person('girlfriend','Girlfriend',255,180,0,'#ff93c8'),
-      dog:{...person('dog','Dog',205,440,0,'#d9a15f'),radius:13,mood:'dogHappy',needs:{hunger:70,hygiene:80,energy:72,fun:80,bladder:80,social:78,stamina:90}}
-    }
+    logs:['Prototype loaded. Tap to walk, double tap to run. Door actions now time-lapse.'],
+    entities:{resident:person('resident','Resident',170,420,0,'#67b7ff'), girlfriend:person('girlfriend','Girlfriend',255,180,0,'#ff93c8'), dog:{...person('dog','Dog',205,440,0,'#d9a15f'),radius:13,mood:'dogHappy',needs:{hunger:70,hygiene:80,energy:72,fun:80,bladder:80,social:78,stamina:90}}}
   };
 }
 state = fresh();
@@ -101,443 +95,150 @@ function timeText(){const m=Math.floor(state.mins%(24*60)); const h=Math.floor(m
 function log(msg){state.logs.unshift(`${timeText()} ${msg}`); state.logs=state.logs.slice(0,9);}
 function setMood(e,mood,duration=null){const def=moodDefs[mood]||moodDefs.neutral; e.mood=mood; e.moodT=duration ?? def.duration; e.bubble=def.emoji; e.bubbleT=1.6;}
 function apply(e,effects){for(const [k,v] of Object.entries(effects)){e.needs[k]=clamp((e.needs[k] ?? 50)+v);}}
-
-function screenToGame(e){
-  const b = canvas.getBoundingClientRect();
-  const cx = (e.clientX - b.left) * canvas.width / b.width;
-  const cy = (e.clientY - b.top) * canvas.height / b.height;
-  return {x: cx / view.scale - view.x, y: cy / view.scale - view.y, sx:e.clientX-b.left, sy:e.clientY-b.top};
+function addMinutes(mins){
+  state.mins += mins;
+  while(state.mins>=24*60){state.mins-=24*60;state.day++;log(`Day ${state.day} begins.`);}
 }
+function screenToGame(e){const b=canvas.getBoundingClientRect(); const cx=(e.clientX-b.left)*canvas.width/b.width; const cy=(e.clientY-b.top)*canvas.height/b.height; return {x:cx/view.scale-view.x,y:cy/view.scale-view.y,sx:e.clientX-b.left,sy:e.clientY-b.top};}
 function objectAt(x,y){return floors[state.floor].objects.find(q=>x>=q.x&&x<=q.x+q.w&&y>=q.y&&y<=q.y+q.h);}
 function entityAt(x,y){return Object.values(state.entities).find(e=>!e.off&&e.floor===state.floor&&Math.hypot(e.x-x,e.y-y)<e.radius+18);}
 function currentStair(floor){return floors[floor].objects.find(obj=>obj.toFloor !== null);}
 function objectOnFloor(floor,id){return floors[floor].objects.find(obj=>obj.id===id);}
 function smart(e,obj){
-  if(obj.id.includes('stairs'))return obj.actions[0];
-  if(obj.id.includes('light'))return 'toggleLight';
-  if(obj.id==='shower')return e.needs.hygiene<55?'shower':'clean';
-  if(obj.id==='fridge')return e.needs.hunger<60?'snack':'cook';
-  if(obj.id==='stove')return 'cook';
-  if(obj.id==='bed')return e.needs.energy<65?'sleep':'relax';
-  if(obj.id==='tv'||obj.id==='couch')return e.needs.fun<70?'watchTv':'relax';
-  if(obj.id==='toilet')return 'toilet';
-  if(obj.id==='door')return 'work';
-  if(obj.id==='dogbowl')return 'feedDog';
-  return obj.actions[0];
+  if(obj.id.includes('stairs'))return obj.actions[0]; if(obj.id.includes('light'))return 'toggleLight';
+  if(obj.id==='shower')return e.needs.hygiene<55?'shower':'clean'; if(obj.id==='fridge')return e.needs.hunger<60?'snack':'cook';
+  if(obj.id==='stove')return 'cook'; if(obj.id==='bed')return e.needs.energy<65?'sleep':'relax';
+  if(obj.id==='tv'||obj.id==='couch')return e.needs.fun<70?'watchTv':'relax'; if(obj.id==='toilet')return 'toilet'; if(obj.id==='door')return 'work'; if(obj.id==='dogbowl')return 'feedDog'; return obj.actions[0];
 }
-function isDoubleTap(p,obj){
-  const now = performance.now();
-  const sameSpot = Math.hypot(p.x-lastTap.x,p.y-lastTap.y) < 46;
-  const sameObj = (obj?.id || null) === lastTap.objectId;
-  const doubleTap = now - lastTap.time < 340 && sameSpot && sameObj;
-  lastTap = {time:now,x:p.x,y:p.y,objectId:obj?.id || null};
-  return doubleTap;
-}
-
+function isDoubleTap(p,obj){const now=performance.now(); const sameSpot=Math.hypot(p.x-lastTap.x,p.y-lastTap.y)<46; const sameObj=(obj?.id||null)===lastTap.objectId; const doubleTap=now-lastTap.time<340&&sameSpot&&sameObj; lastTap={time:now,x:p.x,y:p.y,objectId:obj?.id||null}; return doubleTap;}
 function moveTo(e,x,y,run=false){
-  if(e.off)return;
-  const wantsRun = run && e.needs.stamina > 12;
-  e.target={x:clamp(x,90,890),y:clamp(y,80,560),run:wantsRun};
-  e.moveMode=wantsRun?'run':'walk';
-  e.action=null;
-  e.bubble=wantsRun?'Running':'On it';
-  e.bubbleT=1.1;
-  hideMenu();
-  if(run && !wantsRun){log(`${e.name} is too winded to run.`);}
+  if(e.off||state.timeLapse)return; const wantsRun=run&&e.needs.stamina>12;
+  e.target={x:clamp(x,90,890),y:clamp(y,80,560),run:wantsRun}; e.moveMode=wantsRun?'run':'walk'; e.action=null; e.bubble=wantsRun?'Running':'On it'; e.bubbleT=1.1; hideMenu();
+  if(run&&!wantsRun)log(`${e.name} is too winded to run.`);
 }
-function routeToViewedFloor(e,destFloor,run=false){
-  if(e.floor === destFloor)return false;
-  const stair = currentStair(e.floor);
-  if(!stair)return false;
-  moveTo(e,stair.ix,stair.iy,run);
-  e.pending={obj:stair,key:stair.actions[0],run};
-  return true;
-}
+function routeToViewedFloor(e,destFloor,run=false){if(e.floor===destFloor)return false; const stair=currentStair(e.floor); if(!stair)return false; moveTo(e,stair.ix,stair.iy,run); e.pending={obj:stair,key:stair.actions[0],run}; return true;}
 function commandObj(e,obj,forced,run=false){
   const key=forced||smart(e,obj);
-  if(e.floor !== state.floor){
-    e.remote={floor:state.floor,objId:obj.id,key,run};
-    routeToViewedFloor(e,state.floor,run);
-    log(`${e.name} is coming to ${floors[state.floor].name} for ${obj.label}.`);
-    return;
-  }
-  moveTo(e,obj.ix,obj.iy,run);
-  e.pending={obj,key,run};
-  log(`${e.name} ${run?'runs':'walks'} to ${obj.label}.`);
+  if(e.floor!==state.floor){e.remote={floor:state.floor,objId:obj.id,key,run}; routeToViewedFloor(e,state.floor,run); log(`${e.name} is coming to ${floors[state.floor].name} for ${obj.label}.`); return;}
+  moveTo(e,obj.ix,obj.iy,run); e.pending={obj,key,run}; log(`${e.name} ${run?'runs':'walks'} to ${obj.label}.`);
 }
 function startAction(e,key,obj){
-  const info=actionInfo[key]||['Working',3,{}];
-  e.action={key,label:info[0],t:info[1],total:info[1],effects:info[2],pay:info[3]||0,obj};
-  e.target=null; e.pending=null; e.bubble=info[0]; e.bubbleT=1.8; e.moveMode='walk';
-  if(key==='work'){e.off=true; e.floor=-1;}
+  if(offsitePlans[key]){startOffsite(key,[e.id]);return;}
+  const info=actionInfo[key]||['Working',3,{}]; e.action={key,label:info[0],t:info[1],total:info[1],effects:info[2],pay:info[3]||0,obj}; e.target=null; e.pending=null; e.bubble=info[0]; e.bubbleT=1.8; e.moveMode='walk';
+  if(tvChannels[key])startTv(key,e);
   if(key==='toggleLight'){const floorIndex=state.floor; state.house.lights[floorIndex]=!state.house.lights[floorIndex]; log(`${floors[floorIndex].name} lights ${state.house.lights[floorIndex]?'on':'off'}.`); e.action=null;}
-  if(key==='watchHorror'){maybeRequest('cuddle');}
+  if(key==='watchHorror'){maybeRequest('cuddle'); setMood(e,'spooked');}
+  if(key==='watchSports')setMood(e,'hyped'); if(key==='watchComedy')setMood(e,'bigSmile');
   if(key==='cozy'){state.house.lights[1]=false; setMood(e,'love');}
   if(key==='stairsUp'||key==='stairsDown'){
-    e.floor=obj.toFloor;
-    e.x=obj.toFloor===1?585:555;
-    e.y=455;
-    e.action=null;
-    log(`${e.name} changed floors.`);
-    if(e.remote && e.remote.floor===e.floor){
-      const targetObj=objectOnFloor(e.remote.floor,e.remote.objId);
-      const remote=e.remote;
-      e.remote=null;
-      if(targetObj)commandObj(e,targetObj,remote.key,remote.run);
-    }
+    e.floor=obj.toFloor; e.x=obj.toFloor===1?585:555; e.y=455; e.action=null; log(`${e.name} changed floors.`);
+    if(e.remote&&e.remote.floor===e.floor){const targetObj=objectOnFloor(e.remote.floor,e.remote.objId); const remote=e.remote; e.remote=null; if(targetObj)commandObj(e,targetObj,remote.key,remote.run);}
   }
 }
 function finishAction(e){
-  const a=e.action; if(!a)return;
-  apply(e,a.effects);
-  if(a.pay){state.money+=a.pay; log(`${e.name} came back from work with $${a.pay}.`); e.off=false; e.floor=0; e.x=810; e.y=500;}
-  else log(`${e.name} finished ${a.label.toLowerCase()}.`);
+  const a=e.action; if(!a)return; apply(e,a.effects); if(a.pay){state.money+=a.pay; log(`${e.name} earned $${a.pay}.`);} else log(`${e.name} finished ${a.label.toLowerCase()}.`);
   if(a.key==='feedDog'){const d=state.entities.dog; d.needs.hunger=clamp(d.needs.hunger+35); setMood(d,'dogHappy');}
-  if(a.key==='cozy'){
-    state.house.lights[1]=true;
-    state.house.relationship=clamp(state.house.relationship+14);
-    state.entities.resident.cozyCount++;
-    state.entities.girlfriend.cozyCount++;
-    setMood(state.entities.resident,'love');
-    setMood(state.entities.girlfriend,'love');
-    if(!state.house.expecting && state.entities.girlfriend.cozyCount>=3 && Math.random()<0.24){
-      state.house.expecting=true;
-      state.house.expectingDays=0;
-      log('Family news: your girlfriend is expecting.');
-    }
-  }
+  if(a.key==='cozy'){state.house.lights[1]=true; state.house.relationship=clamp(state.house.relationship+14); state.entities.resident.cozyCount++; state.entities.girlfriend.cozyCount++; setMood(state.entities.resident,'love'); setMood(state.entities.girlfriend,'love'); if(!state.house.expecting&&state.entities.girlfriend.cozyCount>=3&&Math.random()<0.24){state.house.expecting=true; state.house.expectingDays=0; log('Family news: your girlfriend is expecting.');}}
   e.action=null;
 }
+function startTv(key,e){const c=tvChannels[key]; state.tvPanel={key,title:c.title,emoji:c.emoji,tone:c.tone,caption:c.caption,t:7,total:7}; log(`${e.name} tuned into ${c.title}.`);}
+function startOffsite(key,ids=['resident']){
+  const plan=offsitePlans[key]; if(!plan||state.timeLapse)return;
+  const participants=ids.map(id=>state.entities[id]).filter(Boolean); const oldFloor=state.floor;
+  participants.forEach((e,i)=>{e.off=true;e.floor=-1;e.target=null;e.pending=null;e.action={key,label:plan.title,t:plan.seconds,total:plan.seconds,effects:{},pay:0,obj:null};setMood(e,key==='date'?'love':'calm');});
+  state.timeLapse={key,title:plan.title,t:plan.seconds,total:plan.seconds,startMins:state.mins,hours:plan.hours,participants:ids,oldFloor,pay:plan.pay,effects:plan.effects,returnText:plan.returnText};
+  log(`${participants.map(p=>p.name).join(' and ')} left for ${plan.title}.`); hideMenu();
+}
+function finishOffsite(){
+  const event=state.timeLapse; if(!event)return; const plan=offsitePlans[event.key];
+  event.participants.forEach((id,i)=>{const e=state.entities[id]; if(!e)return; e.off=false; e.floor=0; e.x=805+i*28; e.y=500+i*18; e.action=null; apply(e,event.effects); setMood(e,event.key==='date'?'love':'smile');});
+  if(event.pay)state.money+=event.pay; if(event.key==='date')state.house.relationship=clamp(state.house.relationship+18);
+  log(`${event.returnText}. ${event.pay?`${event.pay>0?'Earned':'Spent'} $${Math.abs(event.pay)}.`:''}`); state.timeLapse=null; state.floor=0;
+}
 function tickNeeds(e,dt){
-  if(e.off)return;
-  const m=dt*0.55;
-  e.needs.hunger=clamp(e.needs.hunger-m*.8);
-  e.needs.hygiene=clamp(e.needs.hygiene-m*.35);
-  e.needs.energy=clamp(e.needs.energy-m*.45);
-  e.needs.fun=clamp(e.needs.fun-m*.32);
-  e.needs.bladder=clamp(e.needs.bladder-m*.65);
-  e.needs.social=clamp(e.needs.social-m*.24);
-  if(!e.target && !e.action)e.needs.stamina=clamp(e.needs.stamina+m*4.4);
-  if(e.target && e.moveMode==='walk')e.needs.stamina=clamp(e.needs.stamina+m*1.2);
-  if(e.moodT>0){
-    e.moodT-=dt;
-    if(e.moodT<=0){
-      const next=moodDefs[e.mood]?.next || 'neutral';
-      setMood(e,next);
-    }
-  }
+  if(e.off)return; const m=dt*0.55; e.needs.hunger=clamp(e.needs.hunger-m*.8); e.needs.hygiene=clamp(e.needs.hygiene-m*.35); e.needs.energy=clamp(e.needs.energy-m*.45); e.needs.fun=clamp(e.needs.fun-m*.32); e.needs.bladder=clamp(e.needs.bladder-m*.65); e.needs.social=clamp(e.needs.social-m*.24); if(!e.target&&!e.action)e.needs.stamina=clamp(e.needs.stamina+m*4.4); if(e.target&&e.moveMode==='walk')e.needs.stamina=clamp(e.needs.stamina+m*1.2);
+  if(e.moodT>0){e.moodT-=dt; if(e.moodT<=0)setMood(e,moodDefs[e.mood]?.next||'neutral');}
 }
 function updateMove(e,dt){
-  if(!e.target||e.off)return;
-  const dx=e.target.x-e.x, dy=e.target.y-e.y, d=Math.hypot(dx,dy);
-  const running=e.target.run && e.needs.stamina>1;
-  const speedBase=e.id==='dog'?122:running?178:92;
-  const stepDist=speedBase*dt;
-  if(d>0.01)e.facing=Math.atan2(dy,dx);
-  if(running){
-    e.moveMode='run';
-    e.needs.stamina=clamp(e.needs.stamina-dt*18);
-    e.needs.hunger=clamp(e.needs.hunger-dt*1.8);
-    e.needs.energy=clamp(e.needs.energy-dt*1.4);
-    if(e.needs.stamina<=1){e.target.run=false; e.moveMode='walk'; e.bubble='Winded'; e.bubbleT=1.4; setMood(e,'tired');}
-  } else e.moveMode='walk';
-  e.step += dt*(running?11:6);
-  if(d<=stepDist){
-    e.x=e.target.x; e.y=e.target.y; e.target=null; e.moveMode='walk';
-    if(e.id==='dog' && e.fetching==='toBall'){
-      e.fetching='toOwner';
-      const owner=state.entities.resident;
-      moveTo(e,owner.x,owner.y,true);
-      return;
-    }
-    if(e.id==='dog' && e.fetching==='toOwner'){
-      e.fetching=null;
-      state.ball=null;
-      apply(e,{fun:18,social:12,stamina:-5});
-      apply(state.entities.resident,{fun:9,social:7});
-      setMood(e,'dogHappy');
-      log('Dog brought the ball back.');
-      return;
-    }
-    if(e.pending)startAction(e,e.pending.key,e.pending.obj);
-  } else {e.x+=dx/d*stepDist; e.y+=dy/d*stepDist;}
+  if(!e.target||e.off)return; const dx=e.target.x-e.x, dy=e.target.y-e.y, d=Math.hypot(dx,dy); const running=e.target.run&&e.needs.stamina>1; const speedBase=e.id==='dog'?122:running?178:92; const stepDist=speedBase*dt; if(d>0.01)e.facing=Math.atan2(dy,dx);
+  if(running){e.moveMode='run'; e.needs.stamina=clamp(e.needs.stamina-dt*18); e.needs.hunger=clamp(e.needs.hunger-dt*1.8); e.needs.energy=clamp(e.needs.energy-dt*1.4); if(e.needs.stamina<=1){e.target.run=false; e.moveMode='walk'; e.bubble='Winded'; e.bubbleT=1.4; setMood(e,'tired');}} else e.moveMode='walk';
+  e.step+=dt*(running?11:6); if(d<=stepDist){e.x=e.target.x; e.y=e.target.y; e.target=null; e.moveMode='walk'; if(e.id==='dog'&&e.fetching==='toBall'){e.fetching='toOwner'; const owner=state.entities.resident; moveTo(e,owner.x,owner.y,true); return;} if(e.id==='dog'&&e.fetching==='toOwner'){e.fetching=null; state.ball=null; apply(e,{fun:18,social:12,stamina:-5}); apply(state.entities.resident,{fun:9,social:7}); setMood(e,'dogHappy'); log('Dog brought the ball back.'); return;} if(e.pending)startAction(e,e.pending.key,e.pending.obj);} else {e.x+=dx/d*stepDist; e.y+=dy/d*stepDist;}
 }
 function npc(e,dt){
-  if(e.id==='resident'||e.action||e.target||e.off)return;
-  if(e.id==='girlfriend'){
-    if(e.needs.hunger<38 && Math.random()<dt*.04)maybeRequest('food');
-    if(e.needs.fun<35 && Math.random()<dt*.03)maybeRequest('movie');
-  }
-  if(Math.random()<dt*.06){
-    let obj=null;
-    if(e.id==='dog'){
-      obj=objectOnFloor(e.floor,'dogbowl')||floors[e.floor].objects[0];
-      if(e.needs.hunger<45)commandObj(e,obj,'feedDog'); else moveTo(e,e.x+(Math.random()*120-60),e.y+(Math.random()*100-50));
-      return;
-    }
-    if(e.needs.hunger<40){e.floor=0; obj=objectOnFloor(0,'fridge');}
-    else if(e.needs.fun<45){e.floor=0; obj=objectOnFloor(0,'tv');}
-    else if(e.needs.energy<35){e.floor=1; obj=objectOnFloor(1,'bed');}
-    if(obj)commandObj(e,obj);
-  }
+  if(e.id==='resident'||e.action||e.target||e.off||state.timeLapse)return; if(e.id==='girlfriend'){if(e.needs.hunger<38&&Math.random()<dt*.04)maybeRequest('food'); if(e.needs.fun<35&&Math.random()<dt*.03)maybeRequest('movie');}
+  if(Math.random()<dt*.06){let obj=null; if(e.id==='dog'){obj=objectOnFloor(e.floor,'dogbowl')||floors[e.floor].objects[0]; if(e.needs.hunger<45)commandObj(e,obj,'feedDog'); else moveTo(e,e.x+(Math.random()*120-60),e.y+(Math.random()*100-50)); return;} if(e.needs.hunger<40){e.floor=0; obj=objectOnFloor(0,'fridge');} else if(e.needs.fun<45){e.floor=0; obj=objectOnFloor(0,'tv');} else if(e.needs.energy<35){e.floor=1; obj=objectOnFloor(1,'bed');} if(obj)commandObj(e,obj);}
 }
-function maybeRequest(type){
-  const gf=state.entities.girlfriend;
-  if(gf.bubbleT>0)return;
-  const map={food:'🍽️', movie:'🎬', cuddle:'🤗'};
-  gf.bubble=map[type]||'❔';
-  gf.bubbleT=5;
-  log(`Girlfriend request: ${type}.`);
-}
+function maybeRequest(type){const gf=state.entities.girlfriend; if(gf.bubbleT>0)return; const map={food:'🍽️',movie:'🎬',cuddle:'🤗'}; gf.bubble=map[type]||'❔'; gf.bubbleT=5; log(`Girlfriend request: ${type}.`);}
 function updateHouse(dt){
-  const lit=state.house.lights.filter(Boolean).length;
-  state.house.electricity += lit * dt * state.speed * 0.018;
-  if(state.day>=state.house.billDay){
-    const bill=Math.ceil(20+state.house.electricity*2.8);
-    state.house.monthlyBill=bill;
-    state.money-=bill;
-    state.house.billDay+=30;
-    state.house.electricity=0;
-    log(`Electric bill paid: $${bill}.`);
-  }
-  if(state.house.expecting && !state.house.baby){
-    state.house.expectingDays += dt * state.speed * 0.04;
-    if(state.house.expectingDays>=9){
-      state.house.baby=true;
-      log('A baby has arrived. Nursery systems can come later.');
-    }
-  }
-  if(!state.phoneRinging && state.mins>state.nextCall){
-    state.phoneRinging={from:'Amina',t:22};
-    state.nextCall=state.mins+150+Math.random()*120;
-    log('Phone is ringing.');
-  }
-  if(state.phoneRinging){
-    state.phoneRinging.t-=dt*state.speed;
-    if(state.phoneRinging.t<=0){state.phoneRinging=null; log('Missed call.');}
-  }
+  const lit=state.house.lights.filter(Boolean).length; state.house.electricity+=lit*dt*state.speed*.018; if(state.day>=state.house.billDay){const bill=Math.ceil(20+state.house.electricity*2.8); state.house.monthlyBill=bill; state.money-=bill; state.house.billDay+=30; state.house.electricity=0; log(`Electric bill paid: $${bill}.`);}
+  if(state.house.expecting&&!state.house.baby){state.house.expectingDays+=dt*state.speed*.04; if(state.house.expectingDays>=9){state.house.baby=true; log('A baby has arrived. Nursery systems can come later.');}}
+  if(!state.phoneRinging&&state.mins>state.nextCall){state.phoneRinging={from:'Amina',t:22}; state.nextCall=state.mins+150+Math.random()*120; log('Phone is ringing.');}
+  if(state.phoneRinging){state.phoneRinging.t-=dt*state.speed; if(state.phoneRinging.t<=0){state.phoneRinging=null; log('Missed call.');}}
 }
 function update(dt){
-  if(state.paused)return;
-  const scaled=dt*state.speed;
-  const beforeDay=state.day;
-  state.mins+=scaled*10;
-  if(state.mins>=24*60){state.mins-=24*60;state.day++;log(`Day ${state.day} begins.`);}
-  if(state.day!==beforeDay && state.house.expecting && !state.house.baby){
-    setMood(state.entities.girlfriend,'hungry',9);
-  }
-  updateHouse(dt);
-  Object.values(state.entities).forEach(e=>{tickNeeds(e,scaled);updateMove(e,scaled); if(e.action){e.action.t-=scaled; if(e.action.t<=0)finishAction(e);} if(e.bubbleT>0)e.bubbleT-=scaled; npc(e,scaled);});
+  if(state.paused)return; const scaled=dt*state.speed; const beforeDay=state.day;
+  if(state.timeLapse){const ev=state.timeLapse; const prev=1-ev.t/ev.total; ev.t-=dt; const now=clamp(1-ev.t/ev.total,0,1); addMinutes((now-prev)*ev.hours*60); updateHouse(dt*6); if(ev.t<=0)finishOffsite(); return;}
+  addMinutes(scaled*10); if(state.day!==beforeDay&&state.house.expecting&&!state.house.baby)setMood(state.entities.girlfriend,'hungry',9); updateHouse(dt); if(state.tvPanel){state.tvPanel.t-=scaled; if(state.tvPanel.t<=0)state.tvPanel=null;}
+  Object.values(state.entities).forEach(e=>{tickNeeds(e,scaled); updateMove(e,scaled); if(e.action){e.action.t-=scaled; if(e.action.t<=0)finishAction(e);} if(e.bubbleT>0)e.bubbleT-=scaled; npc(e,scaled);});
 }
 
 function showMenuBase(title){menu.innerHTML=`<div class="menu-title">${title}</div>`;}
-function addMenu(label,fn){const b=document.createElement('button');b.className='menu-option';b.textContent=label;b.onclick=fn;menu.appendChild(b);}
-function placeMenu(p){const rect=canvas.getBoundingClientRect();menu.style.left=`${Math.min(p.sx+12,rect.width-225)}px`;menu.style.top=`${Math.min(p.sy+12,rect.height-225)}px`;menu.classList.remove('hidden');}
-function hideMenu(){menu.classList.add('hidden');menu.innerHTML='';}
-function showObjectMenu(obj,p,run=false){
-  const e=selected();
-  showMenuBase(`${e.name} → ${obj.label}${run?' · run queued':''}`);
-  addMenu(`Smart: ${actionInfo[smart(e,obj)]?.[0]||smart(e,obj)}`,()=>commandObj(e,obj,smart(e,obj),run));
-  obj.actions.forEach(a=>addMenu(actionInfo[a]?.[0]||a,()=>commandObj(e,obj,a,run)));
-  placeMenu(p);
-}
+function addMenu(label,fn){const b=document.createElement('button'); b.className='menu-option'; b.textContent=label; b.onclick=fn; menu.appendChild(b);}
+function placeMenu(p){const rect=canvas.getBoundingClientRect(); menu.style.left=`${Math.min(p.sx+12,rect.width-225)}px`; menu.style.top=`${Math.min(p.sy+12,rect.height-225)}px`; menu.classList.remove('hidden');}
+function hideMenu(){menu.classList.add('hidden'); menu.innerHTML='';}
+function showObjectMenu(obj,p,run=false){const e=selected(); showMenuBase(`${e.name} → ${obj.label}${run?' · run queued':''}`); addMenu(`Smart: ${actionInfo[smart(e,obj)]?.[0]||smart(e,obj)}`,()=>commandObj(e,obj,smart(e,obj),run)); obj.actions.forEach(a=>addMenu(actionInfo[a]?.[0]||a,()=>commandObj(e,obj,a,run))); placeMenu(p);}
 function showPersonMenu(target,p,run=false){
-  const actor=selected();
-  if(target.id===actor.id){
-    showMenuBase(`${actor.name}`);
-    if(state.phoneRinging && actor.id==='resident')addMenu(`Answer ${state.phoneRinging.from}`,()=>answerPhone(actor));
-    addMenu('Mood, Big Smile 😁',()=>{setMood(actor,'bigSmile');hideMenu();});
-    addMenu('Mood, Smile 😊',()=>{setMood(actor,'smile');hideMenu();});
-    addMenu('Mood, Calm 😌',()=>{setMood(actor,'calm');hideMenu();});
-    addMenu('Mood, Annoyed 😒',()=>{setMood(actor,'annoyed');hideMenu();});
-    addMenu('Open phone 📱',()=>showPhoneMenu(p));
-    placeMenu(p);
-    return;
-  }
-  showMenuBase(`${actor.name} → ${target.name}`);
-  addMenu(`Select ${target.name}`,()=>{state.selected=target.id;hideMenu();sync();});
-  if(target.id==='girlfriend'){
-    addMenu('Kiss',()=>socialAction(actor,target,'kiss'));
-    addMenu('Cuddle',()=>socialAction(actor,target,'cuddle'));
-    addMenu('Talk',()=>socialAction(actor,target,'talk'));
-    addMenu('Tickle',()=>socialAction(actor,target,'tickle'));
-    addMenu('Hold hands',()=>socialAction(actor,target,'hands'));
-    addMenu('Cozy time',()=>startCozy(actor,target,run));
-    addMenu('Ask favor, snack',()=>askFavor(target,'snack'));
-    addMenu('Watch together',()=>askFavor(target,'watchComedy'));
-  } else if(target.id==='dog'){
-    addMenu('Pet dog',()=>socialAction(actor,target,'pet'));
-    addMenu('Train dog',()=>dogTrain(actor,target));
-    addMenu('Fetch mode',()=>startFetchMode());
-  } else {
-    addMenu('Talk',()=>socialAction(actor,target,'talk'));
-  }
+  const actor=selected(); if(target.id===actor.id){showMenuBase(`${actor.name}`); if(state.phoneRinging&&actor.id==='resident')addMenu(`Answer ${state.phoneRinging.from}`,()=>answerPhone(actor)); addMenu('Mood, Big Smile 😁',()=>{setMood(actor,'bigSmile');hideMenu();}); addMenu('Mood, Smile 😊',()=>{setMood(actor,'smile');hideMenu();}); addMenu('Mood, Calm 😌',()=>{setMood(actor,'calm');hideMenu();}); addMenu('Mood, Annoyed 😒',()=>{setMood(actor,'annoyed');hideMenu();}); addMenu('Open phone 📱',()=>showPhoneMenu(p)); placeMenu(p); return;}
+  showMenuBase(`${actor.name} → ${target.name}`); addMenu(`Select ${target.name}`,()=>{state.selected=target.id;hideMenu();sync();});
+  if(target.id==='girlfriend'){addMenu('Kiss',()=>socialAction(actor,target,'kiss')); addMenu('Cuddle',()=>socialAction(actor,target,'cuddle')); addMenu('Talk',()=>socialAction(actor,target,'talk')); addMenu('Tickle',()=>socialAction(actor,target,'tickle')); addMenu('Hold hands',()=>socialAction(actor,target,'hands')); addMenu('Cozy time',()=>startCozy(actor,target,run)); addMenu('Go on date',()=>startDate(actor,target)); addMenu('Ask favor, snack',()=>askFavor(target,'snack')); addMenu('Watch together',()=>askFavor(target,'watchComedy'));}
+  else if(target.id==='dog'){addMenu('Pet dog',()=>socialAction(actor,target,'pet')); addMenu('Train dog',()=>dogTrain(actor,target)); addMenu('Fetch mode',()=>startFetchMode());}
+  else addMenu('Talk',()=>socialAction(actor,target,'talk'));
   placeMenu(p);
 }
-function showPhoneMenu(p){
-  showMenuBase('Phone');
-  addMenu('Call Malik',()=>phoneCall('Malik'));
-  addMenu('Call Amina',()=>phoneCall('Amina'));
-  addMenu('Call Mom',()=>phoneCall('Mom'));
-  addMenu('Invite friend, coming later',()=>{log('Invite friend system stub added.');hideMenu();});
-  placeMenu(p);
-}
+function showPhoneMenu(p){showMenuBase('Phone'); addMenu('Call Malik',()=>phoneCall('Malik')); addMenu('Call Amina',()=>phoneCall('Amina')); addMenu('Call Mom',()=>phoneCall('Mom')); addMenu('Invite friend, coming later',()=>{log('Invite friend system stub added.');hideMenu();}); placeMenu(p);}
 function phoneCall(name){setMood(selected(),'phone'); apply(selected(),{social:10,fun:3}); log(`Called ${name}.`); hideMenu();}
 function answerPhone(actor){setMood(actor,'phone'); apply(actor,{social:8}); log(`Answered ${state.phoneRinging.from}.`); state.phoneRinging=null; hideMenu();}
-function socialAction(actor,target,type){
-  const labels={kiss:'Kiss',cuddle:'Cuddle',talk:'Talk',tickle:'Tickle',hands:'Held hands',pet:'Pet dog'};
-  const moods={kiss:'love',cuddle:'love',talk:'smile',tickle:'playful',hands:'love',pet:'dogHappy'};
-  setMood(actor,moods[type]||'smile'); setMood(target,moods[type]||'smile');
-  apply(actor,{social:10,fun:5}); apply(target,{social:10,fun:5});
-  if(target.id==='girlfriend')state.house.relationship=clamp(state.house.relationship+6);
-  if(type==='hands'){target.target={x:actor.x+26,y:actor.y+10,run:false}; target.moveMode='walk';}
-  log(`${actor.name}: ${labels[type]||type} with ${target.name}.`);
-  hideMenu();
-}
+function socialAction(actor,target,type){const labels={kiss:'Kiss',cuddle:'Cuddle',talk:'Talk',tickle:'Tickle',hands:'Held hands',pet:'Pet dog'}; const moods={kiss:'love',cuddle:'love',talk:'smile',tickle:'playful',hands:'love',pet:'dogHappy'}; setMood(actor,moods[type]||'smile'); setMood(target,moods[type]||'smile'); apply(actor,{social:10,fun:5}); apply(target,{social:10,fun:5}); if(target.id==='girlfriend')state.house.relationship=clamp(state.house.relationship+6); if(type==='hands'){target.target={x:actor.x+26,y:actor.y+10,run:false}; target.moveMode='walk';} log(`${actor.name}: ${labels[type]||type} with ${target.name}.`); hideMenu();}
 function dogTrain(actor,dog){setMood(dog,'dogHappy'); apply(dog,{fun:8,social:10,stamina:-7}); apply(actor,{fun:5,social:4}); log('Dog training improved focus.'); hideMenu();}
 function startFetchMode(){state.fetchMode=true; log('Fetch mode: tap a spot on the floor to throw the ball.'); hideMenu();}
-function throwBall(x,y){
-  const dog=state.entities.dog;
-  state.ball={x:clamp(x,110,880),y:clamp(y,95,545),floor:state.floor};
-  if(dog.floor!==state.floor)dog.floor=state.floor;
-  dog.fetching='toBall';
-  moveTo(dog,state.ball.x,state.ball.y,true);
-  state.fetchMode=false;
-}
-function askFavor(target,kind){
-  const obj=kind==='snack'?objectOnFloor(0,'fridge'):objectOnFloor(0,'tv');
-  state.floor=0;
-  commandObj(target,obj,kind==='snack'?'snack':kind);
-  setMood(target,'smile');
-  log(`${target.name} accepted the favor.`);
-  hideMenu();
-}
-function startCozy(actor,target,run=false){
-  const bed=objectOnFloor(1,'bed');
-  state.floor=1;
-  commandObj(actor,bed,'cozy',run);
-  commandObj(target,bed,'cozy',run);
-  log('Cozy time starts in the bedroom. Lights off.');
-  hideMenu();
-}
+function throwBall(x,y){const dog=state.entities.dog; state.ball={x:clamp(x,110,880),y:clamp(y,95,545),floor:state.floor}; if(dog.floor!==state.floor)dog.floor=state.floor; dog.fetching='toBall'; moveTo(dog,state.ball.x,state.ball.y,true); state.fetchMode=false;}
+function askFavor(target,kind){const obj=kind==='snack'?objectOnFloor(0,'fridge'):objectOnFloor(0,'tv'); state.floor=0; commandObj(target,obj,kind==='snack'?'snack':kind); setMood(target,'smile'); log(`${target.name} accepted the favor.`); hideMenu();}
+function startCozy(actor,target,run=false){const bed=objectOnFloor(1,'bed'); state.floor=1; commandObj(actor,bed,'cozy',run); commandObj(target,bed,'cozy',run); log('Cozy time starts in the bedroom. Lights off.'); hideMenu();}
+function startDate(actor,target){startOffsite('date',[actor.id,target.id]);}
 
 function rr(x,y,w,h,r,fill){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();ctx.fillStyle=fill;ctx.fill();}
-function poly(points,fill){ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);points.slice(1).forEach(p=>ctx.lineTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill();}
+function poly(points,fill){ctx.beginPath();ctx.moveTo(points[0][0]);points.slice(1).forEach(p=>ctx.lineTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill();}
 function updateView(){view.scale=Math.min(canvas.width/1000,canvas.height/640); view.x=(canvas.width/view.scale-1000)/2; view.y=(canvas.height/view.scale-640)/2;}
 function draw(){
-  updateView();
-  ctx.clearRect(0,0,1280,720);ctx.fillStyle=colors.bg;ctx.fillRect(0,0,1280,720);
-  ctx.save(); ctx.scale(view.scale,view.scale); ctx.translate(view.x,view.y);
-  rr(55,45,900,560,24,'#1d2230');ctx.strokeStyle='#4b5369';ctx.lineWidth=4;ctx.stroke();
-  const f=floors[state.floor];
+  updateView(); ctx.clearRect(0,0,1280,720); ctx.fillStyle=colors.bg; ctx.fillRect(0,0,1280,720); ctx.save(); ctx.scale(view.scale,view.scale); ctx.translate(view.x,view.y);
+  rr(55,45,900,560,24,'#1d2230'); ctx.strokeStyle='#4b5369'; ctx.lineWidth=4; ctx.stroke(); const f=floors[state.floor];
   f.rooms.forEach(room=>{rr(room.x,room.y,room.w,room.h,16,room.label.includes('Kitchen')||room.label.includes('Office')?colors.room2:colors.room);ctx.strokeStyle='rgba(255,255,255,.13)';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='rgba(255,255,255,.22)';ctx.font='700 16px system-ui';ctx.fillText(room.label,room.x+16,room.y+28);});
-  f.objects.forEach(obj=>drawObject(obj,state.hover===obj));
-  if(state.ball && state.ball.floor===state.floor){ctx.fillStyle='#f1c66a';ctx.beginPath();ctx.arc(state.ball.x,state.ball.y,9,0,Math.PI*2);ctx.fill();}
-  Object.values(state.entities).forEach(e=>{if(e.target&&!e.off&&e.floor===state.floor){ctx.strokeStyle=e.moveMode==='run'?'#f1c66a':'#8fd3ff';ctx.setLineDash([7,7]);ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.target.x,e.target.y);ctx.stroke();ctx.setLineDash([]);}});
-  Object.values(state.entities).forEach(drawEnt);
-  if(!state.house.lights[state.floor]){ctx.fillStyle='rgba(0,0,0,.48)';ctx.fillRect(55,45,900,560);}
-  rr(690,35,255,104,16,'rgba(0,0,0,.36)');ctx.fillStyle=colors.text;ctx.font='900 22px system-ui';ctx.fillText(f.name,715,68);ctx.font='700 14px system-ui';ctx.fillStyle=colors.mute;ctx.fillText(timeText(),715,95);ctx.fillText(`Tap walk, double tap run`,715,118);ctx.fillText(`Lights ${state.house.lights[state.floor]?'on':'off'}`,715,139);
-  const e=selected();
-  if(e.floor!==state.floor && !e.off){rr(280,288,430,58,16,'rgba(0,0,0,.45)');ctx.fillStyle=colors.text;ctx.font='800 15px system-ui';ctx.textAlign='center';ctx.fillText(`${e.name} is on ${floors[e.floor].name}. Tap an object here to call them.`,495,323);ctx.textAlign='left';}
+  f.objects.forEach(obj=>drawObject(obj,state.hover===obj)); if(state.ball&&state.ball.floor===state.floor){ctx.fillStyle='#f1c66a';ctx.beginPath();ctx.arc(state.ball.x,state.ball.y,9,0,Math.PI*2);ctx.fill();}
+  Object.values(state.entities).forEach(e=>{if(e.target&&!e.off&&e.floor===state.floor){ctx.strokeStyle=e.moveMode==='run'?'#f1c66a':'#8fd3ff';ctx.setLineDash([7,7]);ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.target.x,e.target.y);ctx.stroke();ctx.setLineDash([]);}}); Object.values(state.entities).forEach(drawEnt);
+  if(!state.house.lights[state.floor]){ctx.fillStyle='rgba(0,0,0,.48)';ctx.fillRect(55,45,900,560);} drawTvPanel(); drawHeader(); const e=selected(); if(e.floor!==state.floor&&!e.off){rr(280,288,430,58,16,'rgba(0,0,0,.45)');ctx.fillStyle=colors.text;ctx.font='800 15px system-ui';ctx.textAlign='center';ctx.fillText(`${e.name} is on ${floors[e.floor].name}. Tap an object here to call them.`,495,323);ctx.textAlign='left';}
   if(state.phoneRinging){const r=state.entities.resident; if(r.floor===state.floor&&!r.off){ctx.font='900 30px system-ui';ctx.fillText('📱',r.x+22,r.y-22);}}
-  ctx.restore();
+  drawTimeLapseOverlay(); ctx.restore();
 }
+function drawHeader(){const f=floors[state.floor]; rr(690,35,255,104,16,'rgba(0,0,0,.36)');ctx.fillStyle=colors.text;ctx.font='900 22px system-ui';ctx.fillText(f.name,715,68);ctx.font='700 14px system-ui';ctx.fillStyle=colors.mute;ctx.fillText(timeText(),715,95);ctx.fillText(`Tap walk, double tap run`,715,118);ctx.fillText(`Lights ${state.house.lights[state.floor]?'on':'off'}`,715,139);}
+function drawTvPanel(){if(!state.tvPanel)return; const p=state.tvPanel; rr(620,410,300,140,18,'rgba(8,10,18,.72)'); ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.stroke(); ctx.fillStyle=colors.text; ctx.font='900 42px system-ui'; ctx.fillText(p.emoji,642,466); ctx.font='900 18px system-ui'; ctx.fillText(p.title,705,452); ctx.font='700 13px system-ui'; ctx.fillStyle=colors.mute; wrapText(p.caption,705,478,190,18);}
+function drawTimeLapseOverlay(){if(!state.timeLapse)return; const ev=state.timeLapse; const pct=clamp(1-ev.t/ev.total,0,1); ctx.fillStyle='rgba(0,0,0,.62)'; ctx.fillRect(55,45,900,560); rr(315,210,380,185,22,'rgba(17,19,26,.94)'); ctx.strokeStyle='rgba(255,255,255,.20)'; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle=colors.hot; ctx.font='900 28px system-ui'; ctx.textAlign='center'; ctx.fillText('⏱',505,255); ctx.fillStyle=colors.text; ctx.font='900 24px system-ui'; ctx.fillText(ev.title,505,292); ctx.font='800 18px system-ui'; ctx.fillText(timeText(),505,323); rr(360,348,290,14,7,'rgba(255,255,255,.12)'); rr(360,348,290*pct,14,7,colors.hot); ctx.fillStyle=colors.mute; ctx.font='700 13px system-ui'; ctx.fillText('Time is passing...',505,382); ctx.textAlign='left';}
+function wrapText(text,x,y,maxWidth,lineHeight){const words=text.split(' '); let line=''; for(const word of words){const test=line+word+' '; if(ctx.measureText(test).width>maxWidth&&line){ctx.fillText(line,x,y); line=word+' '; y+=lineHeight;} else line=test;} ctx.fillText(line,x,y);}
 function drawObject(obj,hot){
-  const fill=hot?'#7c6a3b':colors.obj;
-  ctx.strokeStyle=hot?colors.hot:'rgba(255,255,255,.18)';
-  ctx.lineWidth=hot?3:1.5;
-  if(['fridge','stove','sink','shower','toilet','tv','couch','bed','desk','dogbowl','door','stairs','stairs2','light1','light2'].includes(obj.id)){
-    rr(obj.x,obj.y,obj.w,obj.h,10,fill);ctx.stroke();
-    ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 22px system-ui';ctx.fillStyle=colors.text;
-    const icon={fridge:'▣',stove:'▥',sink:'◒',shower:'🚿',toilet:'◉',tv:'▭',couch:'▰',bed:'▱',desk:'▤',dogbowl:'◡',door:'▥',stairs:'≋',stairs2:'≋',light1:'💡',light2:'💡'}[obj.id]||'';
-    if(obj.id==='fridge')poly([[obj.x+8,obj.y+8],[obj.x+obj.w-8,obj.y+14],[obj.x+obj.w-16,obj.y+obj.h-8],[obj.x+14,obj.y+obj.h-14]],'#8aa0be');
-    if(obj.id==='bed')rr(obj.x+10,obj.y+12,obj.w-20,obj.h-24,8,'#7f6edb');
-    ctx.fillText(icon,obj.x+obj.w/2,obj.y+obj.h/2+1);
-    ctx.restore();
-  } else {rr(obj.x,obj.y,obj.w,obj.h,10,fill);ctx.stroke();}
-  ctx.fillStyle=colors.text;ctx.font='700 12px system-ui';ctx.textAlign='center';ctx.fillText(obj.label,obj.x+obj.w/2,obj.y+obj.h+14);ctx.textAlign='left';
+  const fill=hot?'#7c6a3b':colors.obj; ctx.strokeStyle=hot?colors.hot:'rgba(255,255,255,.18)'; ctx.lineWidth=hot?3:1.5; rr(obj.x,obj.y,obj.w,obj.h,10,fill); ctx.stroke(); ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='700 22px system-ui'; ctx.fillStyle=colors.text;
+  const icon={fridge:'▣',stove:'▥',sink:'◒',shower:'🚿',toilet:'◉',tv:'▭',couch:'▰',bed:'▱',desk:'💻',dogbowl:'◡',door:'⇄',stairs:'≋',stairs2:'≋',light1:'💡',light2:'💡'}[obj.id]||''; if(obj.id==='fridge')poly([[obj.x+8,obj.y+8],[obj.x+obj.w-8,obj.y+14],[obj.x+obj.w-16,obj.y+obj.h-8],[obj.x+14,obj.y+obj.h-14]],'#8aa0be'); if(obj.id==='bed')rr(obj.x+10,obj.y+12,obj.w-20,obj.h-24,8,'#7f6edb'); ctx.fillText(icon,obj.x+obj.w/2,obj.y+obj.h/2+1); ctx.restore(); ctx.fillStyle=colors.text; ctx.font='700 12px system-ui'; ctx.textAlign='center'; ctx.fillText(obj.label,obj.x+obj.w/2,obj.y+obj.h+14); ctx.textAlign='left';
 }
 function limb(x1,y1,x2,y2,color,width){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
 function drawEnt(e){
-  if(e.off||e.floor!==state.floor)return;
-  const moving=!!e.target;
-  const phase=moving?Math.sin(e.step*Math.PI*2):0;
-  const fx=Math.cos(e.facing), fy=Math.sin(e.facing), rx=-fy, ry=fx;
-  const cx=e.x, cy=e.y;
-  ctx.save();
-  ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(cx,cy+e.radius*.95,e.radius*1.25,e.radius*.45,0,0,Math.PI*2);ctx.fill();
-  if(e.id==='dog'){drawDog(e,fx,fy,rx,ry,phase);ctx.restore();return;}
-  const leftFoot={x:cx-fx*(15+phase*7)-rx*7,y:cy-fy*(15+phase*7)-ry*7};
-  const rightFoot={x:cx-fx*(15-phase*7)+rx*7,y:cy-fy*(15-phase*7)+ry*7};
-  const leftHand={x:cx+fx*(3+phase*8)-rx*17,y:cy+fy*(3+phase*8)-ry*17};
-  const rightHand={x:cx+fx*(3-phase*8)+rx*17,y:cy+fy*(3-phase*8)+ry*17};
-  limb(cx-rx*5,cy-ry*5,leftFoot.x,leftFoot.y,'#151923',5);
-  limb(cx+rx*5,cy+ry*5,rightFoot.x,rightFoot.y,'#151923',5);
-  limb(cx-rx*9,cy-ry*9,leftHand.x,leftHand.y,e.color,5);
-  limb(cx+rx*9,cy+ry*9,rightHand.x,rightHand.y,e.color,5);
-  ctx.fillStyle=e.color;ctx.beginPath();ctx.ellipse(cx,cy,e.radius*.78,e.radius*1.02,e.facing,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#e8d5b8';ctx.beginPath();ctx.arc(cx+fx*17,cy+fy*17,8,0,Math.PI*2);ctx.fill();
-  ctx.font='900 13px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(moodDefs[e.mood]?.emoji||'🙂',cx+fx*17,cy+fy*17);
-  if(e.id===state.selected){ctx.strokeStyle=colors.hot;ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,e.radius+14,0,Math.PI*2);ctx.stroke();}
-  ctx.fillStyle=colors.text;ctx.font='700 13px system-ui';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillText(e.name,cx,cy+e.radius+26);ctx.textAlign='left';
-  drawStatus(e,cx,cy);
-  ctx.restore();
+  if(e.off||e.floor!==state.floor)return; const moving=!!e.target; const phase=moving?Math.sin(e.step*Math.PI*2):0; const fx=Math.cos(e.facing), fy=Math.sin(e.facing), rx=-fy, ry=fx; const cx=e.x, cy=e.y; ctx.save(); ctx.fillStyle='rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(cx,cy+e.radius*.95,e.radius*1.25,e.radius*.45,0,0,Math.PI*2); ctx.fill(); if(e.id==='dog'){drawDog(e,fx,fy,rx,ry,phase); ctx.restore(); return;}
+  const leftFoot={x:cx-fx*(15+phase*7)-rx*7,y:cy-fy*(15+phase*7)-ry*7}; const rightFoot={x:cx-fx*(15-phase*7)+rx*7,y:cy-fy*(15-phase*7)+ry*7}; const leftHand={x:cx+fx*(3+phase*8)-rx*17,y:cy+fy*(3+phase*8)-ry*17}; const rightHand={x:cx+fx*(3-phase*8)+rx*17,y:cy+fy*(3-phase*8)+ry*17};
+  limb(cx-rx*5,cy-ry*5,leftFoot.x,leftFoot.y,'#151923',5); limb(cx+rx*5,cy+ry*5,rightFoot.x,rightFoot.y,'#151923',5); limb(cx-rx*9,cy-ry*9,leftHand.x,leftHand.y,e.color,5); limb(cx+rx*9,cy+ry*9,rightHand.x,rightHand.y,e.color,5); ctx.fillStyle=e.color; ctx.beginPath(); ctx.ellipse(cx,cy,e.radius*.78,e.radius*1.02,e.facing,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#e8d5b8'; ctx.beginPath(); ctx.arc(cx+fx*17,cy+fy*17,8,0,Math.PI*2); ctx.fill(); ctx.font='900 13px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(moodDefs[e.mood]?.emoji||'🙂',cx+fx*17,cy+fy*17); if(e.id===state.selected){ctx.strokeStyle=colors.hot;ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,e.radius+14,0,Math.PI*2);ctx.stroke();} ctx.fillStyle=colors.text; ctx.font='700 13px system-ui'; ctx.textBaseline='alphabetic'; ctx.fillText(e.name,cx,cy+e.radius+26); ctx.textAlign='left'; drawStatus(e,cx,cy); ctx.restore();
 }
-function drawDog(e,fx,fy,rx,ry,phase){
-  const cx=e.x, cy=e.y;
-  for(const side of [-1,1]){
-    limb(cx-rx*side*4-fx*7,cy-ry*side*4-fy*7,cx-rx*side*8-fx*(15+phase*4),cy-ry*side*8-fy*(15+phase*4),'#5b351e',3);
-    limb(cx-rx*side*4+fx*6,cy-ry*side*4+fy*6,cx-rx*side*8+fx*(14-phase*4),cy-ry*side*8+fy*(14-phase*4),'#5b351e',3);
-  }
-  ctx.fillStyle=e.color;ctx.beginPath();ctx.ellipse(cx,cy,e.radius*.9,e.radius*1.25,e.facing,0,Math.PI*2);ctx.fill();
-  ctx.beginPath();ctx.arc(cx+fx*15,cy+fy*15,7,0,Math.PI*2);ctx.fill();
-  ctx.font='900 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🐶',cx+fx*15,cy+fy*15);
-  if(e.id===state.selected){ctx.strokeStyle=colors.hot;ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,e.radius+12,0,Math.PI*2);ctx.stroke();}
-  ctx.fillStyle=colors.text;ctx.font='700 13px system-ui';ctx.textBaseline='alphabetic';ctx.fillText(e.name,cx,cy+e.radius+24);ctx.textAlign='left';
-  drawStatus(e,cx,cy);
-}
-function drawStatus(e,cx,cy){
-  if(e.action){const p=1-e.action.t/e.action.total;rr(cx-27,cy-e.radius-26,54,8,4,'rgba(0,0,0,.55)');rr(cx-27,cy-e.radius-26,54*p,8,4,colors.hot);}
-  if(e.bubbleT>0){ctx.font='700 12px system-ui';ctx.textAlign='center';const w=Math.min(185,ctx.measureText(e.bubble).width+22);rr(cx-w/2,cy-e.radius-60,w,28,12,'rgba(17,19,26,.92)');ctx.strokeStyle='rgba(255,255,255,.18)';ctx.stroke();ctx.fillStyle=colors.text;ctx.fillText(e.bubble,cx,cy-e.radius-42);ctx.textAlign='left';}
-}
-
-function sync(){
-  const e=selected();
-  Object.values(state.entities).forEach(x=>x.selected=x.id===state.selected);
-  ui.selectedName.textContent=`${e.name}${e.off?' (away)':''}`;
-  ui.currentAction.textContent=e.action?e.action.label:e.target?`${e.moveMode==='run'?'Running':'Walking'}${e.floor!==state.floor?' off-screen':''}`:'Idle';
-  ui.needs.innerHTML=needKeys.map(n=>{const v=Math.round(e.needs[n] ?? 50);const c=v<25?'bad':v<50?'warn':'';return `<div class="need-row"><span>${cap(n)}</span><div class="need-bar"><div class="need-fill ${c}" style="width:${v}%"></div></div><span>${v}</span></div>`;}).join('');
-  const family=state.house.baby?'Baby at home':state.house.expecting?`Expecting, day ${Math.floor(state.house.expectingDays)+1}`:'No family event';
-  ui.worldState.innerHTML=`<strong>${timeText()}</strong><br>Money: $${state.money}<br>Viewing: ${floors[state.floor].name}<br>${e.off?`${e.name} is away.`:`${e.name} is on ${floors[e.floor].name}.`}<br>Lights: ${state.house.lights[state.floor]?'on':'off'}<br>Electric use: ${state.house.electricity.toFixed(1)}<br>Relationship: ${state.house.relationship}<br>${family}<br>Speed: ${state.paused?'Paused':state.speed+'x'}`;
-  ui.log.innerHTML=state.logs.map(x=>`<li>${x}</li>`).join('');
-  ui.floor0.classList.toggle('active',state.floor===0);ui.floor1.classList.toggle('active',state.floor===1);ui.speed1.classList.toggle('active',state.speed===1&&!state.paused);ui.speed3.classList.toggle('active',state.speed===3&&!state.paused);ui.pause.classList.toggle('active',state.paused);
-}
-
+function drawDog(e,fx,fy,rx,ry,phase){const cx=e.x,cy=e.y; for(const side of [-1,1]){limb(cx-rx*side*4-fx*7,cy-ry*side*4-fy*7,cx-rx*side*8-fx*(15+phase*4),cy-ry*side*8-fy*(15+phase*4),'#5b351e',3); limb(cx-rx*side*4+fx*6,cy-ry*side*4+fy*6,cx-rx*side*8+fx*(14-phase*4),cy-ry*side*8+fy*(14-phase*4),'#5b351e',3);} ctx.fillStyle=e.color; ctx.beginPath(); ctx.ellipse(cx,cy,e.radius*.9,e.radius*1.25,e.facing,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(cx+fx*15,cy+fy*15,7,0,Math.PI*2); ctx.fill(); ctx.font='900 12px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('🐶',cx+fx*15,cy+fy*15); if(e.id===state.selected){ctx.strokeStyle=colors.hot;ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,e.radius+12,0,Math.PI*2);ctx.stroke();} ctx.fillStyle=colors.text; ctx.font='700 13px system-ui'; ctx.textBaseline='alphabetic'; ctx.fillText(e.name,cx,cy+e.radius+24); ctx.textAlign='left'; drawStatus(e,cx,cy);}
+function drawStatus(e,cx,cy){if(e.action){const p=1-e.action.t/e.action.total; rr(cx-27,cy-e.radius-26,54,8,4,'rgba(0,0,0,.55)'); rr(cx-27,cy-e.radius-26,54*p,8,4,colors.hot);} if(e.bubbleT>0){ctx.font='700 12px system-ui';ctx.textAlign='center';const w=Math.min(185,ctx.measureText(e.bubble).width+22);rr(cx-w/2,cy-e.radius-60,w,28,12,'rgba(17,19,26,.92)');ctx.strokeStyle='rgba(255,255,255,.18)';ctx.stroke();ctx.fillStyle=colors.text;ctx.fillText(e.bubble,cx,cy-e.radius-42);ctx.textAlign='left';}}
+function sync(){const e=selected(); Object.values(state.entities).forEach(x=>x.selected=x.id===state.selected); ui.selectedName.textContent=`${e.name}${e.off?' (away)':''}`; ui.currentAction.textContent=state.timeLapse?state.timeLapse.title:e.action?e.action.label:e.target?`${e.moveMode==='run'?'Running':'Walking'}${e.floor!==state.floor?' off-screen':''}`:'Idle'; ui.needs.innerHTML=needKeys.map(n=>{const v=Math.round(e.needs[n]??50);const c=v<25?'bad':v<50?'warn':'';return `<div class="need-row"><span>${cap(n)}</span><div class="need-bar"><div class="need-fill ${c}" style="width:${v}%"></div></div><span>${v}</span></div>`;}).join(''); const family=state.house.baby?'Baby at home':state.house.expecting?`Expecting, day ${Math.floor(state.house.expectingDays)+1}`:'No family event'; ui.worldState.innerHTML=`<strong>${timeText()}</strong><br>Money: $${state.money}<br>Viewing: ${floors[state.floor].name}<br>${e.off?`${e.name} is away.`:`${e.name} is on ${floors[e.floor].name}.`}<br>Lights: ${state.house.lights[state.floor]?'on':'off'}<br>Electric use: ${state.house.electricity.toFixed(1)}<br>Relationship: ${state.house.relationship}<br>${family}<br>${state.tvPanel?`TV: ${state.tvPanel.title}<br>`:''}Speed: ${state.paused?'Paused':state.speed+'x'}`; ui.log.innerHTML=state.logs.map(x=>`<li>${x}</li>`).join(''); ui.floor0.classList.toggle('active',state.floor===0); ui.floor1.classList.toggle('active',state.floor===1); ui.speed1.classList.toggle('active',state.speed===1&&!state.paused); ui.speed3.classList.toggle('active',state.speed===3&&!state.paused); ui.pause.classList.toggle('active',state.paused);}
 canvas.addEventListener('pointermove',e=>{const p=screenToGame(e);state.hover=objectAt(p.x,p.y)||null;});
-canvas.addEventListener('pointerdown',e=>{
-  const p=screenToGame(e);
-  const obj=objectAt(p.x,p.y);
-  const run=isDoubleTap(p,obj);
-  const hit=entityAt(p.x,p.y);
-  if(state.fetchMode && !hit && !obj){throwBall(p.x,p.y);return;}
-  if(hit){showPersonMenu(hit,p,run);return;}
-  if(obj){showObjectMenu(obj,p,run);return;}
-  moveTo(selected(),p.x,p.y,run);
-});
-ui.floor0.onclick=()=>{state.floor=0;hideMenu();sync();};
-ui.floor1.onclick=()=>{state.floor=1;hideMenu();sync();};
-ui.speed1.onclick=()=>{state.speed=1;state.paused=false;sync();};
-ui.speed3.onclick=()=>{state.speed=3;state.paused=false;sync();};
-ui.pause.onclick=()=>{state.paused=!state.paused;sync();};
-ui.reset.onclick=()=>{state=fresh();hideMenu();sync();};
-document.addEventListener('keydown',e=>{
-  const ent=selected();
-  if(e.key==='Escape')hideMenu();
-  if(e.key==='1'){state.floor=0;sync();}
-  if(e.key==='2'){state.floor=1;sync();}
-  if(e.key===' '){state.paused=!state.paused;sync();}
-  const step=35;
-  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();moveTo(ent,ent.x+(e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0),ent.y+(e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0),e.shiftKey);}
-});
-function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);draw();sync();requestAnimationFrame(loop);}
+canvas.addEventListener('pointerdown',e=>{if(state.timeLapse)return; const p=screenToGame(e); const obj=objectAt(p.x,p.y); const run=isDoubleTap(p,obj); const hit=entityAt(p.x,p.y); if(state.fetchMode&&!hit&&!obj){throwBall(p.x,p.y);return;} if(hit){showPersonMenu(hit,p,run);return;} if(obj){showObjectMenu(obj,p,run);return;} moveTo(selected(),p.x,p.y,run);});
+ui.floor0.onclick=()=>{state.floor=0;hideMenu();sync();}; ui.floor1.onclick=()=>{state.floor=1;hideMenu();sync();}; ui.speed1.onclick=()=>{state.speed=1;state.paused=false;sync();}; ui.speed3.onclick=()=>{state.speed=3;state.paused=false;sync();}; ui.pause.onclick=()=>{state.paused=!state.paused;sync();}; ui.reset.onclick=()=>{state=fresh();hideMenu();sync();};
+document.addEventListener('keydown',e=>{const ent=selected(); if(e.key==='Escape')hideMenu(); if(e.key==='1'){state.floor=0;sync();} if(e.key==='2'){state.floor=1;sync();} if(e.key===' '){state.paused=!state.paused;sync();} const step=35; if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();moveTo(ent,ent.x+(e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0),ent.y+(e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0),e.shiftKey);}});
+function loop(now){const dt=Math.min(.05,(now-last)/1000); last=now; update(dt); draw(); sync(); requestAnimationFrame(loop);}
 sync(); requestAnimationFrame(loop);
