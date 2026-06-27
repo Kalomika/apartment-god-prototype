@@ -89,7 +89,9 @@ export function createUi(state, canvas) {
       { label: 'Get food', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'fridge'), 'snack') },
       { label: 'Shower', run: () => startObjectAction(state, actor, objects.find(o => o.kind === 'shower' && o.floor === actor.floor) || objects.find(o => o.id === 'shower'), 'shower') },
       { label: 'Train strength', run: () => startSkill(state, actor, 'strength') },
-      { label: 'Study intellect', run: () => startSkill(state, actor, 'intellect') }
+      { label: 'Study intellect', run: () => startSkill(state, actor, 'intellect') },
+      { label: 'Practice cooking', run: () => startSkill(state, actor, 'cooking') },
+      { label: 'Practice money management', run: () => startSkill(state, actor, 'money') }
     ];
   }
 
@@ -104,6 +106,9 @@ export function createUi(state, canvas) {
     const actions = ACTIONS[obj.kind] || [['use', 'Use']];
     const items = actions.map(([id, label]) => ({ label: `${actor.name}: ${label}`, run: () => handleObjectUse(actor, obj, id) }));
     if (obj.kind === 'bookshelf') items.push({ label: `${actor.name}: Read / Study`, run: () => startSkill(state, actor, 'intellect') });
+    if (obj.kind === 'workout') items.push({ label: `${actor.name}: Train Strength`, run: () => startSkill(state, actor, 'strength') });
+    if (obj.kind === 'desk') items.push({ label: `${actor.name}: Build Request`, run: () => handleBuildRequest(state, actor, prompt('What should they build or order?') || '') });
+    if (obj.kind === 'stove') items.push({ label: `${actor.name}: Practice Cooking`, run: () => startSkill(state, actor, 'cooking') });
     items.push({ label: 'Move', run: () => beginMoveObject(state, actor, obj) });
     items.push({ label: 'Assign this object...', run: () => { state.assign = { objectId: obj.id, actionId: actions[0][0] }; log(state, `Tap who should use ${obj.label}.`); } });
     for (const e of state.entities.filter(e => !e.hidden && e.type !== 'dog')) {
@@ -136,6 +141,7 @@ export function createUi(state, canvas) {
       ['Phone: Food', () => orderFood(state, selected(state), false)], ['Phone: Workout', () => buyWorkoutGear(state, selected(state))],
       ['Build Request', () => handleBuildRequest(state, selected(state), prompt('What should they build or order?') || '')],
       ['Train Strength', () => startSkill(state, selected(state), 'strength')], ['Study', () => startSkill(state, selected(state), 'intellect')],
+      ['Cook Skill', () => startSkill(state, selected(state), 'cooking')], ['Money Skill', () => startSkill(state, selected(state), 'money')],
       ['Schedule Gym', () => addRoutine(state, selected(state), 'strength')], ['Auto Mode', cycleMode]
     ];
     for (const [label, run] of buttons) {
