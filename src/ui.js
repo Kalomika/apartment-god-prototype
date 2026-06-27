@@ -53,9 +53,9 @@ export function createUi(state, canvas) {
     }
 
     if (clickedEntity) {
-      state.selectedId = clickedEntity.id;
       const actor = selected(state);
-      const items = clickedEntity.id === actor.id ? selfItems(actor) : socialItems(actor, clickedEntity);
+      const isSelf = clickedEntity.id === actor.id;
+      const items = isSelf ? selfItems(actor) : socialItems(actor, clickedEntity);
       openMenu(event.offsetX, event.offsetY, clickedEntity.name, items);
       return;
     }
@@ -88,7 +88,9 @@ export function createUi(state, canvas) {
 
   function socialItems(actor, target) {
     const choices = target.type === 'dog' ? DOG_SOCIAL_ACTIONS : SOCIAL_ACTIONS;
-    return choices.map(([id, label]) => ({ label, run: () => startSocialAction(state, actor, target, id) }));
+    const items = choices.map(([id, label]) => ({ label, run: () => startSocialAction(state, actor, target, id) }));
+    items.push({ label: `Select ${target.name}`, run: () => { state.selectedId = target.id; log(state, `${target.name} selected.`); } });
+    return items;
   }
 
   function objectItems(actor, obj) {
