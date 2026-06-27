@@ -1,3 +1,4 @@
+import { routeThroughDoors } from './blueprint.js';
 import { approachPoint, clampToPlay, expandedRect, getObject, segmentHitsRect, solidObjects } from './world.js';
 
 function directBlocked(a, b, floor, allowId = '') {
@@ -5,6 +6,19 @@ function directBlocked(a, b, floor, allowId = '') {
 }
 
 function routeAround(a, b, floor, allowId = '') {
+  const viaDoors = routeThroughDoors(a, b, floor);
+  const goals = [...viaDoors, b];
+  const path = [];
+  let current = a;
+  for (const goal of goals) {
+    const leg = routeLeg(current, goal, floor, allowId);
+    path.push(...leg);
+    current = goal;
+  }
+  return path;
+}
+
+function routeLeg(a, b, floor, allowId = '') {
   const blockers = solidObjects(floor, allowId).filter(o => segmentHitsRect(a, b, expandedRect(o, 22)));
   if (!blockers.length) return [b];
 
@@ -68,7 +82,7 @@ export function updateMovement(state, entity, dt) {
   if (!entity.path.length) return false;
 
   const next = entity.path[0];
-  if (entity.floor !== state.floor && entity.id === 'resident') state.floor = entity.floor;
+  if (entity.floor !== state.floor && entity.id === 'resident' && state.viewHoldT <= 0) state.floor = entity.floor;
 
   const dx = next.x - entity.x;
   const dy = next.y - entity.y;
