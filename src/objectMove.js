@@ -1,5 +1,5 @@
 import { commandMove } from './movement.js';
-import { getObject, objects, approachPoint } from './world.js';
+import { objects, approachPoint } from './world.js';
 import { changeNeed, log, say } from './state.js';
 import { pay } from './economy.js';
 
@@ -24,6 +24,7 @@ export function beginMoveObject(state, actor, obj) {
 
 export function placeMoveObject(state, actor, x, y) {
   if (!state.movePick) return false;
+  const wasRenovation = state.movePick.renovation;
   const obj = objects.find(o => o.id === state.movePick.objectId);
   state.movePick = null;
   if (!obj) return false;
@@ -35,7 +36,7 @@ export function placeMoveObject(state, actor, x, y) {
     say(actor, 'NO');
     return true;
   }
-  if (state.movePick?.renovation || FIXED.has(obj.kind)) {
+  if (wasRenovation || FIXED.has(obj.kind)) {
     if (!pay(state, 420, `${obj.label} renovation`)) return true;
     state.appointments.push({ type: 'renovation', objectId: obj.id, t: 12, x: nx, y: ny });
     log(state, `Contractors scheduled to move ${obj.label}.`);
@@ -43,12 +44,18 @@ export function placeMoveObject(state, actor, x, y) {
   }
   const strength = actor.skills?.strength ?? 1;
   const weight = WEIGHT[obj.kind] ?? 2;
-  if (strength < weight - 1) {
+  const helper = state.entities.find(e => e.id !== actor.id && e.type === 'person' && !e.hidden && e.floor === actor.floor && (e.skills?.strength ?? 1) + strength >= weight);
+  if (strength < weight - 1 && !helper) {
     log(state, `${actor.name} needs help to move ${obj.label}.`);
     say(actor, 'HELP');
     return true;
   }
-  state.moveJob = { actorId: actor.id, objectId: obj.id, x: nx, y: ny, phase: 'toObject', weight };
+  if (helper && strength < weight) {
+    const hp = approachPoint(obj, 'move');
+    commandMove(helper, hp.x + 30, hp.y);
+    say(helper, 'HELP');
+  }
+  state.moveJob = { actorId: actor.id, helperId: helper?.id || null, objectId: obj.id, x: nx, y: ny, phase: 'toObject', weight };
   const p = approachPoint(obj, 'move');
   commandMove(actor, p.x, p.y);
   log(state, `${actor.name} is going to move ${obj.label}.`);
@@ -59,22 +66,25 @@ export function updateMoveJob(state) {
   const job = state.moveJob;
   if (!job) return;
   const actor = state.entities.find(e => e.id === job.actorId);
+  const helper = state.entities.find(e => e.id === job.helperId);
   const obj = objects.find(o => o.id === job.objectId);
   if (!actor || !obj) return;
-  if (job.phase === 'toObject' && !actor.path.length) {
+  if (job.phase === 'toObject' && !actor.path.length && (!helper || !helper.path.length)) {
     job.phase = 'toDest';
     commandMove(actor, job.x + obj.w / 2, job.y + obj.h / 2);
+    if (helper) commandMove(helper, job.x + obj.w / 2 + 28, job.y + obj.h / 2);
     say(actor, 'MOVE');
   }
   if (job.phase === 'toDest') {
     obj.x = Math.round(actor.x - obj.w / 2);
     obj.y = Math.round(actor.y - obj.h / 2);
-    if (!actor.path.length) {
+    if (!actor.path.length && (!helper || !helper.path.length)) {
       obj.x = job.x;
       obj.y = job.y;
       changeNeed(actor, 'stamina', -job.weight * 4);
       changeNeed(actor, 'energy', -job.weight * 2);
-      log(state, `${actor.name} moved ${obj.label}.`);
+      if (helper) changeNeed(helper, 'stamina', -job.weight * 3);
+      log(state, `${actor.name}${helper ? ` and ${helper.name}` : ''} moved ${obj.label}.`);
       state.moveJob = null;
     }
   }
