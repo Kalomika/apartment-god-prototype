@@ -1,3 +1,4 @@
+import { windowAt, toggleWindow } from './blueprint.js';
 import { ACTIONS, DOG_SOCIAL_ACTIONS, DOUBLE_TAP_MS, NEEDS, SOCIAL_ACTIONS } from './config.js';
 import { startObjectAction, startOffsite, startSocialAction, throwFetchBall } from './actions.js';
 import { handleBuildRequest } from './buildRequests.js';
@@ -47,6 +48,13 @@ export function createUi(state, canvas) {
     const p = toGamePoint(event);
     if (p.x > 960 || p.y > 720) { closeMenu(); return; }
     if (state.movePick && placeMoveObject(state, selected(state), p.x, p.y)) { closeMenu(); return; }
+
+    const win = windowAt(p.x, p.y, state.floor);
+    if (win) {
+      const open = state.objectState.openWindows?.[win.id];
+      openMenu(event.offsetX, event.offsetY, win.label, [{ label: open ? 'Close Window' : 'Open Window', run: () => toggleWindow(state, selected(state), win) }]);
+      return;
+    }
 
     const clickedEntity = entityAt(p.x, p.y);
     if (state.assign && clickedEntity) {
@@ -129,8 +137,8 @@ export function createUi(state, canvas) {
   }
 
   function bindButtons() {
-    document.getElementById('floor-0').onclick = () => { state.floor = 0; closeMenu(); };
-    document.getElementById('floor-1').onclick = () => { state.floor = 1; closeMenu(); };
+    document.getElementById('floor-0').onclick = () => { state.floor = 0; state.viewHoldT = 0; closeMenu(); };
+    document.getElementById('floor-1').onclick = () => { state.floor = 1; state.viewHoldT = 18; log(state, 'Inspecting upstairs for 18 seconds.'); closeMenu(); };
     document.getElementById('speed-1').onclick = () => { state.speed = 1; };
     document.getElementById('speed-3').onclick = () => { state.speed = 3; };
     document.getElementById('pause').onclick = () => { state.paused = !state.paused; };
@@ -157,7 +165,7 @@ export function createUi(state, canvas) {
       const value = Math.round(actor.needs[key] ?? 0);
       return `<div class="need-row"><span>${label}</span><div class="need-bar"><div class="need-fill" style="width:${value}%"></div></div><span>${value}</span></div>`;
     }).join('');
-    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
+    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
     logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
   }
 
