@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apartment God Prototype</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main id="app-shell">
+      <section id="game-wrap">
+        <canvas id="game" width="1280" height="720" aria-label="Apartment God playable prototype"></canvas>
+        <div id="interaction-menu" class="hidden"></div>
+      </section>
+      <aside id="hud">
+        <h1>Apartment God</h1>
+        <p class="tagline">Tap a person, then tap an object. The resident figures out the intent.</p>
+
+        <section class="panel">
+          <h2>Selected</h2>
+          <div id="selected-name">Resident</div>
+          <div id="current-action">Idle</div>
+        </section>
+
+        <section class="panel">
+          <h2>Needs</h2>
+          <div id="needs"></div>
+        </section>
+
+        <section class="panel compact-grid">
+          <button id="floor-0">Floor 1</button>
+          <button id="floor-1">Floor 2</button>
+          <button id="speed-1">1x</button>
+          <button id="speed-3">3x</button>
+          <button id="pause">Pause</button>
+          <button id="reset">Reset</button>
+        </section>
+
+        <section class="panel">
+          <h2>World</h2>
+          <div id="world-state"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Notifications</h2>
+          <ol id="log"></ol>
+        </section>
+      </aside>
+    </main>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
