@@ -41,7 +41,7 @@ export function orderFood(state, actor, automatic = false) {
   }
   if (!spendMoney(state, cost, 'food delivery')) return false;
   actor.action = 'Ordering food on phone';
-  actor.actionT = ACTION_TIMES.order_food;
+  actor.actionT = ACTION_TIMES.order_food ?? 5;
   actor.pose = 'sit';
   setMood(actor, 'phone');
   say(actor, 'ORDER');
@@ -57,7 +57,7 @@ export function buyWorkoutGear(state, actor) {
   if (!spendMoney(state, cost, 'workout gear')) return false;
   state.objectState.workoutGear = true;
   actor.action = 'Ordered workout gear';
-  actor.actionT = ACTION_TIMES.buy_workout;
+  actor.actionT = ACTION_TIMES.buy_workout ?? 6;
   actor.pose = 'sit';
   setMood(actor, 'phone');
   say(actor, 'GYM');
