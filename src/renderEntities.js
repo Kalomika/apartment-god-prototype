@@ -13,6 +13,7 @@ function drawEntity(ctx, e, selected) {
   ctx.shadowOffsetY = 4;
   if (selected) { ctx.strokeStyle = COLORS.active; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 4, 28, 0, Math.PI * 2); ctx.stroke(); }
   if (e.type === 'dog') drawDog(ctx, e); else drawPerson(ctx, e);
+  if (e.actionT > 0) drawActionBar(ctx, e);
   if (e.bubble && e.bubbleT > 0) drawBubble(ctx, e.bubble);
   ctx.restore();
 }
@@ -37,6 +38,18 @@ function drawDog(ctx, e) {
   ctx.beginPath(); ctx.ellipse(0, 0, 25, 15, 0, 0, Math.PI * 2); ctx.fill();
   ctx.beginPath(); ctx.arc(20, -8, 13, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#11151c'; ctx.font = '800 10px system-ui'; ctx.textAlign = 'center'; ctx.fillText('wo', 20, -5); ctx.textAlign = 'left';
+}
+
+function drawActionBar(ctx, e) {
+  if (!e.actionTotal || e.actionTotal < e.actionT) e.actionTotal = e.actionT;
+  const pct = Math.max(0, Math.min(1, 1 - e.actionT / Math.max(1, e.actionTotal)));
+  roundRect(ctx, -34, 38, 68, 9, 5, 'rgba(10,12,18,.75)');
+  roundRect(ctx, -32, 40, 64 * pct, 5, 4, '#f1c66a');
+  ctx.fillStyle = '#f8fbff';
+  ctx.font = '800 9px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText(String(e.action || 'Working').slice(0, 14), 0, 58);
+  ctx.textAlign = 'left';
 }
 
 function drawBubble(ctx, text) {
