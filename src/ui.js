@@ -1,6 +1,10 @@
 import { ACTIONS, DOG_SOCIAL_ACTIONS, DOUBLE_TAP_MS, NEEDS, SOCIAL_ACTIONS } from './config.js';
 import { startObjectAction, startOffsite, startSocialAction, throwFetchBall } from './actions.js';
+import { handleBuildRequest } from './buildRequests.js';
+import { buyWorkoutGear, orderFood } from './economy.js';
+import { beginMoveObject, placeMoveObject } from './objectMove.js';
 import { commandMove } from './movement.js';
+import { addRoutine, startSkill } from './training.js';
 import { log, resumeEntity, selected, stopEntity } from './state.js';
 import { objectAt, objects } from './world.js';
 import { formatTime } from './rendering.js';
@@ -42,6 +46,7 @@ export function createUi(state, canvas) {
   function handleCanvasClick(event) {
     const p = toGamePoint(event);
     if (p.x > 960 || p.y > 720) { closeMenu(); return; }
+    if (state.movePick && placeMoveObject(state, selected(state), p.x, p.y)) { closeMenu(); return; }
 
     const clickedEntity = entityAt(p.x, p.y);
     if (state.assign && clickedEntity) {
@@ -82,7 +87,9 @@ export function createUi(state, canvas) {
       { label: 'Resume / Auto', run: () => resumeEntity(actor) },
       { label: 'Send to couch', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'couch'), 'relax') },
       { label: 'Get food', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'fridge'), 'snack') },
-      { label: 'Shower', run: () => startObjectAction(state, actor, objects.find(o => o.kind === 'shower' && o.floor === actor.floor) || objects.find(o => o.id === 'shower'), 'shower') }
+      { label: 'Shower', run: () => startObjectAction(state, actor, objects.find(o => o.kind === 'shower' && o.floor === actor.floor) || objects.find(o => o.id === 'shower'), 'shower') },
+      { label: 'Train strength', run: () => startSkill(state, actor, 'strength') },
+      { label: 'Study intellect', run: () => startSkill(state, actor, 'intellect') }
     ];
   }
 
@@ -96,6 +103,8 @@ export function createUi(state, canvas) {
   function objectItems(actor, obj) {
     const actions = ACTIONS[obj.kind] || [['use', 'Use']];
     const items = actions.map(([id, label]) => ({ label: `${actor.name}: ${label}`, run: () => handleObjectUse(actor, obj, id) }));
+    if (obj.kind === 'bookshelf') items.push({ label: `${actor.name}: Read / Study`, run: () => startSkill(state, actor, 'intellect') });
+    items.push({ label: 'Move', run: () => beginMoveObject(state, actor, obj) });
     items.push({ label: 'Assign this object...', run: () => { state.assign = { objectId: obj.id, actionId: actions[0][0] }; log(state, `Tap who should use ${obj.label}.`); } });
     for (const e of state.entities.filter(e => !e.hidden && e.type !== 'dog')) {
       items.push({ label: `Ask ${e.name} to use it`, run: () => handleObjectUse(e, obj, actions[0][0]) });
@@ -108,6 +117,12 @@ export function createUi(state, canvas) {
     startObjectAction(state, actor, obj, actionId);
   }
 
+  function cycleMode() {
+    const modes = ['manual', 'guided', 'free'];
+    state.autonomyMode = modes[(modes.indexOf(state.autonomyMode) + 1) % modes.length];
+    log(state, `Autonomy: ${state.autonomyMode}.`);
+  }
+
   function bindButtons() {
     document.getElementById('floor-0').onclick = () => { state.floor = 0; closeMenu(); };
     document.getElementById('floor-1').onclick = () => { state.floor = 1; closeMenu(); };
@@ -116,7 +131,14 @@ export function createUi(state, canvas) {
     document.getElementById('pause').onclick = () => { state.paused = !state.paused; };
     document.getElementById('reset').onclick = () => location.reload();
     commandPanel.innerHTML = '';
-    for (const [label, run] of [['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))]]) {
+    const buttons = [
+      ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))],
+      ['Phone: Food', () => orderFood(state, selected(state), false)], ['Phone: Workout', () => buyWorkoutGear(state, selected(state))],
+      ['Build Request', () => handleBuildRequest(state, selected(state), prompt('What should they build or order?') || '')],
+      ['Train Strength', () => startSkill(state, selected(state), 'strength')], ['Study', () => startSkill(state, selected(state), 'intellect')],
+      ['Schedule Gym', () => addRoutine(state, selected(state), 'strength')], ['Auto Mode', cycleMode]
+    ];
+    for (const [label, run] of buttons) {
       const button = document.createElement('button'); button.textContent = label; button.onclick = run; commandPanel.appendChild(button);
     }
   }
@@ -129,7 +151,7 @@ export function createUi(state, canvas) {
       const value = Math.round(actor.needs[key] ?? 0);
       return `<div class="need-row"><span>${label}</span><div class="need-bar"><div class="need-fill" style="width:${value}%"></div></div><span>${value}</span></div>`;
     }).join('');
-    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>Speed: ${state.speed}x<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
+    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
     logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
   }
 
