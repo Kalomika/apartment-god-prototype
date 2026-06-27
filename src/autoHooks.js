@@ -1,6 +1,7 @@
 import { updateFreshAir } from './blueprint.js';
 import { updateAppointments } from './buildRequests.js';
 import { updateCooking } from './cooking.js';
+import { updateMusic } from './music.js';
 import { updateMoveJob } from './objectMove.js';
 import { runRoutines, updateTraining } from './training.js';
 
@@ -8,6 +9,7 @@ export function updateAutoHooks(state, dt) {
   if (state.viewHoldT > 0) state.viewHoldT = Math.max(0, state.viewHoldT - dt);
   updateFreshAir(state, dt);
   updateCooking(state);
+  updateMusic(state);
   updateTraining(state);
   updateMoveJob(state);
   updateAppointments(state, dt);
