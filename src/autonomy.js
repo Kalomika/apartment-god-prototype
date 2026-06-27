@@ -1,14 +1,18 @@
 import { startObjectAction, startSocialAction } from './actions.js';
+import { updateAutoHooks } from './autoHooks.js';
 import { byId, say, setMood } from './state.js';
 import { getObject } from './world.js';
 import { commandMove } from './movement.js';
 
 export function updateAutonomy(state, dt) {
+  updateAutoHooks(state, dt);
   for (const e of state.entities) {
     if (e.hidden || e.stopped || e.path.length || e.target || e.actionT > 0) continue;
     e.idleT += dt;
     drainNeeds(e, dt);
   }
+
+  if (state.autonomyMode === 'manual') return;
 
   const resident = byId(state, 'resident');
   const girlfriend = byId(state, 'girlfriend');
