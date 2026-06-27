@@ -36,6 +36,7 @@ export function createState() {
     money: 640,
     bill: 42,
     autonomyMode: 'guided',
+    viewHoldT: 0,
     menu: null,
     assign: null,
     movePick: null,
@@ -50,7 +51,7 @@ export function createState() {
       living: true, kitchen: true, bath: true, entry: true, stairs: true,
       bedroom: true, office: true, bath2: true, hall: true, stairs2: true
     },
-    objectState: { workoutGear: false, bookshelf: false },
+    objectState: { workoutGear: false, bookshelf: false, openWindows: {} },
     entities: [
       entity('resident', 'Resident', 'person', 0, 150, 420, '#79b7ff'),
       entity('girlfriend', 'Girlfriend', 'person', 0, 265, 420, '#f2a3d7'),
