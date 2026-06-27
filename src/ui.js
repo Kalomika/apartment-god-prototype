@@ -4,6 +4,7 @@ import { startObjectAction, startOffsite, startSocialAction, throwFetchBall } fr
 import { handleBuildRequest } from './buildRequests.js';
 import { startCookingFlow } from './cooking.js';
 import { buyWorkoutGear, orderFood } from './economy.js';
+import { genreList, startMusic } from './music.js';
 import { beginMoveObject, placeMoveObject } from './objectMove.js';
 import { commandMove } from './movement.js';
 import { addRoutine, startSkill } from './training.js';
@@ -97,6 +98,7 @@ export function createUi(state, canvas) {
       { label: 'Send to couch', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'couch'), 'relax') },
       { label: 'Get food', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'fridge'), 'snack') },
       { label: 'Cook meal', run: () => startCookingFlow(state, actor) },
+      { label: 'Phone music', run: () => phoneMusic(actor) },
       { label: 'Shower', run: () => startObjectAction(state, actor, objects.find(o => o.kind === 'shower' && o.floor === actor.floor) || objects.find(o => o.id === 'shower'), 'shower') },
       { label: 'Train strength', run: () => startSkill(state, actor, 'strength') },
       { label: 'Study intellect', run: () => startSkill(state, actor, 'intellect') },
@@ -117,6 +119,7 @@ export function createUi(state, canvas) {
     const items = actions.map(([id, label]) => ({ label: `${actor.name}: ${label}`, run: () => handleObjectUse(actor, obj, id) }));
     if (obj.kind === 'bookshelf') items.push({ label: `${actor.name}: Read / Study`, run: () => startSkill(state, actor, 'intellect') });
     if (obj.kind === 'workout') items.push({ label: `${actor.name}: Train Strength`, run: () => startSkill(state, actor, 'strength') });
+    if (obj.kind === 'stereo') items.push({ label: `${actor.name}: Pick Music`, run: () => phoneMusic(actor) });
     if (obj.kind === 'desk') items.push({ label: `${actor.name}: Build Request`, run: () => handleBuildRequest(state, actor, prompt('What should they build or order?') || '') });
     if (obj.kind === 'stove') items.push({ label: `${actor.name}: Practice Cooking`, run: () => startSkill(state, actor, 'cooking') });
     items.push({ label: 'Move', run: () => beginMoveObject(state, actor, obj) });
@@ -131,6 +134,11 @@ export function createUi(state, canvas) {
     if (actionId === 'meal') return startCookingFlow(state, actor);
     if (obj.kind === 'door' && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId);
     startObjectAction(state, actor, obj, actionId);
+  }
+
+  function phoneMusic(actor) {
+    const pick = prompt(`Music genre: ${genreList()}`, 'rap') || 'rap';
+    startMusic(state, actor, pick);
   }
 
   function cycleMode() {
@@ -149,7 +157,7 @@ export function createUi(state, canvas) {
     commandPanel.innerHTML = '';
     const buttons = [
       ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))],
-      ['Phone: Food', () => orderFood(state, selected(state), false)], ['Phone: Workout', () => buyWorkoutGear(state, selected(state))],
+      ['Phone: Food', () => orderFood(state, selected(state), false)], ['Phone: Workout', () => buyWorkoutGear(state, selected(state))], ['Phone: Music', () => phoneMusic(selected(state))],
       ['Build Request', () => handleBuildRequest(state, selected(state), prompt('What should they build or order?') || '')],
       ['Train Strength', () => startSkill(state, selected(state), 'strength')], ['Study', () => startSkill(state, selected(state), 'intellect')],
       ['Cook Meal', () => startCookingFlow(state, selected(state))], ['Cook Skill', () => startSkill(state, selected(state), 'cooking')], ['Money Skill', () => startSkill(state, selected(state), 'money')],
@@ -168,7 +176,8 @@ export function createUi(state, canvas) {
       const value = Math.round(actor.needs[key] ?? 0);
       return `<div class="need-row"><span>${label}</span><div class="need-bar"><div class="need-fill" style="width:${value}%"></div></div><span>${value}</span></div>`;
     }).join('');
-    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
+    const music = state.music ? `<br>Music: ${state.music.genre}` : '';
+    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}${music}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
     logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
   }
 
