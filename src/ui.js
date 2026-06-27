@@ -2,6 +2,7 @@ import { windowAt, toggleWindow } from './blueprint.js';
 import { ACTIONS, DOG_SOCIAL_ACTIONS, DOUBLE_TAP_MS, NEEDS, SOCIAL_ACTIONS } from './config.js';
 import { startObjectAction, startOffsite, startSocialAction, throwFetchBall } from './actions.js';
 import { handleBuildRequest } from './buildRequests.js';
+import { startCookingFlow } from './cooking.js';
 import { buyWorkoutGear, orderFood } from './economy.js';
 import { beginMoveObject, placeMoveObject } from './objectMove.js';
 import { commandMove } from './movement.js';
@@ -95,6 +96,7 @@ export function createUi(state, canvas) {
       { label: 'Resume / Auto', run: () => resumeEntity(actor) },
       { label: 'Send to couch', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'couch'), 'relax') },
       { label: 'Get food', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'fridge'), 'snack') },
+      { label: 'Cook meal', run: () => startCookingFlow(state, actor) },
       { label: 'Shower', run: () => startObjectAction(state, actor, objects.find(o => o.kind === 'shower' && o.floor === actor.floor) || objects.find(o => o.id === 'shower'), 'shower') },
       { label: 'Train strength', run: () => startSkill(state, actor, 'strength') },
       { label: 'Study intellect', run: () => startSkill(state, actor, 'intellect') },
@@ -126,6 +128,7 @@ export function createUi(state, canvas) {
   }
 
   function handleObjectUse(actor, obj, actionId) {
+    if (actionId === 'meal') return startCookingFlow(state, actor);
     if (obj.kind === 'door' && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId);
     startObjectAction(state, actor, obj, actionId);
   }
@@ -149,7 +152,7 @@ export function createUi(state, canvas) {
       ['Phone: Food', () => orderFood(state, selected(state), false)], ['Phone: Workout', () => buyWorkoutGear(state, selected(state))],
       ['Build Request', () => handleBuildRequest(state, selected(state), prompt('What should they build or order?') || '')],
       ['Train Strength', () => startSkill(state, selected(state), 'strength')], ['Study', () => startSkill(state, selected(state), 'intellect')],
-      ['Cook Skill', () => startSkill(state, selected(state), 'cooking')], ['Money Skill', () => startSkill(state, selected(state), 'money')],
+      ['Cook Meal', () => startCookingFlow(state, selected(state))], ['Cook Skill', () => startSkill(state, selected(state), 'cooking')], ['Money Skill', () => startSkill(state, selected(state), 'money')],
       ['Schedule Gym', () => addRoutine(state, selected(state), 'strength')], ['Auto Mode', cycleMode]
     ];
     for (const [label, run] of buttons) {
