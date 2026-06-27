@@ -41,6 +41,7 @@ export function startSocialAction(state, actor, target, socialId) {
 function beginTimedAction(entity, label, actionId) {
   entity.action = label;
   entity.actionT = ACTION_TIMES[actionId] ?? 4;
+  entity.actionTotal = entity.actionT;
   entity.pose = ['sleep', 'nap'].includes(actionId) ? 'sleep' : ['watch_tv', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop'].includes(actionId) ? 'sit' : 'stand';
 }
 
@@ -75,6 +76,11 @@ export function resolveArrival(state, entity) {
       return;
     }
     beginTimedAction(entity, `${target.socialId} with ${other.name}`, target.socialId);
+    entity.pose = target.socialId;
+    other.action = `${target.socialId} with ${entity.name}`;
+    other.actionT = entity.actionT;
+    other.actionTotal = entity.actionT;
+    other.pose = target.socialId;
     say(entity, speechFor(target.socialId));
     say(other, speechFor(target.socialId));
     other.mood = entity.type === 'dog' ? 'dog' : 'happy';
@@ -129,7 +135,7 @@ function finishAction(state, e) {
   if (text.includes('game')) { changeNeed(e, 'fun', 22); setMood(e, 'happy'); }
   if (text.includes('phone') || text.includes('talk')) { changeNeed(e, 'social', 18); setMood(e, 'phone'); }
   if (text.includes('kiss') || text.includes('cuddle') || text.includes('hands')) { changeNeed(e, 'social', 22); setMood(e, 'love'); }
-  if (text.includes('pet') || text.includes('train')) { changeNeed(e, 'fun', 14); setMood(e, e.type === 'dog' ? 'dog' : 'happy'); }
+  if (text.includes('pet') || text.includes('train') || text.includes('tickle')) { changeNeed(e, 'fun', 14); setMood(e, e.type === 'dog' ? 'dog' : 'happy'); }
   if (text.includes('feed dog')) { const dog = byId(state, 'dog'); if (dog) changeNeed(dog, 'hunger', 40); }
   if (text.includes('light')) { toggleRoomLight(state, e); }
   state.objectState.fridgeOpen = false;
@@ -172,6 +178,6 @@ function finishOffsite(state) {
 }
 
 function speechFor(actionId) {
-  const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'FOOD', meal: 'COOK', bring_food: 'FOOD', comedy: 'HA!', horror: '!!', sports: 'GO', phone: 'CALL', play_game: 'GAME', sleep: 'Zz', nap: 'Zz', kiss: '<3', cuddle: '<3', pet: 'PET', train: 'TRAIN', feed_dog: 'FOOD' };
+  const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'FOOD', meal: 'COOK', bring_food: 'FOOD', comedy: 'HA!', horror: '!!', sports: 'GO', phone: 'CALL', play_game: 'GAME', sleep: 'Zz', nap: 'Zz', kiss: '<3', cuddle: '<3', tickle: 'HA!', hands: 'HOLD', pet: 'PET', train: 'TRAIN', feed_dog: 'FOOD' };
   return map[actionId] || actionId.toUpperCase().slice(0, 8);
 }
