@@ -12,7 +12,16 @@ export function draw(ctx, state) {
   drawWorld(ctx, state);
   drawObjects(ctx, state);
   drawEntities(ctx, state);
+  drawStatus(ctx, state);
   drawOverlay(ctx, state);
+}
+
+function drawStatus(ctx, state) {
+  ctx.fillStyle = 'rgba(10,12,18,.72)';
+  ctx.fillRect(12, 10, 260, 34);
+  ctx.fillStyle = COLORS.text;
+  ctx.font = '900 16px system-ui';
+  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode || 'guided'}`, 24, 32);
 }
 
 function drawOverlay(ctx, state) {
