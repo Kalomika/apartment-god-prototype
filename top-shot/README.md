@@ -15,8 +15,11 @@ This folder is intentionally isolated from the existing Apartment God prototype 
 - Marine grenade super move, grenade fuse, blast radius, dive-away reactions, and blast incapacitation.
 - Three dive reads: flat dive, dive roll, and ninja somersault dive.
 - Sword slash variants, knife/CQC, arrow stab, punches, kicks, roundhouse, headbutt, blocks, dodges, counters, grapples, throws, disarms, and fall/get-up animation cues.
+- Sneak sleeper holds with stamina/endurance tug-of-war, escape chance, and weapon-based counters.
+- Prestige, ruthlessness, defeated-kneel state, respectful finish, leave-for-stretcher finish, and hard final incapacitation.
 - Stamina, fight stamina, dodge meter, block meter, ammo, heat, damage stages, bandaging, trust, and incapacitation.
 - Coach card drops for Fighter A: med, ammo, weapon refresh, extraction rope.
+- Commander ethos selector: AI Choice, Respectful, or Ruthless.
 - Coach suggestions: go there, take cover, stay ranged, close in, and disarm. These are trust-based suggestions, not direct control.
 - Double tap arena for an urgent run-there command. Fighters still route around walls and objects.
 - Help bubbles when Fighter A is hurt, confused, drained, or asking for a commander call.
