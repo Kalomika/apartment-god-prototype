@@ -2,6 +2,7 @@ import './fit.js';
 import { PLAY_H, PLAY_W, COLORS } from './config.js';
 import { drawWorld } from './renderWorld.js';
 import { drawObjects } from './renderObjects.js';
+import { drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
 import { formatTime } from './renderHelpers.js';
 
@@ -11,6 +12,7 @@ export function draw(ctx, state) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   drawWorld(ctx, state);
   drawObjects(ctx, state);
+  drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
   drawStatus(ctx, state);
@@ -31,7 +33,7 @@ function drawFetchBall(ctx, state) {
   ctx.fillStyle = '#11151c';
   ctx.font = '900 9px system-ui';
   ctx.textAlign = 'center';
-  ctx.fillText('🎾', ball.x, ball.y + 4);
+  ctx.fillText('o', ball.x, ball.y + 4);
   ctx.restore();
 }
 
