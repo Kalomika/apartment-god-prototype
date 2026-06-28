@@ -39,23 +39,28 @@ function drawFighters(ctx, state) { for (const f of state.fighters) drawFighter(
 function drawFighter(ctx, f) {
   ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.facing);
   const stage = stageFor(f);
+  const bodyColor = conditionColor(f.color, stage, f.incapacitated || f.defeated);
+  const accentColor = conditionColor(f.accent, stage, f.incapacitated || f.defeated);
   const dive = f.diveT > 0 || ['flat_dive', 'dive_roll', 'somersault_dive', 'recover_dive'].includes(f.pose);
   const walk = Math.sin(f.anim) * (dive ? 0.15 : 0.45);
-  const down = f.incapacitated || f.pose === 'down';
+  const down = f.incapacitated || f.pose === 'down' || f.pose === 'slept_out' || f.pose === 'hard_finished';
+  const defeated = f.defeated || f.pose === 'defeated_kneel';
   ctx.globalAlpha = f.extracted ? 0.15 : 1;
   if (down || dive) ctx.rotate(Math.PI / 2);
+  if (defeated && !down) ctx.rotate(0.35);
   ctx.fillStyle = '#0008'; ctx.beginPath(); ctx.ellipse(0, 15, 23, 10, 0, 0, TAU); ctx.fill();
-  limb(ctx, -8, 4, -22, 8 + walk * 4, -33, 10 + walk * 8, f.color, f.limbs.leftArm.t > 0);
-  limb(ctx, -8, 12, -19, 28 - walk * 7, -23, 48 - walk * 8, f.color, f.limbs.leftLeg.t > 0);
-  limb(ctx, -8, -4, -22, -8 - walk * 4, -33, -10 - walk * 8, f.color, f.limbs.rightArm.t > 0);
-  limb(ctx, -8, -12, -19, -28 + walk * 7, -23, -48 + walk * 8, f.color, f.limbs.rightLeg.t > 0);
+  limb(ctx, -8, 4, -22, 8 + walk * 4, -33, 10 + walk * 8, bodyColor, f.limbs.leftArm.t > 0);
+  limb(ctx, -8, 12, -19, 28 - walk * 7, -23, 48 - walk * 8, bodyColor, f.limbs.leftLeg.t > 0);
+  limb(ctx, -8, -4, -22, -8 - walk * 4, -33, -10 - walk * 8, bodyColor, f.limbs.rightArm.t > 0);
+  limb(ctx, -8, -12, -19, -28 + walk * 7, -23, -48 + walk * 8, bodyColor, f.limbs.rightLeg.t > 0);
   if (f.currentMove?.ttl > 0) attackGhost(ctx, f.currentMove);
-  ctx.fillStyle = f.accent; ctx.beginPath(); ctx.ellipse(0, 0, dive ? 15 : 18, dive ? 31 : 26, 0, 0, TAU); ctx.fill();
-  ctx.strokeStyle = f.color; ctx.lineWidth = 4; ctx.stroke();
-  ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(23, 0, 12, 0, TAU); ctx.fill(); ctx.strokeStyle = '#0b1018'; ctx.lineWidth = 3; ctx.stroke();
-  ctx.fillStyle = '#eaf1ff'; ctx.beginPath(); ctx.arc(29, -4, 2, 0, TAU); ctx.arc(29, 4, 2, 0, TAU); ctx.fill();
+  ctx.fillStyle = accentColor; ctx.beginPath(); ctx.ellipse(0, defeated ? 8 : 0, dive ? 15 : defeated ? 15 : 18, dive ? 31 : defeated ? 22 : 26, 0, 0, TAU); ctx.fill();
+  ctx.strokeStyle = bodyColor; ctx.lineWidth = 4; ctx.stroke();
+  ctx.fillStyle = bodyColor; ctx.beginPath(); ctx.arc(23, defeated ? 8 : 0, 12, 0, TAU); ctx.fill(); ctx.strokeStyle = '#0b1018'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.fillStyle = f.incapacitated ? '#aab1ba' : '#eaf1ff'; ctx.beginPath(); ctx.arc(29, defeated ? 4 : -4, 2, 0, TAU); ctx.arc(29, defeated ? 12 : 4, 2, 0, TAU); ctx.fill();
   if (f.prone) { ctx.strokeStyle = '#c9d2df'; ctx.lineWidth = 2; ctx.strokeRect(-22, -18, 58, 36); }
   if (f.crouch) { ctx.strokeStyle = '#f1d36d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 30, 0, TAU); ctx.stroke(); }
+  if (stage.id === 'purple') { ctx.strokeStyle = '#9b75ff'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.arc(0, 0, 34, 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
   ctx.rotate(-f.facing); ctx.fillStyle = stage.color; ctx.font = '800 12px system-ui'; ctx.textAlign = 'center'; ctx.fillText(stage.label, 0, -42); meter(ctx, -30, -35, 60, 5, f.hp, stage.color);
   if (f.helpT > 0) helpBubble(ctx, f.helpIcon || '?');
   ctx.restore();
@@ -64,6 +69,9 @@ function limb(ctx, sx, sy, ex, ey, hx, hy, color, guard) { ctx.strokeStyle = gua
 function attackGhost(ctx, move) { ctx.strokeStyle = move.kind === 'sword' ? '#d7e2ef' : '#f3d06f'; ctx.lineWidth = move.kind === 'sword' ? 5 : 7; ctx.globalAlpha = 0.65; ctx.beginPath(); ctx.arc(22, 0, move.reach, -0.45, 0.45); ctx.stroke(); ctx.globalAlpha = 1; }
 function helpBubble(ctx, label) { ctx.fillStyle = '#f2f5fb'; ctx.strokeStyle = '#101722'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(-16, -74, 34, 28, 9); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#101722'; ctx.font = '900 14px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label === 'grenade' ? 'G' : '?', 1, -55); }
 function meter(ctx, x, y, w, h, value, color) { ctx.fillStyle = '#091018'; ctx.fillRect(x, y, w, h); ctx.fillStyle = color; ctx.fillRect(x, y, w * Math.max(0, Math.min(100, value)) / 100, h); }
+function conditionColor(hex, stage, final = false) { const target = final ? '#8f969e' : '#9aa1ab'; const t = final ? 0.88 : 1 - (stage.saturation ?? 1); return mixHex(hex, target, Math.max(0, Math.min(0.86, t))); }
+function mixHex(a, b, t) { const ca = parseHex(a); const cb = parseHex(b); return `rgb(${Math.round(ca.r + (cb.r - ca.r) * t)}, ${Math.round(ca.g + (cb.g - ca.g) * t)}, ${Math.round(ca.b + (cb.b - ca.b) * t)})`; }
+function parseHex(hex) { const clean = hex.replace('#', '').slice(0, 6); const value = Number.parseInt(clean, 16); return { r: value >> 16 & 255, g: value >> 8 & 255, b: value & 255 }; }
 function drawEffects(ctx, state) {
   for (const e of state.effects) {
     ctx.save(); ctx.globalAlpha = Math.max(0, e.ttl * 3);
@@ -84,5 +92,5 @@ function drawSideHud(ctx, state) {
   ctx.fillStyle = '#d6e2f2'; ctx.font = '800 13px system-ui'; ctx.fillText(`State: ${state.matchState}`, 1000, 455); ctx.fillText(`Trust: ${Math.round(state.trust)}`, 1000, 476); ctx.fillText(`Clock: ${state.clock.toFixed(1)}s`, 1000, 497);
   let y = 525; ctx.fillStyle = '#9fb0c6'; ctx.font = '700 12px system-ui'; for (const line of state.log.slice(0, 8)) { ctx.fillText(line, 1000, y); y += 22; }
 }
-function card(ctx, f, x, y) { const stage = stageFor(f); ctx.fillStyle = '#121b28'; ctx.fillRect(x, y, 250, 148); ctx.strokeStyle = f.color; ctx.strokeRect(x, y, 250, 148); ctx.fillStyle = '#eff5ff'; ctx.font = '900 16px system-ui'; ctx.fillText(f.name, x + 12, y + 25); ctx.fillStyle = stage.color; ctx.font = '800 12px system-ui'; ctx.fillText(stage.label, x + 185, y + 25); labelMeter(ctx, 'HP', f.hp, x + 12, y + 45, stage.color); labelMeter(ctx, 'STA', f.stamina, x + 12, y + 70, '#72d6ff'); labelMeter(ctx, 'DODGE', f.dodge, x + 12, y + 95, '#b894ff'); labelMeter(ctx, 'BLOCK', f.block, x + 12, y + 120, '#f0d36a'); }
+function card(ctx, f, x, y) { const stage = stageFor(f); ctx.fillStyle = '#121b28'; ctx.fillRect(x, y, 250, 148); ctx.strokeStyle = conditionColor(f.color, stage, f.incapacitated || f.defeated); ctx.strokeRect(x, y, 250, 148); ctx.fillStyle = '#eff5ff'; ctx.font = '900 16px system-ui'; ctx.fillText(f.name, x + 12, y + 25); ctx.fillStyle = stage.color; ctx.font = '800 12px system-ui'; ctx.fillText(stage.label, x + 185, y + 25); labelMeter(ctx, 'VIT', f.hp, x + 12, y + 45, stage.color); labelMeter(ctx, 'STA', f.stamina, x + 12, y + 70, '#72d6ff'); labelMeter(ctx, 'DODGE', f.dodge, x + 12, y + 95, '#b894ff'); labelMeter(ctx, 'BLOCK', f.block, x + 12, y + 120, '#f0d36a'); }
 function labelMeter(ctx, label, value, x, y, color) { ctx.fillStyle = '#aebbd0'; ctx.font = '800 10px system-ui'; ctx.fillText(label, x, y + 8); meter(ctx, x + 48, y, 170, 8, value, color); }
