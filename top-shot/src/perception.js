@@ -58,7 +58,7 @@ function safeDest(arena, f, target) {
 
 export function moveFighter(state, f, dest, dt) {
   if (!dest || f.incapacitated || f.extracted || f.extracting) return;
-  const route = nextWaypoint(state.arena, f, dest);
+  const route = cachedRoute(state, f, dest);
   let a = angleTo(f, route);
   const turn = normalizeAngle(a - f.facing);
   f.facing = normalizeAngle(f.facing + clamp(turn, -dt * 7, dt * 7));
@@ -81,10 +81,19 @@ export function moveFighter(state, f, dest, dt) {
   f.hidden = f.shadowHidden || f.prone || f.crouch;
 }
 
+function cachedRoute(state, f, dest) {
+  const cache = f.memory.route;
+  const changed = !cache || dist(cache.dest, dest) > 34 || cache.until <= state.clock || dist(f, cache.route) < 18;
+  if (!changed && !blocked(state.arena, cache.route, 17)) return cache.route;
+  const route = nextWaypoint(state.arena, f, dest);
+  f.memory.route = { dest: { x: dest.x, y: dest.y }, route, until: state.clock + 0.28 };
+  return route;
+}
+
 function updateStuckMemory(f, movedAmount, route) {
   if (movedAmount < 0.4 && dist(f, route) > 12) f.stuckT = (f.stuckT || 0) + 0.12;
   else f.stuckT = Math.max(0, (f.stuckT || 0) - 0.18);
-  if (f.stuckT > 1.2) { f.memory.command = null; f.memory.navTarget = null; if (f.brain) { f.brain.dest = null; f.brain.until = 0; } f.stuckT = 0; }
+  if (f.stuckT > 1.2) { f.memory.command = null; f.memory.navTarget = null; f.memory.route = null; if (f.brain) { f.brain.dest = null; f.brain.until = 0; } f.stuckT = 0; }
 }
 
 function steer(arena, f, a, step) {
