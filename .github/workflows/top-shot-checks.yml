@@ -1,0 +1,42 @@
+name: Top Shot Checks
+
+on:
+  pull_request:
+    paths:
+      - 'top-shot/**'
+      - '.github/workflows/top-shot-checks.yml'
+  push:
+    branches:
+      - top-shot-v0-1
+    paths:
+      - 'top-shot/**'
+      - '.github/workflows/top-shot-checks.yml'
+
+jobs:
+  top-shot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: top-shot
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: top-shot/package-lock.json
+
+      - name: Install
+        run: npm install
+
+      - name: Syntax check
+        run: npm run check
+
+      - name: Smoke simulation
+        run: npm run smoke
+
+      - name: Build
+        run: npm run build
