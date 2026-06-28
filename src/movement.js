@@ -50,6 +50,7 @@ export function commandMove(entity, x, y, run = false) {
   entity.path = routeAround({ x: entity.x, y: entity.y }, to, entity.floor);
   entity.target = null;
   entity.pending = null;
+  entity.blockedT = 0;
   entity.action = run ? 'Running' : 'Walking';
   entity.speed = (entity.type === 'dog' ? 125 : 92) * (run ? 1.6 : 1);
   entity.pose = 'walk';
@@ -60,6 +61,7 @@ export function commandObject(entity, obj, actionId) {
   const target = approachPoint(obj, actionId);
   entity.target = { type: 'object', objectId: obj.id, actionId };
   entity.pending = null;
+  entity.blockedT = 0;
   entity.action = `Going to ${obj.label}`;
   entity.pose = 'walk';
   entity.stopped = false;
@@ -80,6 +82,7 @@ export function commandSocial(actor, target, socialId) {
   const near = clampToPlay(target.x + (actor.x < target.x ? -38 : 38), target.y + 6);
   actor.path = routeAround({ x: actor.x, y: actor.y }, near, target.floor);
   actor.target = { type: 'social', targetId: target.id, socialId };
+  actor.blockedT = 0;
   actor.action = `Going to ${target.name}`;
   actor.pose = 'walk';
   actor.stopped = false;
@@ -107,9 +110,24 @@ function finishFloorTravel(state, entity) {
     entity.target = { type: 'object', objectId: obj.id, actionId: pending.actionId };
   }
   entity.pending = null;
+  entity.blockedT = 0;
   if (entity.id === 'resident' && state.viewHoldT <= 0) state.floor = entity.floor;
   entity.action = oldFloor !== entity.floor ? 'Using stairs' : entity.action;
   return true;
+}
+
+function recoverBlocked(entity, next, dt) {
+  entity.blockedT = (entity.blockedT || 0) + dt;
+  if (entity.blockedT < 0.35) return;
+  entity.blockedT = 0;
+  if (entity.path.length > 1) {
+    entity.path.shift();
+    return;
+  }
+  entity.path = [];
+  entity.target = null;
+  entity.action = 'Blocked';
+  entity.pose = 'stand';
 }
 
 export function updateMovement(state, entity, dt) {
@@ -126,6 +144,7 @@ export function updateMovement(state, entity, dt) {
   if (dist <= step) {
     const from = { x: entity.x, y: entity.y };
     if (!blockedStep(entity, from, next)) {
+      entity.blockedT = 0;
       entity.x = next.x;
       entity.y = next.y;
       entity.path.shift();
@@ -134,7 +153,7 @@ export function updateMovement(state, entity, dt) {
         return true;
       }
     } else {
-      entity.path = routeAround(from, next, entity.floor);
+      recoverBlocked(entity, next, dt);
     }
     return false;
   }
@@ -142,10 +161,11 @@ export function updateMovement(state, entity, dt) {
   const from = { x: entity.x, y: entity.y };
   const to = { x: entity.x + (dx / dist) * step, y: entity.y + (dy / dist) * step };
   if (!blockedStep(entity, from, to)) {
+    entity.blockedT = 0;
     entity.x = to.x;
     entity.y = to.y;
   } else {
-    entity.path = routeAround(from, next, entity.floor);
+    recoverBlocked(entity, next, dt);
   }
   return false;
 }
