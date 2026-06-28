@@ -13,7 +13,9 @@ select, button { border: 1px solid #344154; background: #141d2a; color: #edf4ff;
 button { cursor: pointer; }
 button:hover { background: #1d2a3c; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.row:has(button:nth-child(3)) { grid-template-columns: 1fr 1fr 1fr; }
+.drops { grid-template-columns: 1fr 1fr; }
+.commands { grid-template-columns: 1fr 1fr; }
+.commands button:last-child { grid-column: 1 / -1; }
 #hud { display: grid; gap: 8px; }
 .fighter-card { border: 1px solid #263549; border-radius: 12px; padding: 10px; background: #111a27; }
 .fighter-card h3 { margin: 0 0 6px; display: flex; justify-content: space-between; gap: 8px; }
