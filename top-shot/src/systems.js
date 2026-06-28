@@ -6,6 +6,7 @@ import { tryAttack, updateCombat } from './combat.js';
 import { trySuperMove, updateExplosives } from './explosives.js';
 import { tryPrestigeAction, updatePrestige } from './prestige.js';
 import { recoverVitality } from './vitality.js';
+import { shouldBandage, startBandage, updateWounds } from './wounds.js';
 
 export function updateBattle(state, dt) {
   if (state.paused || state.matchState === 'finished') return;
@@ -14,6 +15,7 @@ export function updateBattle(state, dt) {
   state.effects = state.effects.filter(e => e.ttl > 0);
   updateExplosives(state, dt);
   updatePrestige(state, dt);
+  updateWounds(state, dt);
   updateCombat(state, dt);
   for (const f of state.fighters) updateFighter(state, f, dt);
   updatePickups(state);
@@ -26,25 +28,31 @@ function updateFighter(state, f, dt) {
   f.commandCd = Math.max(0, f.commandCd - dt);
   f.helpT = Math.max(0, (f.helpT || 0) - dt);
   if (f.memory.command && f.memory.command.until <= state.clock) f.memory.command = null;
-  if (f.incapacitated || f.defeated || f.extracted || f.diveT > 0 || f.hold || f.heldBy) return;
+  if (f.incapacitated || f.defeated || f.extracted || f.diveT > 0 || f.hold || f.heldBy || f.bleed?.bandaging) return;
   if (f.extracting) return updateExtraction(state, f, dt);
   const enemy = opponentOf(state, f);
   const visible = canSee(state.arena, f, enemy);
   const audible = canHear(f, enemy);
-  if (visible || audible) f.memory.lastSeen = { x: enemy.x, y: enemy.y, t: state.clock };
+  if (visible || audible) {
+    if (!enemy.spottedT || enemy.spottedT <= 0) state.effects.push({ type: 'alert', x: enemy.x, y: enemy.y - 42, ttl: 0.8 });
+    enemy.spottedT = 0.9;
+    f.memory.lastSeen = { x: enemy.x, y: enemy.y, t: state.clock };
+  }
+  f.spottedT = Math.max(0, (f.spottedT || 0) - dt);
   chooseStance(f, enemy, visible);
+  if (shouldBandage(f) && startBandage(state, f)) return;
   if (!tryPrestigeAction(state, f, enemy, visible) && !trySuperMove(state, f, enemy, visible)) tryAttack(state, f, enemy, visible);
   if (needsHelp(f)) askForHelp(state, f);
   const destination = commandedDestination(state, f, enemy) || nearestUsefulPickup(state, f) || nearestStuckProjectile(state, f) || chooseDestination(state, f, enemy);
   moveFighter(state, f, destination, dt);
-  f.anim += dt * (f.pose === 'walk' || f.pose === 'crouchWalk' || f.pose === 'rush' ? 12 : 3);
+  f.anim += dt * (['walk', 'crouchWalk', 'rush', 'stagger_limp', 'limp_run'].includes(f.pose) ? 12 : 3);
 }
 
 function chooseStance(f, enemy, visible) {
   const d = dist(f, enemy);
   f.prone = false; f.crouch = false;
   if (f.archetypeId === 'marine' && d > 220 && f.hp < 80 && visible) f.prone = true;
-  if ((f.archetypeId === 'ninja' || f.archetypeId === 'archer') && !visible && d > 110) f.crouch = true;
+  if ((f.archetypeId === 'ninja' || f.archetypeId === 'archer') && (!visible || f.bleed?.rate > 0) && d > 110) f.crouch = true;
 }
 
 function commandedDestination(state, f, enemy) {
@@ -65,7 +73,7 @@ function nearestUsefulPickup(state, f) {
   if (!items.length) return null;
   const sorted = [...items].sort((a, b) => dist(f, a) - dist(f, b));
   const pick = sorted[0];
-  if (pick.type === 'med' && f.hp > Math.min(72, f.vitalityCap ?? 100)) return null;
+  if (pick.type === 'med' && f.hp > Math.min(72, f.vitalityCap ?? 100) && !f.bleed?.rate) return null;
   if (pick.type === 'ammo' && f.archetypeId !== 'marine' && f.archetypeId !== 'archer' && f.archetypeId !== 'ninja') return null;
   return pick;
 }
@@ -102,7 +110,7 @@ function updateRetrievals(state) {
 }
 
 function usePickup(state, f, pick) {
-  if (pick.type === 'med') { recoverVitality(f, 22); f.bandageCd = 2; rewardTrust(state, 2); addLog(state, `${f.name} uses a coach med drop.`); }
+  if (pick.type === 'med') { if (f.bleed?.rate) startBandage(state, f); recoverVitality(f, 22); f.bandageCd = 2; rewardTrust(state, 2); addLog(state, `${f.name} uses a coach med drop.`); }
   if (pick.type === 'ammo') { f.resources.rifle = (f.resources.rifle || 0) + 24; f.resources.pistol = (f.resources.pistol || 0) + 8; f.resources.grenades = (f.resources.grenades || 0) + 1; f.resources.arrows = (f.resources.arrows || 0) + 6; f.resources.shuriken = (f.resources.shuriken || 0) + 3; rewardTrust(state, 1); addLog(state, `${f.name} grabs ammunition.`); }
   if (pick.type === 'weapon') { f.heat = 0; f.fight = 100; f.dodge = Math.max(f.dodge, 65); f.block = Math.max(f.block, 65); rewardTrust(state, 1); addLog(state, `${f.name} regains weapon rhythm.`); }
   if (pick.type === 'extract') beginExtraction(state, f);
@@ -152,11 +160,11 @@ export function setCommanderEthos(state, ethos) {
 }
 
 function needsHelp(f) {
-  return f.team === 'A' && !f.memory.command && !f.helpT && (f.hp < 38 || f.stamina < 18 || f.dodge < 12 || f.block < 12);
+  return f.team === 'A' && !f.memory.command && !f.helpT && (f.bleed?.rate > 0 || f.hp < 38 || f.stamina < 18 || f.dodge < 12 || f.block < 12);
 }
 function askForHelp(state, f) {
   f.helpT = 2.2;
-  f.helpIcon = f.resources.grenades === 0 && f.archetypeId === 'marine' ? 'grenade' : '?';
+  f.helpIcon = f.bleed?.rate > 0 ? 'bleed' : f.resources.grenades === 0 && f.archetypeId === 'marine' ? 'grenade' : '?';
   state.effects.push({ type: 'command', x: f.x, y: f.y - 36, ttl: 0.65, label: f.helpIcon });
   addLog(state, `${f.name} looks to you for a call.`);
 }
