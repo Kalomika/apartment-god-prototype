@@ -4,14 +4,6 @@ export const ARENA_W = 960;
 export const ARENA_H = 720;
 export const TAU = Math.PI * 2;
 
-export const DAMAGE_STAGES = [
-  { id: 'ready', label: 'Ready', min: 81, speed: 1, color: '#73d98b' },
-  { id: 'hurt', label: 'Hurt', min: 61, speed: 0.94, color: '#d5d879' },
-  { id: 'wounded', label: 'Wounded', min: 41, speed: 0.84, color: '#e9a457' },
-  { id: 'critical', label: 'Critical', min: 1, speed: 0.68, color: '#e85e5e' },
-  { id: 'incapacitated', label: 'Incapacitated', min: 0, speed: 0, color: '#7d8795' }
-];
-
 export const LIMBS = ['leftArm', 'rightArm', 'leftLeg', 'rightLeg'];
 export const ARCHETYPE_IDS = ['marine', 'ninja', 'archer', 'martial_artist'];
 
@@ -26,7 +18,10 @@ export const COACH_COMMANDS = {
   move: { label: 'Go There', trustCost: 3 },
   cover: { label: 'Take Cover', trustCost: 4 },
   ranged: { label: 'Stay Ranged', trustCost: 5 },
-  cqc: { label: 'Close In', trustCost: 5 },
+  projectile: { label: 'Use Projectile', trustCost: 5 },
+  cqc: { label: 'Hand to Hand', trustCost: 5 },
+  sword: { label: 'Use Blade', trustCost: 6 },
+  grenade: { label: 'Grenade', trustCost: 8 },
   disarm: { label: 'Disarm', trustCost: 7 }
 };
 
