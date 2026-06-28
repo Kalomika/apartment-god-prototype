@@ -1,5 +1,5 @@
 import { routeThroughDoors } from './blueprint.js';
-import { approachPoint, clampToPlay, expandedRect, getObject, segmentHitsRect, solidObjects } from './world.js';
+import { approachPoint, clampToPlay, expandedRect, getObject, pointInRect, segmentHitsRect, solidObjects } from './world.js';
 
 function directBlocked(a, b, floor, allowId = '') {
   return solidObjects(floor, allowId).some(o => segmentHitsRect(a, b, expandedRect(o, 20)));
@@ -19,16 +19,18 @@ function routeAround(a, b, floor, allowId = '') {
 }
 
 function routeLeg(a, b, floor, allowId = '') {
-  const blockers = solidObjects(floor, allowId).filter(o => segmentHitsRect(a, b, expandedRect(o, 22)));
+  const blockers = solidObjects(floor, allowId).filter(o => segmentHitsRect(a, b, expandedRect(o, 24)));
   if (!blockers.length) return [b];
 
   const o = blockers[0];
-  const r = expandedRect(o, 34);
+  const r = expandedRect(o, 38);
   const candidates = [
     clampToPlay(r.x - 20, r.y - 20),
     clampToPlay(r.x + r.w + 20, r.y - 20),
     clampToPlay(r.x - 20, r.y + r.h + 20),
-    clampToPlay(r.x + r.w + 20, r.y + r.h + 20)
+    clampToPlay(r.x + r.w + 20, r.y + r.h + 20),
+    clampToPlay(r.x - 20, r.y + r.h / 2),
+    clampToPlay(r.x + r.w + 20, r.y + r.h / 2)
   ];
 
   candidates.sort((p, q) => {
@@ -56,16 +58,22 @@ export function commandMove(entity, x, y, run = false) {
 
 export function commandObject(entity, obj, actionId) {
   const target = approachPoint(obj, actionId);
-  entity.path = routeAround({ x: entity.x, y: entity.y }, target, obj.floor, obj.id);
   entity.target = { type: 'object', objectId: obj.id, actionId };
   entity.pending = null;
   entity.action = `Going to ${obj.label}`;
   entity.pose = 'walk';
   entity.stopped = false;
+
   if (entity.floor !== obj.floor) {
     const stairs = obj.floor === 1 ? getObject('stairs_down') : getObject('stairs_up');
-    if (stairs && stairs.floor === entity.floor) entity.path = [approachPoint(stairs), target];
+    if (stairs && stairs.floor === entity.floor) {
+      entity.pending = { type: 'floorTravel', toFloor: obj.floor, target, objectId: obj.id, actionId };
+      entity.path = routeAround({ x: entity.x, y: entity.y }, approachPoint(stairs), entity.floor, stairs.id);
+      return;
+    }
   }
+
+  entity.path = routeAround({ x: entity.x, y: entity.y }, target, obj.floor, obj.id);
 }
 
 export function commandSocial(actor, target, socialId) {
@@ -75,6 +83,32 @@ export function commandSocial(actor, target, socialId) {
   actor.action = `Going to ${target.name}`;
   actor.pose = 'walk';
   actor.stopped = false;
+}
+
+function blockedStep(entity, x, y) {
+  return solidObjects(entity.floor).some(o => pointInRect(x, y, expandedRect(o, entity.type === 'dog' ? 12 : 16)));
+}
+
+function finishFloorTravel(state, entity) {
+  const pending = entity.pending;
+  if (!pending || pending.type !== 'floorTravel') return false;
+  const oldFloor = entity.floor;
+  entity.floor = pending.toFloor;
+  const exit = getObject(pending.toFloor === 1 ? 'stairs_up' : 'stairs_down');
+  if (exit) {
+    entity.x = exit.x + exit.w / 2;
+    entity.y = exit.y + exit.h + 34;
+  }
+  const obj = getObject(pending.objectId);
+  if (obj) {
+    const target = approachPoint(obj, pending.actionId);
+    entity.path = routeAround({ x: entity.x, y: entity.y }, target, entity.floor, obj.id);
+    entity.target = { type: 'object', objectId: obj.id, actionId: pending.actionId };
+  }
+  entity.pending = null;
+  if (entity.id === 'resident' && state.viewHoldT <= 0) state.floor = entity.floor;
+  entity.action = oldFloor !== entity.floor ? 'Using stairs' : entity.action;
+  return true;
 }
 
 export function updateMovement(state, entity, dt) {
@@ -92,10 +126,20 @@ export function updateMovement(state, entity, dt) {
     entity.x = next.x;
     entity.y = next.y;
     entity.path.shift();
-    if (!entity.path.length) return true;
+    if (!entity.path.length) {
+      if (finishFloorTravel(state, entity)) return false;
+      return true;
+    }
     return false;
   }
-  entity.x += (dx / dist) * step;
-  entity.y += (dy / dist) * step;
+
+  const nx = entity.x + (dx / dist) * step;
+  const ny = entity.y + (dy / dist) * step;
+  if (!blockedStep(entity, nx, ny)) {
+    entity.x = nx;
+    entity.y = ny;
+  } else {
+    entity.path = routeAround({ x: entity.x, y: entity.y }, next, entity.floor);
+  }
   return false;
 }
