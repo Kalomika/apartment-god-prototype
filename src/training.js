@@ -2,18 +2,35 @@ import { changeNeed, log, say, setMood } from './state.js';
 
 export function startSkill(state, actor, skill) {
   if (skill === 'strength' && !state.objectState.workoutGear) {
-    say(actor, 'NEED GYM');
+    say(actor, 'GYM');
     log(state, 'Buy workout gear before strength training at home.');
     return false;
   }
   actor.trainingSkill = skill;
+  actor.bookReading = false;
   actor.action = skill === 'strength' ? 'Training strength' : skill === 'cooking' ? 'Practicing cooking' : skill === 'money' ? 'Studying money management' : 'Studying intellect';
   actor.actionT = skill === 'strength' ? 16 : 18;
+  actor.actionTotal = actor.actionT;
   actor.pose = skill === 'strength' ? 'stand' : 'sit';
   changeNeed(actor, 'fun', -10);
   changeNeed(actor, 'stamina', skill === 'strength' ? -18 : -6);
   say(actor, skill === 'strength' ? 'LIFT' : 'STUDY');
   log(state, `${actor.name} started ${actor.action.toLowerCase()}.`);
+  return true;
+}
+
+export function startBook(state, actor, shelf) {
+  actor.trainingSkill = 'intellect';
+  actor.bookReading = true;
+  actor.action = 'Reading a book';
+  actor.actionT = 32;
+  actor.actionTotal = 32;
+  actor.pose = 'sit';
+  state.objectState.bookOut = shelf?.id || true;
+  changeNeed(actor, 'fun', -4);
+  changeNeed(actor, 'stamina', -4);
+  say(actor, 'BOOK');
+  log(state, `${actor.name} pulled a book from ${shelf?.label || 'the shelf'}.`);
   return true;
 }
 
@@ -26,15 +43,18 @@ export function updateTraining(state) {
   for (const actor of state.entities) {
     if (!actor.trainingSkill || actor.actionT > 0) continue;
     const skill = actor.trainingSkill;
+    const book = actor.bookReading;
     actor.trainingSkill = null;
+    actor.bookReading = false;
+    state.objectState.bookOut = false;
     const current = actor.skills?.[skill] ?? 1;
     const cap = actor.skillCaps?.[skill] ?? 6;
     const learning = actor.skills?.learning ?? 2;
-    const gain = 0.16 + learning * 0.035;
+    const gain = book ? 0.32 + learning * 0.055 : 0.16 + learning * 0.035;
     actor.skills[skill] = Math.min(cap, +(current + gain).toFixed(2));
     if (skill === 'cooking') cookingRisk(state, actor, current);
-    say(actor, actor.skills[skill] >= cap ? 'LIMIT' : '+SKILL');
-    log(state, `${actor.name} improved ${skill} to ${actor.skills[skill].toFixed(1)}.`);
+    say(actor, actor.skills[skill] >= cap ? 'LIMIT' : book ? 'BOOK+' : '+SKILL');
+    log(state, `${actor.name} improved ${skill} to ${actor.skills[skill].toFixed(1)}${book ? ' through book reading' : ''}.`);
   }
 }
 
