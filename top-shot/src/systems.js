@@ -8,6 +8,7 @@ import { tryPrestigeAction, updatePrestige } from './prestige.js';
 import { recoverVitality } from './vitality.js';
 import { updateHiding } from './hiding.js';
 import { updateTacticalPosture } from './tactics.js';
+import { updateBrain, brainDestination } from './brain.js';
 import { shouldBandage, startBandage, updateWounds } from './wounds.js';
 
 export function updateBattle(state, dt) {
@@ -33,6 +34,7 @@ function updateFighter(state, f, dt) {
   if (f.memory.command && f.memory.command.until <= state.clock) f.memory.command = null;
   if (f.incapacitated || f.defeated || f.extracted || f.diveT > 0 || f.hold || f.heldBy || f.bleed?.bandaging) return;
   if (f.extracting) return updateExtraction(state, f, dt);
+
   const enemy = opponentOf(state, f);
   const visible = canSee(state.arena, f, enemy);
   const audible = canHear(f, enemy);
@@ -41,12 +43,18 @@ function updateFighter(state, f, dt) {
     enemy.spottedT = 0.9;
     f.memory.lastSeen = { x: enemy.x, y: enemy.y, t: state.clock };
   }
+
   f.spottedT = Math.max(0, (f.spottedT || 0) - dt);
+  updateBrain(state, f, enemy, visible, audible);
   chooseStance(f, enemy, visible);
-  updateTacticalPosture(state, f, enemy, visible, dt);
+  if (!f.tacticLock || f.tacticLock <= state.clock) {
+    updateTacticalPosture(state, f, enemy, visible, dt);
+    f.tacticLock = state.clock + 0.3;
+  }
   if (shouldBandage(f) && startBandage(state, f)) return;
   if (!tryPrestigeAction(state, f, enemy, visible) && !trySuperMove(state, f, enemy, visible)) tryAttack(state, f, enemy, visible);
   if (needsHelp(f)) askForHelp(state, f);
+
   const destination = stableDestination(state, f, enemy);
   const before = { x: f.x, y: f.y };
   moveFighter(state, f, destination, dt);
@@ -58,6 +66,8 @@ function updateFighter(state, f, dt) {
 function stableDestination(state, f, enemy) {
   const command = commandedDestination(state, f, enemy);
   if (command) { f.memory.navTarget = null; return command; }
+  const brainTarget = brainDestination(f);
+  if (brainTarget) return brainTarget;
   const cached = f.memory.navTarget;
   if (cached && cached.until > state.clock && dist(f, cached) > 28) return cached;
   const next = nearestUsefulPickup(state, f) || nearestStuckProjectile(state, f) || chooseDestination(state, f, enemy);
@@ -73,6 +83,7 @@ function recoverIfStuck(state, f, before, destination) {
   if (f.stuckFrames < 12) return;
   f.memory.navTarget = null;
   f.memory.command = null;
+  if (f.brain) { f.brain.dest = null; f.brain.until = 0; }
   f.pose = 'reposition';
   f.stamina = clamp(f.stamina + 4, 0, 100);
   const a = Math.atan2(f.y - destination.y, f.x - destination.x);
