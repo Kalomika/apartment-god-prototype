@@ -1,16 +1,17 @@
 import { handleBuildRequest } from './buildRequests.js';
 import { startCookingFlow } from './cooking.js';
-import { startObjectAction, startOffsite } from './actions.js';
+import { startOffsite } from './actions.js';
 import { buyWorkoutGear, orderFood } from './economy.js';
 import { genreList, startMusic } from './music.js';
 import { addRequest, updateRequests } from './requests.js';
 import { loadGame, saveGame, slotSummary } from './saveSystem.js';
+import { startSharedObjectAction } from './sharedActions.js';
 import { log, selected } from './state.js';
-import { getObject } from './world.js';
 
 let built = false;
 let open = false;
 let tab = 'home';
+let dirty = true;
 let lastRequestTick = 0;
 let els = {};
 
@@ -19,8 +20,10 @@ export function syncPhoneUi(state) {
   if (performance.now() - lastRequestTick > 4000) {
     lastRequestTick = performance.now();
     updateRequests(state);
+    if (open && tab === 'requests') dirty = true;
   }
-  renderPhone(state);
+  updatePhoneButton(state);
+  if (open && dirty) renderPhone(state);
 }
 
 function buildPhoneUi(state) {
@@ -31,13 +34,13 @@ function buildPhoneUi(state) {
   const up = document.createElement('button');
   up.textContent = '↑ Floor';
   up.style.cssText = 'position:absolute;right:12px;top:12px;z-index:6;opacity:.82;padding:8px 10px;border-radius:999px;';
-  up.onclick = () => { state.floor = 1; state.viewHoldT = state.buildPick ? 30 : 18; log(state, state.buildPick ? 'Tap upstairs placement spot.' : 'Viewing upstairs.'); };
+  up.onclick = event => { event.stopPropagation(); state.floor = 1; state.viewHoldT = state.buildPick ? 30 : 18; log(state, state.buildPick ? 'Tap upstairs placement spot.' : 'Viewing upstairs.'); dirty = true; };
   wrap.appendChild(up);
 
   const down = document.createElement('button');
   down.textContent = '↓ Floor';
   down.style.cssText = 'position:absolute;right:12px;bottom:12px;z-index:6;opacity:.82;padding:8px 10px;border-radius:999px;';
-  down.onclick = () => { state.floor = 0; state.viewHoldT = state.buildPick ? 30 : 0; log(state, state.buildPick ? 'Tap downstairs placement spot.' : 'Viewing downstairs.'); };
+  down.onclick = event => { event.stopPropagation(); state.floor = 0; state.viewHoldT = state.buildPick ? 30 : 0; log(state, state.buildPick ? 'Tap downstairs placement spot.' : 'Viewing downstairs.'); dirty = true; };
   wrap.appendChild(down);
 
   const dock = document.createElement('section');
@@ -45,28 +48,35 @@ function buildPhoneUi(state) {
   dock.style.cssText = 'position:sticky;top:0;z-index:9;margin-bottom:10px;background:rgba(8,10,15,.92);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:10px;backdrop-filter:blur(10px);';
 
   const button = document.createElement('button');
-  button.textContent = '📱 Cell Phone';
   button.style.cssText = 'width:100%;font-size:16px;padding:12px;border-radius:14px;';
-  button.onclick = () => { open = !open; renderPhone(state); };
+  button.onclick = event => { event.stopPropagation(); open = !open; dirty = true; renderPhone(state); };
 
   const panel = document.createElement('div');
   panel.style.cssText = 'display:none;margin-top:10px;border-radius:18px;background:#10141d;border:2px solid #2d3545;padding:12px;min-height:280px;';
+  panel.onclick = event => event.stopPropagation();
 
   dock.appendChild(button);
   dock.appendChild(panel);
   hud.prepend(dock);
   els = { button, panel };
+  updatePhoneButton(state);
+}
+
+function updatePhoneButton(state) {
+  if (!els.button) return;
+  els.panel.style.display = open ? 'block' : 'none';
+  els.button.textContent = open ? 'Close Cell Phone' : `Cell Phone${state.requests?.some(r => !r.done) ? ' • Request' : ''}`;
 }
 
 function renderPhone(state) {
   if (!els.panel) return;
-  els.panel.style.display = open ? 'block' : 'none';
-  els.button.textContent = open ? '📱 Close Phone' : `📱 Cell Phone${state.requests?.some(r => !r.done) ? ' • Request' : ''}`;
+  updatePhoneButton(state);
   if (!open) return;
+  dirty = false;
   els.panel.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
     ${phoneTab('home','Home')}${phoneTab('shop','Shop')}${phoneTab('contacts','Contacts')}${phoneTab('music','Music')}${phoneTab('activities','Acts')}${phoneTab('requests','Requests')}${phoneTab('saves','Saves')}
   </div><div id="phone-screen"></div>`;
-  els.panel.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; renderPhone(state); });
+  els.panel.querySelectorAll('[data-tab]').forEach(b => b.onclick = event => { event.stopPropagation(); tab = b.dataset.tab; dirty = true; renderPhone(state); });
   const screen = els.panel.querySelector('#phone-screen');
   if (tab === 'home') renderHome(screen, state);
   if (tab === 'shop') renderShop(screen, state);
@@ -86,7 +96,7 @@ function actionButton(label, fn) {
   const b = document.createElement('button');
   b.textContent = label;
   b.style.cssText = 'display:block;width:100%;margin:7px 0;padding:10px;border-radius:12px;text-align:left;';
-  b.onclick = fn;
+  b.onclick = event => { event.stopPropagation(); fn(); dirty = true; };
   return b;
 }
 
@@ -106,17 +116,13 @@ function renderShop(screen, state) {
 
 function renderContacts(screen, state) {
   screen.innerHTML = '<h3>Contacts</h3>';
-  for (const e of state.entities) {
-    screen.appendChild(actionButton(`${e.name} • select`, () => { state.selectedId = e.id; log(state, `${e.name} selected from contacts.`); }));
-  }
+  for (const e of state.entities) screen.appendChild(actionButton(`${e.name} • select`, () => { state.selectedId = e.id; log(state, `${e.name} selected from contacts.`); }));
 }
 
 function renderMusic(screen, state) {
   const actor = selected(state);
   screen.innerHTML = `<h3>Music</h3><p style="color:#b6c1d2;">Pretend music only. Genres: ${genreList()}</p>`;
-  for (const g of ['rap','rock','classical','jazz','afrobeat','electronic']) {
-    screen.appendChild(actionButton(`Play ${g}`, () => startMusic(state, actor, g)));
-  }
+  for (const g of ['rap','rock','classical','jazz','afrobeat','electronic']) screen.appendChild(actionButton(`Play ${g}`, () => startMusic(state, actor, g)));
 }
 
 function renderActivities(screen, state) {
@@ -124,9 +130,9 @@ function renderActivities(screen, state) {
   screen.innerHTML = '<h3>Activities</h3>';
   screen.appendChild(actionButton('Cook for myself', () => startCookingFlow(state, actor, 'self')));
   screen.appendChild(actionButton('Cook for the house', () => startCookingFlow(state, actor, 'house')));
-  screen.appendChild(actionButton('Watch TV together', () => startObjectAction(state, actor, getObject('tv'), 'watch_together')));
-  screen.appendChild(actionButton('Go to bed together', () => startObjectAction(state, actor, getObject('bed'), 'bed_together')));
-  screen.appendChild(actionButton('Private moment upstairs', () => startObjectAction(state, actor, getObject('bed'), 'intimacy')));
+  screen.appendChild(actionButton('Watch TV together', () => startSharedObjectAction(state, actor, 'tv', 'watch_together')));
+  screen.appendChild(actionButton('Go to bed together', () => startSharedObjectAction(state, actor, 'bed', 'bed_together')));
+  screen.appendChild(actionButton('Private moment upstairs', () => startSharedObjectAction(state, actor, 'bed', 'intimacy')));
   screen.appendChild(actionButton('Movie theater, together', () => startOffsite(state, actor, 'date')));
 }
 
@@ -147,7 +153,7 @@ function renderRequests(screen, state) {
 function renderSaves(screen, state) {
   screen.innerHTML = '<h3>Saves</h3>';
   for (const slot of [1,2,3]) {
-    screen.appendChild(actionButton(`Save Slot ${slot}: ${slotSummary(slot)}`, () => { saveGame(state, slot); log(state, `Saved slot ${slot}.`); renderPhone(state); }));
-    screen.appendChild(actionButton(`Load Slot ${slot}`, () => { if (loadGame(state, slot)) log(state, `Loaded slot ${slot}.`); else log(state, `Slot ${slot} is empty.`); renderPhone(state); }));
+    screen.appendChild(actionButton(`Save Slot ${slot}: ${slotSummary(slot)}`, () => { saveGame(state, slot); log(state, `Saved slot ${slot}.`); }));
+    screen.appendChild(actionButton(`Load Slot ${slot}`, () => { if (loadGame(state, slot)) log(state, `Loaded slot ${slot}.`); else log(state, `Slot ${slot} is empty.`); }));
   }
 }
