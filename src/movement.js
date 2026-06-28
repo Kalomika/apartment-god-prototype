@@ -1,4 +1,4 @@
-import { routeThroughDoors } from './blueprint.js';
+import { canStepThroughRooms, routeThroughDoors } from './blueprint.js';
 import { approachPoint, clampToPlay, expandedRect, getObject, pointInRect, segmentHitsRect, solidObjects } from './world.js';
 
 function directBlocked(a, b, floor, allowId = '') {
@@ -85,8 +85,9 @@ export function commandSocial(actor, target, socialId) {
   actor.stopped = false;
 }
 
-function blockedStep(entity, x, y) {
-  return solidObjects(entity.floor).some(o => pointInRect(x, y, expandedRect(o, entity.type === 'dog' ? 12 : 16)));
+function blockedStep(entity, from, to) {
+  if (!canStepThroughRooms(from, to, entity.floor)) return true;
+  return solidObjects(entity.floor).some(o => pointInRect(to.x, to.y, expandedRect(o, entity.type === 'dog' ? 12 : 16)));
 }
 
 function finishFloorTravel(state, entity) {
@@ -123,23 +124,28 @@ export function updateMovement(state, entity, dt) {
   const dist = Math.hypot(dx, dy);
   const step = entity.speed * dt;
   if (dist <= step) {
-    entity.x = next.x;
-    entity.y = next.y;
-    entity.path.shift();
-    if (!entity.path.length) {
-      if (finishFloorTravel(state, entity)) return false;
-      return true;
+    const from = { x: entity.x, y: entity.y };
+    if (!blockedStep(entity, from, next)) {
+      entity.x = next.x;
+      entity.y = next.y;
+      entity.path.shift();
+      if (!entity.path.length) {
+        if (finishFloorTravel(state, entity)) return false;
+        return true;
+      }
+    } else {
+      entity.path = routeAround(from, next, entity.floor);
     }
     return false;
   }
 
-  const nx = entity.x + (dx / dist) * step;
-  const ny = entity.y + (dy / dist) * step;
-  if (!blockedStep(entity, nx, ny)) {
-    entity.x = nx;
-    entity.y = ny;
+  const from = { x: entity.x, y: entity.y };
+  const to = { x: entity.x + (dx / dist) * step, y: entity.y + (dy / dist) * step };
+  if (!blockedStep(entity, from, to)) {
+    entity.x = to.x;
+    entity.y = to.y;
   } else {
-    entity.path = routeAround({ x: entity.x, y: entity.y }, next, entity.floor);
+    entity.path = routeAround(from, next, entity.floor);
   }
   return false;
 }
