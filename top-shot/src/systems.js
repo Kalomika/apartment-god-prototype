@@ -47,9 +47,22 @@ function updateFighter(state, f, dt) {
   if (shouldBandage(f) && startBandage(state, f)) return;
   if (!tryPrestigeAction(state, f, enemy, visible) && !trySuperMove(state, f, enemy, visible)) tryAttack(state, f, enemy, visible);
   if (needsHelp(f)) askForHelp(state, f);
-  const destination = commandedDestination(state, f, enemy) || nearestUsefulPickup(state, f) || nearestStuckProjectile(state, f) || chooseDestination(state, f, enemy);
+  const destination = stableDestination(state, f, enemy);
   moveFighter(state, f, destination, dt);
   f.anim += dt * (['walk', 'crouchWalk', 'rush', 'stagger_limp', 'limp_run', 'careful_walk', 'wall_strafe', 'reposition', 'roll', 'combat_roll'].includes(f.pose) ? 12 : 3);
+}
+
+function stableDestination(state, f, enemy) {
+  const command = commandedDestination(state, f, enemy);
+  if (command) {
+    f.memory.navTarget = null;
+    return command;
+  }
+  const cached = f.memory.navTarget;
+  if (cached && cached.until > state.clock && dist(f, cached) > 28) return cached;
+  const next = nearestUsefulPickup(state, f) || nearestStuckProjectile(state, f) || chooseDestination(state, f, enemy);
+  f.memory.navTarget = { x: next.x, y: next.y, until: state.clock + 0.85 };
+  return next;
 }
 
 function chooseStance(f, enemy, visible) {
@@ -62,7 +75,7 @@ function chooseStance(f, enemy, visible) {
 
 function commandedDestination(state, f, enemy) {
   const command = f.memory.command;
-  if (!command || f.team !== 'A' && !['investigate', 'strafe', 'roll_cover'].includes(command.type)) return null;
+  if (!command || (f.team !== 'A' && !['investigate', 'strafe', 'roll_cover'].includes(command.type))) return null;
   if (['move', 'cover', 'investigate', 'strafe', 'roll_cover'].includes(command.type)) return { x: command.x, y: command.y };
   if (['ranged', 'projectile', 'grenade'].includes(command.type)) {
     const desired = command.type === 'grenade' ? 250 : 175;
