@@ -21,6 +21,13 @@
       <label>Fighter B
         <select id="fighterB"></select>
       </label>
+      <label>Commander Ethos
+        <select id="commanderEthos">
+          <option value="ai">AI Choice</option>
+          <option value="respectful">Respectful</option>
+          <option value="ruthless">Ruthless</option>
+        </select>
+      </label>
       <div class="row">
         <button id="startMatch">Start Match</button>
         <button id="pauseMatch">Pause</button>
@@ -38,7 +45,7 @@
         <button data-command="cqc">Close In</button>
         <button data-command="disarm">Disarm</button>
       </div>
-      <p id="dropHint" class="hint">No direct control. Click a command, then click the arena to coach. Double tap the arena for an urgent run-there call. Extraction forfeits the match but saves the fighter.</p>
+      <p id="dropHint" class="hint">No direct control. Pick an ethos or leave it on AI Choice. Click a command, then click the arena to coach. Double tap the arena for an urgent run-there call. Extraction forfeits the match but saves the fighter.</p>
       <section id="hud"></section>
       <ol id="log" class="log"></ol>
     </aside>
