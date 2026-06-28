@@ -1,4 +1,4 @@
-import { blocked, nearCover, slide, solids } from './arena.js';
+import { blocked, inShadow, nearCover, nearWall, slide, solids } from './arena.js';
 import { angleTo, clamp, dist, normalizeAngle, pointInRect } from './utils.js';
 import { stageFor } from './state.js';
 
@@ -9,6 +9,7 @@ export function canSee(arena, watcher, target) {
   const delta = Math.abs(normalizeAngle(angleTo(watcher, target) - watcher.facing));
   const cone = watcher.prone ? 0.7 : 1.35;
   if (delta > cone && distance > 95) return false;
+  if (target.shadowHidden && distance > 88) return false;
   if (target.prone && distance > 170) return false;
   return clearLine(arena, watcher, target);
 }
@@ -29,10 +30,13 @@ export function clearLine(arena, a, b) {
 
 export function chooseDestination(state, f, enemy) {
   const d = dist(f, enemy);
-  if (f.hp < 45 || f.dodge < 20 || f.block < 20) {
+  if (f.bleed?.rate > 0 || f.hp < 45 || f.dodge < 20 || f.block < 20) {
+    const shadow = state.arena.shadows?.sort((a, b) => dist(f, center(a)) - dist(f, center(b)))[0];
+    if (shadow && (f.bleed?.rate > 0 || f.hp < 36)) return center(shadow);
     const cover = nearCover(state.arena, f);
     if (cover) return { x: cover.x + cover.w / 2 + (f.x < enemy.x ? -52 : 52), y: cover.y + cover.h / 2 };
   }
+  if (f.wallLean && d < 210 && f.hp < 55) return { x: f.x, y: f.y };
   if (f.archetypeId === 'ninja' && d > 95) return flankPoint(f, enemy, 80);
   if (f.archetypeId === 'martial_artist') return flankPoint(f, enemy, 48);
   if (f.archetypeId === 'archer' && d < 260) return awayPoint(f, enemy, 170);
@@ -40,6 +44,7 @@ export function chooseDestination(state, f, enemy) {
   return flankPoint(f, enemy, f.weapon === 'rifle' || f.weapon === 'bow' ? 250 : 70);
 }
 
+function center(rect) { return { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 }; }
 function awayPoint(f, enemy, amount) {
   const a = angleTo(enemy, f);
   return { x: f.x + Math.cos(a) * amount, y: f.y + Math.sin(a) * amount };
@@ -56,15 +61,27 @@ export function moveFighter(state, f, dest, dt) {
   const a = angleTo(f, dest);
   f.facing = a;
   const stage = stageFor(f);
-  const stealthMod = f.crouch || f.prone ? 0.55 : 1;
+  const stealthMod = f.crouch || f.prone || f.shadowHidden ? 0.55 : 1;
   const urgency = f.memory.command?.urgent ? 1.38 : 1;
-  const speed = f.stats.speed * stage.speed * stealthMod * urgency * (f.stamina < 20 ? 0.68 : 1);
+  const limpMod = stage.id === 'purple' ? 0.72 : stage.id === 'red' ? 0.84 : 1;
+  const speed = f.stats.speed * stage.speed * stealthMod * urgency * limpMod * (f.stamina < 20 ? 0.68 : 1);
   const step = Math.min(dist(f, dest), speed * dt);
   const next = { x: f.x + Math.cos(a) * step, y: f.y + Math.sin(a) * step };
   const moved = slide(state.arena, f, next);
   f.x = moved.x; f.y = moved.y;
-  f.pose = step > 1 ? (f.prone ? 'crawl' : f.crouch ? 'crouchWalk' : f.memory.command?.urgent ? 'rush' : 'walk') : 'idle';
+  f.shadowHidden = inShadow(state.arena, f) && (f.crouch || f.prone || f.stamina < 45 || f.bleed?.rate > 0);
+  f.wallLean = Boolean(nearWall(state.arena, f, 17) && (f.hp < 52 || f.bleed?.rate > 0 || f.stamina < 22));
+  f.pose = step > 1 ? movementPose(f, stage) : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : 'idle';
   f.stamina = clamp(f.stamina - step * (f.memory.command?.urgent ? 0.018 : 0.006), 0, 100);
-  f.noise = f.prone ? 8 : f.crouch ? 14 : f.archetypeId === 'ninja' ? 18 : f.memory.command?.urgent ? 55 : 34;
-  f.hidden = f.prone || f.crouch || blocked(state.arena, f, 2);
+  f.noise = f.prone ? 8 : f.crouch || f.shadowHidden ? 10 : f.archetypeId === 'ninja' ? 18 : f.memory.command?.urgent ? 55 : 34;
+  f.hidden = f.shadowHidden || f.prone || f.crouch;
+}
+
+function movementPose(f, stage) {
+  if (f.prone) return 'crawl';
+  if (f.crouch) return 'crouchWalk';
+  if (stage.id === 'purple') return 'stagger_limp';
+  if (stage.id === 'red') return 'limp_run';
+  if (f.memory.command?.urgent) return 'rush';
+  return 'walk';
 }
