@@ -17,10 +17,13 @@ This folder is intentionally isolated from the existing Apartment God prototype 
 - Sword slash variants, knife/CQC, arrow stab, punches, kicks, roundhouse, headbutt, blocks, dodges, counters, grapples, throws, disarms, and fall/get-up animation cues.
 - Sneak sleeper holds with stamina/endurance tug-of-war, escape chance, and weapon-based counters.
 - Prestige, ruthlessness, defeated-kneel state, respectful finish, leave-for-stretcher finish, and hard final incapacitation.
-- Stamina, fight stamina, dodge meter, block meter, ammo, heat, damage stages, bandaging, trust, and incapacitation.
+- Five vitality pain stages: green, yellow, orange, red, purple. The visible fighter color desaturates as condition worsens, and incapacitated fighters gray out.
+- Vitality has a recovery cap. Once a fighter drops into a worse pain stage, they can recover only up to that stage ceiling during the match.
+- Sudden incapacitations can happen without walking through all five stages, especially from close blasts or critical shots.
+- Stamina, fight stamina, dodge meter, block meter, ammo, heat, vitality stage, bandaging, trust, and incapacitation.
 - Coach card drops for Fighter A: med, ammo, weapon refresh, extraction rope.
 - Commander ethos selector: AI Choice, Respectful, or Ruthless.
-- Coach suggestions: go there, take cover, stay ranged, close in, and disarm. These are trust-based suggestions, not direct control.
+- Coach suggestions: go there, take cover, stay ranged, projectile, hand to hand, use blade, grenade, and disarm. These are opportunity calls, not direct control.
 - Double tap arena for an urgent run-there command. Fighters still route around walls and objects.
 - Help bubbles when Fighter A is hurt, confused, drained, or asking for a commander call.
 
