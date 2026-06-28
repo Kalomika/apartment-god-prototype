@@ -19,7 +19,7 @@ export const COACH_COMMANDS = {
   cover: { label: 'Take Cover', trustCost: 4 },
   ranged: { label: 'Stay Ranged', trustCost: 5 },
   projectile: { label: 'Use Projectile', trustCost: 5 },
-  cqc: { label: 'Hand to Hand', trustCost: 5 },
+  cqc: { label: 'CQC / Hand to Hand', trustCost: 5 },
   sword: { label: 'Use Blade', trustCost: 6 },
   grenade: { label: 'Grenade', trustCost: 8 },
   disarm: { label: 'Disarm', trustCost: 7 }
