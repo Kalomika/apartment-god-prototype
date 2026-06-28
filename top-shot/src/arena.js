@@ -3,22 +3,36 @@ import { clamp, pointInRect } from './utils.js';
 
 export function createArena() {
   return {
-    name: 'Lobby One', w: ARENA_W, h: ARENA_H,
-    spawnA: { x: 145, y: 360, facing: 0 },
-    spawnB: { x: 815, y: 360, facing: Math.PI },
+    name: 'Security Floor', w: ARENA_W, h: ARENA_H,
+    spawnA: { x: 118, y: 360, facing: 0 },
+    spawnB: { x: 842, y: 360, facing: Math.PI },
     walls: [
       r('north', 20, 20, 920, 28), r('south', 20, 672, 920, 28), r('west', 20, 20, 28, 680), r('east', 912, 20, 28, 680),
-      r('left_pillar', 260, 300, 64, 120), r('right_pillar', 636, 300, 64, 120),
-      r('top_cover', 170, 185, 170, 34), r('bottom_cover', 620, 500, 170, 34),
-      r('center_top', 420, 110, 120, 60), r('center_bottom', 420, 550, 120, 60)
+      r('left_spawn_cover_top', 85, 190, 120, 34), r('left_spawn_cover_bottom', 85, 496, 120, 34),
+      r('right_spawn_cover_top', 755, 190, 120, 34), r('right_spawn_cover_bottom', 755, 496, 120, 34),
+      r('left_lane_wall_a', 245, 105, 44, 150), r('left_lane_wall_b', 245, 465, 44, 150),
+      r('right_lane_wall_a', 671, 105, 44, 150), r('right_lane_wall_b', 671, 465, 44, 150),
+      r('left_mid_cover_top', 215, 292, 160, 36), r('left_mid_cover_bottom', 215, 392, 160, 36),
+      r('right_mid_cover_top', 585, 292, 160, 36), r('right_mid_cover_bottom', 585, 392, 160, 36),
+      r('center_box_top', 448, 205, 64, 64), r('center_box_bottom', 448, 451, 64, 64),
+      r('center_low_cover_left', 404, 342, 48, 36), r('center_low_cover_right', 508, 342, 48, 36),
+      r('left_corner_block_top', 132, 106, 72, 72), r('left_corner_block_bottom', 132, 542, 72, 72),
+      r('right_corner_block_top', 756, 106, 72, 72), r('right_corner_block_bottom', 756, 542, 72, 72)
     ],
     shadows: [
-      r('left_shadow', 72, 92, 130, 145),
-      r('right_shadow', 758, 490, 120, 145),
-      r('pillar_shadow_a', 235, 424, 105, 72),
-      r('pillar_shadow_b', 620, 226, 105, 72)
+      r('left_shadow_top', 70, 75, 135, 95), r('left_shadow_bottom', 70, 550, 135, 95),
+      r('right_shadow_top', 755, 75, 135, 95), r('right_shadow_bottom', 755, 550, 135, 95),
+      r('center_shadow_left', 325, 330, 90, 64), r('center_shadow_right', 545, 330, 90, 64)
     ],
-    breakables: [r('glass_a', 375, 300, 70, 45, 18), r('glass_b', 520, 375, 70, 45, 18)],
+    breakables: [
+      r('glass_left_mid', 384, 320, 34, 80, 18), r('glass_right_mid', 542, 320, 34, 80, 18),
+      r('crate_top', 448, 128, 64, 42, 20), r('crate_bottom', 448, 550, 64, 42, 20)
+    ],
+    weaponSpawns: [
+      { id: 'left_power', x: 326, y: 360, type: 'weapon' },
+      { id: 'right_power', x: 634, y: 360, type: 'weapon' },
+      { id: 'center_power', x: 480, y: 360, type: 'ammo' }
+    ],
     debris: []
   };
 }
