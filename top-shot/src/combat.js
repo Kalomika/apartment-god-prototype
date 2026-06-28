@@ -1,6 +1,6 @@
 import { EFFECT_TTL } from './config.js';
-import { blocked, solids } from './arena.js';
-import { angleTo, chance, choose, clamp, dist, pointInRect, rand } from './utils.js';
+import { blocked } from './arena.js';
+import { angleTo, chance, choose, clamp, dist, rand } from './utils.js';
 import { addLog } from './state.js';
 import { clearLine } from './perception.js';
 
@@ -36,6 +36,7 @@ export function tryAttack(state, f, enemy, visible) {
   const d = dist(f, enemy);
   if (f.hp < 45 && f.bandageCd <= 0 && f.hidden) return bandage(state, f);
   if (f.archetypeId === 'ninja' && f.specialCd <= 0 && f.resources.smoke > 0 && f.hp < 52) return smoke(state, f, enemy);
+  if (f.memory.command?.type === 'disarm' && d < 54) return disarm(state, f, enemy);
   if (visible && shouldRanged(f, d)) return ranged(state, f, enemy);
   if (d < meleeReach(f)) return melee(state, f, enemy);
   if (d < 44 && f.stats.grapple > 55 && f.fight > 35 && chance(f.stats.grapple / 420)) return grapple(state, f, enemy);
@@ -43,6 +44,7 @@ export function tryAttack(state, f, enemy, visible) {
 
 function shouldRanged(f, d) {
   if (f.rangedCd > 0 || f.heat > 88) return false;
+  if (f.memory.command?.type === 'cqc' || f.memory.command?.type === 'disarm') return false;
   if (f.archetypeId === 'marine') return (f.resources.rifle > 0 || f.resources.pistol > 0) && d > 95;
   if (f.archetypeId === 'ninja') return f.resources.shuriken > 0 && d > 92 && d < 430;
   if (f.archetypeId === 'archer') return f.resources.arrows > 0 && d > 80 && d < 520;
@@ -95,13 +97,13 @@ function throwProjectile(state, f, enemy, type, speed, damage, resource) {
 
 function updateProjectiles(state, dt) {
   for (const p of state.projectiles) {
-    if (p.stuck) continue;
+    if (p.type === 'grenade' || p.stuck) continue;
     p.ttl -= dt; p.x += p.vx * dt; p.y += p.vy * dt;
     if (blocked(state.arena, p, 4)) { p.stuck = true; p.vx = 0; p.vy = 0; impact(state, p.x, p.y, 'stick'); continue; }
     const target = state.fighters.find(f => f.team !== p.team && !f.incapacitated && !f.extracted && dist(f, p) < 24);
     if (target) { hit(state, { name: p.owner, stats: { aim: 55 } }, target, p.damage, p.type, Math.atan2(p.vy, p.vx)); p.ttl = 0; }
   }
-  state.projectiles = state.projectiles.filter(p => p.ttl > 0 || p.stuck);
+  state.projectiles = state.projectiles.filter(p => p.type === 'grenade' || p.ttl > 0 || p.stuck);
 }
 
 function meleeReach(f) { if (f.melee === 'sword') return 70; if (f.melee === 'knife' || f.melee === 'arrow_stab') return 48; return 42; }
@@ -114,6 +116,19 @@ function melee(state, f, enemy) {
   const defended = defend(state, f, enemy, move);
   state.effects.push({ type: defended, x: enemy.x, y: enemy.y, ttl: EFFECT_TTL[defended] || 0.2, move: move.id });
   if (defended === 'hit') hit(state, f, enemy, move.damage + f.stats.cqc * 0.05, move.kind, angleTo(f, enemy), move);
+}
+
+function disarm(state, f, enemy) {
+  f.fight -= 16; f.cooldown = 0.75; f.pose = 'disarm_attempt'; f.memory.command = null;
+  const success = chance((f.stats.cqc + f.stats.grapple + f.stats.counter) / 330) && enemy.block < 75;
+  if (!success) { addLog(state, `${f.name} fails the disarm.`); if (chance(enemy.stats.counter / 220)) counter(state, enemy, f); return; }
+  enemy.rangedCd = 2.2; enemy.heat = Math.max(enemy.heat, 65); enemy.pose = 'disarmed';
+  if (enemy.resources.rifle) enemy.resources.rifle = Math.floor(enemy.resources.rifle * 0.55);
+  if (enemy.resources.pistol) enemy.resources.pistol = Math.floor(enemy.resources.pistol * 0.7);
+  if (enemy.resources.arrows) enemy.resources.arrows = Math.max(0, enemy.resources.arrows - 3);
+  if (enemy.resources.shuriken) enemy.resources.shuriken = Math.max(0, enemy.resources.shuriken - 2);
+  state.effects.push({ type: 'block', x: enemy.x, y: enemy.y, ttl: 0.28, move: 'disarm' });
+  addLog(state, `${f.name} disarms ${enemy.name}.`);
 }
 
 function defend(state, attacker, defender, move) {
