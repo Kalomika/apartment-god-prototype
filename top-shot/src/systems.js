@@ -1,5 +1,5 @@
 import { COACH_DROPS } from './config.js';
-import { clamp, dist, angleTo } from './utils.js';
+import { clamp, dist } from './utils.js';
 import { addLog, opponentOf } from './state.js';
 import { canHear, canSee, chooseDestination, moveFighter } from './perception.js';
 import { tryAttack, updateCombat } from './combat.js';
@@ -12,10 +12,12 @@ export function updateBattle(state, dt) {
   updateCombat(state, dt);
   for (const f of state.fighters) updateFighter(state, f, dt);
   updatePickups(state);
+  updateRetrievals(state);
   checkFinish(state);
 }
 
 function updateFighter(state, f, dt) {
+  if (f.currentMove) { f.currentMove.ttl -= dt; if (f.currentMove.ttl <= 0) f.currentMove = null; }
   if (f.incapacitated || f.extracted) return;
   if (f.extracting) return updateExtraction(state, f, dt);
   const enemy = opponentOf(state, f);
@@ -24,7 +26,7 @@ function updateFighter(state, f, dt) {
   if (visible || audible) f.memory.lastSeen = { x: enemy.x, y: enemy.y, t: state.clock };
   chooseStance(f, enemy, visible);
   tryAttack(state, f, enemy, visible);
-  const destination = nearestUsefulPickup(state, f) || chooseDestination(state, f, enemy);
+  const destination = nearestUsefulPickup(state, f) || nearestStuckProjectile(state, f) || chooseDestination(state, f, enemy);
   moveFighter(state, f, destination, dt);
   f.anim += dt * (f.pose === 'walk' || f.pose === 'crouchWalk' ? 12 : 3);
 }
@@ -46,6 +48,12 @@ function nearestUsefulPickup(state, f) {
   return pick;
 }
 
+function nearestStuckProjectile(state, f) {
+  if (!['ninja', 'archer'].includes(f.archetypeId)) return null;
+  const owned = state.projectiles.filter(p => p.stuck && p.team === f.team && ((f.archetypeId === 'ninja' && p.type === 'shuriken') || (f.archetypeId === 'archer' && p.type === 'arrow')));
+  return owned.sort((a, b) => dist(f, a) - dist(f, b))[0] || null;
+}
+
 function updatePickups(state) {
   for (const pick of state.pickups) {
     if (pick.used) continue;
@@ -56,6 +64,19 @@ function updatePickups(state) {
       }
     }
   }
+}
+
+function updateRetrievals(state) {
+  for (const f of state.fighters) {
+    for (const p of state.projectiles) {
+      if (!p.stuck || p.team !== f.team || dist(f, p) >= 24) continue;
+      if (p.type === 'shuriken') f.resources.shuriken = (f.resources.shuriken || 0) + 1;
+      if (p.type === 'arrow') f.resources.arrows = (f.resources.arrows || 0) + 1;
+      p.ttl = 0; p.stuck = false;
+      addLog(state, `${f.name} retrieves a ${p.type}.`);
+    }
+  }
+  state.projectiles = state.projectiles.filter(p => p.ttl > 0 || p.stuck);
 }
 
 function usePickup(state, f, pick) {
