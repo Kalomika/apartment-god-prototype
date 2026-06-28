@@ -7,6 +7,7 @@ import { trySuperMove, updateExplosives } from './explosives.js';
 import { tryPrestigeAction, updatePrestige } from './prestige.js';
 import { recoverVitality } from './vitality.js';
 import { updateHiding } from './hiding.js';
+import { updateTacticalPosture } from './tactics.js';
 import { shouldBandage, startBandage, updateWounds } from './wounds.js';
 
 export function updateBattle(state, dt) {
@@ -42,12 +43,13 @@ function updateFighter(state, f, dt) {
   }
   f.spottedT = Math.max(0, (f.spottedT || 0) - dt);
   chooseStance(f, enemy, visible);
+  updateTacticalPosture(state, f, enemy, visible, dt);
   if (shouldBandage(f) && startBandage(state, f)) return;
   if (!tryPrestigeAction(state, f, enemy, visible) && !trySuperMove(state, f, enemy, visible)) tryAttack(state, f, enemy, visible);
   if (needsHelp(f)) askForHelp(state, f);
   const destination = commandedDestination(state, f, enemy) || nearestUsefulPickup(state, f) || nearestStuckProjectile(state, f) || chooseDestination(state, f, enemy);
   moveFighter(state, f, destination, dt);
-  f.anim += dt * (['walk', 'crouchWalk', 'rush', 'stagger_limp', 'limp_run', 'careful_walk'].includes(f.pose) ? 12 : 3);
+  f.anim += dt * (['walk', 'crouchWalk', 'rush', 'stagger_limp', 'limp_run', 'careful_walk', 'wall_strafe', 'reposition', 'roll', 'combat_roll'].includes(f.pose) ? 12 : 3);
 }
 
 function chooseStance(f, enemy, visible) {
@@ -60,8 +62,8 @@ function chooseStance(f, enemy, visible) {
 
 function commandedDestination(state, f, enemy) {
   const command = f.memory.command;
-  if (!command || f.team !== 'A' && command.type !== 'investigate') return null;
-  if (['move', 'cover', 'investigate'].includes(command.type)) return { x: command.x, y: command.y };
+  if (!command || f.team !== 'A' && !['investigate', 'strafe'].includes(command.type)) return null;
+  if (['move', 'cover', 'investigate', 'strafe'].includes(command.type)) return { x: command.x, y: command.y };
   if (['ranged', 'projectile', 'grenade'].includes(command.type)) {
     const desired = command.type === 'grenade' ? 250 : 175;
     const away = Math.atan2(f.y - enemy.y, f.x - enemy.x);
