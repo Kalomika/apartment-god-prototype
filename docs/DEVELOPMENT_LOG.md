@@ -89,3 +89,33 @@ Known limitations:
 Next recommended step:
 
 Test on live Render after deploy. Verify upstairs bed/desk/book interactions, fetch ball, dog pathing around rooms, wall blocking, build request placement, and bookshelf reading reward.
+
+## 2026-06-27, Persistent cellphone foundation
+
+Tool or person: ChatGPT
+
+Branch: main
+
+Summary:
+
+- Added a persistent cellphone dock under the game/HUD area.
+- Cellphone opens and closes as a phone-style app panel.
+- Added fake apps: Home, Shop, Contacts, Music, Activities, Requests, and Saves.
+- Added floor arrow controls over the game area for quick upstairs/downstairs map viewing.
+- Added shop actions through the phone: food delivery, workout gear, bookshelf build request, and custom build request.
+- Added contacts app for selecting Resident, Girlfriend, or Dog.
+- Added music app using the existing pretend music genres.
+- Added activities app with cook self, cook for house, watch TV together, go to bed together, private moment, and movie theater/date activity.
+- Added request inbox foundation and manual request generation.
+- Added localStorage save slots 1, 2, and 3.
+
+Known limitations:
+
+- Phone UI is DOM-based and symbolic, not a polished phone skin yet.
+- Save slots restore core state, needs, skills, money, and actors, but dynamic delivered objects need deeper persistence later.
+- Requests are simple text entries, not full quest chains yet.
+- Garage, basement, car travel/gas, pregnancy, aging calendar, and offline progression remain future implementation passes.
+
+Next recommended step:
+
+Test the phone dock on mobile after Render deploy. Verify it opens, tabs work, music starts, saves/loads operate, build request still enters placement mode, and floor arrows do not interfere with gameplay clicks.
