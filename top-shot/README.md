@@ -12,9 +12,14 @@ This folder is intentionally isolated from the existing Apartment God prototype 
 - Segmented top-down fighter bodies with head, torso, upper arms, forearms, thighs, and calves.
 - AI movement, cover seeking, line of sight, hiding, crouch/prone states, and basic patrol behavior.
 - Bullet tracer flashes, ricochet flashes, rifle burst fire, pistol fire, visible arrows, visible shurikens, debris throws.
-- Sword slash variants, knife/CQC, arrow stab, punches, kicks, roundhouse, blocks, dodges, counters, grapples, throws, fall/get-up animation cues.
-- Stamina, fight stamina, dodge meter, block meter, ammo, heat, damage stages, bandaging, and incapacitation.
+- Marine grenade super move, grenade fuse, blast radius, dive-away reactions, and blast incapacitation.
+- Three dive reads: flat dive, dive roll, and ninja somersault dive.
+- Sword slash variants, knife/CQC, arrow stab, punches, kicks, roundhouse, headbutt, blocks, dodges, counters, grapples, throws, disarms, and fall/get-up animation cues.
+- Stamina, fight stamina, dodge meter, block meter, ammo, heat, damage stages, bandaging, trust, and incapacitation.
 - Coach card drops for Fighter A: med, ammo, weapon refresh, extraction rope.
+- Coach suggestions: go there, take cover, stay ranged, close in, and disarm. These are trust-based suggestions, not direct control.
+- Double tap arena for an urgent run-there command. Fighters still route around walls and objects.
+- Help bubbles when Fighter A is hurt, confused, drained, or asking for a commander call.
 
 ## Local run
 
