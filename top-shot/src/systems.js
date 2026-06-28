@@ -4,6 +4,7 @@ import { addLog, opponentOf } from './state.js';
 import { canHear, canSee, chooseDestination, moveFighter } from './perception.js';
 import { tryAttack, updateCombat } from './combat.js';
 import { trySuperMove, updateExplosives } from './explosives.js';
+import { tryPrestigeAction, updatePrestige } from './prestige.js';
 
 export function updateBattle(state, dt) {
   if (state.paused || state.matchState === 'finished') return;
@@ -11,6 +12,7 @@ export function updateBattle(state, dt) {
   state.effects.forEach(e => { e.ttl -= dt; });
   state.effects = state.effects.filter(e => e.ttl > 0);
   updateExplosives(state, dt);
+  updatePrestige(state, dt);
   updateCombat(state, dt);
   for (const f of state.fighters) updateFighter(state, f, dt);
   updatePickups(state);
@@ -23,14 +25,14 @@ function updateFighter(state, f, dt) {
   f.commandCd = Math.max(0, f.commandCd - dt);
   f.helpT = Math.max(0, (f.helpT || 0) - dt);
   if (f.memory.command && f.memory.command.until <= state.clock) f.memory.command = null;
-  if (f.incapacitated || f.extracted || f.diveT > 0) return;
+  if (f.incapacitated || f.extracted || f.diveT > 0 || f.hold || f.heldBy) return;
   if (f.extracting) return updateExtraction(state, f, dt);
   const enemy = opponentOf(state, f);
   const visible = canSee(state.arena, f, enemy);
   const audible = canHear(f, enemy);
   if (visible || audible) f.memory.lastSeen = { x: enemy.x, y: enemy.y, t: state.clock };
   chooseStance(f, enemy, visible);
-  if (!trySuperMove(state, f, enemy, visible)) tryAttack(state, f, enemy, visible);
+  if (!tryPrestigeAction(state, f, enemy, visible) && !trySuperMove(state, f, enemy, visible)) tryAttack(state, f, enemy, visible);
   if (needsHelp(f)) askForHelp(state, f);
   const destination = commandedDestination(state, f, enemy) || nearestUsefulPickup(state, f) || nearestStuckProjectile(state, f) || chooseDestination(state, f, enemy);
   moveFighter(state, f, destination, dt);
@@ -137,6 +139,13 @@ export function suggestCommand(state, type, x, y, urgent = false) {
   state.effects.push({ type: 'command', x, y, ttl: 0.65 });
   rewardTrust(state, -Math.ceil(COACH_COMMANDS[type].trustCost / 3));
   addLog(state, `${f.name} follows: ${COACH_COMMANDS[type].label}.`);
+  return true;
+}
+
+export function setCommanderEthos(state, ethos) {
+  if (!['ai', 'respectful', 'ruthless'].includes(ethos)) return false;
+  state.commanderEthos = ethos;
+  addLog(state, `Commander ethos set to ${ethos}.`);
   return true;
 }
 
