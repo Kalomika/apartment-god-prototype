@@ -14,7 +14,7 @@ This folder is intentionally isolated from the existing Apartment God prototype 
 - Bullet tracer flashes, ricochet flashes, rifle burst fire, pistol fire, visible arrows, visible shurikens, debris throws.
 - Sword slash variants, knife/CQC, arrow stab, punches, kicks, roundhouse, blocks, dodges, counters, grapples, throws, fall/get-up animation cues.
 - Stamina, fight stamina, dodge meter, block meter, ammo, heat, damage stages, bandaging, and incapacitation.
-- Coach card drops for Fighter A: med, ammo, weapon refresh.
+- Coach card drops for Fighter A: med, ammo, weapon refresh, extraction rope.
 
 ## Local run
 
@@ -37,6 +37,10 @@ npm run build
 ## Render
 
 Use `top-shot/render.yaml` as a Render Blueprint. This prototype is a static site. The root directory should be `top-shot`, build command `npm install && npm run build`, and publish directory `dist`.
+
+## Name note
+
+Top Shot is a working title. Before public launch, do a proper name and trademark review because other media/products already use close versions of this name.
 
 ## Build philosophy
 
