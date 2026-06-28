@@ -38,5 +38,9 @@ export const EFFECT_TTL = {
   grenade: 1.35,
   explosion: 0.7,
   command: 0.65,
-  dive: 0.42
+  dive: 0.42,
+  bleed: 0.55,
+  alert: 0.8,
+  bandage: 0.45,
+  wallLean: 0.35
 };
