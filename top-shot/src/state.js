@@ -11,6 +11,7 @@ export function createBattle(aId = 'marine', bId = 'ninja') {
     matchState: 'running',
     selectedDrop: null,
     selectedCommand: null,
+    commanderEthos: 'ai',
     trust: 64,
     commandHistory: [],
     dropsLeft: Object.fromEntries(Object.entries(COACH_DROPS).map(([id, drop]) => [id, drop.charges])),
