@@ -3,6 +3,7 @@ import { blocked } from './arena.js';
 import { angleTo, chance, choose, clamp, dist, rand } from './utils.js';
 import { addLog } from './state.js';
 import { clearLine } from './perception.js';
+import { canSuddenIncapacitate, recoverVitality, updateVitalityCap } from './vitality.js';
 
 const MOVES = [
   { id: 'left_jab', limb: 'leftArm', kind: 'punch', reach: 38, damage: 7, stamina: 5, lean: 1 },
@@ -27,6 +28,7 @@ export function updateCombat(state, dt) {
     f.fight = clamp(f.fight + dt * 6, 0, 100);
     f.dodge = clamp(f.dodge + dt * 8, 0, 100);
     f.block = clamp(f.block + dt * 9, 0, 100);
+    if (f.hidden && f.hp > 0 && f.hp < (f.vitalityCap ?? 100)) recoverVitality(f, dt * (f.bandageCd > 0 ? 5.5 : 1.4));
     for (const limb of Object.values(f.limbs)) { limb.guard = clamp(limb.guard + dt * 10, 0, 100); limb.t = Math.max(0, limb.t - dt); }
   }
   updateProjectiles(state, dt);
@@ -38,6 +40,7 @@ export function tryAttack(state, f, enemy, visible) {
   if (f.hp < 45 && f.bandageCd <= 0 && f.hidden) return bandage(state, f);
   if (f.archetypeId === 'ninja' && f.specialCd <= 0 && f.resources.smoke > 0 && f.hp < 52) return smoke(state, f, enemy);
   if (f.memory.command?.type === 'disarm' && d < 54) return disarm(state, f, enemy);
+  if (f.memory.command?.type === 'sword' && d < meleeReach(f) && f.melee === 'sword') return melee(state, f, enemy, 'sword');
   if (visible && shouldRanged(f, d)) return ranged(state, f, enemy);
   if (d < meleeReach(f)) return melee(state, f, enemy);
   if (d < 44 && f.stats.grapple > 55 && f.fight > 35 && chance(f.stats.grapple / 420)) return grapple(state, f, enemy);
@@ -45,7 +48,8 @@ export function tryAttack(state, f, enemy, visible) {
 
 function shouldRanged(f, d) {
   if (f.rangedCd > 0 || f.heat > 88) return false;
-  if (f.memory.command?.type === 'cqc' || f.memory.command?.type === 'disarm') return false;
+  if (['cqc', 'disarm', 'sword'].includes(f.memory.command?.type)) return false;
+  if (f.memory.command?.type === 'projectile') return d > 60;
   if (f.archetypeId === 'marine') return (f.resources.rifle > 0 || f.resources.pistol > 0) && d > 95;
   if (f.archetypeId === 'ninja') return f.resources.shuriken > 0 && d > 92 && d < 430;
   if (f.archetypeId === 'archer') return f.resources.arrows > 0 && d > 80 && d < 520;
@@ -108,8 +112,8 @@ function updateProjectiles(state, dt) {
 }
 
 function meleeReach(f) { if (f.melee === 'sword') return 70; if (f.melee === 'knife' || f.melee === 'arrow_stab') return 48; return 42; }
-function melee(state, f, enemy) {
-  const sword = f.melee === 'sword';
+function melee(state, f, enemy, force = null) {
+  const sword = f.melee === 'sword' || force === 'sword';
   const move = sword ? { id: choose(SWORD), limb: 'rightArm', kind: 'sword', reach: 70, damage: 18, stamina: 12, lean: -1 } : choose(MOVES);
   if (f.fight < move.stamina) return;
   f.fight -= move.stamina; f.stamina -= move.stamina * 0.4; f.meleeCd = move.kind === 'power' ? 1.0 : 0.38; f.cooldown = f.meleeCd;
@@ -157,13 +161,17 @@ function grapple(state, f, enemy) {
   addLog(state, `${f.name} grabs and throws ${enemy.name}.`);
 }
 function smoke(state, f, enemy) { f.resources.smoke--; f.specialCd = 7; state.effects.push({ type: 'smoke', x: f.x, y: f.y, ttl: EFFECT_TTL.smoke }); const a = angleTo(enemy, f); f.x += Math.cos(a) * 135; f.y += Math.sin(a) * 135; addLog(state, `${f.name} vanishes through smoke.`); }
-function bandage(state, f) { f.bandageCd = 10; f.cooldown = 2.2; f.pose = 'bandage'; f.hp = clamp(f.hp + 10, 0, Math.max(60, f.hp)); addLog(state, `${f.name} bandages while hidden.`); }
+function bandage(state, f) { f.bandageCd = 10; f.cooldown = 2.2; f.pose = 'bandage'; recoverVitality(f, 10); addLog(state, `${f.name} bandages while hidden.`); }
 function hit(state, attacker, defender, amount, type, a, move = null) {
   const toughness = defender.stats?.toughness || 60;
   const final = Math.max(2, amount * (1.22 - toughness / 180));
-  defender.hp = clamp(defender.hp - final, 0, 100); defender.memory.lastHitBy = attacker.name; defender.pose = 'hit'; defender.hitLean = move?.lean || (Math.cos(a) > 0 ? 1 : -1); shove(defender, a, final * 1.2);
-  impact(state, defender.x, defender.y, type); if (defender.hp <= 0) defeat(state, defender, attacker);
+  defender.hp = clamp(defender.hp - final, 0, 100); updateVitalityCap(defender);
+  defender.memory.lastHitBy = attacker.name; defender.pose = 'hit'; defender.hitLean = move?.lean || (Math.cos(a) > 0 ? 1 : -1); shove(defender, a, final * 1.2);
+  impact(state, defender.x, defender.y, type);
+  if (canSuddenIncapacitate(attacker, defender, type, final)) return incapacitate(state, defender, attacker, type);
+  if (defender.hp <= 0) defeat(state, defender, attacker);
 }
 function shove(f, a, power) { f.x += Math.cos(a) * power; f.y += Math.sin(a) * power; }
 function impact(state, x, y, kind) { state.effects.push({ type: 'impact', kind, x, y, ttl: EFFECT_TTL.impact }); }
 function defeat(state, f, attacker) { f.defeated = true; f.hp = 1; f.pose = 'defeated_kneel'; f.finishT = 4; f.stamina = 0; f.fight = 0; addLog(state, `${f.name} drops to a knee. ${attacker.name || 'Opponent'} can decide the finish.`); }
+function incapacitate(state, f, attacker, type = 'critical') { f.incapacitated = true; f.defeated = false; f.hp = 0; f.pose = 'down'; addLog(state, `${f.name} is suddenly incapacitated by ${attacker.name || type}.`); state.matchState = 'finished'; }
