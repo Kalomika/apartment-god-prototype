@@ -31,7 +31,14 @@
         <button data-drop="weapon">Drop Weapon</button>
         <button data-drop="extract">Extract</button>
       </div>
-      <p id="dropHint" class="hint">Coach drops help Fighter A. Click a drop, then click the arena. Extraction forfeits the match but saves the fighter.</p>
+      <div class="row commands">
+        <button data-command="move">Go There</button>
+        <button data-command="cover">Take Cover</button>
+        <button data-command="ranged">Stay Ranged</button>
+        <button data-command="cqc">Close In</button>
+        <button data-command="disarm">Disarm</button>
+      </div>
+      <p id="dropHint" class="hint">No direct control. Click a command, then click the arena to coach. Double tap the arena for an urgent run-there call. Extraction forfeits the match but saves the fighter.</p>
       <section id="hud"></section>
       <ol id="log" class="log"></ol>
     </aside>
