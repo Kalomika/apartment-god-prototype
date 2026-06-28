@@ -1,4 +1,5 @@
 import { ARENA_H, ARENA_W, TAU } from './config.js';
+import { fighterRequest } from './requests.js';
 import { stageFor } from './state.js';
 
 export function draw(ctx, state) {
@@ -86,12 +87,50 @@ function weapon(ctx, f, p) { ctx.strokeStyle = p.weapon; ctx.lineWidth = 4; if (
 function arc(ctx, m) { ctx.strokeStyle = m.kind === 'sword' ? '#eaf3ff' : '#f3d66f'; ctx.lineWidth = 4; ctx.globalAlpha = .55; ctx.beginPath(); ctx.arc(24, 0, m.reach || 44, -.5, .5); ctx.stroke(); ctx.globalAlpha = 1; }
 function labels(ctx, f, stage) { ctx.textAlign = 'center'; ctx.font = '800 12px system-ui'; ctx.fillStyle = stage.color; ctx.fillText(stage.label, 0, -50); meter(ctx, -32, -43, 64, 5, f.hp, stage.color); if (f.intent) { ctx.fillStyle = '#b9c7db'; ctx.font = '700 10px system-ui'; ctx.fillText(String(f.intent).replace('coach_', ''), 0, -60); } }
 function colors(f, stage, final) { const dull = final ? .78 : Math.max(0, 1 - (stage.saturation ?? 1)); return { outline: '#06090e', skin: final ? '#9a9a9a' : '#b77b58', hair: '#11141a', face: '#f0c7a6', shirt: mix(f.accent || '#5b6b84', '#89919b', dull), vest: '#1b232e', pants: mix(f.color || '#506f92', '#858d98', dull), sleeve: mix(f.color || '#506f92', '#858d98', dull * .8), gear: '#776a4a', glove: '#11161d', boot: '#0d1117', weapon: '#10151d' }; }
-function effects(ctx, state, over) { for (const e of state.effects) { const top = ['tracer', 'alert', 'command'].includes(e.type); if (top !== over) continue; ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, e.ttl * 6)); if (e.type === 'tracer') { ctx.strokeStyle = '#e8fbff'; ctx.lineWidth = 5; line(ctx, e.x, e.y, e.x2, e.y2); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; line(ctx, e.x, e.y, e.x2, e.y2); dot(ctx, e.x, e.y, 8, '#f7d96a'); } else if (e.type === 'smoke') dot(ctx, e.x, e.y, 55 * (1 - e.ttl / .9), '#cfd8e655'); else if (e.type === 'explosion') dot(ctx, e.x, e.y, (e.radius || 80) * (1 - e.ttl / .7), '#f3b24d55'); else dot(ctx, e.x, e.y, 15, e.type === 'block' ? '#f4db73' : e.type === 'dodge' ? '#7bd0ff' : '#f15d56'); ctx.restore(); } }
-function hud(ctx, state) { ctx.fillStyle = '#0b111bcc'; ctx.fillRect(980, 0, 300, 720); ctx.fillStyle = '#eef6ff'; ctx.font = '900 26px system-ui'; ctx.fillText('TOP SHOT', 1000, 38); ctx.fillStyle = '#aebbd0'; ctx.font = '700 13px system-ui'; ctx.fillText('Flat tactical sprite pass', 1000, 60); state.fighters.forEach((f, i) => card(ctx, f, 1000, 92 + i * 160)); let y = 430; ctx.fillStyle = '#d6e2f2'; ctx.font = '800 13px system-ui'; ctx.fillText(`State: ${state.matchState}`, 1000, y); ctx.fillText(`Trust: ${Math.round(state.trust)}`, 1000, y + 22); ctx.fillText(`Clock: ${state.clock.toFixed(1)}s`, 1000, y + 44); y += 80; ctx.fillStyle = '#9fb0c6'; ctx.font = '700 12px system-ui'; for (const l of state.log.slice(0, 7)) { ctx.fillText(l, 1000, y); y += 22; } }
-function card(ctx, f, x, y) { const s = stageFor(f); ctx.fillStyle = '#121b28'; ctx.fillRect(x, y, 250, 140); ctx.strokeStyle = f.color; ctx.strokeRect(x, y, 250, 140); ctx.fillStyle = '#eff5ff'; ctx.font = '900 15px system-ui'; ctx.fillText(f.name, x + 12, y + 23); ctx.fillStyle = s.color; ctx.font = '800 12px system-ui'; ctx.fillText(s.label, x + 185, y + 23); labelMeter(ctx, 'VIT', f.hp, x + 12, y + 44, s.color); labelMeter(ctx, 'STA', f.stamina, x + 12, y + 68, '#7ad99a'); labelMeter(ctx, 'DODGE', f.dodge, x + 12, y + 92, '#b894ff'); labelMeter(ctx, 'BLOCK', f.block, x + 12, y + 116, '#f0d36a'); }
+function effects(ctx, state, over) { for (const e of state.effects) { const top = ['tracer', 'alert', 'command'].includes(e.type); if (top !== over) continue; ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, e.ttl * 6)); if (e.type === 'tracer') { ctx.strokeStyle = '#e8fbff'; ctx.lineWidth = 5; line(ctx, e.x, e.y, e.x2, e.y2); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; line(ctx, e.x, e.y, e.x2, e.y2); dot(ctx, e.x, e.y, 8, '#f7d96a'); } else if (e.type === 'smoke') dot(ctx, e.x, e.y, 55 * (1 - e.ttl / .9), '#cfd8e655'); else if (e.type === 'explosion') dot(ctx, e.x, e.y, (e.radius || 80) * (1 - e.ttl / .7), '#f3b24d55'); else { dot(ctx, e.x, e.y, 15, e.type === 'block' ? '#f4db73' : e.type === 'dodge' ? '#7bd0ff' : '#f15d56'); if (e.type === 'command' && e.label) { ctx.fillStyle = '#f0d36a'; ctx.font = '900 12px system-ui'; ctx.textAlign = 'center'; ctx.fillText(iconText(e.label), e.x, e.y - 22); } } ctx.restore(); } }
+function hud(ctx, state) {
+  ctx.fillStyle = '#0b111bcc'; ctx.fillRect(980, 0, 300, 720);
+  ctx.fillStyle = '#eef6ff'; ctx.font = '900 26px system-ui'; ctx.fillText('TOP SHOT', 1000, 38);
+  ctx.fillStyle = '#aebbd0'; ctx.font = '700 13px system-ui'; ctx.fillText('Flat tactical sprite pass', 1000, 60);
+  const handler = state.fighters.find(f => f.team === 'A');
+  handlerLink(ctx, handler, fighterRequest(state, handler), 1000, 78);
+  state.fighters.forEach((f, i) => card(ctx, f, 1000, 190 + i * 142));
+  let y = 485; ctx.fillStyle = '#d6e2f2'; ctx.font = '800 13px system-ui';
+  ctx.fillText(`State: ${state.matchState}`, 1000, y); ctx.fillText(`Trust: ${Math.round(state.trust)}`, 1000, y + 22); ctx.fillText(`Clock: ${state.clock.toFixed(1)}s`, 1000, y + 44);
+  y += 72; ctx.fillStyle = '#9fb0c6'; ctx.font = '700 12px system-ui';
+  for (const l of state.log.slice(0, 7)) { fitText(ctx, l, 1000, y, 260); y += 21; }
+}
+function handlerLink(ctx, f, request, x, y) {
+  if (!f || !request) return;
+  ctx.fillStyle = '#111a27'; ctx.fillRect(x, y, 250, 92);
+  ctx.strokeStyle = request.color; ctx.lineWidth = 2; ctx.strokeRect(x, y, 250, 92);
+  handlerPortrait(ctx, f, request, x + 12, y + 14, 64);
+  ctx.fillStyle = '#9fb0c6'; ctx.font = '800 10px system-ui'; ctx.fillText('HANDLER LINK', x + 88, y + 23);
+  ctx.fillStyle = request.color; ctx.font = '900 15px system-ui'; fitText(ctx, request.label, x + 88, y + 45, 146);
+  ctx.fillStyle = '#edf4ff'; ctx.font = '700 12px system-ui'; fitText(ctx, request.detail, x + 88, y + 66, 146);
+}
+function handlerPortrait(ctx, f, request, x, y, size) {
+  const s = stageFor(f);
+  const p = colors(f, s, f.incapacitated || f.defeated || f.extracted);
+  ctx.fillStyle = '#091018'; ctx.fillRect(x, y, size, size); ctx.strokeStyle = '#334154'; ctx.lineWidth = 1; ctx.strokeRect(x, y, size, size);
+  // Compact original portrait inspired by the upward-looking reference: broad shoulders, raised face, hands at the handler edge.
+  rectBody(ctx, x + 6, y + 40, 52, 16, p.vest, p.outline);
+  rectBody(ctx, x + 15, y + 34, 34, 12, p.sleeve, p.outline);
+  rectBody(ctx, x + 26, y + 32, 12, 10, p.skin, p.outline);
+  rectBody(ctx, x + 20, y + 17, 24, 24, p.skin, p.outline);
+  ctx.fillStyle = p.hair; ctx.fillRect(x + 18, y + 14, 28, 12); ctx.fillRect(x + 18, y + 23, 8, 10); ctx.fillRect(x + 38, y + 23, 8, 10);
+  ctx.fillStyle = p.face; ctx.fillRect(x + 26, y + 29, 4, 3); ctx.fillRect(x + 36, y + 29, 4, 3);
+  rectBody(ctx, x + 8, y + 45, 11, 15, p.skin, p.outline);
+  rectBody(ctx, x + 45, y + 45, 11, 15, p.skin, p.outline);
+  ctx.fillStyle = request.color; ctx.fillRect(x + 44, y + 5, 17, 15);
+  ctx.fillStyle = '#071018'; ctx.font = '900 8px system-ui'; ctx.textAlign = 'center'; ctx.fillText(iconText(request.icon), x + 52.5, y + 16);
+}
+function card(ctx, f, x, y) { const s = stageFor(f); ctx.fillStyle = '#121b28'; ctx.fillRect(x, y, 250, 132); ctx.strokeStyle = f.color; ctx.strokeRect(x, y, 250, 132); ctx.fillStyle = '#eff5ff'; ctx.font = '900 15px system-ui'; fitText(ctx, f.name, x + 12, y + 23, 160); ctx.fillStyle = s.color; ctx.font = '800 12px system-ui'; ctx.fillText(s.label, x + 185, y + 23); labelMeter(ctx, 'VIT', f.hp, x + 12, y + 40, s.color); labelMeter(ctx, 'STA', f.stamina, x + 12, y + 62, '#7ad99a'); labelMeter(ctx, 'DODGE', f.dodge, x + 12, y + 84, '#b894ff'); labelMeter(ctx, 'BLOCK', f.block, x + 12, y + 106, '#f0d36a'); }
 function result(ctx, state) { if (state.matchState !== 'finished') return; ctx.fillStyle = '#05080dcc'; ctx.fillRect(120, 250, 720, 150); ctx.strokeStyle = '#f0d36a'; ctx.lineWidth = 3; ctx.strokeRect(120, 250, 720, 150); ctx.textAlign = 'center'; ctx.fillStyle = '#f5f0d0'; ctx.font = '900 34px system-ui'; ctx.fillText('MATCH COMPLETE', 480, 305); ctx.fillStyle = '#edf4ff'; ctx.font = '800 20px system-ui'; ctx.fillText(state.result || 'Match finished.', 480, 340); }
 function labelMeter(ctx, label, value, x, y, color) { ctx.fillStyle = '#aebbd0'; ctx.font = '800 10px system-ui'; ctx.fillText(label, x, y + 8); meter(ctx, x + 48, y, 170, 8, value, color); }
 function meter(ctx, x, y, w, h, value, color) { ctx.fillStyle = '#091018'; ctx.fillRect(x, y, w, h); ctx.fillStyle = color; ctx.fillRect(x, y, w * Math.max(0, Math.min(100, value)) / 100, h); }
+function fitText(ctx, text, x, y, maxWidth) { let out = String(text); while (out.length > 4 && ctx.measureText(out).width > maxWidth) out = out.slice(0, -2).trim(); if (out !== String(text)) out = `${out.slice(0, -1)}...`; ctx.fillText(out, x, y); }
+function iconText(label) { const icons = { bleed: '+', med: '+', grenade: 'G', ammo: 'AM', extract: 'EX', ok: 'OK', command: '?', help: '?' }; return icons[label] || String(label || '?').slice(0, 2).toUpperCase(); }
 function poly(ctx, pts) { ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill(); }
 function line(ctx, x1, y1, x2, y2) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
 function dot(ctx, x, y, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }

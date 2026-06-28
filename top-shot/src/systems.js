@@ -5,6 +5,7 @@ import { canHear, canSee, chooseDestination, moveFighter } from './perception.js
 import { tryAttack, updateCombat } from './combat.js';
 import { trySuperMove, updateExplosives } from './explosives.js';
 import { tryPrestigeAction, updatePrestige } from './prestige.js';
+import { fighterRequest } from './requests.js';
 import { recoverVitality } from './vitality.js';
 import { updateHiding } from './hiding.js';
 import { updateTacticalPosture } from './tactics.js';
@@ -53,7 +54,7 @@ function updateFighter(state, f, dt) {
   }
   if (shouldBandage(f) && startBandage(state, f)) return;
   if (!tryPrestigeAction(state, f, enemy, visible) && !trySuperMove(state, f, enemy, visible)) tryAttack(state, f, enemy, visible);
-  if (needsHelp(f)) askForHelp(state, f);
+  if (needsHelp(state, f)) askForHelp(state, f);
 
   const destination = stableDestination(state, f, enemy);
   const before = { x: f.x, y: f.y };
@@ -160,10 +161,10 @@ function beginExtraction(state, f) { f.extracting = true; f.actionT = 1.3; f.pos
 function updateExtraction(state, f, dt) { f.actionT -= dt; f.y -= 160 * dt; f.pose = 'extract'; if (f.actionT <= 0) { f.extracted = true; f.extracting = false; state.result = `${f.name} extracted. Opponent wins by forfeit.`; state.matchState = 'finished'; rewardTrust(state, -4); addLog(state, state.result); } }
 
 export function placeCoachDrop(state, type, x, y) { if (!COACH_DROPS[type] || (state.dropsLeft[type] || 0) <= 0) return false; state.dropsLeft[type]--; state.pickups.push({ type, team: 'A', x, y, used: false, label: COACH_DROPS[type].label, color: COACH_DROPS[type].color }); addLog(state, `Coach drops ${COACH_DROPS[type].label}.`); return true; }
-export function suggestCommand(state, type, x, y, urgent = false) { if (!COACH_COMMANDS[type]) return false; const f = state.fighters.find(f => f.team === 'A'); if (!f || f.incapacitated || f.defeated || f.extracted || f.commandCd > 0) return false; const obeyChance = clamp((state.trust + f.stats.discipline) / 190 + (urgent ? 0.12 : 0), 0.18, 0.94); state.commandHistory.push({ t: state.clock, type, obeyChance }); f.commandCd = urgent ? 0.45 : 0.9; if (Math.random() > obeyChance) { rewardTrust(state, -COACH_COMMANDS[type].trustCost); addLog(state, `${f.name} ignores the ${COACH_COMMANDS[type].label} call.`); return false; } f.memory.command = { type, x, y, urgent, until: state.clock + (urgent ? 2.4 : 3.8) }; f.stamina = clamp(f.stamina - (urgent ? 12 : 4), 0, 100); f.helpT = 0; state.effects.push({ type: 'command', x, y, ttl: 0.65 }); rewardTrust(state, -Math.ceil(COACH_COMMANDS[type].trustCost / 3)); addLog(state, `${f.name} follows opportunity call: ${COACH_COMMANDS[type].label}.`); return true; }
+export function suggestCommand(state, type, x, y, urgent = false) { if (!COACH_COMMANDS[type]) return false; const f = state.fighters.find(f => f.team === 'A'); if (!f || f.incapacitated || f.defeated || f.extracted || f.commandCd > 0) return false; const obeyChance = clamp((state.trust + f.stats.discipline) / 190 + (urgent ? 0.12 : 0), 0.18, 0.94); state.commandHistory.push({ t: state.clock, type, obeyChance }); f.commandCd = urgent ? 0.45 : 0.9; if (Math.random() > obeyChance) { rewardTrust(state, -COACH_COMMANDS[type].trustCost); addLog(state, `${f.name} ignores the ${COACH_COMMANDS[type].label} call.`); return false; } f.memory.command = { type, x, y, urgent, until: state.clock + (urgent ? 2.4 : 3.8) }; f.stamina = clamp(f.stamina - (urgent ? 12 : 4), 0, 100); f.helpT = 0.95; f.helpIcon = 'ok'; f.helpRequest = 'approval'; state.effects.push({ type: 'command', x, y, ttl: 0.65 }); rewardTrust(state, -Math.ceil(COACH_COMMANDS[type].trustCost / 3)); addLog(state, `${f.name} follows opportunity call: ${COACH_COMMANDS[type].label}.`); return true; }
 export function setCommanderEthos(state, ethos) { if (!['ai', 'respectful', 'ruthless'].includes(ethos)) return false; state.commanderEthos = ethos; addLog(state, `Commander ethos set to ${ethos}.`); return true; }
 
-function needsHelp(f) { return f.team === 'A' && !f.memory.command && !f.helpT && (f.bleed?.rate > 0 || f.hp < 38 || f.stamina < 18 || f.dodge < 12 || f.block < 12); }
-function askForHelp(state, f) { f.helpT = 2.2; f.helpIcon = f.bleed?.rate > 0 ? 'bleed' : f.resources.grenades === 0 && f.archetypeId === 'marine' ? 'grenade' : '?'; state.effects.push({ type: 'command', x: f.x, y: f.y - 36, ttl: 0.65, label: f.helpIcon }); addLog(state, `${f.name} looks to you for a call.`); }
+function needsHelp(state, f) { const request = fighterRequest(state, f); return Boolean(request?.urgent && !f.memory.command && !f.helpT && !f.extracting && !f.extracted); }
+function askForHelp(state, f) { const request = fighterRequest(state, f) || { id: 'help', icon: '?', callout: 'a command' }; f.helpT = request.id === 'extract' ? 2.8 : 2.2; f.helpIcon = request.icon; f.helpRequest = request.id; state.effects.push({ type: 'command', x: f.x, y: f.y - 36, ttl: 0.65, label: request.icon }); addLog(state, `${f.name} looks up for ${request.callout}.`); }
 function rewardTrust(state, amount) { state.trust = clamp(state.trust + amount, 0, 100); }
 function checkFinish(state) { if (state.matchState === 'finished') return; const active = state.fighters.filter(f => !f.incapacitated && !f.extracted); if (active.length > 1) return; const winner = active[0]; const loser = state.fighters.find(f => f !== winner); state.result = winner ? `${winner.name} wins. ${loser?.name || 'Opponent'} is out.` : 'Match ends with no active fighters.'; state.matchState = 'finished'; addLog(state, state.result); }
