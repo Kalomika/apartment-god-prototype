@@ -38,50 +38,58 @@ The player is like Colonel Trautman to Rambo. The player can extract their fight
 
 The player cannot move the fighter manually. The player can suggest tactics: go there, take cover, stay ranged, close in, disarm, or urgently run to a tapped location. These are suggestions, not possession. Fighters obey based on trust, discipline, and situation. Good commands that lead to wins raise long-term trust. Bad commands, over-commanding, ignored requests, and losses reduce trust. Fighters can ask for help with a speech-bubble/question icon when hurt, confused, or low on options.
 
-## 10. Stealth and perception
+## 10. Commander ethos, prestige, and ruthlessness
+
+The commander can either guide the fighter toward AI Choice, Respectful, or Ruthless behavior. If the commander does not choose, the fighter's own traits decide. Respectful fighters avoid unnecessary sneak finishes, prefer clean takedowns, may help a defeated opponent up, and gain prestige. Ruthless fighters are more likely to use sneak attacks, hard final incapacitations, and finishing behavior after the opponent is already defeated. Prestige means opponents know they are safer against you. Ruthlessness means the character may end matches in a harsher way when they do not need to.
+
+## 11. Sneak holds and sleeper logic
+
+A fighter can sneak up behind an opponent and use a sleeper-style hold. This starts a stamina/endurance tug-of-war. If the holder's stamina lasts longer than the target's endurance and escape ability, the target is cleanly incapacitated. If the target has a knife, sword, pistol, shuriken, or trained close counter, they may escape or punish the holder. Sneak-attack offense and sneak-attack defense should be trainable attributes.
+
+## 12. Stealth and perception
 
 The game needs line of sight like Metal Gear. Fighters have a forward sight cone. If an opponent is outside line of sight or hidden behind cover, they may not be detected. Sound matters. Fast movement makes noise. Slow movement is stealthier. Ninja can move faster without being heard. Marine can go prone and crawl to hide or ambush.
 
-## 11. Ranged weapons and grenades
+## 13. Ranged weapons and grenades
 
 Bullets should not be animated as slow projectiles. A gunshot is a quick white tracer flash from shooter toward impact. Ricochets should show a quick spark pop. Bullet impacts should show a brief hit effect. Rifle fires three-shot bursts and overheats. Pistol fires single shots. Ninja shurikens and archer arrows should be visible moving projectiles, stick into walls, and be retrievable. Grenades are Marine super moves: high danger, limited, blast radius, instant incapacitation if too close, and strong tactical identity for slower heavily geared fighters.
 
-## 12. Diving and blast avoidance
+## 14. Diving and blast avoidance
 
 Characters should be able to dive away from grenades and dangerous impacts. There should be at least three dive reads: flat dive and land, dive and roll, and ninja-style somersault away. A dive shows the body from top-down as back/side/profile mass rather than standing posture. Dives cost stamina, can save the fighter, and still obey collision so they do not pass through walls or objects.
 
-## 13. Cover, physics, and arena objects
+## 15. Cover, physics, and arena objects
 
 Arenas should have walls, pillars, furniture, breakables, cover, and eventually two floors. Characters should hide behind cover, run around objects, crawl, roll, jump off walls, vault, throw opponents into walls, or throw opponents through breakable objects. Broken objects should remain broken. Their pieces can become projectiles.
 
-## 14. Future character creator
+## 16. Future character creator
 
 The real game is not about default Ninja/Marine/Archer. Players should build their own fighters. The creator asks what fighting style, weapons, punch type, kick type, headbutt style, grappling style, movement style, stealth style, and defensive style they want. Each side can have choices, for example five left-punch styles, five right-punch styles, five kick styles, five knee styles, and so on. Players can mix styles like wrestling games, choosing a preset or building from scratch.
 
-## 15. Future weapon styles
+## 17. Future weapon styles
 
 Players can create fighters inspired by archetypes without the game using protected names. Examples: shield thrower with wall bounces, two-gun spy, commando, ninja sword-and-shuriken fighter, dagger-and-grenade fighter, one-arm gun fighter, unarmed stealth bruiser, archer trick-shot fighter, and hybrid builds.
 
-## 16. Matchmaking and growth
+## 18. Matchmaking and growth
 
 Long-term multiplayer goal: players train their fighter like a pet, enter arena fights, and watch results. The game should hide opponent overall ratings so people cannot only pick easy fights. Low-level fighters can still beat strong fighters through strategy, stealth, counters, cover, and lucky critical hits. Top-tier fights should feel like John Wick versus Rambo or elite custom builds clashing.
 
-## 17. UI and phone orientation
+## 19. UI and phone orientation
 
 The main screen should mostly be the arena. There should be little dialogue or phone UI during battle. If labels are ever needed, they should orient toward the phone orientation so they remain readable. The game should be easy to watch whether the player turns the phone sideways or upright.
 
-## 18. Arena generation
+## 20. Arena generation
 
 Arena generation is a major pillar. The long-term goal is procedural or AI-assisted arena generation, similar in spirit to how exploration games generate worlds. Start with one test arena, then expand to at least four environment families: jungle or grassland, mall, rocky abandoned ruins, and a broken building/lobby style. Later arenas can have multiple floors, stairs, hiding spots, balconies, sightline traps, breakable props, and different tactical identities.
 
-## 19. Base of operations
+## 21. Base of operations
 
 Outside the arena, the player should manage a base of operations. The base can include a tech person, training zones, projectile practice, kick/punch practice, recovery rooms, gear storage, food/rest stations, books/courses for trait growth, and customization. This is the part the player can truly control and build. The arena remains AI-driven, but the base is where the commander prepares the fighter. The base and arena are separate modes, each full-screen when active.
 
-## 20. Name direction
+## 22. Name direction
 
 Top Shot is the working title because it means top-down shot, top fighter, and shooting toward the top. Other possible future directions mentioned include Commander or U Command, because the player is more commander than direct combatant.
 
-## 21. V0.1 rule
+## 23. V0.1 rule
 
 The first version should only prove one-floor, one-on-one AI fights. No multiplayer, no full creator, no full training hub yet. The test is whether the AI fight looks interesting and the mechanics can grow.
