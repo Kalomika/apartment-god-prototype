@@ -5,6 +5,7 @@ import { canHear, canSee, chooseDestination, moveFighter } from './perception.js
 import { tryAttack, updateCombat } from './combat.js';
 import { trySuperMove, updateExplosives } from './explosives.js';
 import { tryPrestigeAction, updatePrestige } from './prestige.js';
+import { recoverVitality } from './vitality.js';
 
 export function updateBattle(state, dt) {
   if (state.paused || state.matchState === 'finished') return;
@@ -36,7 +37,7 @@ function updateFighter(state, f, dt) {
   if (needsHelp(f)) askForHelp(state, f);
   const destination = commandedDestination(state, f, enemy) || nearestUsefulPickup(state, f) || nearestStuckProjectile(state, f) || chooseDestination(state, f, enemy);
   moveFighter(state, f, destination, dt);
-  f.anim += dt * (f.pose === 'walk' || f.pose === 'crouchWalk' ? 12 : 3);
+  f.anim += dt * (f.pose === 'walk' || f.pose === 'crouchWalk' || f.pose === 'rush' ? 12 : 3);
 }
 
 function chooseStance(f, enemy, visible) {
@@ -50,11 +51,12 @@ function commandedDestination(state, f, enemy) {
   const command = f.memory.command;
   if (!command || f.team !== 'A') return null;
   if (command.type === 'move' || command.type === 'cover') return { x: command.x, y: command.y };
-  if (command.type === 'ranged') {
+  if (command.type === 'ranged' || command.type === 'projectile' || command.type === 'grenade') {
+    const desired = command.type === 'grenade' ? 250 : 175;
     const away = Math.atan2(f.y - enemy.y, f.x - enemy.x);
-    return { x: f.x + Math.cos(away) * 175, y: f.y + Math.sin(away) * 175 };
+    return { x: f.x + Math.cos(away) * desired, y: f.y + Math.sin(away) * desired };
   }
-  if (command.type === 'cqc' || command.type === 'disarm') return { x: enemy.x, y: enemy.y };
+  if (['cqc', 'disarm', 'sword'].includes(command.type)) return { x: enemy.x, y: enemy.y };
   return null;
 }
 
@@ -63,7 +65,7 @@ function nearestUsefulPickup(state, f) {
   if (!items.length) return null;
   const sorted = [...items].sort((a, b) => dist(f, a) - dist(f, b));
   const pick = sorted[0];
-  if (pick.type === 'med' && f.hp > 72) return null;
+  if (pick.type === 'med' && f.hp > Math.min(72, f.vitalityCap ?? 100)) return null;
   if (pick.type === 'ammo' && f.archetypeId !== 'marine' && f.archetypeId !== 'archer' && f.archetypeId !== 'ninja') return null;
   return pick;
 }
@@ -100,7 +102,7 @@ function updateRetrievals(state) {
 }
 
 function usePickup(state, f, pick) {
-  if (pick.type === 'med') { f.hp = clamp(f.hp + 22, 0, 82); f.bandageCd = 2; rewardTrust(state, 2); addLog(state, `${f.name} uses a coach med drop.`); }
+  if (pick.type === 'med') { recoverVitality(f, 22); f.bandageCd = 2; rewardTrust(state, 2); addLog(state, `${f.name} uses a coach med drop.`); }
   if (pick.type === 'ammo') { f.resources.rifle = (f.resources.rifle || 0) + 24; f.resources.pistol = (f.resources.pistol || 0) + 8; f.resources.grenades = (f.resources.grenades || 0) + 1; f.resources.arrows = (f.resources.arrows || 0) + 6; f.resources.shuriken = (f.resources.shuriken || 0) + 3; rewardTrust(state, 1); addLog(state, `${f.name} grabs ammunition.`); }
   if (pick.type === 'weapon') { f.heat = 0; f.fight = 100; f.dodge = Math.max(f.dodge, 65); f.block = Math.max(f.block, 65); rewardTrust(state, 1); addLog(state, `${f.name} regains weapon rhythm.`); }
   if (pick.type === 'extract') beginExtraction(state, f);
@@ -138,7 +140,7 @@ export function suggestCommand(state, type, x, y, urgent = false) {
   f.helpT = 0;
   state.effects.push({ type: 'command', x, y, ttl: 0.65 });
   rewardTrust(state, -Math.ceil(COACH_COMMANDS[type].trustCost / 3));
-  addLog(state, `${f.name} follows: ${COACH_COMMANDS[type].label}.`);
+  addLog(state, `${f.name} follows opportunity call: ${COACH_COMMANDS[type].label}.`);
   return true;
 }
 
