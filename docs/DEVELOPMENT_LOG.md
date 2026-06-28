@@ -119,3 +119,26 @@ Known limitations:
 Next recommended step:
 
 Test the phone dock on mobile after Render deploy. Verify it opens, tabs work, music starts, saves/loads operate, build request still enters placement mode, and floor arrows do not interfere with gameplay clicks.
+
+## 2026-06-27, Phone click and shared activity repair
+
+Tool or person: ChatGPT
+
+Branch: main
+
+Summary:
+
+- Fixed the cellphone app panel rebuilding its buttons every animation frame.
+- Phone tabs and app buttons should now respond reliably to taps/clicks.
+- Added a shared relationship action helper so Watch TV Together, Go To Bed Together, and Private Moment call an available partner instead of only moving the selected character.
+- Private Moment now sends both available partners to the bed target before the bedroom privacy effect happens through the normal activity resolver.
+- Added a movement recovery guard so characters stop cleanly instead of jittering in place when a doorway/object route is blocked.
+
+Known limitations:
+
+- Shared action synchronization is still simple: both partners are commanded to the same object, but there is not yet a full reservation system that waits until both are perfectly aligned.
+- Navigation recovery prevents infinite jitter, but door widths and room routes still need real-device testing.
+
+Next recommended step:
+
+Test the phone apps again after Render deploy. Verify phone buttons execute, private moment moves both characters, watch TV together calls the partner, and characters do not jitter endlessly at walls or doors.
