@@ -1,12 +1,12 @@
 import { clamp } from './utils.js';
 
 export const VITALITY_STAGES = [
-  { id: 'green', label: 'Green', min: 81, cap: 100, color: '#73d98b' },
-  { id: 'yellow', label: 'Yellow', min: 61, cap: 80, color: '#d5d879' },
-  { id: 'orange', label: 'Orange', min: 41, cap: 60, color: '#e9a457' },
-  { id: 'red', label: 'Red', min: 21, cap: 40, color: '#e85e5e' },
-  { id: 'purple', label: 'Purple', min: 1, cap: 20, color: '#9b75ff' },
-  { id: 'incapacitated', label: 'Incapacitated', min: 0, cap: 0, color: '#7d8795' }
+  { id: 'green', label: 'Green', min: 81, cap: 100, speed: 1, color: '#73d98b', saturation: 1 },
+  { id: 'yellow', label: 'Yellow', min: 61, cap: 80, speed: 0.94, color: '#d5d879', saturation: 0.82 },
+  { id: 'orange', label: 'Orange', min: 41, cap: 60, speed: 0.84, color: '#e9a457', saturation: 0.62 },
+  { id: 'red', label: 'Red', min: 21, cap: 40, speed: 0.68, color: '#e85e5e', saturation: 0.42 },
+  { id: 'purple', label: 'Purple', min: 1, cap: 20, speed: 0.48, color: '#9b75ff', saturation: 0.25 },
+  { id: 'incapacitated', label: 'Incapacitated', min: 0, cap: 0, speed: 0, color: '#7d8795', saturation: 0 }
 ];
 
 export function vitalityStageFor(fighter) {
