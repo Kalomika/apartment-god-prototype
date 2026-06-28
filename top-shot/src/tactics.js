@@ -1,14 +1,18 @@
 import { EFFECT_TTL } from './config.js';
+import { blocked, slide } from './arena.js';
+import { angleTo, clamp, dist } from './utils.js';
 import { clearLine } from './perception.js';
-import { clamp, dist } from './utils.js';
 
 export function updateTacticalPosture(state, f, enemy, visible, dt) {
   f.duckT = Math.max(0, (f.duckT || 0) - dt);
   f.strafeT = Math.max(0, (f.strafeT || 0) - dt);
   f.braceT = Math.max(0, (f.braceT || 0) - dt);
+  f.rollT = Math.max(0, (f.rollT || 0) - dt);
   if (f.incapacitated || f.defeated || f.extracted || f.bleed?.bandaging) return;
 
   const underThreat = visible && clearLine(state.arena, enemy, f) && dist(f, enemy) > 80;
+  if ((f.stuckT || 0) > 0.7 && f.rollT <= 0) return tacticalRoll(state, f, enemy, 'unstick');
+  if (underThreat && f.dodge > 45 && f.stamina > 35 && f.hp < 75 && f.rollT <= 0) return tacticalRoll(state, f, enemy, 'evade');
   if (underThreat && f.wallLean && f.stamina < 55) return braceOnWall(state, f);
   if (underThreat && (f.block < 35 || f.dodge < 30 || f.hp < 62)) return duck(state, f);
   if (visible && f.wallLean && dist(f, enemy) < 260) return strafeWall(state, f, enemy);
@@ -40,4 +44,25 @@ function braceOnWall(state, f) {
   f.block = clamp(f.block + 10, 0, 100);
   f.pose = 'wall_brace';
   state.effects.push({ type: 'wallLean', x: f.x, y: f.y, ttl: EFFECT_TTL.wallLean || 0.35 });
+}
+
+function tacticalRoll(state, f, enemy, reason) {
+  const away = angleTo(enemy, f);
+  const side = Math.random() < 0.5 ? 1 : -1;
+  const angles = [away + side * 0.95, away - side * 0.95, away, away + Math.PI];
+  for (const a of angles) {
+    const target = { x: f.x + Math.cos(a) * 62, y: f.y + Math.sin(a) * 62 };
+    if (blocked(state.arena, target, 14)) continue;
+    const moved = slide(state.arena, f, target);
+    if (dist(f, moved) < 18) continue;
+    f.x = moved.x;
+    f.y = moved.y;
+    f.facing = a;
+    f.rollT = reason === 'unstick' ? 0.55 : 1.1;
+    f.dodge = clamp(f.dodge - 18, 0, 100);
+    f.stamina = clamp(f.stamina - 10, 0, 100);
+    f.pose = f.archetypeId === 'ninja' ? 'roll' : 'combat_roll';
+    state.effects.push({ type: 'dive', x: f.x, y: f.y, ttl: EFFECT_TTL.dive || 0.42 });
+    return;
+  }
 }
