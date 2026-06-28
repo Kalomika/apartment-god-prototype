@@ -32,16 +32,16 @@ export function chooseDestination(state, f, enemy) {
   const d = dist(f, enemy);
   if (f.bleed?.rate > 0 || f.hp < 45 || f.dodge < 20 || f.block < 20) {
     const shadow = state.arena.shadows?.sort((a, b) => dist(f, center(a)) - dist(f, center(b)))[0];
-    if (shadow && (f.bleed?.rate > 0 || f.hp < 36)) return center(shadow);
+    if (shadow && !f.hideCooldown && (f.bleed?.rate > 0 || f.hp < 36)) return center(shadow);
     const cover = nearCover(state.arena, f);
-    if (cover) return { x: cover.x + cover.w / 2 + (f.x < enemy.x ? -52 : 52), y: cover.y + cover.h / 2 };
+    if (cover) return safeDest(state.arena, f, { x: cover.x + cover.w / 2 + (f.x < enemy.x ? -52 : 52), y: cover.y + cover.h / 2 });
   }
   if (f.wallLean && d < 210 && f.hp < 55) return { x: f.x, y: f.y };
-  if (f.archetypeId === 'ninja' && d > 95) return flankPoint(f, enemy, 80);
-  if (f.archetypeId === 'martial_artist') return flankPoint(f, enemy, 48);
-  if (f.archetypeId === 'archer' && d < 260) return awayPoint(f, enemy, 170);
-  if (f.archetypeId === 'marine' && d < 180) return awayPoint(f, enemy, 130);
-  return flankPoint(f, enemy, f.weapon === 'rifle' || f.weapon === 'bow' ? 250 : 70);
+  if (f.archetypeId === 'ninja' && d > 95) return safeDest(state.arena, f, flankPoint(f, enemy, 80));
+  if (f.archetypeId === 'martial_artist') return safeDest(state.arena, f, flankPoint(f, enemy, 48));
+  if (f.archetypeId === 'archer' && d < 260) return safeDest(state.arena, f, awayPoint(f, enemy, 170));
+  if (f.archetypeId === 'marine' && d < 180) return safeDest(state.arena, f, awayPoint(f, enemy, 130));
+  return safeDest(state.arena, f, flankPoint(f, enemy, f.weapon === 'rifle' || f.weapon === 'bow' ? 250 : 70));
 }
 
 function center(rect) { return { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 }; }
@@ -56,9 +56,16 @@ function flankPoint(f, enemy, range) {
   return { x: enemy.x - Math.cos(a) * range, y: enemy.y - Math.sin(a) * range };
 }
 
+function safeDest(arena, f, target) {
+  if (!blocked(arena, target, 16)) return target;
+  const base = angleTo(f, target);
+  const options = [0.65, -0.65, 1.25, -1.25, Math.PI].map(offset => ({ x: f.x + Math.cos(base + offset) * 130, y: f.y + Math.sin(base + offset) * 130 }));
+  return options.find(p => !blocked(arena, p, 16)) || { x: f.x, y: f.y };
+}
+
 export function moveFighter(state, f, dest, dt) {
   if (!dest || f.incapacitated || f.extracted || f.extracting) return;
-  const a = angleTo(f, dest);
+  let a = angleTo(f, dest);
   f.facing = a;
   const stage = stageFor(f);
   const stealthMod = f.crouch || f.prone || f.shadowHidden ? 0.55 : 1;
@@ -66,15 +73,26 @@ export function moveFighter(state, f, dest, dt) {
   const limpMod = stage.id === 'purple' ? 0.72 : stage.id === 'red' ? 0.84 : 1;
   const speed = f.stats.speed * stage.speed * stealthMod * urgency * limpMod * (f.stamina < 20 ? 0.68 : 1);
   const step = Math.min(dist(f, dest), speed * dt);
-  const next = { x: f.x + Math.cos(a) * step, y: f.y + Math.sin(a) * step };
-  const moved = slide(state.arena, f, next);
-  f.x = moved.x; f.y = moved.y;
-  f.shadowHidden = inShadow(state.arena, f) && (f.crouch || f.prone || f.stamina < 45 || f.bleed?.rate > 0);
+  const moved = steer(state.arena, f, a, step);
+  f.x = moved.x; f.y = moved.y; a = moved.a;
+  f.facing = a;
+  f.shadowHidden = !f.hideCooldown && inShadow(state.arena, f) && (f.crouch || f.prone || f.stamina < 45 || f.bleed?.rate > 0);
   f.wallLean = Boolean(nearWall(state.arena, f, 17) && (f.hp < 52 || f.bleed?.rate > 0 || f.stamina < 22));
   f.pose = step > 1 ? movementPose(f, stage) : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : 'idle';
   f.stamina = clamp(f.stamina - step * (f.memory.command?.urgent ? 0.018 : 0.006), 0, 100);
   f.noise = f.prone ? 8 : f.crouch || f.shadowHidden ? 10 : f.archetypeId === 'ninja' ? 18 : f.memory.command?.urgent ? 55 : 34;
   f.hidden = f.shadowHidden || f.prone || f.crouch;
+}
+
+function steer(arena, f, a, step) {
+  if (step <= 0.1) return { x: f.x, y: f.y, a };
+  const angles = [a, a + 0.65, a - 0.65, a + 1.2, a - 1.2, a + Math.PI];
+  for (const test of angles) {
+    const next = { x: f.x + Math.cos(test) * step, y: f.y + Math.sin(test) * step };
+    const moved = slide(arena, f, next);
+    if (dist(f, moved) > 0.35) return { ...moved, a: test };
+  }
+  return { x: f.x, y: f.y, a };
 }
 
 function movementPose(f, stage) {
