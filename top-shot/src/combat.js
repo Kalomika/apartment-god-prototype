@@ -16,6 +16,7 @@ const SWORD = ['short_slash', 'wide_slash', 'reverse_slash', 'thrust_slash'];
 
 export function updateCombat(state, dt) {
   for (const f of state.fighters) {
+    if (f.defeated) continue;
     f.cooldown = Math.max(0, f.cooldown - dt);
     f.rangedCd = Math.max(0, f.rangedCd - dt);
     f.meleeCd = Math.max(0, f.meleeCd - dt);
@@ -32,7 +33,7 @@ export function updateCombat(state, dt) {
 }
 
 export function tryAttack(state, f, enemy, visible) {
-  if (f.cooldown > 0 || f.incapacitated || f.extracted || f.extracting || enemy.incapacitated || enemy.extracted) return;
+  if (f.cooldown > 0 || f.incapacitated || f.defeated || f.extracted || f.extracting || enemy.incapacitated || enemy.extracted || enemy.defeated) return;
   const d = dist(f, enemy);
   if (f.hp < 45 && f.bandageCd <= 0 && f.hidden) return bandage(state, f);
   if (f.archetypeId === 'ninja' && f.specialCd <= 0 && f.resources.smoke > 0 && f.hp < 52) return smoke(state, f, enemy);
@@ -100,7 +101,7 @@ function updateProjectiles(state, dt) {
     if (p.type === 'grenade' || p.stuck) continue;
     p.ttl -= dt; p.x += p.vx * dt; p.y += p.vy * dt;
     if (blocked(state.arena, p, 4)) { p.stuck = true; p.vx = 0; p.vy = 0; impact(state, p.x, p.y, 'stick'); continue; }
-    const target = state.fighters.find(f => f.team !== p.team && !f.incapacitated && !f.extracted && dist(f, p) < 24);
+    const target = state.fighters.find(f => f.team !== p.team && !f.incapacitated && !f.defeated && !f.extracted && dist(f, p) < 24);
     if (target) { hit(state, { name: p.owner, stats: { aim: 55 } }, target, p.damage, p.type, Math.atan2(p.vy, p.vx)); p.ttl = 0; }
   }
   state.projectiles = state.projectiles.filter(p => p.type === 'grenade' || p.ttl > 0 || p.stuck);
@@ -161,8 +162,8 @@ function hit(state, attacker, defender, amount, type, a, move = null) {
   const toughness = defender.stats?.toughness || 60;
   const final = Math.max(2, amount * (1.22 - toughness / 180));
   defender.hp = clamp(defender.hp - final, 0, 100); defender.memory.lastHitBy = attacker.name; defender.pose = 'hit'; defender.hitLean = move?.lean || (Math.cos(a) > 0 ? 1 : -1); shove(defender, a, final * 1.2);
-  impact(state, defender.x, defender.y, type); if (defender.hp <= 0) incapacitate(state, defender, attacker);
+  impact(state, defender.x, defender.y, type); if (defender.hp <= 0) defeat(state, defender, attacker);
 }
 function shove(f, a, power) { f.x += Math.cos(a) * power; f.y += Math.sin(a) * power; }
 function impact(state, x, y, kind) { state.effects.push({ type: 'impact', kind, x, y, ttl: EFFECT_TTL.impact }); }
-function incapacitate(state, f, attacker) { f.incapacitated = true; f.pose = 'down'; f.downT = 999; addLog(state, `${f.name} is incapacitated by ${attacker.name || 'impact'}.`); state.matchState = 'finished'; }
+function defeat(state, f, attacker) { f.defeated = true; f.hp = 1; f.pose = 'defeated_kneel'; f.finishT = 4; f.stamina = 0; f.fight = 0; addLog(state, `${f.name} drops to a knee. ${attacker.name || 'Opponent'} can decide the finish.`); }
