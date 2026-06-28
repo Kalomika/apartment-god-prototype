@@ -12,6 +12,12 @@ export function createArena() {
       r('top_cover', 170, 185, 170, 34), r('bottom_cover', 620, 500, 170, 34),
       r('center_top', 420, 110, 120, 60), r('center_bottom', 420, 550, 120, 60)
     ],
+    shadows: [
+      r('left_shadow', 72, 92, 130, 145),
+      r('right_shadow', 758, 490, 120, 145),
+      r('pillar_shadow_a', 235, 424, 105, 72),
+      r('pillar_shadow_b', 620, 226, 105, 72)
+    ],
     breakables: [r('glass_a', 375, 300, 70, 45, 18), r('glass_b', 520, 375, 70, 45, 18)],
     debris: []
   };
@@ -21,6 +27,8 @@ function r(id, x, y, w, h, hp = null) { return { id, x, y, w, h, hp, broken: fal
 export function solids(arena) { return [...arena.walls, ...arena.breakables.filter(b => !b.broken)]; }
 export function clampArena(p, radius = 14) { return { x: clamp(p.x, 50 + radius, ARENA_W - 50 - radius), y: clamp(p.y, 50 + radius, ARENA_H - 50 - radius) }; }
 export function blocked(arena, p, pad = 12) { return solids(arena).some(box => pointInRect(p, box, pad)); }
+export function inShadow(arena, p) { return arena.shadows?.some(zone => pointInRect(p, zone, 0)) || false; }
+export function nearWall(arena, p, distance = 18) { return solids(arena).find(box => pointInRect(p, box, distance) && !pointInRect(p, box, -2)) || null; }
 export function slide(arena, f, next) {
   const p = clampArena(next, 16);
   if (!blocked(arena, p, 13)) return p;
