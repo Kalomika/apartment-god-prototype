@@ -1,14 +1,16 @@
-import { COACH_DROPS } from './config.js';
+import { COACH_COMMANDS, COACH_DROPS } from './config.js';
 import { clamp, dist } from './utils.js';
 import { addLog, opponentOf } from './state.js';
 import { canHear, canSee, chooseDestination, moveFighter } from './perception.js';
 import { tryAttack, updateCombat } from './combat.js';
+import { trySuperMove, updateExplosives } from './explosives.js';
 
 export function updateBattle(state, dt) {
   if (state.paused || state.matchState === 'finished') return;
   state.clock += dt;
   state.effects.forEach(e => { e.ttl -= dt; });
   state.effects = state.effects.filter(e => e.ttl > 0);
+  updateExplosives(state, dt);
   updateCombat(state, dt);
   for (const f of state.fighters) updateFighter(state, f, dt);
   updatePickups(state);
@@ -18,15 +20,18 @@ export function updateBattle(state, dt) {
 
 function updateFighter(state, f, dt) {
   if (f.currentMove) { f.currentMove.ttl -= dt; if (f.currentMove.ttl <= 0) f.currentMove = null; }
-  if (f.incapacitated || f.extracted) return;
+  f.commandCd = Math.max(0, f.commandCd - dt);
+  if (f.memory.command && f.memory.command.until <= state.clock) f.memory.command = null;
+  if (f.incapacitated || f.extracted || f.diveT > 0) return;
   if (f.extracting) return updateExtraction(state, f, dt);
   const enemy = opponentOf(state, f);
   const visible = canSee(state.arena, f, enemy);
   const audible = canHear(f, enemy);
   if (visible || audible) f.memory.lastSeen = { x: enemy.x, y: enemy.y, t: state.clock };
   chooseStance(f, enemy, visible);
-  tryAttack(state, f, enemy, visible);
-  const destination = nearestUsefulPickup(state, f) || nearestStuckProjectile(state, f) || chooseDestination(state, f, enemy);
+  if (!trySuperMove(state, f, enemy, visible)) tryAttack(state, f, enemy, visible);
+  if (needsHelp(f)) askForHelp(state, f);
+  const destination = commandedDestination(state, f, enemy) || nearestUsefulPickup(state, f) || nearestStuckProjectile(state, f) || chooseDestination(state, f, enemy);
   moveFighter(state, f, destination, dt);
   f.anim += dt * (f.pose === 'walk' || f.pose === 'crouchWalk' ? 12 : 3);
 }
@@ -36,6 +41,18 @@ function chooseStance(f, enemy, visible) {
   f.prone = false; f.crouch = false;
   if (f.archetypeId === 'marine' && d > 220 && f.hp < 80 && visible) f.prone = true;
   if ((f.archetypeId === 'ninja' || f.archetypeId === 'archer') && !visible && d > 110) f.crouch = true;
+}
+
+function commandedDestination(state, f, enemy) {
+  const command = f.memory.command;
+  if (!command || f.team !== 'A') return null;
+  if (command.type === 'move' || command.type === 'cover') return { x: command.x, y: command.y };
+  if (command.type === 'ranged') {
+    const away = Math.atan2(f.y - enemy.y, f.x - enemy.x);
+    return { x: f.x + Math.cos(away) * 175, y: f.y + Math.sin(away) * 175 };
+  }
+  if (command.type === 'cqc' || command.type === 'disarm') return { x: enemy.x, y: enemy.y };
+  return null;
 }
 
 function nearestUsefulPickup(state, f) {
@@ -80,9 +97,9 @@ function updateRetrievals(state) {
 }
 
 function usePickup(state, f, pick) {
-  if (pick.type === 'med') { f.hp = clamp(f.hp + 22, 0, 82); f.bandageCd = 2; addLog(state, `${f.name} uses a coach med drop.`); }
-  if (pick.type === 'ammo') { f.resources.rifle = (f.resources.rifle || 0) + 24; f.resources.pistol = (f.resources.pistol || 0) + 8; f.resources.arrows = (f.resources.arrows || 0) + 6; f.resources.shuriken = (f.resources.shuriken || 0) + 3; addLog(state, `${f.name} grabs ammunition.`); }
-  if (pick.type === 'weapon') { f.heat = 0; f.fight = 100; f.dodge = Math.max(f.dodge, 65); f.block = Math.max(f.block, 65); addLog(state, `${f.name} regains weapon rhythm.`); }
+  if (pick.type === 'med') { f.hp = clamp(f.hp + 22, 0, 82); f.bandageCd = 2; rewardTrust(state, 2); addLog(state, `${f.name} uses a coach med drop.`); }
+  if (pick.type === 'ammo') { f.resources.rifle = (f.resources.rifle || 0) + 24; f.resources.pistol = (f.resources.pistol || 0) + 8; f.resources.grenades = (f.resources.grenades || 0) + 1; f.resources.arrows = (f.resources.arrows || 0) + 6; f.resources.shuriken = (f.resources.shuriken || 0) + 3; rewardTrust(state, 1); addLog(state, `${f.name} grabs ammunition.`); }
+  if (pick.type === 'weapon') { f.heat = 0; f.fight = 100; f.dodge = Math.max(f.dodge, 65); f.block = Math.max(f.block, 65); rewardTrust(state, 1); addLog(state, `${f.name} regains weapon rhythm.`); }
   if (pick.type === 'extract') beginExtraction(state, f);
 }
 
@@ -94,7 +111,7 @@ function beginExtraction(state, f) {
 
 function updateExtraction(state, f, dt) {
   f.actionT -= dt; f.y -= 160 * dt; f.pose = 'extract';
-  if (f.actionT <= 0) { f.extracted = true; f.extracting = false; state.matchState = 'finished'; addLog(state, `${f.name} extracted from the arena.`); }
+  if (f.actionT <= 0) { f.extracted = true; f.extracting = false; state.matchState = 'finished'; rewardTrust(state, -4); addLog(state, `${f.name} extracted from the arena.`); }
 }
 
 export function placeCoachDrop(state, type, x, y) {
@@ -105,6 +122,32 @@ export function placeCoachDrop(state, type, x, y) {
   return true;
 }
 
+export function suggestCommand(state, type, x, y, urgent = false) {
+  if (!COACH_COMMANDS[type]) return false;
+  const f = state.fighters.find(f => f.team === 'A');
+  if (!f || f.incapacitated || f.extracted || f.commandCd > 0) return false;
+  const obeyChance = clamp((state.trust + f.stats.discipline) / 190 + (urgent ? 0.12 : 0), 0.18, 0.94);
+  state.commandHistory.push({ t: state.clock, type, obeyChance });
+  f.commandCd = urgent ? 0.45 : 0.9;
+  if (Math.random() > obeyChance) { rewardTrust(state, -COACH_COMMANDS[type].trustCost); addLog(state, `${f.name} ignores the ${COACH_COMMANDS[type].label} call.`); return false; }
+  f.memory.command = { type, x, y, urgent, until: state.clock + (urgent ? 2.4 : 3.8) };
+  f.stamina = clamp(f.stamina - (urgent ? 12 : 4), 0, 100);
+  state.effects.push({ type: 'command', x, y, ttl: 0.65 });
+  rewardTrust(state, -Math.ceil(COACH_COMMANDS[type].trustCost / 3));
+  addLog(state, `${f.name} follows: ${COACH_COMMANDS[type].label}.`);
+  return true;
+}
+
+function needsHelp(f) {
+  return f.team === 'A' && !f.memory.command && !f.helpT && (f.hp < 38 || f.stamina < 18 || f.dodge < 12 || f.block < 12);
+}
+function askForHelp(state, f) {
+  f.helpT = 2.2;
+  f.helpIcon = f.resources.grenades === 0 && f.archetypeId === 'marine' ? 'grenade' : '?';
+  state.effects.push({ type: 'command', x: f.x, y: f.y - 36, ttl: 0.65, label: f.helpIcon });
+  addLog(state, `${f.name} looks to you for a call.`);
+}
+function rewardTrust(state, amount) { state.trust = clamp(state.trust + amount, 0, 100); }
 function checkFinish(state) {
   const active = state.fighters.filter(f => !f.incapacitated && !f.extracted);
   if (active.length <= 1 && state.matchState !== 'finished') state.matchState = 'finished';
