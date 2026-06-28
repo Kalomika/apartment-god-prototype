@@ -28,6 +28,7 @@ export const floors = [
 export const objects = [
   { id: 'couch', label: 'Couch', kind: 'couch', floor: 0, room: 'living', x: 74, y: 176, w: 154, h: 62, solid: true },
   { id: 'tv', label: 'TV', kind: 'tv', floor: 0, room: 'living', x: 292, y: 82, w: 92, h: 36, solid: true },
+  { id: 'stereo', label: 'Stereo', kind: 'stereo', floor: 0, room: 'living', x: 320, y: 130, w: 58, h: 34, solid: true },
   { id: 'fridge', label: 'Fridge', kind: 'fridge', floor: 0, room: 'kitchen', x: 488, y: 70, w: 58, h: 88, solid: true },
   { id: 'stove', label: 'Stove', kind: 'stove', floor: 0, room: 'kitchen', x: 598, y: 70, w: 72, h: 64, solid: true },
   { id: 'sink', label: 'Sink', kind: 'sink', floor: 0, room: 'kitchen', x: 690, y: 78, w: 54, h: 48, solid: true },
