@@ -21,6 +21,7 @@ export function updateBattle(state, dt) {
 function updateFighter(state, f, dt) {
   if (f.currentMove) { f.currentMove.ttl -= dt; if (f.currentMove.ttl <= 0) f.currentMove = null; }
   f.commandCd = Math.max(0, f.commandCd - dt);
+  f.helpT = Math.max(0, (f.helpT || 0) - dt);
   if (f.memory.command && f.memory.command.until <= state.clock) f.memory.command = null;
   if (f.incapacitated || f.extracted || f.diveT > 0) return;
   if (f.extracting) return updateExtraction(state, f, dt);
@@ -132,6 +133,7 @@ export function suggestCommand(state, type, x, y, urgent = false) {
   if (Math.random() > obeyChance) { rewardTrust(state, -COACH_COMMANDS[type].trustCost); addLog(state, `${f.name} ignores the ${COACH_COMMANDS[type].label} call.`); return false; }
   f.memory.command = { type, x, y, urgent, until: state.clock + (urgent ? 2.4 : 3.8) };
   f.stamina = clamp(f.stamina - (urgent ? 12 : 4), 0, 100);
+  f.helpT = 0;
   state.effects.push({ type: 'command', x, y, ttl: 0.65 });
   rewardTrust(state, -Math.ceil(COACH_COMMANDS[type].trustCost / 3));
   addLog(state, `${f.name} follows: ${COACH_COMMANDS[type].label}.`);
