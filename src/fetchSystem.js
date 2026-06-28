@@ -19,11 +19,16 @@ export function updateFetch(state) {
 
   if (state.fetch.phase === 'toBall' && !dog.path.length) {
     state.fetch.phase = 'returning';
+    state.fetch.ball = { x: dog.x + 18, y: dog.y - 8, floor: dog.floor };
     commandMove(dog, actor.x + 42, actor.y + 10);
     dog.action = 'Returning ball';
     dog.pose = 'walk';
     say(dog, 'GOT');
     return;
+  }
+
+  if (state.fetch.phase === 'returning') {
+    state.fetch.ball = { x: dog.x + 18, y: dog.y - 8, floor: dog.floor };
   }
 
   if (state.fetch.phase === 'returning' && !dog.path.length) {
