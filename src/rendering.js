@@ -4,12 +4,14 @@ import { drawWorld } from './renderWorld.js';
 import { drawObjects } from './renderObjects.js';
 import { drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
+import { syncPhoneUi } from './phoneUI.js';
 import { formatTime } from './renderHelpers.js';
 
 export { formatTime };
 
 export function draw(ctx, state) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  syncPhoneUi(state);
   drawWorld(ctx, state);
   drawObjects(ctx, state);
   drawDynamicProps(ctx, state);
