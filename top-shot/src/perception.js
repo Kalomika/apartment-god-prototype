@@ -57,13 +57,14 @@ export function moveFighter(state, f, dest, dt) {
   f.facing = a;
   const stage = stageFor(f);
   const stealthMod = f.crouch || f.prone ? 0.55 : 1;
-  const speed = f.stats.speed * stage.speed * stealthMod * (f.stamina < 20 ? 0.68 : 1);
+  const urgency = f.memory.command?.urgent ? 1.38 : 1;
+  const speed = f.stats.speed * stage.speed * stealthMod * urgency * (f.stamina < 20 ? 0.68 : 1);
   const step = Math.min(dist(f, dest), speed * dt);
   const next = { x: f.x + Math.cos(a) * step, y: f.y + Math.sin(a) * step };
   const moved = slide(state.arena, f, next);
   f.x = moved.x; f.y = moved.y;
-  f.pose = step > 1 ? (f.prone ? 'crawl' : f.crouch ? 'crouchWalk' : 'walk') : 'idle';
-  f.stamina = clamp(f.stamina - step * 0.006, 0, 100);
-  f.noise = f.prone ? 8 : f.crouch ? 14 : f.archetypeId === 'ninja' ? 18 : 34;
+  f.pose = step > 1 ? (f.prone ? 'crawl' : f.crouch ? 'crouchWalk' : f.memory.command?.urgent ? 'rush' : 'walk') : 'idle';
+  f.stamina = clamp(f.stamina - step * (f.memory.command?.urgent ? 0.018 : 0.006), 0, 100);
+  f.noise = f.prone ? 8 : f.crouch ? 14 : f.archetypeId === 'ninja' ? 18 : f.memory.command?.urgent ? 55 : 34;
   f.hidden = f.prone || f.crouch || blocked(state.arena, f, 2);
 }
