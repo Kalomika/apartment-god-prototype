@@ -18,6 +18,12 @@ export function angleTo(a, b) {
   return Math.atan2(b.y - a.y, b.x - a.x);
 }
 
+export function normalizeAngle(angle) {
+  while (angle > Math.PI) angle -= Math.PI * 2;
+  while (angle < -Math.PI) angle += Math.PI * 2;
+  return angle;
+}
+
 export function choose(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
