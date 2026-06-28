@@ -42,6 +42,16 @@ export function routeThroughDoors(from, to, floor) {
   return [];
 }
 
+export function canStepThroughRooms(from, to, floor) {
+  const a = roomAt(from.x, from.y, floor);
+  const b = roomAt(to.x, to.y, floor);
+  if (!a || !b || a.id === b.id) return true;
+  const door = doorways.find(d => d.floor === floor && ((d.a === a.id && d.b === b.id) || (d.b === a.id && d.a === b.id)));
+  if (!door) return false;
+  const pad = 18;
+  return to.x >= door.x - pad && to.x <= door.x + door.w + pad && to.y >= door.y - pad && to.y <= door.y + door.h + pad;
+}
+
 export function windowAt(x, y, floor) {
   return windows.find(w => w.floor === floor && x >= w.x - 12 && x <= w.x + w.w + 12 && y >= w.y - 14 && y <= w.y + w.h + 22) || null;
 }
@@ -52,10 +62,10 @@ export function toggleWindow(state, actor, win) {
   const open = state.objectState.openWindows[win.id];
   if (open) {
     changeNeed(actor, 'freshness', 4);
-    say(actor, 'AIR');
+    say(actor, '🌬️');
     log(state, `${actor.name} opened ${win.label} for fresh air.`);
   } else {
-    say(actor, 'CLOSE');
+    say(actor, '🔒');
     log(state, `${actor.name} closed ${win.label}.`);
   }
 }
