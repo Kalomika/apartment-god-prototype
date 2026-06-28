@@ -1,4 +1,5 @@
 import { ACTION_TIMES } from './config.js';
+import { startFetchThrow } from './fetchSystem.js';
 import { byId, changeNeed, log, say, setMood } from './state.js';
 import { getObject } from './world.js';
 import { commandObject, commandSocial } from './movement.js';
@@ -42,7 +43,7 @@ function beginTimedAction(entity, label, actionId) {
   entity.action = label;
   entity.actionT = ACTION_TIMES[actionId] ?? 4;
   entity.actionTotal = entity.actionT;
-  entity.pose = ['sleep', 'nap'].includes(actionId) ? 'sleep' : ['watch_tv', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop'].includes(actionId) ? 'sit' : 'stand';
+  entity.pose = ['sleep', 'nap', 'bed_together', 'intimacy'].includes(actionId) ? 'sleep' : ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop'].includes(actionId) ? 'sit' : 'stand';
 }
 
 export function resolveArrival(state, entity) {
@@ -56,9 +57,16 @@ export function resolveArrival(state, entity) {
     const label = `${obj.label}: ${target.actionId.replaceAll('_', ' ')}`;
     beginTimedAction(entity, label, target.actionId);
     say(entity, speechFor(target.actionId));
+    if (target.actionId === 'intimacy') {
+      state.roomLights.bedroom = false;
+      state.roomLights.hall = false;
+      say(entity, '❤️');
+      log(state, 'The bedroom lights turn off for privacy.');
+    }
+    if (target.actionId === 'bed_together' || target.actionId === 'watch_together') syncPartnerForSharedAction(state, entity, target.actionId);
     if (obj.kind === 'fridge') state.objectState.fridgeOpen = true;
     if (obj.kind === 'door') state.objectState.doorOpen = true;
-    if (obj.kind === 'tv' || ['watch_tv', 'comedy', 'horror', 'sports'].includes(target.actionId)) {
+    if (obj.kind === 'tv' || ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports'].includes(target.actionId)) {
       state.tv.on = true;
       state.tv.channel = target.actionId;
     }
@@ -84,7 +92,22 @@ export function resolveArrival(state, entity) {
     say(entity, speechFor(target.socialId));
     say(other, speechFor(target.socialId));
     other.mood = entity.type === 'dog' ? 'dog' : 'happy';
+    if (target.socialId === 'intimacy') {
+      state.roomLights.bedroom = false;
+      state.roomLights.hall = false;
+      log(state, 'The bedroom lights turn off for privacy.');
+    }
   }
+}
+
+function syncPartnerForSharedAction(state, entity, actionId) {
+  const partner = state.entities.find(e => e.id !== entity.id && e.type === 'person' && !e.hidden && e.floor === entity.floor);
+  if (!partner) return;
+  partner.action = `${actionId.replaceAll('_', ' ')} with ${entity.name}`;
+  partner.actionT = entity.actionT;
+  partner.actionTotal = entity.actionT;
+  partner.pose = entity.pose;
+  say(partner, speechFor(actionId));
 }
 
 export function throwFetchBall(state, x, y) {
@@ -92,14 +115,7 @@ export function throwFetchBall(state, x, y) {
   const dog = byId(state, state.fetch.dogId);
   const actor = byId(state, state.fetch.actorId);
   if (!dog || !actor) return false;
-  state.fetch = { ...state.fetch, phase: 'thrown', ball: { x, y } };
-  dog.path = [{ x, y }, { x: actor.x + 42, y: actor.y + 10 }];
-  dog.target = null;
-  dog.action = 'Fetching ball';
-  dog.pose = 'walk';
-  say(dog, 'BALL');
-  log(state, 'Ball thrown. The dog is fetching it.');
-  return true;
+  return startFetchThrow(state, actor, dog, x, y);
 }
 
 export function updateActions(state, dt) {
@@ -128,7 +144,8 @@ function finishAction(state, e) {
   if (text.includes('brush')) { changeNeed(e, 'freshness', 12); setMood(e, 'calm'); }
   if (text.includes('groom')) { changeNeed(e, 'freshness', 18); setMood(e, 'calm'); }
   if (text.includes('toilet')) { changeNeed(e, 'bladder', 36); setMood(e, 'calm'); }
-  if (text.includes('sleep') || text.includes('nap')) { changeNeed(e, 'energy', 32); changeNeed(e, 'stamina', 24); setMood(e, 'calm'); }
+  if (text.includes('sleep') || text.includes('nap') || text.includes('bed together')) { changeNeed(e, 'energy', 32); changeNeed(e, 'stamina', 24); setMood(e, 'calm'); }
+  if (text.includes('intimacy')) { changeNeed(e, 'social', 30); changeNeed(e, 'fun', 10); setMood(e, 'love'); }
   if (text.includes('tv') || text.includes('comedy')) { changeNeed(e, 'fun', 20); setMood(e, 'happy'); }
   if (text.includes('horror')) { changeNeed(e, 'fun', 14); setMood(e, 'spooked'); }
   if (text.includes('sports')) { changeNeed(e, 'fun', 16); setMood(e, 'hyped'); }
@@ -178,6 +195,6 @@ function finishOffsite(state) {
 }
 
 function speechFor(actionId) {
-  const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'FOOD', meal: 'COOK', bring_food: 'FOOD', comedy: 'HA!', horror: '!!', sports: 'GO', phone: 'CALL', play_game: 'GAME', sleep: 'Zz', nap: 'Zz', kiss: '<3', cuddle: '<3', tickle: 'HA!', hands: 'HOLD', pet: 'PET', train: 'TRAIN', feed_dog: 'FOOD' };
+  const map = { shower: '🚿', toilet: '🚽', snack: '🍎', meal: '🍳', bring_food: '🍽️', comedy: '😂', horror: '😱', sports: '🏆', phone: '📱', play_game: '🎮', sleep: '😴', nap: '😴', kiss: '😘', cuddle: '🤗', tickle: '😂', hands: '🤝', watch_together: '📺', bed_together: '🛏️', intimacy: '❤️', pet: '🐾', train: '🎾', feed_dog: '🍖' };
   return map[actionId] || actionId.toUpperCase().slice(0, 8);
 }
