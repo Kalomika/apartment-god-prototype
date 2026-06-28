@@ -1,13 +1,13 @@
 import { windowAt, toggleWindow } from './blueprint.js';
 import { ACTIONS, DOG_SOCIAL_ACTIONS, DOUBLE_TAP_MS, NEEDS, SOCIAL_ACTIONS } from './config.js';
 import { startObjectAction, startOffsite, startSocialAction, throwFetchBall } from './actions.js';
-import { handleBuildRequest } from './buildRequests.js';
+import { handleBuildRequest, placeBuildRequest } from './buildRequests.js';
 import { startCookingFlow } from './cooking.js';
 import { buyWorkoutGear, orderFood } from './economy.js';
 import { genreList, startMusic } from './music.js';
 import { beginMoveObject, placeMoveObject } from './objectMove.js';
 import { commandMove } from './movement.js';
-import { addRoutine, startSkill } from './training.js';
+import { addRoutine, startBook, startSkill } from './training.js';
 import { log, resumeEntity, selected, stopEntity } from './state.js';
 import { objectAt, objects } from './world.js';
 import { formatTime } from './rendering.js';
@@ -49,6 +49,7 @@ export function createUi(state, canvas) {
   function handleCanvasClick(event) {
     const p = toGamePoint(event);
     if (p.x > 960 || p.y > 720) { closeMenu(); return; }
+    if (state.buildPick && placeBuildRequest(state, selected(state), p.x, p.y)) { closeMenu(); return; }
     if (state.movePick && placeMoveObject(state, selected(state), p.x, p.y)) { closeMenu(); return; }
 
     const win = windowAt(p.x, p.y, state.floor);
@@ -117,7 +118,7 @@ export function createUi(state, canvas) {
   function objectItems(actor, obj) {
     const actions = ACTIONS[obj.kind] || [['use', 'Use']];
     const items = actions.map(([id, label]) => ({ label: `${actor.name}: ${label}`, run: () => handleObjectUse(actor, obj, id) }));
-    if (obj.kind === 'bookshelf') items.push({ label: `${actor.name}: Read / Study`, run: () => startSkill(state, actor, 'intellect') });
+    if (obj.kind === 'bookshelf') items.push({ label: `${actor.name}: Pull Book / Read`, run: () => startBook(state, actor, obj) });
     if (obj.kind === 'workout') items.push({ label: `${actor.name}: Train Strength`, run: () => startSkill(state, actor, 'strength') });
     if (obj.kind === 'stereo') items.push({ label: `${actor.name}: Pick Music`, run: () => phoneMusic(actor) });
     if (obj.kind === 'desk') items.push({ label: `${actor.name}: Build Request`, run: () => handleBuildRequest(state, actor, prompt('What should they build or order?') || '') });
@@ -148,8 +149,8 @@ export function createUi(state, canvas) {
   }
 
   function bindButtons() {
-    document.getElementById('floor-0').onclick = () => { state.floor = 0; state.viewHoldT = 0; closeMenu(); };
-    document.getElementById('floor-1').onclick = () => { state.floor = 1; state.viewHoldT = 18; log(state, 'Inspecting upstairs for 18 seconds.'); closeMenu(); };
+    document.getElementById('floor-0').onclick = () => { state.floor = 0; state.viewHoldT = state.buildPick ? 30 : 0; closeMenu(); };
+    document.getElementById('floor-1').onclick = () => { state.floor = 1; state.viewHoldT = 18; log(state, state.buildPick ? 'Tap upstairs placement spot.' : 'Inspecting upstairs for 18 seconds.'); closeMenu(); };
     document.getElementById('speed-1').onclick = () => { state.speed = 1; };
     document.getElementById('speed-3').onclick = () => { state.speed = 3; };
     document.getElementById('pause').onclick = () => { state.paused = !state.paused; };
@@ -177,7 +178,8 @@ export function createUi(state, canvas) {
       return `<div class="need-row"><span>${label}</span><div class="need-bar"><div class="need-fill" style="width:${value}%"></div></div><span>${value}</span></div>`;
     }).join('');
     const music = state.music ? `<br>Music: ${state.music.genre}` : '';
-    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}${music}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
+    const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : '';
+    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}${music}${build}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
     logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
   }
 
