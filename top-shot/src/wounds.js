@@ -6,13 +6,7 @@ import { recoverVitality, updateVitalityCap } from './vitality.js';
 export function addBleed(state, fighter, severity, source = 'wound') {
   if (fighter.incapacitated || fighter.extracted) return;
   const current = fighter.bleed || { rate: 0, pool: 0, bandaging: false, progress: 0 };
-  fighter.bleed = {
-    rate: clamp(current.rate + severity, 0, 12),
-    pool: clamp((current.pool || 0) + severity * 12, 0, 100),
-    bandaging: false,
-    progress: 0,
-    source
-  };
+  fighter.bleed = { rate: clamp(current.rate + severity, 0, 12), pool: clamp((current.pool || 0) + severity * 12, 0, 100), bandaging: false, progress: 0, source };
   fighter.helpT = Math.max(fighter.helpT || 0, 1.4);
   fighter.helpIcon = 'bleed';
   state.effects.push({ type: 'bleed', x: fighter.x, y: fighter.y, ttl: EFFECT_TTL.bleed || 0.5 });
@@ -27,13 +21,7 @@ export function updateWounds(state, dt) {
       f.hp = clamp(f.hp - drain, 0, 100);
       f.bleed.pool = clamp((f.bleed.pool || 0) - drain * 1.8, 0, 100);
       updateVitalityCap(f);
-      if (f.hp <= 0) {
-        f.defeated = true;
-        f.pose = 'blood_loss_kneel';
-        f.hp = 1;
-        f.stamina = 0;
-        addLog(state, `${f.name} drops from blood loss.`);
-      }
+      if (f.hp <= 0) { f.defeated = true; f.pose = 'blood_loss_kneel'; f.hp = 1; f.stamina = 0; addLog(state, `${f.name} drops from blood loss.`); }
       if (f.bleed.pool <= 0) stopBleed(state, f, 'clotted');
     }
     if (f.bleed?.bandaging) updateBandage(state, f, dt);
@@ -41,7 +29,7 @@ export function updateWounds(state, dt) {
 }
 
 export function shouldBandage(fighter) {
-  return Boolean(fighter.bleed?.rate > 0 && !fighter.bleed.bandaging && (fighter.hidden || fighter.prone || fighter.wallLean) && (fighter.hp < 72 || fighter.bleed.rate > 4));
+  return Boolean(fighter.bleed?.rate > 0 && !fighter.bleed.bandaging && (fighter.hidden || fighter.wallLean || fighter.hp < 42 || fighter.bleed.rate > 6));
 }
 
 export function startBandage(state, fighter) {
@@ -56,12 +44,11 @@ export function startBandage(state, fighter) {
 
 function updateBandage(state, fighter, dt) {
   fighter.pose = 'bandage_wound';
-  fighter.bleed.progress = clamp(fighter.bleed.progress + dt * (fighter.hidden ? 0.42 : 0.25), 0, 1);
+  const pace = fighter.hidden ? 0.45 : fighter.wallLean ? 0.34 : 0.24;
+  fighter.bleed.progress = clamp(fighter.bleed.progress + dt * pace, 0, 1);
   fighter.stamina = clamp(fighter.stamina + dt * 3, 0, 100);
-  if (fighter.bleed.progress >= 1) {
-    stopBleed(state, fighter, 'bandaged');
-    recoverVitality(fighter, 2);
-  }
+  state.effects.push({ type: 'bandage', x: fighter.x, y: fighter.y, progress: fighter.bleed.progress, ttl: EFFECT_TTL.bandage || 0.45 });
+  if (fighter.bleed.progress >= 1) { stopBleed(state, fighter, 'bandaged'); recoverVitality(fighter, 2); }
 }
 
 function stopBleed(state, fighter, reason) {
