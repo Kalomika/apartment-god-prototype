@@ -66,6 +66,18 @@ Long-term multiplayer goal: players train their fighter like a pet, enter arena 
 
 The main screen should mostly be the arena. There should be little dialogue or phone UI during battle. If labels are ever needed, they should orient toward the phone orientation so they remain readable. The game should be easy to watch whether the player turns the phone sideways or upright.
 
-## 17. V0.1 rule
+## 17. Arena generation
+
+Arena generation is a major pillar. The long-term goal is procedural or AI-assisted arena generation, similar in spirit to how exploration games generate worlds. Start with one test arena, then expand to at least four environment families: jungle or grassland, mall, rocky abandoned ruins, and a broken building/lobby style. Later arenas can have multiple floors, stairs, hiding spots, balconies, sightline traps, breakable props, and different tactical identities.
+
+## 18. Base of operations
+
+Outside the arena, the player should manage a base of operations. The base can include a tech person, training zones, projectile practice, kick/punch practice, recovery rooms, gear storage, and customization. This is the part the player can truly control and build. The arena remains AI-driven, but the base is where the commander prepares the fighter.
+
+## 19. Name direction
+
+Top Shot is the working title because it means top-down shot, top fighter, and shooting toward the top. Other possible future directions mentioned include Commander or U Command, because the player is more commander than direct combatant.
+
+## 20. V0.1 rule
 
 The first version should only prove one-floor, one-on-one AI fights. No multiplayer, no full creator, no full training hub yet. The test is whether the AI fight looks interesting and the mechanics can grow.
