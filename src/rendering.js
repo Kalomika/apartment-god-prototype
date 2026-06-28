@@ -11,9 +11,28 @@ export function draw(ctx, state) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   drawWorld(ctx, state);
   drawObjects(ctx, state);
+  drawFetchBall(ctx, state);
   drawEntities(ctx, state);
   drawStatus(ctx, state);
   drawOverlay(ctx, state);
+}
+
+function drawFetchBall(ctx, state) {
+  const ball = state.fetch?.ball;
+  if (!ball || ball.floor !== state.floor) return;
+  ctx.save();
+  ctx.fillStyle = '#f1c66a';
+  ctx.strokeStyle = '#11151c';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#11151c';
+  ctx.font = '900 9px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText('🎾', ball.x, ball.y + 4);
+  ctx.restore();
 }
 
 function drawStatus(ctx, state) {
