@@ -25,7 +25,7 @@ function updateFighter(state, f, dt) {
   f.commandCd = Math.max(0, f.commandCd - dt);
   f.helpT = Math.max(0, (f.helpT || 0) - dt);
   if (f.memory.command && f.memory.command.until <= state.clock) f.memory.command = null;
-  if (f.incapacitated || f.extracted || f.diveT > 0 || f.hold || f.heldBy) return;
+  if (f.incapacitated || f.defeated || f.extracted || f.diveT > 0 || f.hold || f.heldBy) return;
   if (f.extracting) return updateExtraction(state, f, dt);
   const enemy = opponentOf(state, f);
   const visible = canSee(state.arena, f, enemy);
@@ -128,7 +128,7 @@ export function placeCoachDrop(state, type, x, y) {
 export function suggestCommand(state, type, x, y, urgent = false) {
   if (!COACH_COMMANDS[type]) return false;
   const f = state.fighters.find(f => f.team === 'A');
-  if (!f || f.incapacitated || f.extracted || f.commandCd > 0) return false;
+  if (!f || f.incapacitated || f.defeated || f.extracted || f.commandCd > 0) return false;
   const obeyChance = clamp((state.trust + f.stats.discipline) / 190 + (urgent ? 0.12 : 0), 0.18, 0.94);
   state.commandHistory.push({ t: state.clock, type, obeyChance });
   f.commandCd = urgent ? 0.45 : 0.9;
