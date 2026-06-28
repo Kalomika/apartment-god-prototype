@@ -1,6 +1,7 @@
-import { COACH_DROPS, DAMAGE_STAGES, LIMBS } from './config.js';
+import { COACH_DROPS, LIMBS } from './config.js';
 import { ARCHETYPES } from './archetypes.js';
 import { createArena } from './arena.js';
+import { vitalityStageFor } from './vitality.js';
 
 export function createBattle(aId = 'marine', bId = 'ninja') {
   const arena = createArena();
@@ -25,7 +26,7 @@ function makeFighter(team, archetype, spawn) {
     id: `${team}-${archetype.id}`, team, archetypeId: archetype.id, name: `${team}: ${archetype.name}`,
     color: archetype.color, accent: archetype.accent, weapon: archetype.weapon, melee: archetype.melee, special: archetype.special,
     x: spawn.x, y: spawn.y, vx: 0, vy: 0, facing: spawn.facing, target: null, intent: 'scan', pose: 'idle', anim: 0,
-    hp: 100, stamina: 100, fight: 100, dodge: 100, block: 100, morale: 75, heat: 0, noise: 0,
+    hp: 100, vitalityCap: 100, painStage: 'green', stamina: 100, fight: 100, dodge: 100, block: 100, morale: 75, heat: 0, noise: 0,
     prestige: archetype.stats.prestige, ruthless: archetype.stats.ruthlessness, defeated: false, finishT: 0,
     prone: false, crouch: false, hidden: false, extracting: false, extracted: false, incapacitated: false,
     comboT: 0, actionT: 0, cooldown: 0, rangedCd: 0, meleeCd: 0, specialCd: 0, bandageCd: 0, getupT: 0, commandCd: 0, holdT: 0,
@@ -37,5 +38,5 @@ function makeFighter(team, archetype, spawn) {
 }
 
 export function opponentOf(state, fighter) { return state.fighters.find(f => f.team !== fighter.team); }
-export function stageFor(fighter) { return DAMAGE_STAGES.find(stage => fighter.hp >= stage.min) || DAMAGE_STAGES[DAMAGE_STAGES.length - 1]; }
+export function stageFor(fighter) { return vitalityStageFor(fighter); }
 export function addLog(state, text) { state.log.unshift(`${state.clock.toFixed(1)}s ${text}`); state.log = state.log.slice(0, 10); }
