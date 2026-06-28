@@ -29,13 +29,23 @@ export function clearLine(arena, a, b) {
   return true;
 }
 
+function clearBodyLine(arena, a, b, pad = 17) {
+  const steps = Math.max(2, Math.ceil(dist(a, b) / 10));
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const p = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+    if (blocked(arena, p, pad)) return false;
+  }
+  return true;
+}
+
 export function chooseDestination(state, f, enemy) {
   const d = dist(f, enemy);
   if (f.bleed?.rate > 0 || f.hp < 45 || f.dodge < 20 || f.block < 20) {
     const shadow = state.arena.shadows?.slice().sort((a, b) => dist(f, center(a)) - dist(f, center(b)))[0];
     if (shadow && !f.hideCooldown && (f.bleed?.rate > 0 || f.hp < 36)) return center(shadow);
     const cover = nearCover(state.arena, f);
-    if (cover) return safeDest(state.arena, f, { x: cover.x + cover.w / 2 + (f.x < enemy.x ? -52 : 52), y: cover.y + cover.h / 2 });
+    if (cover) return safeDest(state.arena, f, { x: cover.x + cover.w / 2 + (f.x < enemy.x ? -56 : 56), y: cover.y + cover.h / 2 });
   }
   if (f.wallLean && d < 210 && f.hp < 55) return { x: f.x, y: f.y };
   if (f.archetypeId === 'ninja' && d > 95) return safeDest(state.arena, f, flankPoint(f, enemy, 80));
@@ -52,30 +62,29 @@ function flankPoint(f, enemy, range) { if (!f.memory.flankSide) f.memory.flankSi
 function safeDest(arena, f, target) {
   if (!blocked(arena, target, 18)) return target;
   const base = angleTo(f, target);
-  const options = [0.65, -0.65, 1.25, -1.25, Math.PI].map(offset => ({ x: f.x + Math.cos(base + offset) * 130, y: f.y + Math.sin(base + offset) * 130 }));
+  const options = [0.55, -0.55, 1.05, -1.05, 1.65, -1.65, Math.PI].map(offset => ({ x: f.x + Math.cos(base + offset) * 145, y: f.y + Math.sin(base + offset) * 145 }));
   return options.find(p => !blocked(arena, p, 18)) || { x: f.x, y: f.y };
 }
 
 export function moveFighter(state, f, dest, dt) {
   if (!dest || f.incapacitated || f.extracted || f.extracting) return;
   const route = cachedRoute(state, f, dest);
-  let a = angleTo(f, route);
-  const turn = normalizeAngle(a - f.facing);
-  f.facing = normalizeAngle(f.facing + clamp(turn, -dt * 7, dt * 7));
-  a = f.facing;
+  const moveAngle = angleTo(f, route);
+  const turn = normalizeAngle(moveAngle - f.facing);
+  f.facing = normalizeAngle(f.facing + clamp(turn, -dt * 9, dt * 9));
   const stage = stageFor(f);
   const stealthMod = f.crouch || f.prone || f.shadowHidden ? 0.55 : 1;
-  const urgency = f.memory.command?.urgent ? 1.22 : 1;
+  const urgency = f.memory.command?.urgent ? 1.18 : 1;
   const limpMod = stage.id === 'purple' ? 0.72 : stage.id === 'red' ? 0.84 : 1;
   const speed = f.stats.speed * stage.speed * stealthMod * urgency * limpMod * (f.stamina < 20 ? 0.68 : 1);
   const step = Math.min(dist(f, route), speed * dt);
-  const moved = steer(state.arena, f, a, step);
+  const moved = steer(state.arena, f, moveAngle, step);
   const movedAmount = dist(f, moved);
   updateStuckMemory(f, movedAmount, route);
   f.x = moved.x; f.y = moved.y;
   f.shadowHidden = !f.hideCooldown && inShadow(state.arena, f) && (f.crouch || f.prone || f.stamina < 45 || f.bleed?.rate > 0);
   f.wallLean = Boolean(nearWall(state.arena, f, 17) && (f.hp < 52 || f.bleed?.rate > 0 || f.stamina < 22));
-  f.pose = movedAmount > 0.55 ? movementPose(f, stage, f.stuckT > 0.4) : f.stuckT > 0.4 ? 'reposition' : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : 'idle';
+  f.pose = movedAmount > 0.55 ? movementPose(f, stage, f.stuckT > 0.4) : f.stuckT > 0.4 ? 'reposition' : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : 'idle_guard';
   f.stamina = clamp(f.stamina - movedAmount * (f.memory.command?.urgent ? 0.012 : 0.005), 0, 100);
   f.noise = f.prone ? 8 : f.crouch || f.shadowHidden ? 10 : f.archetypeId === 'ninja' ? 18 : f.memory.command?.urgent ? 55 : 34;
   f.hidden = f.shadowHidden || f.prone || f.crouch;
@@ -83,16 +92,17 @@ export function moveFighter(state, f, dest, dt) {
 
 function cachedRoute(state, f, dest) {
   const cache = f.memory.route;
-  const changed = !cache || dist(cache.dest, dest) > 34 || cache.until <= state.clock || dist(f, cache.route) < 18;
+  const changed = !cache || dist(cache.dest, dest) > 34 || cache.until <= state.clock || dist(f, cache.route) < 18 || !clearBodyLine(state.arena, f, cache.route, 17);
   if (!changed && !blocked(state.arena, cache.route, 17)) return cache.route;
   const route = nextWaypoint(state.arena, f, dest);
-  f.memory.route = { dest: { x: dest.x, y: dest.y }, route, until: state.clock + 0.28 };
+  f.memory.route = { dest: { x: dest.x, y: dest.y }, route, until: state.clock + 0.32 };
   return route;
 }
 
 function updateStuckMemory(f, movedAmount, route) {
   if (movedAmount < 0.4 && dist(f, route) > 12) f.stuckT = (f.stuckT || 0) + 0.12;
   else f.stuckT = Math.max(0, (f.stuckT || 0) - 0.18);
+  if (f.stuckT > 0.72) { f.memory.route = null; f.memory.flankSide *= -1; }
   if (f.stuckT > 1.2) { f.memory.command = null; f.memory.navTarget = null; f.memory.route = null; if (f.brain) { f.brain.dest = null; f.brain.until = 0; } f.stuckT = 0; }
 }
 
@@ -101,8 +111,9 @@ function steer(arena, f, a, step) {
   const angles = [a, a + 0.35, a - 0.35, a + 0.75, a - 0.75, a + 1.35, a - 1.35, a + Math.PI];
   for (const test of angles) {
     const next = { x: f.x + Math.cos(test) * step, y: f.y + Math.sin(test) * step };
+    if (blocked(arena, next, 16)) continue;
     const moved = slide(arena, f, next);
-    if (dist(f, moved) > 0.35) return { ...moved, a: test };
+    if (!blocked(arena, moved, 16) && dist(f, moved) > 0.35) return { ...moved, a: test };
   }
   return { x: f.x, y: f.y, a };
 }
@@ -114,5 +125,5 @@ function movementPose(f, stage, stuck = false) {
   if (stage.id === 'purple') return 'stagger_limp';
   if (stage.id === 'red') return 'limp_run';
   if (f.memory.command?.urgent) return 'rush';
-  return 'walk';
+  return 'run';
 }
