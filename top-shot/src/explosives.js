@@ -1,5 +1,5 @@
 import { EFFECT_TTL } from './config.js';
-import { blocked } from './arena.js';
+import { blocked, slide } from './arena.js';
 import { addLog } from './state.js';
 import { angleTo, chance, clamp, dist } from './utils.js';
 
@@ -20,7 +20,7 @@ export function trySuperMove(state, f, enemy, visible) {
 }
 
 export function updateExplosives(state, dt) {
-  for (const f of state.fighters) updateDive(f, dt);
+  for (const f of state.fighters) updateDive(state, f, dt);
   for (const p of state.projectiles.filter(p => p.type === 'grenade')) {
     p.fuse -= dt;
     p.ttl -= dt;
@@ -48,11 +48,13 @@ function reactToGrenade(state, f, grenade) {
   addLog(state, `${f.name} dives away from the grenade.`);
 }
 
-function updateDive(f, dt) {
+function updateDive(state, f, dt) {
   if (!f.diveT || f.diveT <= 0) return;
   f.diveT -= dt;
-  f.x += f.diveVx * dt;
-  f.y += f.diveVy * dt;
+  const next = { x: f.x + f.diveVx * dt, y: f.y + f.diveVy * dt };
+  const moved = slide(state.arena, f, next);
+  f.x = moved.x;
+  f.y = moved.y;
   f.stamina = clamp(f.stamina - dt * 16, 0, 100);
   if (f.diveT <= 0) { f.diveVx = 0; f.diveVy = 0; f.pose = 'recover_dive'; }
 }
