@@ -62,8 +62,8 @@ function chooseStance(f, enemy, visible) {
 
 function commandedDestination(state, f, enemy) {
   const command = f.memory.command;
-  if (!command || f.team !== 'A' && !['investigate', 'strafe'].includes(command.type)) return null;
-  if (['move', 'cover', 'investigate', 'strafe'].includes(command.type)) return { x: command.x, y: command.y };
+  if (!command || f.team !== 'A' && !['investigate', 'strafe', 'roll_cover'].includes(command.type)) return null;
+  if (['move', 'cover', 'investigate', 'strafe', 'roll_cover'].includes(command.type)) return { x: command.x, y: command.y };
   if (['ranged', 'projectile', 'grenade'].includes(command.type)) {
     const desired = command.type === 'grenade' ? 250 : 175;
     const away = Math.atan2(f.y - enemy.y, f.x - enemy.x);
