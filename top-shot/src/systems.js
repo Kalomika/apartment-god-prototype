@@ -6,6 +6,7 @@ import { tryAttack, updateCombat } from './combat.js';
 import { trySuperMove, updateExplosives } from './explosives.js';
 import { tryPrestigeAction, updatePrestige } from './prestige.js';
 import { recoverVitality } from './vitality.js';
+import { updateHiding } from './hiding.js';
 import { shouldBandage, startBandage, updateWounds } from './wounds.js';
 
 export function updateBattle(state, dt) {
@@ -18,6 +19,7 @@ export function updateBattle(state, dt) {
   updateWounds(state, dt);
   updateCombat(state, dt);
   for (const f of state.fighters) updateFighter(state, f, dt);
+  updateHiding(state, dt);
   updatePickups(state);
   updateRetrievals(state);
   checkFinish(state);
@@ -45,21 +47,22 @@ function updateFighter(state, f, dt) {
   if (needsHelp(f)) askForHelp(state, f);
   const destination = commandedDestination(state, f, enemy) || nearestUsefulPickup(state, f) || nearestStuckProjectile(state, f) || chooseDestination(state, f, enemy);
   moveFighter(state, f, destination, dt);
-  f.anim += dt * (['walk', 'crouchWalk', 'rush', 'stagger_limp', 'limp_run'].includes(f.pose) ? 12 : 3);
+  f.anim += dt * (['walk', 'crouchWalk', 'rush', 'stagger_limp', 'limp_run', 'careful_walk'].includes(f.pose) ? 12 : 3);
 }
 
 function chooseStance(f, enemy, visible) {
   const d = dist(f, enemy);
   f.prone = false; f.crouch = false;
+  if (f.hideCooldown > 0) return;
   if (f.archetypeId === 'marine' && d > 220 && f.hp < 80 && visible) f.prone = true;
   if ((f.archetypeId === 'ninja' || f.archetypeId === 'archer') && (!visible || f.bleed?.rate > 0) && d > 110) f.crouch = true;
 }
 
 function commandedDestination(state, f, enemy) {
   const command = f.memory.command;
-  if (!command || f.team !== 'A') return null;
-  if (command.type === 'move' || command.type === 'cover') return { x: command.x, y: command.y };
-  if (command.type === 'ranged' || command.type === 'projectile' || command.type === 'grenade') {
+  if (!command || f.team !== 'A' && command.type !== 'investigate') return null;
+  if (['move', 'cover', 'investigate'].includes(command.type)) return { x: command.x, y: command.y };
+  if (['ranged', 'projectile', 'grenade'].includes(command.type)) {
     const desired = command.type === 'grenade' ? 250 : 175;
     const away = Math.atan2(f.y - enemy.y, f.x - enemy.x);
     return { x: f.x + Math.cos(away) * desired, y: f.y + Math.sin(away) * desired };
@@ -74,7 +77,7 @@ function nearestUsefulPickup(state, f) {
   const sorted = [...items].sort((a, b) => dist(f, a) - dist(f, b));
   const pick = sorted[0];
   if (pick.type === 'med' && f.hp > Math.min(72, f.vitalityCap ?? 100) && !f.bleed?.rate) return null;
-  if (pick.type === 'ammo' && f.archetypeId !== 'marine' && f.archetypeId !== 'archer' && f.archetypeId !== 'ninja') return null;
+  if (pick.type === 'ammo' && !['marine', 'archer', 'ninja'].includes(f.archetypeId)) return null;
   return pick;
 }
 
@@ -88,10 +91,7 @@ function updatePickups(state) {
   for (const pick of state.pickups) {
     if (pick.used) continue;
     for (const f of state.fighters) {
-      if (dist(f, pick) < 28 && (pick.team === 'any' || pick.team === f.team)) {
-        usePickup(state, f, pick);
-        pick.used = true;
-      }
+      if (dist(f, pick) < 28 && (pick.team === 'any' || pick.team === f.team)) { usePickup(state, f, pick); pick.used = true; }
     }
   }
 }
@@ -116,60 +116,14 @@ function usePickup(state, f, pick) {
   if (pick.type === 'extract') beginExtraction(state, f);
 }
 
-function beginExtraction(state, f) {
-  f.extracting = true; f.actionT = 1.3; f.pose = 'extract';
-  state.effects.push({ type: 'extraction', x: f.x, y: f.y, ttl: 1.3 });
-  addLog(state, `${f.name} grabs the extraction rope. Match forfeited, fighter saved.`);
-}
+function beginExtraction(state, f) { f.extracting = true; f.actionT = 1.3; f.pose = 'extract'; state.effects.push({ type: 'extraction', x: f.x, y: f.y, ttl: 1.3 }); addLog(state, `${f.name} grabs the extraction rope. Match forfeited, fighter saved.`); }
+function updateExtraction(state, f, dt) { f.actionT -= dt; f.y -= 160 * dt; f.pose = 'extract'; if (f.actionT <= 0) { f.extracted = true; f.extracting = false; state.matchState = 'finished'; rewardTrust(state, -4); addLog(state, `${f.name} extracted from the arena.`); } }
 
-function updateExtraction(state, f, dt) {
-  f.actionT -= dt; f.y -= 160 * dt; f.pose = 'extract';
-  if (f.actionT <= 0) { f.extracted = true; f.extracting = false; state.matchState = 'finished'; rewardTrust(state, -4); addLog(state, `${f.name} extracted from the arena.`); }
-}
+export function placeCoachDrop(state, type, x, y) { if (!COACH_DROPS[type] || (state.dropsLeft[type] || 0) <= 0) return false; state.dropsLeft[type]--; state.pickups.push({ type, team: 'A', x, y, used: false, label: COACH_DROPS[type].label, color: COACH_DROPS[type].color }); addLog(state, `Coach drops ${COACH_DROPS[type].label}.`); return true; }
+export function suggestCommand(state, type, x, y, urgent = false) { if (!COACH_COMMANDS[type]) return false; const f = state.fighters.find(f => f.team === 'A'); if (!f || f.incapacitated || f.defeated || f.extracted || f.commandCd > 0) return false; const obeyChance = clamp((state.trust + f.stats.discipline) / 190 + (urgent ? 0.12 : 0), 0.18, 0.94); state.commandHistory.push({ t: state.clock, type, obeyChance }); f.commandCd = urgent ? 0.45 : 0.9; if (Math.random() > obeyChance) { rewardTrust(state, -COACH_COMMANDS[type].trustCost); addLog(state, `${f.name} ignores the ${COACH_COMMANDS[type].label} call.`); return false; } f.memory.command = { type, x, y, urgent, until: state.clock + (urgent ? 2.4 : 3.8) }; f.stamina = clamp(f.stamina - (urgent ? 12 : 4), 0, 100); f.helpT = 0; state.effects.push({ type: 'command', x, y, ttl: 0.65 }); rewardTrust(state, -Math.ceil(COACH_COMMANDS[type].trustCost / 3)); addLog(state, `${f.name} follows opportunity call: ${COACH_COMMANDS[type].label}.`); return true; }
+export function setCommanderEthos(state, ethos) { if (!['ai', 'respectful', 'ruthless'].includes(ethos)) return false; state.commanderEthos = ethos; addLog(state, `Commander ethos set to ${ethos}.`); return true; }
 
-export function placeCoachDrop(state, type, x, y) {
-  if (!COACH_DROPS[type] || (state.dropsLeft[type] || 0) <= 0) return false;
-  state.dropsLeft[type]--;
-  state.pickups.push({ type, team: 'A', x, y, used: false, label: COACH_DROPS[type].label, color: COACH_DROPS[type].color });
-  addLog(state, `Coach drops ${COACH_DROPS[type].label}.`);
-  return true;
-}
-
-export function suggestCommand(state, type, x, y, urgent = false) {
-  if (!COACH_COMMANDS[type]) return false;
-  const f = state.fighters.find(f => f.team === 'A');
-  if (!f || f.incapacitated || f.defeated || f.extracted || f.commandCd > 0) return false;
-  const obeyChance = clamp((state.trust + f.stats.discipline) / 190 + (urgent ? 0.12 : 0), 0.18, 0.94);
-  state.commandHistory.push({ t: state.clock, type, obeyChance });
-  f.commandCd = urgent ? 0.45 : 0.9;
-  if (Math.random() > obeyChance) { rewardTrust(state, -COACH_COMMANDS[type].trustCost); addLog(state, `${f.name} ignores the ${COACH_COMMANDS[type].label} call.`); return false; }
-  f.memory.command = { type, x, y, urgent, until: state.clock + (urgent ? 2.4 : 3.8) };
-  f.stamina = clamp(f.stamina - (urgent ? 12 : 4), 0, 100);
-  f.helpT = 0;
-  state.effects.push({ type: 'command', x, y, ttl: 0.65 });
-  rewardTrust(state, -Math.ceil(COACH_COMMANDS[type].trustCost / 3));
-  addLog(state, `${f.name} follows opportunity call: ${COACH_COMMANDS[type].label}.`);
-  return true;
-}
-
-export function setCommanderEthos(state, ethos) {
-  if (!['ai', 'respectful', 'ruthless'].includes(ethos)) return false;
-  state.commanderEthos = ethos;
-  addLog(state, `Commander ethos set to ${ethos}.`);
-  return true;
-}
-
-function needsHelp(f) {
-  return f.team === 'A' && !f.memory.command && !f.helpT && (f.bleed?.rate > 0 || f.hp < 38 || f.stamina < 18 || f.dodge < 12 || f.block < 12);
-}
-function askForHelp(state, f) {
-  f.helpT = 2.2;
-  f.helpIcon = f.bleed?.rate > 0 ? 'bleed' : f.resources.grenades === 0 && f.archetypeId === 'marine' ? 'grenade' : '?';
-  state.effects.push({ type: 'command', x: f.x, y: f.y - 36, ttl: 0.65, label: f.helpIcon });
-  addLog(state, `${f.name} looks to you for a call.`);
-}
+function needsHelp(f) { return f.team === 'A' && !f.memory.command && !f.helpT && (f.bleed?.rate > 0 || f.hp < 38 || f.stamina < 18 || f.dodge < 12 || f.block < 12); }
+function askForHelp(state, f) { f.helpT = 2.2; f.helpIcon = f.bleed?.rate > 0 ? 'bleed' : f.resources.grenades === 0 && f.archetypeId === 'marine' ? 'grenade' : '?'; state.effects.push({ type: 'command', x: f.x, y: f.y - 36, ttl: 0.65, label: f.helpIcon }); addLog(state, `${f.name} looks to you for a call.`); }
 function rewardTrust(state, amount) { state.trust = clamp(state.trust + amount, 0, 100); }
-function checkFinish(state) {
-  const active = state.fighters.filter(f => !f.incapacitated && !f.extracted);
-  if (active.length <= 1 && state.matchState !== 'finished') state.matchState = 'finished';
-}
+function checkFinish(state) { const active = state.fighters.filter(f => !f.incapacitated && !f.extracted); if (active.length <= 1 && state.matchState !== 'finished') state.matchState = 'finished'; }
