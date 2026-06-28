@@ -2,16 +2,19 @@ import { EFFECT_TTL } from './config.js';
 import { blocked, slide } from './arena.js';
 import { addLog } from './state.js';
 import { angleTo, chance, clamp, dist } from './utils.js';
+import { updateVitalityCap } from './vitality.js';
 
 export function trySuperMove(state, f, enemy, visible) {
   if (!visible || f.archetypeId !== 'marine' || f.resources.grenades <= 0 || f.rangedCd > 0) return false;
   const d = dist(f, enemy);
   if (d < 140 || d > 420) return false;
-  if (!chance(0.012 + (100 - enemy.hp) / 2500)) return false;
+  const commanded = f.memory.command?.type === 'grenade';
+  if (!commanded && !chance(0.012 + (100 - enemy.hp) / 2500)) return false;
   f.resources.grenades--;
   f.rangedCd = 2.8;
   f.cooldown = 0.65;
   f.pose = 'grenade_throw';
+  if (commanded) f.memory.command = null;
   const a = angleTo(f, enemy);
   const speed = 275;
   state.projectiles.push({ type: 'grenade', team: f.team, owner: f.name, x: f.x, y: f.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, fuse: 1.25, ttl: 1.35, blast: 118, damage: 82 });
@@ -71,7 +74,8 @@ function explode(state, grenade) {
     const dodgeCut = f.diveT > 0 ? 0.38 : 1;
     const damage = Math.max(4, grenade.damage * (1 - d / grenade.blast) * coverCut * dodgeCut);
     f.hp = clamp(f.hp - damage, 0, 100);
+    updateVitalityCap(f);
     f.pose = f.diveT > 0 ? f.pose : 'blast_hit';
-    if (f.hp <= 0 || d < 36 && dodgeCut > 0.5) { f.hp = 0; f.incapacitated = true; f.pose = 'down'; state.matchState = 'finished'; addLog(state, `${f.name} is incapacitated by the blast.`); }
+    if (f.hp <= 0 || d < 36 && dodgeCut > 0.5) { f.hp = 0; f.incapacitated = true; f.defeated = false; f.pose = 'down'; state.matchState = 'finished'; addLog(state, `${f.name} is suddenly incapacitated by the blast.`); }
   }
 }
