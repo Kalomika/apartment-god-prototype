@@ -1,5 +1,5 @@
 import { EFFECT_TTL } from './config.js';
-import { blocked, slide } from './arena.js';
+import { blocked, nearCover, slide } from './arena.js';
 import { angleTo, clamp, dist } from './utils.js';
 import { clearLine } from './perception.js';
 
@@ -8,11 +8,12 @@ export function updateTacticalPosture(state, f, enemy, visible, dt) {
   f.strafeT = Math.max(0, (f.strafeT || 0) - dt);
   f.braceT = Math.max(0, (f.braceT || 0) - dt);
   f.rollT = Math.max(0, (f.rollT || 0) - dt);
+  f.rollCd = Math.max(0, (f.rollCd || 0) - dt);
   if (f.incapacitated || f.defeated || f.extracted || f.bleed?.bandaging) return;
 
   const underThreat = visible && clearLine(state.arena, enemy, f) && dist(f, enemy) > 80;
-  if ((f.stuckT || 0) > 0.7 && f.rollT <= 0) return tacticalRoll(state, f, enemy, 'unstick');
-  if (underThreat && f.dodge > 45 && f.stamina > 35 && f.hp < 75 && f.rollT <= 0) return tacticalRoll(state, f, enemy, 'evade');
+  if ((f.stuckT || 0) > 0.7 && f.rollCd <= 0 && f.stamina > 22) return tacticalRoll(state, f, enemy, 'unstick');
+  if (underThreat && f.dodge > 48 && f.stamina > 45 && f.hp < 82 && f.rollCd <= 0) return tacticalRoll(state, f, enemy, 'evade');
   if (underThreat && f.wallLean && f.stamina < 55) return braceOnWall(state, f);
   if (underThreat && (f.block < 35 || f.dodge < 30 || f.hp < 62)) return duck(state, f);
   if (visible && f.wallLean && dist(f, enemy) < 260) return strafeWall(state, f, enemy);
@@ -58,10 +59,13 @@ function tacticalRoll(state, f, enemy, reason) {
     f.x = moved.x;
     f.y = moved.y;
     f.facing = a;
-    f.rollT = reason === 'unstick' ? 0.55 : 1.1;
-    f.dodge = clamp(f.dodge - 18, 0, 100);
-    f.stamina = clamp(f.stamina - 10, 0, 100);
+    f.rollT = 0.48;
+    f.rollCd = reason === 'unstick' ? 1.4 : 2.6;
+    f.dodge = clamp(f.dodge - 28, 0, 100);
+    f.stamina = clamp(f.stamina - (reason === 'unstick' ? 16 : 24), 0, 100);
     f.pose = f.archetypeId === 'ninja' ? 'roll' : 'combat_roll';
+    const cover = nearCover(state.arena, f);
+    if (cover && reason !== 'unstick') f.memory.command = { type: 'roll_cover', x: cover.x + cover.w / 2, y: cover.y + cover.h / 2, urgent: false, until: state.clock + 1.25 };
     state.effects.push({ type: 'dive', x: f.x, y: f.y, ttl: EFFECT_TTL.dive || 0.42 });
     return;
   }
