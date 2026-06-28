@@ -53,46 +53,13 @@ export function tryAttack(state, f, enemy, visible) {
   if (d < 44 && f.stats.grapple > 55 && f.fight > 35 && chance(f.stats.grapple / 420)) return grapple(state, f, enemy);
 }
 
-function shouldRanged(f, d) {
-  if (f.rangedCd > 0 || f.heat > 88) return false;
-  if (['cqc', 'disarm', 'sword'].includes(f.memory.command?.type)) return false;
-  if (f.memory.command?.type === 'projectile') return d > 60;
-  if (f.archetypeId === 'marine') return (f.resources.rifle > 0 || f.resources.pistol > 0) && d > 95;
-  if (f.archetypeId === 'ninja') return f.resources.shuriken > 0 && d > 92 && d < 430;
-  if (f.archetypeId === 'archer') return f.resources.arrows > 0 && d > 80 && d < 520;
-  if (f.archetypeId === 'martial_artist') return f.resources.debris > 0 && d > 100 && d < 310;
-  return false;
-}
-
-function ranged(state, f, enemy) {
-  if (f.archetypeId === 'marine') return fireGun(state, f, enemy);
-  if (f.archetypeId === 'ninja') return throwProjectile(state, f, enemy, 'shuriken', 520, 9, 'shuriken');
-  if (f.archetypeId === 'archer') return throwProjectile(state, f, enemy, 'arrow', 420, 15, 'arrows');
-  return throwProjectile(state, f, enemy, 'debris', 360, 7, 'debris');
-}
-
-function fireGun(state, f, enemy) {
-  const rifle = f.resources.rifle > 0 && f.heat < 72;
-  const shots = rifle ? Math.min(3, f.resources.rifle) : f.resources.pistol > 0 ? 1 : 0;
-  if (!shots) return;
-  for (let i = 0; i < shots; i++) {
-    if (rifle) f.resources.rifle--; else f.resources.pistol--;
-    f.heat += rifle ? 13 : 8;
-    const spread = rifle ? rand(-0.13, 0.13) : rand(-0.05, 0.05);
-    const a = angleTo(f, enemy) + spread;
-    const end = rayEnd(state, f, a, 800);
-    state.effects.push({ type: 'tracer', x: f.x, y: f.y, x2: end.x, y2: end.y, ttl: EFFECT_TTL.tracer });
-    if (dist(end, enemy) < 28 || clearLine(state.arena, f, enemy) && Math.abs(spread) < hitSpread(f, enemy)) hit(state, f, enemy, rifle ? rand(8, 14) : rand(12, 18), 'shot', a);
-    else impact(state, end.x, end.y, 'ricochet');
-  }
-  f.rangedCd = rifle ? 0.55 : 0.75; f.cooldown = 0.16; f.pose = rifle ? 'burst' : 'pistol';
-  addLog(state, `${f.name} fires ${rifle ? 'rifle burst' : 'pistol'}.`);
-}
-
+function shouldRanged(f, d) { if (f.rangedCd > 0 || f.heat > 88) return false; if (['cqc', 'disarm', 'sword'].includes(f.memory.command?.type)) return false; if (f.memory.command?.type === 'projectile') return d > 60; if (f.archetypeId === 'marine') return (f.resources.rifle > 0 || f.resources.pistol > 0) && d > 95; if (f.archetypeId === 'ninja') return f.resources.shuriken > 0 && d > 92 && d < 430; if (f.archetypeId === 'archer') return f.resources.arrows > 0 && d > 80 && d < 520; if (f.archetypeId === 'martial_artist') return f.resources.debris > 0 && d > 100 && d < 310; return false; }
+function ranged(state, f, enemy) { if (f.archetypeId === 'marine') return fireGun(state, f, enemy); if (f.archetypeId === 'ninja') return throwProjectile(state, f, enemy, 'shuriken', 520, 9, 'shuriken'); if (f.archetypeId === 'archer') return throwProjectile(state, f, enemy, 'arrow', 420, 15, 'arrows'); return throwProjectile(state, f, enemy, 'debris', 360, 7, 'debris'); }
+function fireGun(state, f, enemy) { const rifle = f.resources.rifle > 0 && f.heat < 72; const shots = rifle ? Math.min(3, f.resources.rifle) : f.resources.pistol > 0 ? 1 : 0; if (!shots) return; for (let i = 0; i < shots; i++) { if (rifle) f.resources.rifle--; else f.resources.pistol--; f.heat += rifle ? 13 : 8; const spread = rifle ? rand(-0.13, 0.13) : rand(-0.05, 0.05); const a = angleTo(f, enemy) + spread; const end = rayEnd(state, f, a, 800); state.effects.push({ type: 'tracer', x: f.x, y: f.y, x2: end.x, y2: end.y, ttl: EFFECT_TTL.tracer }); if (dist(end, enemy) < 28 || clearLine(state.arena, f, enemy) && Math.abs(spread) < hitSpread(f, enemy)) hit(state, f, enemy, rifle ? rand(8, 14) : rand(12, 18), 'shot', a); else impact(state, end.x, end.y, 'ricochet'); } f.rangedCd = rifle ? 0.55 : 0.75; f.cooldown = 0.16; f.pose = rifle ? 'burst' : 'pistol'; addLog(state, `${f.name} fires ${rifle ? 'rifle burst' : 'pistol'}.`); }
 function hitSpread(f, enemy) { return (f.stats.aim / 100) * (enemy.dodge < 30 ? 0.2 : 0.11); }
 function rayEnd(state, f, a, range) { for (let t = 22; t < range; t += 12) { const p = { x: f.x + Math.cos(a) * t, y: f.y + Math.sin(a) * t }; if (blocked(state.arena, p, 2)) return p; } return { x: f.x + Math.cos(a) * range, y: f.y + Math.sin(a) * range }; }
 function throwProjectile(state, f, enemy, type, speed, damage, resource) { f.resources[resource]--; const a = angleTo(f, enemy) + rand(-0.08, 0.08); state.projectiles.push({ type, team: f.team, owner: f.name, x: f.x, y: f.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, damage, ttl: 2.2, stuck: false }); f.rangedCd = type === 'arrow' ? 1.15 : 0.75; f.cooldown = 0.25; f.pose = type; addLog(state, `${f.name} throws ${type}.`); }
-function updateProjectiles(state, dt) { for (const p of state.projectiles) { if (p.type === 'grenade' || p.stuck) continue; p.ttl -= dt; p.x += p.vx * dt; p.y += p.vy * dt; if (blocked(state.arena, p, 4)) { p.stuck = true; p.vx = 0; p.vy = 0; impact(state, p.x, p.y, 'stick'); continue; } const target = state.fighters.find(f => f.team !== p.team && !f.incapacitated && !f.defeated && !f.extracted && dist(f, p) < 24); if (target) { hit(state, { name: p.owner, stats: { aim: 55 } }, target, p.damage, p.type, Math.atan2(p.vy, p.vx)); p.ttl = 0; } } state.projectiles = state.projectiles.filter(p => p.type === 'grenade' || p.ttl > 0 || p.stuck); }
+function updateProjectiles(state, dt) { for (const p of state.projectiles) { if (p.type === 'grenade' || p.stuck) continue; p.ttl -= dt; p.x += p.vx * dt; p.y += p.vy * dt; if (blocked(state.arena, p, 4)) { p.stuck = true; p.vx = 0; p.vy = 0; impact(state, p.x, p.y, 'stick'); continue; } const target = state.fighters.find(f => f.team !== p.team && !f.incapacitated && !f.defeated && !f.extracted && f.rollT <= 0 && dist(f, p) < 24); if (target) { hit(state, { name: p.owner, stats: { aim: 55 } }, target, p.damage, p.type, Math.atan2(p.vy, p.vx)); p.ttl = 0; } } state.projectiles = state.projectiles.filter(p => p.type === 'grenade' || p.ttl > 0 || p.stuck); }
 function meleeReach(f) { if (f.melee === 'sword') return 70; if (f.melee === 'knife' || f.melee === 'arrow_stab') return 48; return 42; }
 function melee(state, f, enemy, force = null) { const sword = f.melee === 'sword' || force === 'sword'; const stab = !sword && (f.melee === 'knife' || f.melee === 'arrow_stab'); const move = sword ? { id: choose(SWORD), limb: 'rightArm', kind: 'sword', reach: 70, damage: 18, stamina: 12, lean: -1 } : stab ? choose(STABS) : choose(MOVES); if (f.fight < move.stamina) return; f.fight -= move.stamina; f.stamina -= move.stamina * 0.4; f.meleeCd = move.kind === 'power' ? 1.0 : 0.38; f.cooldown = f.meleeCd; f.pose = move.id; f.currentMove = { ...move, ttl: 0.22 }; const defended = defend(state, f, enemy, move); state.effects.push({ type: defended, x: enemy.x, y: enemy.y, ttl: EFFECT_TTL[defended] || 0.2, move: move.id }); if (defended === 'hit') hit(state, f, enemy, move.damage + f.stats.cqc * 0.05, move.kind, angleTo(f, enemy), move); }
 function disarm(state, f, enemy) { f.fight -= 16; f.cooldown = 0.75; f.pose = 'disarm_attempt'; f.memory.command = null; const success = chance((f.stats.cqc + f.stats.grapple + f.stats.counter) / 330) && enemy.block < 75; if (!success) { addLog(state, `${f.name} fails the disarm.`); if (chance(enemy.stats.counter / 220)) counter(state, enemy, f); return; } enemy.rangedCd = 2.2; enemy.heat = Math.max(enemy.heat, 65); enemy.pose = 'disarmed'; if (enemy.resources.rifle) enemy.resources.rifle = Math.floor(enemy.resources.rifle * 0.55); if (enemy.resources.pistol) enemy.resources.pistol = Math.floor(enemy.resources.pistol * 0.7); if (enemy.resources.arrows) enemy.resources.arrows = Math.max(0, enemy.resources.arrows - 3); if (enemy.resources.shuriken) enemy.resources.shuriken = Math.max(0, enemy.resources.shuriken - 2); state.effects.push({ type: 'block', x: enemy.x, y: enemy.y, ttl: 0.28, move: 'disarm' }); addLog(state, `${f.name} disarms ${enemy.name}.`); }
