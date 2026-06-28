@@ -1,6 +1,7 @@
 import { blocked, inShadow, nearCover, nearWall, slide, solids } from './arena.js';
 import { angleTo, clamp, dist, normalizeAngle, pointInRect } from './utils.js';
 import { stageFor } from './state.js';
+import { nextWaypoint } from './navmesh.js';
 
 export function canSee(arena, watcher, target) {
   if (target.extracted || target.incapacitated) return false;
@@ -31,7 +32,7 @@ export function clearLine(arena, a, b) {
 export function chooseDestination(state, f, enemy) {
   const d = dist(f, enemy);
   if (f.bleed?.rate > 0 || f.hp < 45 || f.dodge < 20 || f.block < 20) {
-    const shadow = state.arena.shadows?.sort((a, b) => dist(f, center(a)) - dist(f, center(b)))[0];
+    const shadow = state.arena.shadows?.slice().sort((a, b) => dist(f, center(a)) - dist(f, center(b)))[0];
     if (shadow && !f.hideCooldown && (f.bleed?.rate > 0 || f.hp < 36)) return center(shadow);
     const cover = nearCover(state.arena, f);
     if (cover) return safeDest(state.arena, f, { x: cover.x + cover.w / 2 + (f.x < enemy.x ? -52 : 52), y: cover.y + cover.h / 2 });
@@ -46,70 +47,49 @@ export function chooseDestination(state, f, enemy) {
 
 function center(rect) { return { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 }; }
 function awayPoint(f, enemy, amount) { const a = angleTo(enemy, f); return { x: f.x + Math.cos(a) * amount, y: f.y + Math.sin(a) * amount }; }
-function flankPoint(f, enemy, range) { const base = angleTo(f, enemy); const side = Math.random() < 0.5 ? 1 : -1; const a = base + side * 1.25; return { x: enemy.x - Math.cos(a) * range, y: enemy.y - Math.sin(a) * range }; }
+function flankPoint(f, enemy, range) { if (!f.memory.flankSide) f.memory.flankSide = Math.random() < 0.5 ? 1 : -1; const base = angleTo(f, enemy); const a = base + f.memory.flankSide * 1.25; return { x: enemy.x - Math.cos(a) * range, y: enemy.y - Math.sin(a) * range }; }
 
 function safeDest(arena, f, target) {
-  if (!blocked(arena, target, 16)) return target;
+  if (!blocked(arena, target, 18)) return target;
   const base = angleTo(f, target);
   const options = [0.65, -0.65, 1.25, -1.25, Math.PI].map(offset => ({ x: f.x + Math.cos(base + offset) * 130, y: f.y + Math.sin(base + offset) * 130 }));
-  return options.find(p => !blocked(arena, p, 16)) || { x: f.x, y: f.y };
+  return options.find(p => !blocked(arena, p, 18)) || { x: f.x, y: f.y };
 }
 
 export function moveFighter(state, f, dest, dt) {
   if (!dest || f.incapacitated || f.extracted || f.extracting) return;
-  const route = routeTarget(state.arena, f, dest);
+  const route = nextWaypoint(state.arena, f, dest);
   let a = angleTo(f, route);
-  f.facing = a;
+  const turn = normalizeAngle(a - f.facing);
+  f.facing = normalizeAngle(f.facing + clamp(turn, -dt * 7, dt * 7));
+  a = f.facing;
   const stage = stageFor(f);
   const stealthMod = f.crouch || f.prone || f.shadowHidden ? 0.55 : 1;
-  const urgency = f.memory.command?.urgent ? 1.38 : 1;
+  const urgency = f.memory.command?.urgent ? 1.22 : 1;
   const limpMod = stage.id === 'purple' ? 0.72 : stage.id === 'red' ? 0.84 : 1;
   const speed = f.stats.speed * stage.speed * stealthMod * urgency * limpMod * (f.stamina < 20 ? 0.68 : 1);
   const step = Math.min(dist(f, route), speed * dt);
   const moved = steer(state.arena, f, a, step);
   const movedAmount = dist(f, moved);
   updateStuckMemory(f, movedAmount, route);
-  f.x = moved.x; f.y = moved.y; a = moved.a;
-  f.facing = a;
+  f.x = moved.x; f.y = moved.y;
   f.shadowHidden = !f.hideCooldown && inShadow(state.arena, f) && (f.crouch || f.prone || f.stamina < 45 || f.bleed?.rate > 0);
   f.wallLean = Boolean(nearWall(state.arena, f, 17) && (f.hp < 52 || f.bleed?.rate > 0 || f.stamina < 22));
-  f.pose = step > 1 ? movementPose(f, stage, f.stuckT > 0.4) : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : 'idle';
-  f.stamina = clamp(f.stamina - step * (f.memory.command?.urgent ? 0.018 : 0.006), 0, 100);
+  f.pose = movedAmount > 0.55 ? movementPose(f, stage, f.stuckT > 0.4) : f.stuckT > 0.4 ? 'reposition' : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : 'idle';
+  f.stamina = clamp(f.stamina - movedAmount * (f.memory.command?.urgent ? 0.012 : 0.005), 0, 100);
   f.noise = f.prone ? 8 : f.crouch || f.shadowHidden ? 10 : f.archetypeId === 'ninja' ? 18 : f.memory.command?.urgent ? 55 : 34;
   f.hidden = f.shadowHidden || f.prone || f.crouch;
 }
 
-function routeTarget(arena, f, dest) {
-  if (clearLine(arena, f, dest) && !blocked(arena, dest, 16)) return dest;
-  const points = tacticalPoints(arena);
-  const fullPath = points.filter(p => clearLine(arena, f, p) && clearLine(arena, p, dest)).sort((a, b) => dist(f, a) + dist(a, dest) - (dist(f, b) + dist(b, dest)))[0];
-  if (fullPath) return fullPath;
-  const progress = points.filter(p => clearLine(arena, f, p) && dist(p, dest) < dist(f, dest)).sort((a, b) => dist(penaltyPoint(f, dest), a) - dist(penaltyPoint(f, dest), b))[0];
-  if (progress) return progress;
-  return safeDest(arena, f, dest);
-}
-
-function tacticalPoints(arena) {
-  const boxes = solids(arena);
-  const points = [];
-  for (const b of boxes) {
-    points.push({ x: b.x - 34, y: b.y - 34 }, { x: b.x + b.w + 34, y: b.y - 34 }, { x: b.x - 34, y: b.y + b.h + 34 }, { x: b.x + b.w + 34, y: b.y + b.h + 34 });
-    points.push({ x: b.x + b.w / 2, y: b.y - 42 }, { x: b.x + b.w / 2, y: b.y + b.h + 42 }, { x: b.x - 42, y: b.y + b.h / 2 }, { x: b.x + b.w + 42, y: b.y + b.h / 2 });
-  }
-  points.push({ x: 150, y: 150 }, { x: 150, y: 570 }, { x: 810, y: 150 }, { x: 810, y: 570 }, { x: 480, y: 220 }, { x: 480, y: 500 });
-  return points.filter(p => p.x > 62 && p.x < 898 && p.y > 62 && p.y < 658 && !blocked(arena, p, 16));
-}
-
-function penaltyPoint(f, dest) { return { x: (f.x + dest.x) / 2, y: (f.y + dest.y) / 2 }; }
 function updateStuckMemory(f, movedAmount, route) {
   if (movedAmount < 0.4 && dist(f, route) > 12) f.stuckT = (f.stuckT || 0) + 0.12;
   else f.stuckT = Math.max(0, (f.stuckT || 0) - 0.18);
-  if (f.stuckT > 1.2) { f.memory.command = null; f.stuckT = 0; }
+  if (f.stuckT > 1.2) { f.memory.command = null; f.memory.navTarget = null; if (f.brain) { f.brain.dest = null; f.brain.until = 0; } f.stuckT = 0; }
 }
 
 function steer(arena, f, a, step) {
   if (step <= 0.1) return { x: f.x, y: f.y, a };
-  const angles = [a, a + 0.65, a - 0.65, a + 1.2, a - 1.2, a + Math.PI];
+  const angles = [a, a + 0.35, a - 0.35, a + 0.75, a - 0.75, a + 1.35, a - 1.35, a + Math.PI];
   for (const test of angles) {
     const next = { x: f.x + Math.cos(test) * step, y: f.y + Math.sin(test) * step };
     const moved = slide(arena, f, next);
