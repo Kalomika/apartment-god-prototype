@@ -1,1 +1,1 @@
-export { draw } from './renderPro.js';
+export { draw } from './renderFlatSprite.js';
