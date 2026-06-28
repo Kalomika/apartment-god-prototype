@@ -45,16 +45,8 @@ export function chooseDestination(state, f, enemy) {
 }
 
 function center(rect) { return { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 }; }
-function awayPoint(f, enemy, amount) {
-  const a = angleTo(enemy, f);
-  return { x: f.x + Math.cos(a) * amount, y: f.y + Math.sin(a) * amount };
-}
-function flankPoint(f, enemy, range) {
-  const base = angleTo(f, enemy);
-  const side = Math.random() < 0.5 ? 1 : -1;
-  const a = base + side * 1.25;
-  return { x: enemy.x - Math.cos(a) * range, y: enemy.y - Math.sin(a) * range };
-}
+function awayPoint(f, enemy, amount) { const a = angleTo(enemy, f); return { x: f.x + Math.cos(a) * amount, y: f.y + Math.sin(a) * amount }; }
+function flankPoint(f, enemy, range) { const base = angleTo(f, enemy); const side = Math.random() < 0.5 ? 1 : -1; const a = base + side * 1.25; return { x: enemy.x - Math.cos(a) * range, y: enemy.y - Math.sin(a) * range }; }
 
 function safeDest(arena, f, target) {
   if (!blocked(arena, target, 16)) return target;
@@ -65,23 +57,54 @@ function safeDest(arena, f, target) {
 
 export function moveFighter(state, f, dest, dt) {
   if (!dest || f.incapacitated || f.extracted || f.extracting) return;
-  let a = angleTo(f, dest);
+  const route = routeTarget(state.arena, f, dest);
+  let a = angleTo(f, route);
   f.facing = a;
   const stage = stageFor(f);
   const stealthMod = f.crouch || f.prone || f.shadowHidden ? 0.55 : 1;
   const urgency = f.memory.command?.urgent ? 1.38 : 1;
   const limpMod = stage.id === 'purple' ? 0.72 : stage.id === 'red' ? 0.84 : 1;
   const speed = f.stats.speed * stage.speed * stealthMod * urgency * limpMod * (f.stamina < 20 ? 0.68 : 1);
-  const step = Math.min(dist(f, dest), speed * dt);
+  const step = Math.min(dist(f, route), speed * dt);
   const moved = steer(state.arena, f, a, step);
+  const movedAmount = dist(f, moved);
+  updateStuckMemory(f, movedAmount, route);
   f.x = moved.x; f.y = moved.y; a = moved.a;
   f.facing = a;
   f.shadowHidden = !f.hideCooldown && inShadow(state.arena, f) && (f.crouch || f.prone || f.stamina < 45 || f.bleed?.rate > 0);
   f.wallLean = Boolean(nearWall(state.arena, f, 17) && (f.hp < 52 || f.bleed?.rate > 0 || f.stamina < 22));
-  f.pose = step > 1 ? movementPose(f, stage) : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : 'idle';
+  f.pose = step > 1 ? movementPose(f, stage, f.stuckT > 0.4) : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : 'idle';
   f.stamina = clamp(f.stamina - step * (f.memory.command?.urgent ? 0.018 : 0.006), 0, 100);
   f.noise = f.prone ? 8 : f.crouch || f.shadowHidden ? 10 : f.archetypeId === 'ninja' ? 18 : f.memory.command?.urgent ? 55 : 34;
   f.hidden = f.shadowHidden || f.prone || f.crouch;
+}
+
+function routeTarget(arena, f, dest) {
+  if (clearLine(arena, f, dest) && !blocked(arena, dest, 16)) return dest;
+  const points = tacticalPoints(arena);
+  const fullPath = points.filter(p => clearLine(arena, f, p) && clearLine(arena, p, dest)).sort((a, b) => dist(f, a) + dist(a, dest) - (dist(f, b) + dist(b, dest)))[0];
+  if (fullPath) return fullPath;
+  const progress = points.filter(p => clearLine(arena, f, p) && dist(p, dest) < dist(f, dest)).sort((a, b) => dist(penaltyPoint(f, dest), a) - dist(penaltyPoint(f, dest), b))[0];
+  if (progress) return progress;
+  return safeDest(arena, f, dest);
+}
+
+function tacticalPoints(arena) {
+  const boxes = solids(arena);
+  const points = [];
+  for (const b of boxes) {
+    points.push({ x: b.x - 34, y: b.y - 34 }, { x: b.x + b.w + 34, y: b.y - 34 }, { x: b.x - 34, y: b.y + b.h + 34 }, { x: b.x + b.w + 34, y: b.y + b.h + 34 });
+    points.push({ x: b.x + b.w / 2, y: b.y - 42 }, { x: b.x + b.w / 2, y: b.y + b.h + 42 }, { x: b.x - 42, y: b.y + b.h / 2 }, { x: b.x + b.w + 42, y: b.y + b.h / 2 });
+  }
+  points.push({ x: 150, y: 150 }, { x: 150, y: 570 }, { x: 810, y: 150 }, { x: 810, y: 570 }, { x: 480, y: 220 }, { x: 480, y: 500 });
+  return points.filter(p => p.x > 62 && p.x < 898 && p.y > 62 && p.y < 658 && !blocked(arena, p, 16));
+}
+
+function penaltyPoint(f, dest) { return { x: (f.x + dest.x) / 2, y: (f.y + dest.y) / 2 }; }
+function updateStuckMemory(f, movedAmount, route) {
+  if (movedAmount < 0.4 && dist(f, route) > 12) f.stuckT = (f.stuckT || 0) + 0.12;
+  else f.stuckT = Math.max(0, (f.stuckT || 0) - 0.18);
+  if (f.stuckT > 1.2) { f.memory.command = null; f.stuckT = 0; }
 }
 
 function steer(arena, f, a, step) {
@@ -95,7 +118,8 @@ function steer(arena, f, a, step) {
   return { x: f.x, y: f.y, a };
 }
 
-function movementPose(f, stage) {
+function movementPose(f, stage, stuck = false) {
+  if (stuck) return 'reposition';
   if (f.prone) return 'crawl';
   if (f.crouch) return 'crouchWalk';
   if (stage.id === 'purple') return 'stagger_limp';
