@@ -22,6 +22,14 @@ export const COACH_DROPS = {
   extract: { label: 'Extraction Rope', radius: 18, charges: 1, color: '#d7dff0' }
 };
 
+export const COACH_COMMANDS = {
+  move: { label: 'Go There', trustCost: 3 },
+  cover: { label: 'Take Cover', trustCost: 4 },
+  ranged: { label: 'Stay Ranged', trustCost: 5 },
+  cqc: { label: 'Close In', trustCost: 5 },
+  disarm: { label: 'Disarm', trustCost: 7 }
+};
+
 export const EFFECT_TTL = {
   tracer: 0.08,
   impact: 0.22,
@@ -31,5 +39,9 @@ export const EFFECT_TTL = {
   smoke: 0.9,
   grapple: 0.28,
   extraction: 1.2,
-  shatter: 0.9
+  shatter: 0.9,
+  grenade: 1.35,
+  explosion: 0.7,
+  command: 0.65,
+  dive: 0.42
 };
