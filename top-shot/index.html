@@ -3,18 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Top Shot v0.1</title>
+  <title>Top Shot 3D</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main class="shell">
     <section class="stage">
-      <canvas id="game" width="1280" height="720" aria-label="Top Shot AI arena"></canvas>
+      <canvas id="game" width="1280" height="720" aria-label="Top Shot tactical site"></canvas>
       <div id="overlay" class="overlay"></div>
     </section>
     <aside class="panel">
       <h1>Top Shot</h1>
-      <p class="tagline">AI versus AI arena pet battler, v0.1.</p>
+      <p class="tagline">3D tactical infiltration prototype.</p>
       <label>Fighter A
         <select id="fighterA"></select>
       </label>
@@ -48,7 +49,7 @@
         <button data-command="grenade">Grenade</button>
         <button data-command="disarm">Disarm</button>
       </div>
-      <p id="dropHint" class="hint">No direct control. Pick an ethos or leave it on AI Choice. Commands are opportunity calls, not possession. Double tap the arena for an urgent run-there call. Extraction forfeits the match but saves the fighter.</p>
+      <p id="dropHint" class="hint">No direct control. Pick an ethos or leave it on AI Choice. Commands are opportunity calls, not possession. Double tap the site for an urgent run-there call. Extraction forfeits the match but saves the fighter.</p>
       <section id="hud"></section>
       <ol id="log" class="log"></ol>
     </aside>
