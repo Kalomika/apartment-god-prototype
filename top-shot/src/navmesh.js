@@ -18,7 +18,8 @@ export function nextWaypoint(arena, from, goal) {
 }
 
 export function nearestOpen(arena, p) {
-  if (!blocked(arena, p, 17)) return clampArenaPoint(p);
+  const clamped = clampArenaPoint(p);
+  if (!blocked(arena, clamped, 17)) return clamped;
   const rings = [28, 48, 72, 104, 140];
   for (const r of rings) {
     for (let i = 0; i < 16; i++) {

@@ -1,4 +1,4 @@
-import { nearCover } from './arena.js';
+import { coverPoint, nearCover } from './arena.js';
 import { angleTo, clamp, dist } from './utils.js';
 
 export function updateBrain(state, f, enemy, visible, audible) {
@@ -50,7 +50,7 @@ function choosePlan(state, f, enemy, visible, audible) {
 
 function survivalPlan(state, f, enemy) {
   const cover = nearCover(state.arena, f);
-  if (cover) return { intent: 'recover_cover', dest: { x: cover.x + cover.w / 2, y: cover.y + cover.h / 2 }, hold: 1.25 };
+  if (cover) return { intent: 'recover_cover', dest: coverPoint(state.arena, cover, f, enemy) || center(cover), hold: 1.25 };
   const shadow = state.arena.shadows?.slice().sort((a, b) => dist(f, center(a)) - dist(f, center(b)))[0];
   if (shadow && !f.hideCooldown) return { intent: 'recover_shadow', dest: center(shadow), hold: 1.25 };
   return { intent: 'break_contact', dest: awayPoint(f, enemy, 190), hold: 1.0 };

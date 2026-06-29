@@ -1,7 +1,7 @@
-import { blocked, inShadow, nearCover, nearWall, slide, solids } from './arena.js';
+import { blocked, coverPoint, inShadow, nearCover, nearWall, slide, solids } from './arena.js';
 import { angleTo, clamp, dist, normalizeAngle, pointInRect } from './utils.js';
 import { stageFor } from './state.js';
-import { nextWaypoint } from './navmesh.js';
+import { nearestOpen, nextWaypoint } from './navmesh.js';
 
 export function canSee(arena, watcher, target) {
   if (target.extracted || target.incapacitated) return false;
@@ -45,7 +45,7 @@ export function chooseDestination(state, f, enemy) {
     const shadow = state.arena.shadows?.slice().sort((a, b) => dist(f, center(a)) - dist(f, center(b)))[0];
     if (shadow && !f.hideCooldown && (f.bleed?.rate > 0 || f.hp < 36)) return center(shadow);
     const cover = nearCover(state.arena, f);
-    if (cover) return safeDest(state.arena, f, { x: cover.x + cover.w / 2 + (f.x < enemy.x ? -56 : 56), y: cover.y + cover.h / 2 });
+    if (cover) return safeDest(state.arena, f, coverPoint(state.arena, cover, f, enemy) || center(cover));
   }
   if (f.wallLean && d < 210 && f.hp < 55) return { x: f.x, y: f.y };
   if (f.archetypeId === 'ninja' && d > 95) return safeDest(state.arena, f, flankPoint(f, enemy, 80));
@@ -60,10 +60,11 @@ function awayPoint(f, enemy, amount) { const a = angleTo(enemy, f); return { x: 
 function flankPoint(f, enemy, range) { if (!f.memory.flankSide) f.memory.flankSide = Math.random() < 0.5 ? 1 : -1; const base = angleTo(f, enemy); const a = base + f.memory.flankSide * 1.25; return { x: enemy.x - Math.cos(a) * range, y: enemy.y - Math.sin(a) * range }; }
 
 function safeDest(arena, f, target) {
-  if (!blocked(arena, target, 18)) return target;
+  const open = nearestOpen(arena, target);
+  if (open && !blocked(arena, open, 18)) return open;
   const base = angleTo(f, target);
   const options = [0.55, -0.55, 1.05, -1.05, 1.65, -1.65, Math.PI].map(offset => ({ x: f.x + Math.cos(base + offset) * 145, y: f.y + Math.sin(base + offset) * 145 }));
-  return options.find(p => !blocked(arena, p, 18)) || { x: f.x, y: f.y };
+  return options.map(p => nearestOpen(arena, p)).filter(Boolean).find(p => !blocked(arena, p, 18)) || { x: f.x, y: f.y };
 }
 
 export function moveFighter(state, f, dest, dt) {
@@ -78,7 +79,7 @@ export function moveFighter(state, f, dest, dt) {
   const limpMod = stage.id === 'purple' ? 0.72 : stage.id === 'red' ? 0.84 : 1;
   const speed = f.stats.speed * stage.speed * stealthMod * urgency * limpMod * (f.stamina < 20 ? 0.68 : 1);
   const step = Math.min(dist(f, route), speed * dt);
-  const moved = steer(state.arena, f, moveAngle, step);
+  const moved = steer(state.arena, f, moveAngle, step, route);
   const movedAmount = dist(f, moved);
   updateStuckMemory(f, movedAmount, route);
   f.x = moved.x; f.y = moved.y;
@@ -92,10 +93,10 @@ export function moveFighter(state, f, dest, dt) {
 
 function cachedRoute(state, f, dest) {
   const cache = f.memory.route;
-  const changed = !cache || dist(cache.dest, dest) > 34 || cache.until <= state.clock || dist(f, cache.route) < 18 || !clearBodyLine(state.arena, f, cache.route, 17);
+  const changed = !cache || dist(cache.dest, dest) > 42 || cache.until <= state.clock || dist(f, cache.route) < 18 || f.stuckT > 0.45 || !clearBodyLine(state.arena, f, cache.route, 17);
   if (!changed && !blocked(state.arena, cache.route, 17)) return cache.route;
   const route = nextWaypoint(state.arena, f, dest);
-  f.memory.route = { dest: { x: dest.x, y: dest.y }, route, until: state.clock + 0.32 };
+  f.memory.route = { dest: { x: dest.x, y: dest.y }, route, until: state.clock + 0.55 };
   return route;
 }
 
@@ -106,15 +107,18 @@ function updateStuckMemory(f, movedAmount, route) {
   if (f.stuckT > 1.2) { f.memory.command = null; f.memory.navTarget = null; f.memory.route = null; if (f.brain) { f.brain.dest = null; f.brain.until = 0; } f.stuckT = 0; }
 }
 
-function steer(arena, f, a, step) {
+function steer(arena, f, a, step, route) {
   if (step <= 0.1) return { x: f.x, y: f.y, a };
-  const angles = [a, a + 0.35, a - 0.35, a + 0.75, a - 0.75, a + 1.35, a - 1.35, a + Math.PI];
+  const angles = [a, a + 0.28, a - 0.28, a + 0.58, a - 0.58, a + 0.95, a - 0.95, a + 1.45, a - 1.45, a + Math.PI];
+  const candidates = [];
   for (const test of angles) {
     const next = { x: f.x + Math.cos(test) * step, y: f.y + Math.sin(test) * step };
     if (blocked(arena, next, 16)) continue;
     const moved = slide(arena, f, next);
-    if (!blocked(arena, moved, 16) && dist(f, moved) > 0.35) return { ...moved, a: test };
+    if (blocked(arena, moved, 16) || dist(f, moved) <= 0.35) continue;
+    candidates.push({ ...moved, a: test, score: dist(moved, route) + Math.abs(test - a) * 5 + (nearWall(arena, moved, 20) ? 18 : 0) });
   }
+  if (candidates.length) return candidates.sort((a, b) => a.score - b.score)[0];
   return { x: f.x, y: f.y, a };
 }
 

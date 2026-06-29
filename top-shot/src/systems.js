@@ -1,4 +1,5 @@
 import { COACH_COMMANDS, COACH_DROPS } from './config.js';
+import { blocked } from './arena.js';
 import { clamp, dist } from './utils.js';
 import { addLog, opponentOf } from './state.js';
 import { canHear, canSee, chooseDestination, moveFighter } from './perception.js';
@@ -87,10 +88,23 @@ function recoverIfStuck(state, f, before, destination) {
   if (f.brain) { f.brain.dest = null; f.brain.until = 0; }
   f.pose = 'reposition';
   f.stamina = clamp(f.stamina + 4, 0, 100);
-  const a = Math.atan2(f.y - destination.y, f.x - destination.x);
-  f.memory.navTarget = { x: clamp(f.x + Math.cos(a) * 92, 72, 888), y: clamp(f.y + Math.sin(a) * 92, 72, 648), until: state.clock + 0.9 };
+  f.memory.navTarget = { ...stuckEscapePoint(state, f, destination), until: state.clock + 1.15 };
   f.stuckFrames = 0;
   addLog(state, `${f.name} breaks off and repositions.`);
+}
+
+function stuckEscapePoint(state, f, destination) {
+  const away = Math.atan2(f.y - destination.y, f.x - destination.x);
+  const side = f.memory.flankSide || f.brainSide || 1;
+  const angles = [away, away + side * 0.75, away - side * 0.75, away + side * 1.35, away - side * 1.35, away + Math.PI];
+  const options = [];
+  for (const radius of [92, 132, 170]) {
+    for (const a of angles) {
+      const p = { x: clamp(f.x + Math.cos(a) * radius, 72, 888), y: clamp(f.y + Math.sin(a) * radius, 72, 648) };
+      if (!blocked(state.arena, p, 18)) options.push(p);
+    }
+  }
+  return options.sort((a, b) => dist(b, destination) - dist(a, destination))[0] || { x: f.x, y: f.y };
 }
 
 function chooseStance(f, enemy, visible) {
