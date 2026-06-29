@@ -80,3 +80,13 @@
 - What remains: Final validation cleanup, browser screenshot/playtest, and any small fixes from that visual inspection.
 - Visual/manual testing needed: Verify that CQC exchanges visibly show the correct defending limb and that parry/slip/counter feedback is readable at game scale.
 - Next recommended action: Run final check/smoke/build, launch the game, capture screenshots, and inspect navigation, running, sprite anatomy, CQC readability, and handler portrait preservation.
+
+## 2026-06-29 01:01:34 -05:00 - Final validation cleanup WIP checkpoint
+
+- What I attempted: Ran final validation and browser screenshot checks for the WIP branch after the navigation, movement, sprite, and CQC milestones.
+- Files touched: `top-shot/src/renderFlatSprite.js`, `top-shot/docs/codex-progress.md`.
+- What changed: Made the canvas-side handler portrait scale-aware so it fits the flat renderer side HUD more cleanly beside the request text.
+- What passed or failed: `npm run check`, `npm run smoke`, and `npm run build` had passed before this note except the final smoke/build rerun after the handler-link cleanup still needs to be recorded in the commit that includes this note.
+- What remains: Run the final required command set one more time after this note, commit, push, and report the latest WIP commit SHA.
+- Visual/manual testing needed: Browser screenshots were captured on desktop and narrow viewport. The handler-facing request portrait remained intact, no horizontal overflow was observed, fighters rendered nonblank with improved silhouettes, and a short Martial Artist vs Marine CQC-command sample showed routing/investigation but did not reach a clear close-combat exchange within the sampled window.
+- Next recommended action: Do a longer manual playtest focused specifically on close-range exchanges and verify parry, cross block, slip, and counter poses at game scale.

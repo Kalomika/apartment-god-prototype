@@ -146,26 +146,30 @@ function handlerLink(ctx, f, request, x, y) {
   if (!f || !request) return;
   ctx.fillStyle = '#111a27'; ctx.fillRect(x, y, 250, 92);
   ctx.strokeStyle = request.color; ctx.lineWidth = 2; ctx.strokeRect(x, y, 250, 92);
-  handlerPortrait(ctx, f, request, x + 12, y + 14, 64);
-  ctx.fillStyle = '#9fb0c6'; ctx.font = '800 10px system-ui'; ctx.fillText('HANDLER LINK', x + 88, y + 23);
-  ctx.fillStyle = request.color; ctx.font = '900 15px system-ui'; fitText(ctx, request.label, x + 88, y + 45, 146);
-  ctx.fillStyle = '#edf4ff'; ctx.font = '700 12px system-ui'; fitText(ctx, request.detail, x + 88, y + 66, 146);
+  handlerPortrait(ctx, f, request, x + 13, y + 19, 54);
+  ctx.fillStyle = '#9fb0c6'; ctx.font = '800 10px system-ui'; ctx.fillText('HANDLER LINK', x + 82, y + 22);
+  ctx.fillStyle = request.color; ctx.font = '900 15px system-ui'; fitText(ctx, request.label, x + 82, y + 45, 154);
+  ctx.fillStyle = '#edf4ff'; ctx.font = '700 12px system-ui'; fitText(ctx, request.detail, x + 82, y + 66, 154);
 }
 function handlerPortrait(ctx, f, request, x, y, size) {
   const s = stageFor(f);
   const p = colors(f, s, f.incapacitated || f.defeated || f.extracted);
-  ctx.fillStyle = '#091018'; ctx.fillRect(x, y, size, size); ctx.strokeStyle = '#334154'; ctx.lineWidth = 1; ctx.strokeRect(x, y, size, size);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size / 64, size / 64);
+  ctx.fillStyle = '#091018'; ctx.fillRect(0, 0, 64, 64); ctx.strokeStyle = '#334154'; ctx.lineWidth = 1; ctx.strokeRect(0, 0, 64, 64);
   // Compact original portrait inspired by the upward-looking reference: broad shoulders, raised face, hands at the handler edge.
-  rectBody(ctx, x + 6, y + 40, 52, 16, p.vest, p.outline);
-  rectBody(ctx, x + 15, y + 34, 34, 12, p.sleeve, p.outline);
-  rectBody(ctx, x + 26, y + 32, 12, 10, p.skin, p.outline);
-  rectBody(ctx, x + 20, y + 17, 24, 24, p.skin, p.outline);
-  ctx.fillStyle = p.hair; ctx.fillRect(x + 18, y + 14, 28, 12); ctx.fillRect(x + 18, y + 23, 8, 10); ctx.fillRect(x + 38, y + 23, 8, 10);
-  ctx.fillStyle = p.face; ctx.fillRect(x + 26, y + 29, 4, 3); ctx.fillRect(x + 36, y + 29, 4, 3);
-  rectBody(ctx, x + 8, y + 45, 11, 15, p.skin, p.outline);
-  rectBody(ctx, x + 45, y + 45, 11, 15, p.skin, p.outline);
-  ctx.fillStyle = request.color; ctx.fillRect(x + 44, y + 5, 17, 15);
-  ctx.fillStyle = '#071018'; ctx.font = '900 8px system-ui'; ctx.textAlign = 'center'; ctx.fillText(iconText(request.icon), x + 52.5, y + 16);
+  rectBody(ctx, 6, 40, 52, 16, p.vest, p.outline);
+  rectBody(ctx, 15, 34, 34, 12, p.sleeve, p.outline);
+  rectBody(ctx, 26, 32, 12, 10, p.skin, p.outline);
+  rectBody(ctx, 20, 17, 24, 24, p.skin, p.outline);
+  ctx.fillStyle = p.hair; ctx.fillRect(18, 14, 28, 12); ctx.fillRect(18, 23, 8, 10); ctx.fillRect(38, 23, 8, 10);
+  ctx.fillStyle = p.face; ctx.fillRect(26, 29, 4, 3); ctx.fillRect(36, 29, 4, 3);
+  rectBody(ctx, 8, 45, 11, 15, p.skin, p.outline);
+  rectBody(ctx, 45, 45, 11, 15, p.skin, p.outline);
+  ctx.fillStyle = request.color; ctx.fillRect(44, 5, 17, 15);
+  ctx.fillStyle = '#071018'; ctx.font = '900 8px system-ui'; ctx.textAlign = 'center'; ctx.fillText(iconText(request.icon), 52.5, 16);
+  ctx.restore();
 }
 function card(ctx, f, x, y) { const s = stageFor(f); ctx.fillStyle = '#121b28'; ctx.fillRect(x, y, 250, 132); ctx.strokeStyle = f.color; ctx.strokeRect(x, y, 250, 132); ctx.fillStyle = '#eff5ff'; ctx.font = '900 15px system-ui'; fitText(ctx, f.name, x + 12, y + 23, 160); ctx.fillStyle = s.color; ctx.font = '800 12px system-ui'; ctx.fillText(s.label, x + 185, y + 23); labelMeter(ctx, 'VIT', f.hp, x + 12, y + 40, s.color); labelMeter(ctx, 'STA', f.stamina, x + 12, y + 62, '#7ad99a'); labelMeter(ctx, 'DODGE', f.dodge, x + 12, y + 84, '#b894ff'); labelMeter(ctx, 'BLOCK', f.block, x + 12, y + 106, '#f0d36a'); }
 function result(ctx, state) { if (state.matchState !== 'finished') return; ctx.fillStyle = '#05080dcc'; ctx.fillRect(120, 250, 720, 150); ctx.strokeStyle = '#f0d36a'; ctx.lineWidth = 3; ctx.strokeRect(120, 250, 720, 150); ctx.textAlign = 'center'; ctx.fillStyle = '#f5f0d0'; ctx.font = '900 34px system-ui'; ctx.fillText('MATCH COMPLETE', 480, 305); ctx.fillStyle = '#edf4ff'; ctx.font = '800 20px system-ui'; ctx.fillText(state.result || 'Match finished.', 480, 340); }
