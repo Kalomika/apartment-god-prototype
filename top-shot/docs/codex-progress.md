@@ -70,3 +70,13 @@
 - What remains: Side-aware CQC/defense, full smoke/build validation, and visual browser inspection.
 - Visual/manual testing needed: Confirm in browser that fighters read as top-down humans at game scale and that the wider shoulder shelf does not create extra-limb illusions during CQC.
 - Next recommended action: Expand CQC defense resolution and renderer poses for side-aware blocks, cross blocks, parries, slips, counters, elbows, knees, kicks, grapples, and disarms.
+
+## 2026-06-29 00:55:24 -05:00 - Side-aware CQC defense WIP checkpoint
+
+- What I attempted: Improved close-combat defense logic and readable flat-sprite defense poses.
+- Files touched: `top-shot/src/combat.js`, `top-shot/src/config.js`, `top-shot/src/renderFlatSprite.js`, `top-shot/docs/codex-progress.md`.
+- What changed: Defense now derives incoming left/right side from the attacking limb, uses opposite-side normal blocks, costlier same-side cross blocks, parries, slips, and counter opportunities. Counter poses now use a visible right cross. The renderer now distinguishes side blocks, leg checks, cross blocks, parries, slips, disarms, and blade/knife thrust poses. Effect colors now differentiate block, cross block, parry, slip, and counter feedback.
+- What passed or failed: `npm run check` and `npm run smoke` passed before committing. Commit `82c9b90` was pushed to `origin/codex-wip/top-shot-nav-movement-cqc-pass`.
+- What remains: Final validation cleanup, browser screenshot/playtest, and any small fixes from that visual inspection.
+- Visual/manual testing needed: Verify that CQC exchanges visibly show the correct defending limb and that parry/slip/counter feedback is readable at game scale.
+- Next recommended action: Run final check/smoke/build, launch the game, capture screenshots, and inspect navigation, running, sprite anatomy, CQC readability, and handler portrait preservation.
