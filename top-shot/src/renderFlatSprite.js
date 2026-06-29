@@ -53,8 +53,7 @@ function body(ctx, p) {
 
 function poseFor(name, f) {
   const running = ['walk','run','rush','limp_run','stagger_limp','crouchWalk'].includes(name);
-  const step = running ? strideFrame(f.anim || 0) : 0;
-  const p = base(step); p.flat = false;
+  const p = running ? runCycle(f.anim || 0) : base(); p.flat = false;
   if (['down','prone','crawl'].includes(name) || f.incapacitated || f.prone) return flat(p);
   if (['roll','combat_roll','dive_roll','somersault_dive','flat_dive'].includes(name)) return roll(p);
   if (f.crouch || name === 'duck' || name === 'crouchWalk') crouch(p);
@@ -72,8 +71,38 @@ function poseFor(name, f) {
   return p;
 }
 
-function strideFrame(anim) { const f = Math.floor((anim * 5) % 4); return [-1, 0, 1, 0][f]; }
-function base(s) { return { leftArm: seg(7, 16, 1, 28 - s * 5, -10, 32 - s * 7), rightArm: seg(7, -16, 1, -28 + s * 5, -10, -32 + s * 7), leftLeg: seg(-17, 10, -33, 17 + s * 7, -48, 23 + s * 9), rightLeg: seg(-17, -10, -33, -17 - s * 7, -48, -23 - s * 9) }; }
+function runCycle(anim) {
+  const frames = [
+    {
+      leftArm: seg(7, 16, 4, 27, -13, 31),
+      rightArm: seg(7, -16, 22, -20, 34, -13),
+      leftLeg: seg(-17, 10, -24, 17, -35, 25),
+      rightLeg: seg(-17, -10, -40, -14, -62, -20)
+    },
+    {
+      leftArm: seg(7, 16, 14, 25, 23, 17),
+      rightArm: seg(7, -16, 14, -25, 23, -17),
+      leftLeg: seg(-17, 10, -34, 15, -50, 17),
+      rightLeg: seg(-17, -10, -34, -15, -50, -17)
+    },
+    {
+      leftArm: seg(7, 16, 22, 20, 34, 13),
+      rightArm: seg(7, -16, 4, -27, -13, -31),
+      leftLeg: seg(-17, 10, -40, 14, -62, 20),
+      rightLeg: seg(-17, -10, -24, -17, -35, -25)
+    },
+    {
+      leftArm: seg(7, 16, 14, 25, 23, 17),
+      rightArm: seg(7, -16, 14, -25, 23, -17),
+      leftLeg: seg(-17, 10, -34, 15, -50, 17),
+      rightLeg: seg(-17, -10, -34, -15, -50, -17)
+    }
+  ];
+  return clonePose(frames[Math.floor(anim) % frames.length]);
+}
+
+function base() { return { leftArm: seg(7, 16, 15, 25, 26, 17), rightArm: seg(7, -16, 15, -25, 26, -17), leftLeg: seg(-17, 10, -34, 17, -50, 22), rightLeg: seg(-17, -10, -34, -17, -50, -22) }; }
+function clonePose(p) { return { leftArm: { ...p.leftArm }, rightArm: { ...p.rightArm }, leftLeg: { ...p.leftLeg }, rightLeg: { ...p.rightLeg } }; }
 function crouch(p) { p.leftLeg = seg(-16, 10, -29, 24, -39, 36); p.rightLeg = seg(-16, -10, -29, -24, -39, -36); p.leftArm = seg(7, 15, 18, 24, 29, 18); p.rightArm = seg(7, -15, 18, -24, 29, -18); }
 function flat(p) { p.flat = true; p.leftArm = seg(8, 14, 31, 20, 52, 23); p.rightArm = seg(8, -14, 31, -20, 52, -23); p.leftLeg = seg(-18, 10, -39, 15, -61, 17); p.rightLeg = seg(-18, -10, -39, -15, -61, -17); return p; }
 function roll(p) { p.flat = true; p.leftArm = seg(4, 12, 15, 20, 27, 13); p.rightArm = seg(4, -12, 15, -20, 27, -13); p.leftLeg = seg(-10, 8, -23, 15, -33, 7); p.rightLeg = seg(-10, -8, -23, -15, -33, -7); return p; }

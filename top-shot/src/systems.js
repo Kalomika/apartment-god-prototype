@@ -61,7 +61,7 @@ function updateFighter(state, f, dt) {
   const before = { x: f.x, y: f.y };
   moveFighter(state, f, destination, dt);
   recoverIfStuck(state, f, before, destination);
-  const movingPose = ['walk', 'crouchWalk', 'rush', 'stagger_limp', 'limp_run', 'careful_walk', 'wall_strafe', 'roll', 'combat_roll'].includes(f.pose);
+  const movingPose = ['walk', 'run', 'crouchWalk', 'rush', 'stagger_limp', 'limp_run', 'careful_walk', 'wall_strafe', 'roll', 'combat_roll'].includes(f.pose);
   f.anim += dt * (movingPose && (f.lastMove || 0) > 0.35 ? 12 : 3);
 }
 
