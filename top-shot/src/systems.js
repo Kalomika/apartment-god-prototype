@@ -15,9 +15,15 @@ import { shouldBandage, startBandage, updateWounds } from './wounds.js';
 
 export function updateBattle(state, dt) {
   if (state.paused || state.matchState === 'finished') return;
+  if (state.matchState === 'ready') return;
   state.clock += dt;
   state.effects.forEach(e => { e.ttl -= dt; });
   state.effects = state.effects.filter(e => e.ttl > 0);
+  if (state.matchState === 'deploying') {
+    updateDeployment(state, dt);
+    return;
+  }
+  if (state.matchState !== 'running' || state.fighters.length < 2) return;
   updateExplosives(state, dt);
   updatePrestige(state, dt);
   updateWounds(state, dt);
@@ -29,6 +35,41 @@ export function updateBattle(state, dt) {
   checkFinish(state);
 }
 
+function updateDeployment(state, dt) {
+  let allLanded = true;
+  for (const f of state.fighters) {
+    if (!f.deploying || !f.deploy) continue;
+    f.deploy.t = Math.min(f.deploy.duration, f.deploy.t + dt);
+    const t = clamp(f.deploy.t / Math.max(0.01, f.deploy.duration), 0, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    f.x = f.spawn.x;
+    f.y = f.deploy.fromY + (f.deploy.toY - f.deploy.fromY) * eased;
+    f.facing = f.spawn.facing;
+    f.pose = t < 1 ? 'parachute' : 'land';
+    f.intent = t < 1 ? 'deploy' : 'scan';
+    f.noise = 0;
+    f.hidden = false;
+    f.shadowHidden = false;
+    f.anim += dt * 10;
+    if (t < 1) allLanded = false;
+    else if (f.deploying) {
+      f.deploying = false;
+      f.actionT = 0.22;
+      f.noise = 28;
+      state.effects.push({ type: 'command', x: f.x, y: f.y - 30, ttl: 0.45, label: 'ok' });
+    }
+  }
+  if (!allLanded) return;
+  state.matchState = 'running';
+  state.fighters.forEach(f => {
+    f.intent = 'scan';
+    f.pose = 'idle_guard';
+    f.deploy = null;
+    f.deploying = false;
+  });
+  addLog(state, 'Both fighters landed. Match is live on the four block test board.');
+}
+
 function updateFighter(state, f, dt) {
   if (f.currentMove) { f.currentMove.ttl -= dt; if (f.currentMove.ttl <= 0) f.currentMove = null; }
   f.commandCd = Math.max(0, f.commandCd - dt);
@@ -38,6 +79,7 @@ function updateFighter(state, f, dt) {
   if (f.extracting) return updateExtraction(state, f, dt);
 
   const enemy = opponentOf(state, f);
+  if (!enemy) return;
   const visible = canSee(state.arena, f, enemy);
   const audible = canHear(f, enemy);
   if (visible || audible) {
@@ -174,11 +216,42 @@ function usePickup(state, f, pick) {
 function beginExtraction(state, f) { f.extracting = true; f.actionT = 1.3; f.pose = 'extract'; state.effects.push({ type: 'extraction', x: f.x, y: f.y, ttl: 1.3 }); addLog(state, `${f.name} grabs the extraction rope. Match forfeited, fighter saved.`); }
 function updateExtraction(state, f, dt) { f.actionT -= dt; f.y -= 160 * dt; f.pose = 'extract'; if (f.actionT <= 0) { f.extracted = true; f.extracting = false; state.result = `${f.name} extracted. Opponent wins by forfeit.`; state.matchState = 'finished'; rewardTrust(state, -4); addLog(state, state.result); } }
 
-export function placeCoachDrop(state, type, x, y) { if (!COACH_DROPS[type] || (state.dropsLeft[type] || 0) <= 0) return false; state.dropsLeft[type]--; state.pickups.push({ type, team: 'A', x, y, used: false, label: COACH_DROPS[type].label, color: COACH_DROPS[type].color }); addLog(state, `Coach drops ${COACH_DROPS[type].label}.`); return true; }
-export function suggestCommand(state, type, x, y, urgent = false) { if (!COACH_COMMANDS[type]) return false; const f = state.fighters.find(f => f.team === 'A'); if (!f || f.incapacitated || f.defeated || f.extracted || f.commandCd > 0) return false; const obeyChance = clamp((state.trust + f.stats.discipline) / 190 + (urgent ? 0.12 : 0), 0.18, 0.94); state.commandHistory.push({ t: state.clock, type, obeyChance }); f.commandCd = urgent ? 0.45 : 0.9; if (Math.random() > obeyChance) { rewardTrust(state, -COACH_COMMANDS[type].trustCost); addLog(state, `${f.name} ignores the ${COACH_COMMANDS[type].label} call.`); return false; } f.memory.command = { type, x, y, urgent, until: state.clock + (urgent ? 2.4 : 3.8) }; f.stamina = clamp(f.stamina - (urgent ? 12 : 4), 0, 100); f.helpT = 0.95; f.helpIcon = 'ok'; f.helpRequest = 'approval'; state.effects.push({ type: 'command', x, y, ttl: 0.65 }); rewardTrust(state, -Math.ceil(COACH_COMMANDS[type].trustCost / 3)); addLog(state, `${f.name} follows opportunity call: ${COACH_COMMANDS[type].label}.`); return true; }
+export function placeCoachDrop(state, type, x, y) {
+  if (state.matchState !== 'running') return false;
+  if (!COACH_DROPS[type] || (state.dropsLeft[type] || 0) <= 0) return false;
+  state.dropsLeft[type]--;
+  state.pickups.push({ type, team: 'A', x, y, used: false, label: COACH_DROPS[type].label, color: COACH_DROPS[type].color });
+  addLog(state, `Coach drops ${COACH_DROPS[type].label}.`);
+  return true;
+}
+
+export function suggestCommand(state, type, x, y, urgent = false) {
+  if (state.matchState !== 'running') return false;
+  if (!COACH_COMMANDS[type]) return false;
+  const f = state.fighters.find(f => f.team === 'A');
+  if (!f || f.incapacitated || f.defeated || f.extracted || f.commandCd > 0) return false;
+  const obeyChance = clamp((state.trust + f.stats.discipline) / 190 + (urgent ? 0.12 : 0), 0.18, 0.94);
+  state.commandHistory.push({ t: state.clock, type, obeyChance });
+  f.commandCd = urgent ? 0.45 : 0.9;
+  if (Math.random() > obeyChance) {
+    rewardTrust(state, -COACH_COMMANDS[type].trustCost);
+    addLog(state, `${f.name} ignores the ${COACH_COMMANDS[type].label} call.`);
+    return false;
+  }
+  f.memory.command = { type, x, y, urgent, until: state.clock + (urgent ? 2.4 : 3.8) };
+  f.stamina = clamp(f.stamina - (urgent ? 12 : 4), 0, 100);
+  f.helpT = 0.95;
+  f.helpIcon = 'ok';
+  f.helpRequest = 'approval';
+  state.effects.push({ type: 'command', x, y, ttl: 0.65 });
+  rewardTrust(state, -Math.ceil(COACH_COMMANDS[type].trustCost / 3));
+  addLog(state, `${f.name} follows opportunity call: ${COACH_COMMANDS[type].label}.`);
+  return true;
+}
+
 export function setCommanderEthos(state, ethos) { if (!['ai', 'respectful', 'ruthless'].includes(ethos)) return false; state.commanderEthos = ethos; addLog(state, `Commander ethos set to ${ethos}.`); return true; }
 
 function needsHelp(state, f) { const request = fighterRequest(state, f); return Boolean(request?.urgent && !f.memory.command && !f.helpT && !f.extracting && !f.extracted); }
 function askForHelp(state, f) { const request = fighterRequest(state, f) || { id: 'help', icon: '?', callout: 'a command' }; f.helpT = request.id === 'extract' ? 2.8 : 2.2; f.helpIcon = request.icon; f.helpRequest = request.id; state.effects.push({ type: 'command', x: f.x, y: f.y - 36, ttl: 0.65, label: request.icon }); addLog(state, `${f.name} looks up for ${request.callout}.`); }
 function rewardTrust(state, amount) { state.trust = clamp(state.trust + amount, 0, 100); }
-function checkFinish(state) { if (state.matchState === 'finished') return; const active = state.fighters.filter(f => !f.incapacitated && !f.extracted); if (active.length > 1) return; const winner = active[0]; const loser = state.fighters.find(f => f !== winner); state.result = winner ? `${winner.name} wins. ${loser?.name || 'Opponent'} is out.` : 'Match ends with no active fighters.'; state.matchState = 'finished'; addLog(state, state.result); }
+function checkFinish(state) { if (state.matchState !== 'running') return; const active = state.fighters.filter(f => !f.incapacitated && !f.extracted); if (active.length > 1) return; const winner = active[0]; const loser = state.fighters.find(f => f !== winner); state.result = winner ? `${winner.name} wins. ${loser?.name || 'Opponent'} is out.` : 'Match ends with no active fighters.'; state.matchState = 'finished'; addLog(state, state.result); }
