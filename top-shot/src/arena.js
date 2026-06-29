@@ -3,21 +3,27 @@ import { clamp, pointInRect } from './utils.js';
 
 export function createArena() {
   const blocks = [
-    r('test_block_top_left', 286, 180, 104, 104),
-    r('test_block_top_right', 570, 180, 104, 104),
-    r('shadow_block_bottom_left', 286, 436, 104, 104, null, { shadow: true }),
-    r('shadow_block_bottom_right', 570, 436, 104, 104, null, { shadow: true })
+    r('north_block', 112, 84, 110, 86),
+    r('long_mid_block', 338, 86, 86, 178),
+    r('upper_right_block', 612, 112, 164, 136),
+    r('east_block', 810, 352, 96, 130),
+    r('lower_left_block', 86, 514, 118, 122),
+    r('lower_mid_block', 394, 516, 108, 82),
+    r('lower_right_block', 604, 558, 190, 64)
   ];
   return {
-    name: 'Four Block Test Board', w: ARENA_W, h: ARENA_H,
-    spawnA: { x: 150, y: 360, facing: 0, dropY: -120 },
-    spawnB: { x: 810, y: 360, facing: Math.PI, dropY: -190 },
+    name: 'Diagnostic Terrain Layout', w: ARENA_W, h: ARENA_H,
+    spawnA: { x: 205, y: 618, facing: -0.55, dropY: -120 },
+    spawnB: { x: 784, y: 116, facing: 2.55, dropY: -190 },
     walls: blocks,
     shadows: [
-      r('hide_shadow_bottom_left', 270, 420, 136, 136, null, { host: 'shadow_block_bottom_left' }),
-      r('hide_shadow_bottom_right', 554, 420, 136, 136, null, { host: 'shadow_block_bottom_right' })
+      r('shade_north', 92, 62, 150, 126),
+      r('shade_mid', 318, 72, 128, 216),
+      r('shade_right', 590, 98, 208, 182),
+      r('shade_lower_left', 68, 494, 160, 166),
+      r('shade_lower_right', 574, 336, 200, 204)
     ],
-    breakables: [],
+    breakables: [r('small_crates_a', 450, 310, 54, 38, 35)],
     weaponSpawns: [],
     debris: []
   };
