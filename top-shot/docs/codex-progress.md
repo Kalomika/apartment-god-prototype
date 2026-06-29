@@ -40,3 +40,13 @@
 - What remains: Finish `git rebase --continue`, push the rebased branch, and confirm the remote PR branch updates.
 - Visual/manual testing needed: Re-run a browser screenshot after the rebase if time allows, because the active renderer changed from the original local base to `renderFlatSprite.js`.
 - Next recommended action: After push, manually inspect the handler link in a live browser against the rebased flat-sprite HUD.
+
+## 2026-06-29 00:43:17 -05:00 - Navigation wall-grinding WIP checkpoint
+
+- What I attempted: Started WIP branch `codex-wip/top-shot-nav-movement-cqc-pass` from clean `top-shot-v0-1`, pushed it, and implemented the first navigation/wall-grinding milestone.
+- Files touched: `top-shot/src/arena.js`, `top-shot/src/brain.js`, `top-shot/src/navmesh.js`, `top-shot/src/perception.js`, `top-shot/src/systems.js`, `top-shot/docs/codex-progress.md`.
+- What changed: Cover selection now avoids boundary walls and scores usable cover by distance/size; hurt fighters move to open points beside cover instead of cover centers; blocked destinations are normalized with `nearestOpen`; route caches live slightly longer but reset when truly stuck; steering now scores alternate angles for progress instead of taking the first open nudge; stuck recovery picks a safe escape point away from the failed destination.
+- What passed or failed: `npm run check` passed before committing. Commit `bb4a400` was pushed to `origin/codex-wip/top-shot-nav-movement-cqc-pass`.
+- What remains: Movement animation, sprite anatomy, side-aware CQC/defense, full smoke/build validation, and visual browser inspection.
+- Visual/manual testing needed: Watch live matches for reduced cover-edge grinding and confirm fighters still route naturally around the center cover cluster.
+- Next recommended action: Implement crisp planted 2 to 4 frame movement poses in the active flat-sprite renderer.
