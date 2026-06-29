@@ -68,8 +68,59 @@ function meleeReach(f) { if (f.melee === 'sword') return 70; if (f.melee === 'kn
 function melee(state, f, enemy, force = null) { const sword = f.melee === 'sword' || force === 'sword'; const stab = !sword && (f.melee === 'knife' || f.melee === 'arrow_stab'); const move = sword ? { id: choose(SWORD), limb: 'rightArm', kind: 'sword', reach: 70, damage: 18, stamina: 12, lean: -1 } : stab ? choose(STABS) : chooseCqcMove(f, enemy); if (f.fight < move.stamina) return; f.fight -= move.stamina; f.stamina -= move.stamina * 0.4; f.meleeCd = move.kind === 'power' ? 1.0 : move.kind === 'knee' || move.kind === 'elbow' ? 0.46 : 0.38; f.cooldown = f.meleeCd; f.pose = move.id; f.currentMove = { ...move, ttl: 0.25 }; const defended = defend(state, f, enemy, move); state.effects.push({ type: defended, x: enemy.x, y: enemy.y, ttl: EFFECT_TTL[defended] || 0.2, move: move.id }); if (defended === 'hit') hit(state, f, enemy, move.damage + f.stats.cqc * 0.05, move.kind, angleTo(f, enemy), move); }
 function chooseCqcMove(f, enemy) { const d = dist(f, enemy); const close = MOVES.filter(m => d < 34 ? ['punch', 'elbow', 'knee', 'headbutt'].includes(m.kind) : m.reach >= d - 4); const pool = close.length ? close : MOVES; if (f.archetypeId === 'martial_artist') return choose(pool); if (f.archetypeId === 'ninja') return choose(pool.filter(m => m.kind !== 'headbutt') || pool); return choose(pool.filter(m => !['knee','elbow'].includes(m.kind)) || pool); }
 function disarm(state, f, enemy) { f.fight -= 16; f.cooldown = 0.75; f.pose = 'disarm_attempt'; f.memory.command = null; const success = chance((f.stats.cqc + f.stats.grapple + f.stats.counter) / 330) && enemy.block < 75; if (!success) { addLog(state, `${f.name} fails the disarm.`); if (chance(enemy.stats.counter / 220)) counter(state, enemy, f); return; } enemy.rangedCd = 2.2; enemy.heat = Math.max(enemy.heat, 65); enemy.pose = 'disarmed'; if (enemy.resources.rifle) enemy.resources.rifle = Math.floor(enemy.resources.rifle * 0.55); if (enemy.resources.pistol) enemy.resources.pistol = Math.floor(enemy.resources.pistol * 0.7); if (enemy.resources.arrows) enemy.resources.arrows = Math.max(0, enemy.resources.arrows - 3); if (enemy.resources.shuriken) enemy.resources.shuriken = Math.max(0, enemy.resources.shuriken - 2); state.effects.push({ type: 'block', x: enemy.x, y: enemy.y, ttl: 0.28, move: 'disarm' }); addLog(state, `${f.name} disarms ${enemy.name}.`); }
-function defend(state, attacker, defender, move) { const dodgeChance = defender.dodge / 130 * (defender.stats.dodge / 100); if (defender.dodge > 18 && chance(dodgeChance)) { defender.dodge -= 22; defender.pose = 'dodge'; shove(defender, angleTo(attacker, defender), 18); return 'dodge'; } const blockLimb = ['kick', 'knee', 'power'].includes(move.kind) ? move.limb === 'leftLeg' ? 'rightLeg' : 'leftLeg' : move.limb === 'leftArm' ? 'rightArm' : 'leftArm'; const limb = defender.limbs[blockLimb]; const blockChance = defender.block / 135 * (defender.stats.block / 100) * (limb.guard / 100); if (defender.block > 14 && limb.guard > 12 && chance(blockChance)) { defender.block -= 18; limb.guard -= 22 + move.damage * 0.65; limb.t = 0.18; defender.pose = `block_${blockLimb}`; if (attacker.stats.counter < defender.stats.counter && chance(defender.stats.counter / 310)) counter(state, defender, attacker); return 'block'; } return 'hit'; }
-function counter(state, defender, attacker) { hit(state, defender, attacker, rand(8, 15), 'counter', angleTo(defender, attacker)); addLog(state, `${defender.name} counters.`); }
+function defend(state, attacker, defender, move) {
+  const side = attackSide(move);
+  const normalLimb = normalDefenseLimb(move, side);
+  const crossLimb = crossDefenseLimb(move, side);
+  const normal = defender.limbs[normalLimb];
+  const cross = defender.limbs[crossLimb];
+  const pressure = clamp((defender.stats.block + defender.stats.dodge + defender.stats.counter) / 300, 0.2, 1.05);
+
+  if (canSlip(move) && defender.dodge > 18 && chance(defender.dodge / 155 * defender.stats.dodge / 100)) {
+    defender.dodge -= 18;
+    defender.pose = `slip_${side}`;
+    shove(defender, angleTo(attacker, defender) + (side === 'left' ? 0.45 : -0.45), 16);
+    maybeCounter(state, defender, attacker, pressure * 0.45);
+    return 'slip';
+  }
+
+  if (normal && defender.block > 16 && normal.guard > 16 && canParry(move) && chance(defender.stats.counter / 190 * pressure)) {
+    defender.block -= 12;
+    normal.guard -= 13 + move.damage * 0.35;
+    normal.t = 0.16;
+    defender.pose = `parry_${normalLimb}`;
+    maybeCounter(state, defender, attacker, pressure * 0.75);
+    return 'parry';
+  }
+
+  if (normal && defender.block > 14 && normal.guard > 12 && chance(defender.block / 135 * defender.stats.block / 100 * normal.guard / 100)) {
+    defender.block -= 18;
+    normal.guard -= 22 + move.damage * 0.65;
+    normal.t = 0.2;
+    defender.pose = `block_${normalLimb}`;
+    maybeCounter(state, defender, attacker, pressure * 0.28);
+    return 'block';
+  }
+
+  if (cross && defender.block > 28 && cross.guard > 24 && !['kick', 'knee', 'power'].includes(move.kind) && chance(defender.block / 185 * defender.stats.block / 100 * cross.guard / 100)) {
+    defender.block -= 28;
+    cross.guard -= 32 + move.damage * 0.7;
+    cross.t = 0.22;
+    defender.pose = `cross_block_${crossLimb}`;
+    maybeCounter(state, defender, attacker, pressure * 0.4);
+    return 'cross_block';
+  }
+
+  return 'hit';
+}
+
+function attackSide(move) { if (move.limb?.startsWith('left')) return 'left'; if (move.limb?.startsWith('right')) return 'right'; return move.lean >= 0 ? 'left' : 'right'; }
+function normalDefenseLimb(move, side) { if (['kick', 'knee', 'power'].includes(move.kind)) return side === 'left' ? 'rightLeg' : 'leftLeg'; return side === 'left' ? 'rightArm' : 'leftArm'; }
+function crossDefenseLimb(move, side) { return side === 'left' ? 'leftArm' : 'rightArm'; }
+function canSlip(move) { return ['punch', 'elbow', 'headbutt', 'knife', 'arrow_stab'].includes(move.kind); }
+function canParry(move) { return ['punch', 'elbow', 'knife', 'arrow_stab', 'sword'].includes(move.kind); }
+function maybeCounter(state, defender, attacker, probability) { if (defender.cooldown > 0.18 || defender.fight < 12 || !chance(probability)) return; counter(state, defender, attacker); }
+function counter(state, defender, attacker) { const move = { id: 'right_cross', limb: 'rightArm', kind: 'counter', reach: 42, damage: 10, stamina: 0, lean: -1, ttl: 0.18 }; defender.fight = clamp(defender.fight - 10, 0, 100); defender.pose = move.id; defender.currentMove = move; hit(state, defender, attacker, rand(8, 15), 'counter', angleTo(defender, attacker), move); addLog(state, `${defender.name} counters.`); }
 function grapple(state, f, enemy) { f.fight -= 22; f.cooldown = 1.1; enemy.pose = 'thrown'; f.pose = 'grapple'; const a = angleTo(f, enemy); shove(enemy, a, 78); hit(state, f, enemy, 9, 'throw', a); state.effects.push({ type: 'grapple', x: enemy.x, y: enemy.y, ttl: EFFECT_TTL.grapple }); addLog(state, `${f.name} grabs and throws ${enemy.name}.`); }
 function smoke(state, f, enemy) { f.resources.smoke--; f.specialCd = 7; state.effects.push({ type: 'smoke', x: f.x, y: f.y, ttl: EFFECT_TTL.smoke }); const a = angleTo(enemy, f); f.x += Math.cos(a) * 135; f.y += Math.sin(a) * 135; addLog(state, `${f.name} vanishes through smoke.`); }
 function bandage(state, f) { f.bandageCd = 10; f.cooldown = 1.4; if (!startBandage(state, f)) { f.pose = 'bandage'; recoverVitality(f, 8); addLog(state, `${f.name} patches up.`); } }
