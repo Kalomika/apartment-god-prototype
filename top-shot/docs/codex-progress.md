@@ -60,3 +60,13 @@
 - What remains: Sprite anatomy refinement, side-aware CQC/defense, full smoke/build validation, and visual browser inspection.
 - Visual/manual testing needed: Confirm in-browser that running reads as planted alternating limbs instead of slow or swimming motion.
 - Next recommended action: Improve the flat sprite body silhouette so head, shoulder shelf, torso, pelvis, hands, and feet read more human at small size.
+
+## 2026-06-29 00:49:45 -05:00 - Flat sprite anatomy WIP checkpoint
+
+- What I attempted: Improved the active flat-sprite fighter silhouette without changing the handler-facing request portrait.
+- Files touched: `top-shot/src/renderFlatSprite.js`, `top-shot/docs/codex-progress.md`.
+- What changed: Added a broader shoulder shelf, kept pelvis visually separated from the torso, tucked the head into the shoulder mass, clarified face/hair pixels, and made hands/feet more distinct at small size.
+- What passed or failed: `npm run check` passed before committing. Commit `ad0f629` was pushed to `origin/codex-wip/top-shot-nav-movement-cqc-pass`.
+- What remains: Side-aware CQC/defense, full smoke/build validation, and visual browser inspection.
+- Visual/manual testing needed: Confirm in browser that fighters read as top-down humans at game scale and that the wider shoulder shelf does not create extra-limb illusions during CQC.
+- Next recommended action: Expand CQC defense resolution and renderer poses for side-aware blocks, cross blocks, parries, slips, counters, elbows, knees, kicks, grapples, and disarms.
