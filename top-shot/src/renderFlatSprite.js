@@ -35,7 +35,7 @@ function fighter(ctx, f) {
   ctx.fillStyle = '#0009'; ctx.fillRect(-30, 12, 62, 18);
   drawPart(ctx, pose.leftLeg, pal.pants, pal.outline, 9, f.limbs?.leftLeg?.t > 0);
   drawPart(ctx, pose.rightLeg, pal.pants, pal.outline, 9, f.limbs?.rightLeg?.t > 0);
-  rectBody(ctx, -24, -13, 25, 26, pal.pants, pal.outline);
+  rectBody(ctx, -27, -13, 25, 26, pal.pants, pal.outline);
   body(ctx, pal);
   drawPart(ctx, pose.leftArm, pal.sleeve, pal.outline, 7, f.limbs?.leftArm?.t > 0);
   drawPart(ctx, pose.rightArm, pal.sleeve, pal.outline, 7, f.limbs?.rightArm?.t > 0);
@@ -45,10 +45,13 @@ function fighter(ctx, f) {
 }
 
 function body(ctx, p) {
-  rectBody(ctx, -8, -20, 34, 40, p.vest, p.outline);
-  ctx.fillStyle = p.shirt; poly(ctx, [[-4,-14],[20,-16],[26,0],[20,16],[-4,14]]);
-  ctx.strokeStyle = p.gear; ctx.lineWidth = 3; line(ctx, -7, -17, 23, 15); line(ctx, -7, 17, 23, -15);
-  rectBody(ctx, 20, -10, 18, 20, p.skin, p.outline); ctx.fillStyle = p.hair; ctx.fillRect(28, -8, 8, 16); ctx.fillStyle = p.face; ctx.fillRect(35, -5, 2, 3); ctx.fillRect(35, 3, 2, 3);
+  rectBody(ctx, -13, -24, 31, 48, p.shoulder, p.outline);
+  rectBody(ctx, -7, -19, 35, 38, p.vest, p.outline);
+  ctx.fillStyle = p.shirt; poly(ctx, [[-3,-15],[21,-17],[29,-5],[29,5],[21,17],[-3,15]]);
+  ctx.strokeStyle = p.gear; ctx.lineWidth = 3; line(ctx, -8, -18, 25, 15); line(ctx, -8, 18, 25, -15);
+  rectBody(ctx, 19, -13, 17, 26, p.skin, p.outline);
+  ctx.fillStyle = p.hair; ctx.fillRect(21, -13, 13, 26); ctx.fillRect(30, -11, 7, 22);
+  ctx.fillStyle = p.face; ctx.fillRect(36, -6, 3, 3); ctx.fillRect(36, 4, 3, 3); ctx.fillRect(34, -1, 3, 2);
 }
 
 function poseFor(name, f) {
@@ -110,12 +113,12 @@ function seg(sx, sy, ex, ey, hx, hy) { return { sx, sy, ex, ey, hx, hy }; }
 
 function drawPart(ctx, s, fill, outline, w, hot) { ctx.strokeStyle = outline; ctx.lineWidth = w + 5; ctx.lineCap = 'butt'; ctx.lineJoin = 'miter'; ctx.beginPath(); ctx.moveTo(s.sx, s.sy); ctx.lineTo(s.ex, s.ey); ctx.lineTo(s.hx, s.hy); ctx.stroke(); ctx.strokeStyle = hot ? '#ffe36d' : fill; ctx.lineWidth = w; ctx.stroke(); ctx.fillStyle = hot ? '#ffe36d' : fill; ctx.fillRect(s.ex - 3, s.ey - 3, 6, 6); }
 function rectBody(ctx, x, y, w, h, fill, stroke) { ctx.fillStyle = stroke; ctx.fillRect(x - 2, y - 2, w + 4, h + 4); ctx.fillStyle = fill; ctx.fillRect(x, y, w, h); }
-function fist(ctx, x, y, p) { rectBody(ctx, x - 4, y - 4, 8, 8, p.glove, p.outline); }
-function foot(ctx, x, y, p) { rectBody(ctx, x - 6, y - 4, 12, 8, p.boot, p.outline); }
+function fist(ctx, x, y, p) { rectBody(ctx, x - 5, y - 4, 9, 8, p.glove, p.outline); ctx.fillStyle = p.skin; ctx.fillRect(x - 2, y - 2, 3, 4); }
+function foot(ctx, x, y, p) { rectBody(ctx, x - 7, y - 4, 14, 8, p.boot, p.outline); ctx.fillStyle = p.gear; ctx.fillRect(x + 2, y - 3, 3, 6); }
 function weapon(ctx, f, p) { ctx.strokeStyle = p.weapon; ctx.lineWidth = 4; if (f.weapon === 'rifle' || f.archetypeId === 'marine') line(ctx, 16, -19, 57, -29); else if (f.weapon === 'bow' || f.archetypeId === 'archer') line(ctx, 8, 22, 44, 31); else if (f.melee === 'sword' || f.archetypeId === 'ninja') line(ctx, 15, -19, 52, -24); }
 function arc(ctx, m) { ctx.strokeStyle = m.kind === 'sword' ? '#eaf3ff' : '#f3d66f'; ctx.lineWidth = 4; ctx.globalAlpha = .55; ctx.beginPath(); ctx.arc(24, 0, m.reach || 44, -.5, .5); ctx.stroke(); ctx.globalAlpha = 1; }
 function labels(ctx, f, stage) { ctx.textAlign = 'center'; ctx.font = '800 12px system-ui'; ctx.fillStyle = stage.color; ctx.fillText(stage.label, 0, -50); meter(ctx, -32, -43, 64, 5, f.hp, stage.color); if (f.intent) { ctx.fillStyle = '#b9c7db'; ctx.font = '700 10px system-ui'; ctx.fillText(String(f.intent).replace('coach_', ''), 0, -60); } }
-function colors(f, stage, final) { const dull = final ? .78 : Math.max(0, 1 - (stage.saturation ?? 1)); return { outline: '#06090e', skin: final ? '#9a9a9a' : '#b77b58', hair: '#11141a', face: '#f0c7a6', shirt: mix(f.accent || '#5b6b84', '#89919b', dull), vest: '#1b232e', pants: mix(f.color || '#506f92', '#858d98', dull), sleeve: mix(f.color || '#506f92', '#858d98', dull * .8), gear: '#776a4a', glove: '#11161d', boot: '#0d1117', weapon: '#10151d' }; }
+function colors(f, stage, final) { const dull = final ? .78 : Math.max(0, 1 - (stage.saturation ?? 1)); return { outline: '#06090e', skin: final ? '#9a9a9a' : '#b77b58', hair: '#11141a', face: '#f0c7a6', shoulder: mix(f.color || '#506f92', '#858d98', dull * .75), shirt: mix(f.accent || '#5b6b84', '#89919b', dull), vest: '#1b232e', pants: mix(f.color || '#506f92', '#858d98', dull), sleeve: mix(f.color || '#506f92', '#858d98', dull * .8), gear: '#776a4a', glove: '#11161d', boot: '#0d1117', weapon: '#10151d' }; }
 function effects(ctx, state, over) { for (const e of state.effects) { const top = ['tracer', 'alert', 'command'].includes(e.type); if (top !== over) continue; ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, e.ttl * 6)); if (e.type === 'tracer') { ctx.strokeStyle = '#e8fbff'; ctx.lineWidth = 5; line(ctx, e.x, e.y, e.x2, e.y2); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; line(ctx, e.x, e.y, e.x2, e.y2); dot(ctx, e.x, e.y, 8, '#f7d96a'); } else if (e.type === 'smoke') dot(ctx, e.x, e.y, 55 * (1 - e.ttl / .9), '#cfd8e655'); else if (e.type === 'explosion') dot(ctx, e.x, e.y, (e.radius || 80) * (1 - e.ttl / .7), '#f3b24d55'); else { dot(ctx, e.x, e.y, 15, e.type === 'block' ? '#f4db73' : e.type === 'dodge' ? '#7bd0ff' : '#f15d56'); if (e.type === 'command' && e.label) { ctx.fillStyle = '#f0d36a'; ctx.font = '900 12px system-ui'; ctx.textAlign = 'center'; ctx.fillText(iconText(e.label), e.x, e.y - 22); } } ctx.restore(); } }
 function hud(ctx, state) {
   ctx.fillStyle = '#0b111bcc'; ctx.fillRect(980, 0, 300, 720);
