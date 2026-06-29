@@ -9,7 +9,7 @@ export function createArena() {
     r('shadow_block_bottom_right', 570, 436, 104, 104, null, { shadow: true })
   ];
   return {
-    name: 'Four Block Test Board', w: ARENA_W, h: ARENA_H,
+    name: 'Connector Diagnostic Board', w: ARENA_W, h: ARENA_H,
     spawnA: { x: 150, y: 360, facing: 0, dropY: -120 },
     spawnB: { x: 810, y: 360, facing: Math.PI, dropY: -190 },
     walls: blocks,
