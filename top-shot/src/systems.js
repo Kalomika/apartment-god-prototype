@@ -67,7 +67,7 @@ function updateDeployment(state, dt) {
     f.deploy = null;
     f.deploying = false;
   });
-  addLog(state, 'Both fighters landed. Match is live on the four block test board.');
+  addLog(state, 'Both fighters landed. Match is live on the desert industrial site.');
 }
 
 function updateFighter(state, f, dt) {
@@ -153,7 +153,8 @@ function chooseStance(f, enemy, visible) {
   const d = dist(f, enemy);
   f.prone = false; f.crouch = false;
   if (f.hideCooldown > 0) return;
-  if (f.archetypeId === 'marine' && d > 220 && f.hp < 80 && visible) f.prone = true;
+  if (['marine', 'survival_commando'].includes(f.archetypeId) && d > 220 && f.hp < 80 && visible) f.prone = true;
+  if (f.archetypeId === 'suit_operative' && d > 110 && (f.hp < 68 || f.shadowHidden)) f.crouch = true;
   if ((f.archetypeId === 'ninja' || f.archetypeId === 'archer') && (!visible || f.bleed?.rate > 0) && d > 110) f.crouch = true;
 }
 
@@ -176,7 +177,7 @@ function nearestUsefulPickup(state, f) {
   const sorted = [...items].sort((a, b) => dist(f, a) - dist(f, b));
   const pick = sorted[0];
   if (pick.type === 'med' && f.hp > Math.min(72, f.vitalityCap ?? 100) && !f.bleed?.rate) return null;
-  if (pick.type === 'ammo' && !['marine', 'archer', 'ninja'].includes(f.archetypeId)) return null;
+  if (pick.type === 'ammo' && !['marine', 'suit_operative', 'survival_commando', 'archer', 'ninja'].includes(f.archetypeId)) return null;
   return pick;
 }
 

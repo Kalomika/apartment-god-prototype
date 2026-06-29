@@ -34,3 +34,39 @@
 ### Next recommended task
 
 Add a reusable procedural humanoid actor system with `Actor3D`, `createPlaceholderActor()`, `loadActorModel()`, `setActorAnimationState()`, `updateActor()`, and limb/body volume hooks. Start with Suit Operative and Survival Commando.
+
+## 2026-06-29 - First Two 3D Archetypes
+
+### Asset inbox inspection
+
+- `top-shot/asset_inbox/ASSET_MANIFEST.md` was requested first, but that path is not present in this checkout.
+- The requested `top-shot/asset_inbox/model_candidates/`, `top-shot/asset_inbox/fx/`, `top-shot/asset_inbox/maps/`, and `top-shot/asset_inbox/reference_notes/` folders are also not present.
+- Because there are no local candidate assets to verify, this checkpoint does not integrate external models, FX, or map assets.
+
+### What changed
+
+- Added Suit Operative and Survival Commando to the simulation archetype list with generic visible/UI names only.
+- Added `src/three/actors3D.js`, a reusable procedural actor rig with `createPlaceholderActor()`, `loadActorModel()`, `setActorAnimationState()`, `updateActor()`, `getLimbHitVolumes()`, and `getBodyHurtZones()`.
+- Added a Three.js actor layer to `src/three/topShot3D.js`. Ready state shows preview actors at spawn positions; running state updates actors from the existing simulation.
+- Suit Operative currently reads as a dark-suited pistol fighter. Survival Commando reads as a rugged rifle/knife fighter with head-wrap/bandana color blocking.
+- Default UI selection is now Suit Operative versus Survival Commando.
+- Existing tactical simulation now recognizes both new archetypes for ranged combat, ammo requests, survival/cover movement, and Survival Commando grenade use.
+- Simulation smoke now includes `suit_operative` versus `survival_commando`.
+
+### Validation notes
+
+- `npm run check` passed after the actor checkpoint changes.
+- `npm run smoke` passed after adding the new matchup.
+- `npm run build` passed.
+- Local browser smoke verified ready preview actors, running actors, collision debug toggle, desktop layout, mobile layout, clean console, local Three.js vendor loading, and nonblank WebGL canvas pixels.
+
+### Weak spots
+
+- Actors are intentionally procedural placeholders. They are not imported rigged GLB/glTF models.
+- The animation states are pose scaffolds driven by simulation state, not authored animation clips.
+- CQC limb volumes are exposed by the actor rig, but visible 3D collision/contact resolution is still not connected to the combat system.
+- The asset inbox needs to be added or synced before any Agent Mode model recommendations can be used.
+
+### Next recommended task
+
+Add Shadow Ninja and Field Agent as the next two visible 3D archetypes. If the asset inbox appears, verify licenses and integrate only safe GLB/glTF candidates; otherwise continue the procedural rig variant approach.

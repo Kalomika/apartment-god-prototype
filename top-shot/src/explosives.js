@@ -5,7 +5,7 @@ import { angleTo, chance, clamp, dist } from './utils.js';
 import { updateVitalityCap } from './vitality.js';
 
 export function trySuperMove(state, f, enemy, visible) {
-  if (!visible || f.archetypeId !== 'marine' || f.resources.grenades <= 0 || f.rangedCd > 0) return false;
+  if (!visible || !['marine', 'survival_commando'].includes(f.archetypeId) || f.resources.grenades <= 0 || f.rangedCd > 0) return false;
   const d = dist(f, enemy);
   if (d < 140 || d > 420) return false;
   const commanded = f.memory.command?.type === 'grenade';

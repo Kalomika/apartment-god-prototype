@@ -1,4 +1,14 @@
 export const ARCHETYPES = {
+  suit_operative: {
+    id: 'suit_operative', name: 'Suit Operative', color: '#202a35', accent: '#d8d1bd', weapon: 'pistol', melee: 'hands', special: 'counter',
+    stats: { speed: 126, stealth: 62, sight: 84, hearing: 72, aim: 90, cqc: 82, block: 72, dodge: 76, counter: 88, grapple: 66, sneakAttack: 68, sneakDefense: 76, toughness: 64, stamina: 82, aggression: 58, recovery: 70, discipline: 90, prestige: 78, ruthlessness: 54 },
+    resources: { pistol: 42, rifle: 0, grenades: 0, heat: 0, special: 2 }
+  },
+  survival_commando: {
+    id: 'survival_commando', name: 'Survival Commando', color: '#4f633f', accent: '#8a2721', weapon: 'rifle', melee: 'knife', special: 'grenade',
+    stats: { speed: 116, stealth: 54, sight: 80, hearing: 76, aim: 78, cqc: 74, block: 74, dodge: 56, counter: 58, grapple: 82, sneakAttack: 60, sneakDefense: 70, toughness: 92, stamina: 88, aggression: 72, recovery: 62, discipline: 70, prestige: 66, ruthlessness: 50 },
+    resources: { rifle: 48, pistol: 10, grenades: 2, heat: 0, special: 1 }
+  },
   marine: {
     id: 'marine', name: 'Marine', color: '#6da3ff', accent: '#253b5f', weapon: 'rifle', melee: 'knife', special: 'prone',
     stats: { speed: 108, stealth: 38, sight: 82, hearing: 65, aim: 82, cqc: 62, block: 68, dodge: 48, counter: 52, grapple: 66, sneakAttack: 58, sneakDefense: 72, toughness: 88, stamina: 84, aggression: 62, recovery: 60, discipline: 78, prestige: 70, ruthlessness: 42 },

@@ -2,6 +2,7 @@ import { beginBattle, createBattle } from '../src/state.js';
 import { updateBattle, placeCoachDrop } from '../src/systems.js';
 
 const matchups = [
+  ['suit_operative', 'survival_commando'],
   ['marine', 'ninja'],
   ['ninja', 'archer'],
   ['archer', 'martial_artist'],

@@ -1,4 +1,6 @@
 import { ARENA_H, ARENA_W } from '../config.js';
+import { ARCHETYPES } from '../archetypes.js';
+import { createPlaceholderActor, updateActor } from './actors3D.js';
 
 const THREE_MODULE_URLS = [
   '../../vendor/three.module.js',
@@ -84,6 +86,7 @@ class TopShot3D {
     this.threeSource = threeSource;
     this.options = options;
     this.pickupMarkers = new Map();
+    this.actors = new Map();
     this.elapsed = 0;
     this.cameraTarget = new THREE.Vector3(0, 0, 0);
     this.cameraLook = new THREE.Vector3(0, 0, 0);
@@ -109,10 +112,11 @@ class TopShot3D {
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
     this.mapRoot = new THREE.Group();
+    this.actorRoot = new THREE.Group();
     this.markerRoot = new THREE.Group();
     this.debugRoot = new THREE.Group();
     this.debugRoot.visible = false;
-    this.scene.add(this.mapRoot, this.markerRoot, this.debugRoot);
+    this.scene.add(this.mapRoot, this.actorRoot, this.markerRoot, this.debugRoot);
 
     this.buildLights();
     this.buildTerrain();
@@ -129,8 +133,9 @@ class TopShot3D {
   update(dt, state) {
     this.elapsed += dt;
     this.resize();
+    const actorEntities = this.syncActors(state, dt);
     this.syncPickupMarkers(state);
-    this.updateCamera(dt, state);
+    this.updateCamera(dt, state, actorEntities);
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -533,6 +538,29 @@ class TopShot3D {
     }
   }
 
+  syncActors(state, dt) {
+    const entities = actorEntitiesFor(state);
+    const active = new Set();
+    for (const entity of entities) {
+      active.add(entity.id);
+      let actor = this.actors.get(entity.id);
+      if (!actor) {
+        actor = createPlaceholderActor(this.THREE, entity.archetypeId, { team: entity.team });
+        this.actors.set(entity.id, actor);
+        this.actorRoot.add(actor.group);
+      }
+      updateActor(actor, entity, dt, arenaToWorld(entity.x, entity.y));
+    }
+
+    for (const [id, actor] of this.actors) {
+      if (active.has(id)) continue;
+      this.actorRoot.remove(actor.group);
+      actor.dispose();
+      this.actors.delete(id);
+    }
+    return entities;
+  }
+
   createPickupMarker(pickup) {
     const THREE = this.THREE;
     const pos = arenaToWorld(pickup.x, pickup.y);
@@ -548,11 +576,9 @@ class TopShot3D {
     return group;
   }
 
-  updateCamera(dt, state) {
+  updateCamera(dt, state, actorEntities = []) {
     const THREE = this.THREE;
-    const points = (state?.fighters || [])
-      .filter(f => !f.extracted)
-      .map(f => arenaToWorld(f.x, f.y));
+    const points = actorEntities.filter(f => !f.extracted).map(f => arenaToWorld(f.x, f.y));
     const target = new THREE.Vector3(0, 0, 0);
     let span = 13;
 
@@ -591,6 +617,37 @@ class TopShot3D {
 function addEdges(THREE, mesh, color) {
   const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry), new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.42 }));
   mesh.add(edges);
+}
+
+function actorEntitiesFor(state) {
+  if (state?.fighters?.length) return state.fighters;
+  if (!state?.arena) return [];
+  const selected = state.selectedFighters || { A: 'suit_operative', B: 'survival_commando' };
+  return [
+    previewEntity('preview-A', 'A', selected.A || 'suit_operative', state.arena.spawnA),
+    previewEntity('preview-B', 'B', selected.B || 'survival_commando', state.arena.spawnB)
+  ];
+}
+
+function previewEntity(id, team, archetypeId, spawn) {
+  const archetype = ARCHETYPES[archetypeId] || ARCHETYPES.suit_operative || Object.values(ARCHETYPES)[0];
+  return {
+    id,
+    team,
+    archetypeId: archetype.id,
+    name: `${team}: ${archetype.name}`,
+    x: spawn.x,
+    y: spawn.y,
+    facing: spawn.facing,
+    pose: 'idle_guard',
+    currentMove: null,
+    lastMove: 0,
+    preview: true,
+    extracted: false,
+    shadowHidden: false,
+    prone: false,
+    crouch: false
+  };
 }
 
 function rectToWorld(rect) {

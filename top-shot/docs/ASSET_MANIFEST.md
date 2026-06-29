@@ -50,6 +50,42 @@
 
 ## Character Models
 
+### Suit Operative Placeholder
+
+- Source: original procedural Three.js articulated placeholder in `top-shot/src/three/actors3D.js`
+- License: project-owned procedural placeholder
+- Format: runtime Three.js primitives
+- Rigged: procedural part rig, not a skinned mesh
+- Animated: procedural pose scaffolding for idle, walk, run, crouch, prone, roll, pistol, and CQC reactions
+- Polygon count: low-poly browser-safe primitives; exact runtime count depends on generated geometry
+- Texture size: no external textures
+- Modifications made: not applicable
+- Usage: first 3D archetype checkpoint
+- Visible/UI name: Suit Operative
+
+### Survival Commando Placeholder
+
+- Source: original procedural Three.js articulated placeholder in `top-shot/src/three/actors3D.js`
+- License: project-owned procedural placeholder
+- Format: runtime Three.js primitives
+- Rigged: procedural part rig, not a skinned mesh
+- Animated: procedural pose scaffolding for idle, walk, run, crouch, prone, roll, rifle, knife/CQC reactions, and grenade throw stance
+- Polygon count: low-poly browser-safe primitives; exact runtime count depends on generated geometry
+- Texture size: no external textures
+- Modifications made: not applicable
+- Usage: first 3D archetype checkpoint
+- Visible/UI name: Survival Commando
+
+## Asset Inbox
+
+- Requested manifest path: `top-shot/asset_inbox/ASSET_MANIFEST.md`
+- Status: not present in this checkout during this checkpoint
+- Requested candidate folders: `model_candidates/`, `fx/`, `maps/`, `reference_notes/`
+- Status: not present in this checkout during this checkpoint
+- Integration decision: no inbox assets were moved or selected; procedural placeholders were used instead
+
+## Character Models Pending
+
 - [ ] No external character models are added yet.
 - [ ] No GLB/glTF character files are added yet.
-- [ ] Procedural actor placeholders are planned for the next checkpoint.
+- [ ] Verify any future asset inbox candidates before integration.

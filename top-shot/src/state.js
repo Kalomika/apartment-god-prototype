@@ -3,7 +3,7 @@ import { ARCHETYPES } from './archetypes.js';
 import { createArena } from './arena.js';
 import { vitalityStageFor } from './vitality.js';
 
-export function createBattle(aId = 'marine', bId = 'ninja', options = {}) {
+export function createBattle(aId = 'suit_operative', bId = 'survival_commando', options = {}) {
   const arena = createArena();
   const state = {
     arena,
@@ -18,13 +18,13 @@ export function createBattle(aId = 'marine', bId = 'ninja', options = {}) {
     commandHistory: [],
     dropsLeft: freshDropsLeft(),
     fighters: [],
-    projectiles: [], effects: [], pickups: [], log: ['Top Shot test board loaded. Press Begin Batch to parachute fighters into the arena.']
+    projectiles: [], effects: [], pickups: [], log: ['Top Shot desert industrial site loaded. Press Begin Sortie to deploy fighters.']
   };
   if (options.autoStart) beginBattle(state, aId, bId);
   return state;
 }
 
-export function beginBattle(state, aId = state.selectedFighters?.A || 'marine', bId = state.selectedFighters?.B || 'ninja') {
+export function beginBattle(state, aId = state.selectedFighters?.A || 'suit_operative', bId = state.selectedFighters?.B || 'survival_commando') {
   const arena = createArena();
   state.arena = arena;
   state.selectedFighters = { A: aId, B: bId };
@@ -44,7 +44,7 @@ export function beginBattle(state, aId = state.selectedFighters?.A || 'marine', 
     makeFighter('A', ARCHETYPES[aId], arena.spawnA, 0),
     makeFighter('B', ARCHETYPES[bId], arena.spawnB, 1)
   ];
-  state.log = ['Begin batch. Fighters are parachuting into the four block test arena.'];
+  state.log = ['Begin sortie. Fighters are deploying into the desert industrial site.'];
   return state;
 }
 

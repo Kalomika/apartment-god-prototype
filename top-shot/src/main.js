@@ -22,8 +22,8 @@ for (const fighter of archetypeList()) {
   ui.fighterB.append(new Option(fighter.name, fighter.id));
 }
 
-ui.fighterA.value = 'marine';
-ui.fighterB.value = 'ninja';
+ui.fighterA.value = 'suit_operative';
+ui.fighterB.value = 'survival_commando';
 ui.ethos.value = 'ai';
 ui.start.textContent = 'Begin Sortie';
 

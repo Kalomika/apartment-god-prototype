@@ -51,7 +51,8 @@ export function chooseDestination(state, f, enemy) {
   if (f.archetypeId === 'ninja' && d > 95) return safeDest(state.arena, f, flankPoint(f, enemy, 80));
   if (f.archetypeId === 'martial_artist') return safeDest(state.arena, f, flankPoint(f, enemy, 48));
   if (f.archetypeId === 'archer' && d < 260) return safeDest(state.arena, f, awayPoint(f, enemy, 170));
-  if (f.archetypeId === 'marine' && d < 180) return safeDest(state.arena, f, awayPoint(f, enemy, 130));
+  if (['marine', 'survival_commando'].includes(f.archetypeId) && d < 180) return safeDest(state.arena, f, awayPoint(f, enemy, 130));
+  if (f.archetypeId === 'suit_operative' && d < 118) return safeDest(state.arena, f, awayPoint(f, enemy, 96));
   return safeDest(state.arena, f, flankPoint(f, enemy, f.weapon === 'rifle' || f.weapon === 'bow' ? 250 : 70));
 }
 
