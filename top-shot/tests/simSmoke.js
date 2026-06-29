@@ -1,4 +1,4 @@
-import { createBattle } from '../src/state.js';
+import { beginBattle, createBattle } from '../src/state.js';
 import { updateBattle, placeCoachDrop } from '../src/systems.js';
 
 const matchups = [
@@ -10,6 +10,16 @@ const matchups = [
 
 for (const [a, b] of matchups) {
   const state = createBattle(a, b);
+  if (state.fighters.length !== 0) throw new Error(`Expected empty board before Begin Batch in ${a} vs ${b}`);
+  if (state.matchState !== 'ready') throw new Error(`Expected ready state before Begin Batch in ${a} vs ${b}`);
+  beginBattle(state, a, b);
+  if (state.fighters.length !== 2) throw new Error(`Expected two fighters after Begin Batch in ${a} vs ${b}`);
+  let deploySteps = 0;
+  while (deploySteps < 180 && state.matchState === 'deploying') {
+    updateBattle(state, 1 / 60);
+    deploySteps++;
+  }
+  if (state.matchState !== 'running') throw new Error(`Expected running match after deployment in ${a} vs ${b}`);
   placeCoachDrop(state, 'med', 180, 360);
   placeCoachDrop(state, 'ammo', 240, 300);
   let steps = 0;
