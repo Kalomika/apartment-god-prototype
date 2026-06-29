@@ -50,3 +50,13 @@
 - What remains: Movement animation, sprite anatomy, side-aware CQC/defense, full smoke/build validation, and visual browser inspection.
 - Visual/manual testing needed: Watch live matches for reduced cover-edge grinding and confirm fighters still route naturally around the center cover cluster.
 - Next recommended action: Implement crisp planted 2 to 4 frame movement poses in the active flat-sprite renderer.
+
+## 2026-06-29 00:46:36 -05:00 - Planted run-cycle WIP checkpoint
+
+- What I attempted: Replaced the parameterized stride sway with authored four-frame run poses and fixed the animation clock for the `run` pose.
+- Files touched: `top-shot/src/renderFlatSprite.js`, `top-shot/src/systems.js`, `top-shot/docs/codex-progress.md`.
+- What changed: `run` now counts as a moving pose in the simulation animation timer; the flat renderer now uses explicit left-step, contact, right-step, contact limb coordinates so arms and legs alternate in a planted top-down cycle.
+- What passed or failed: `npm run check` passed before committing. Commit `4f8df61` was pushed to `origin/codex-wip/top-shot-nav-movement-cqc-pass`.
+- What remains: Sprite anatomy refinement, side-aware CQC/defense, full smoke/build validation, and visual browser inspection.
+- Visual/manual testing needed: Confirm in-browser that running reads as planted alternating limbs instead of slow or swimming motion.
+- Next recommended action: Improve the flat sprite body silhouette so head, shoulder shelf, torso, pelvis, hands, and feet read more human at small size.
