@@ -4,11 +4,11 @@
 
 Branch: `top-shot-v0-1`
 
-Commit: reported in handoff after this checkpoint is committed and pushed.
+Terrain checkpoint commit: `fdec5fa91855c5dd7e84e5dec62d6485d8501860`
 
-Render URL: `https://top-shot-prototype.onrender.com/?v=<checkpoint-sha>`
+Render URL: `https://top-shot-prototype.onrender.com/?v=fdec5fa`
 
-Status: 3D terrain checkpoint validated locally and ready for live-branch push.
+Status: 3D terrain checkpoint pushed to `top-shot-v0-1` and verified on Render. The exact latest pushed log commit is reported in the handoff.
 
 ## Completed
 
@@ -26,11 +26,13 @@ Status: 3D terrain checkpoint validated locally and ready for live-branch push.
 - [x] `npm run build` passed.
 - [x] Local browser smoke showed nonblank WebGL canvas pixels on desktop and mobile.
 - [x] Local browser smoke confirmed no console errors after adding a data favicon.
+- [x] Pushed terrain checkpoint commit `fdec5fa91855c5dd7e84e5dec62d6485d8501860` to `origin/top-shot-v0-1`.
+- [x] Render URL loaded with HTTP 200.
+- [x] Render served `https://top-shot-prototype.onrender.com/vendor/three.module.js`.
+- [x] Render browser smoke showed nonblank WebGL canvas pixels.
 
 ## Pending
 
-- [ ] Push this checkpoint to `origin/top-shot-v0-1`.
-- [ ] Confirm the Render cache-busted URL after deployment.
 - [ ] Add the first two 3D archetypes: Suit Operative and Survival Commando.
 - [ ] Add GLB/glTF replacement hooks for actor models.
 - [ ] Add 3D actor bodies, movement poses, and basic weapon stance readability.
