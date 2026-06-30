@@ -150,7 +150,7 @@ Notes for game manager:
 
 Status: READY_FOR_QA
 Branch name: dog-character-realistic-sprite-states
-Latest commit SHA: 9142dee3fc964b300c175322d841559517a62520
+Latest commit SHA: d0c74266545f3ef6c94ed37d777188222de7a9e7
 Files created: README.md, DOG_STATE_BREAKDOWN.md, manifest_dog.json, manifest_dog_state_index.json, prompt_sheets/DOG_GENERATION_PROMPTS.md, .gitkeep files for required category folders.
 Folders created: apartment-god-production/05_DOG_CHARACTER/ with idle, walk, run, sit, sleep, eat_drink, pet_interaction, follow_human, play, bathroom, alert, transitions, prompt_sheets.
 Art Bible read: yes
