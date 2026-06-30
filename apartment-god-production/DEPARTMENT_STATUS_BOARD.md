@@ -91,20 +91,20 @@ Notes for game manager: Environment planning deliverables are complete as a blue
 
 ## 02_MALE_CHARACTER
 
-Status: PARTIALLY_READY
+Status: READY_FOR_QA
 Branch name: male-character-realistic-sprite-states
-Latest commit SHA: pending final status board update commit
+Latest commit SHA: 02c938ccfd963ce1bc05b895e3c465bc07fc3eeb
 Files created: README.md, MALE_STATE_BREAKDOWN.md, manifest_male.json, manifest_male_state_index.json, prompt_sheets/MALE_GENERATION_PROMPTS.md, .gitkeep files for idle, walk, run, sit, sleep, phone, laptop, cooking, eating, shower_bathroom, reading, exercise, pet_dog, social_solo, transitions, and prompt_sheets.
 Folders created: apartment-god-production/02_MALE_CHARACTER/ with idle, walk, run, sit, sleep, phone, laptop, cooking, eating, shower_bathroom, reading, exercise, pet_dog, social_solo, transitions, prompt_sheets.
 Art Bible read: yes, from art-bible-production-structure branch.
 Reference Library read: yes, README_REFERENCE_USE.md, reference_manifest.json, and universal reference prompt were read from apartment-god-production/REFERENCE_LIBRARY/.
-States/assets completed: 69 planned male states documented across idle, directional walk, directional run, sit, sleep, phone, laptop, cooking, eating, shower_bathroom, reading, exercise, pet_dog, social_solo, and transitions. All groups include A/B/C or B-only sleep logic in MALE_STATE_BREAKDOWN.md and manifest_male_state_index.json.
-Manifest status: manifest_male.json is valid JSON and Codex-consumable for core idle and walk entries, but it is not yet expanded to all 69 planned states. manifest_male_state_index.json and MALE_STATE_BREAKDOWN.md list the full 69-state plan.
-Generated assets/sheets: none, per instruction.
-Blockers: manifest_male.json still needs full per-state JSON expansion before final QA. No final transparent PNG sprites generated in this pass.
+States/assets completed: 69 planned male states documented and manifest-listed across idle, directional walk, directional run, sit, sleep, phone, laptop, cooking, eating, shower_bathroom, reading, exercise, pet_dog, social_solo, and transitions. All groups include A/B/C or B-only sleep logic.
+Manifest status: manifest_male.json is valid JSON and is now the primary Codex-consumable manifest for all 69 planned male states. Every state entry includes state_id, category, character_type, action_name, frame_count, frame_files, frames, frame_logic, gameplay_tags, loop_frames, entry_frames, hold_frames, exit_frames, anchor_point, scale_notes, implementation_notes, and status.
+Generated assets/sheets: none, per instruction. Missing PNG sprite sheets are deferred to later asset production and are not a planning-manifest QA blocker.
+Blockers: none for planning-manifest QA.
 Runtime files changed: no
-Ready for QA: no
-Notes for game manager: Branch was force-updated from art-bible-production-structure before work. The male department now reads the installed Art Bible and Reference Library and has the required folder structure, state plan, prompt sheet, and partial primary manifest. A cleanup pass should expand manifest_male.json to all 69 planned states before QA.
+Ready for QA: yes
+Notes for game manager: Male cleanup pass expanded manifest_male.json from partial core idle/walk coverage to all 69 planned states. No runtime files, Render settings, deploy settings, main branch, or ai-rpg-engine content were touched.
 
 ---
 
