@@ -23,6 +23,13 @@ NEEDS_REWORK
 BLOCKED
 ```
 
+Reference Library status: INSTALLED
+Branch name: reference-library-install
+Latest commit SHA: 52e5eee916e6b288a723506b142ff5e7d4d0c64b
+Files/folders created: apartment-god-production/REFERENCE_LIBRARY/
+Runtime files changed: no
+Ready for departments: yes
+
 Required update format per department:
 
 ```txt
@@ -46,20 +53,20 @@ Notes for game manager:
 
 ## 00_ART_BIBLE, Style Supervisor
 
-Status: PARTIALLY_READY
-Branch name: art-bible-production-structure
-Latest commit SHA: 68a3c935a2aad6ab68aa6c92f370eb4306906c09
-Files created: VISUAL_STYLE_GUIDE.md, SPRITE_STATE_LIST.md, NAMING_CONVENTIONS.md, SCALE_AND_ANCHOR_GUIDE.md, COLOR_PALETTE.md, MANIFEST_TEMPLATE.json, STYLE_QA_CHECKLIST.md, README.md.
-Folders created: apartment-god-production/00_ART_BIBLE/.
-Art Bible read: not applicable, this department created the Art Bible source files.
-Reference Library read: no, REFERENCE_LIBRARY files and shared zip were not present on production-manager-department-logs.
-States/assets completed: Master state list completed for environment, male, female, dog, joint, QA records, and integration records. No final art assets generated.
-Manifest status: MANIFEST_TEMPLATE.json created and structured with required fields, state_id, action_name, frame_count, frame_files, A/B/C frame logic, gameplay tags, anchors, scale notes, implementation notes, and status.
-Generated assets/sheets: none.
-Blockers: Shared Reference Library could not be inspected because apartment-god-production/REFERENCE_LIBRARY/README_REFERENCE_USE.md, reference_manifest.json, and apartment_god_shared_reference_pack.zip were not present on the base branch.
-Runtime files changed: no
-Ready for QA: no
-Notes for game manager: Art Bible rules are ready for planning use, but final QA should wait until the shared Reference Library is added and inspected.
+Status: NOT_STARTED
+Branch name:
+Latest commit SHA:
+Files created:
+Folders created:
+Art Bible read: not applicable
+Reference Library read:
+States/assets completed:
+Manifest status:
+Generated assets/sheets:
+Blockers:
+Runtime files changed:
+Ready for QA:
+Notes for game manager:
 
 ---
 
@@ -105,18 +112,18 @@ Notes for game manager:
 
 Status: PARTIALLY_READY
 Branch name: female-character-realistic-sprite-states
-Latest commit SHA: b4bb070c4e5b9b51a88ba60fab319735b89e7049
-Files created: README.md, FEMALE_STATE_BREAKDOWN.md, manifest_female.json, manifest_female_state_index.json, prompt_sheets/FEMALE_GENERATION_PROMPTS.md, .gitkeep files for required category folders.
-Folders created: apartment-god-production/03_FEMALE_CHARACTER/ with idle, walk, run, sit, sleep, phone, laptop, cooking, eating, shower_bathroom, reading, exercise, pet_dog, social_solo, transitions, prompt_sheets.
-Art Bible read: yes, from art-bible-production-structure, not from main at time of pass.
-Reference Library read: no, reference pack unavailable in branch/session.
-States/assets completed: 67 female states listed, all required categories covered, A/B/C logic documented.
-Manifest status: manifest_female.json valid JSON, but full all-state coverage is split across manifest_female.json, manifest_female_state_index.json, and FEMALE_STATE_BREAKDOWN.md. Needs reconciliation so manifest_female.json is primary Codex-consumable manifest.
+Latest commit SHA: 52e1ca37bba91d5bcfd4973e1a12da25bb85fb02
+Files created: README.md, FEMALE_STATE_BREAKDOWN.md, manifest_female.json, manifest_female_state_index.json, prompt_sheets/FEMALE_GENERATION_PROMPTS.md, .gitkeep files for required category folders, REFERENCE_LIBRARY placeholder files.
+Folders created: apartment-god-production/03_FEMALE_CHARACTER/ with idle, walk, run, sit, sleep, phone, laptop, cooking, eating, shower_bathroom, reading, exercise, pet_dog, social_solo, transitions, prompt_sheets. REFERENCE_LIBRARY placeholders for 01_environment_references, 02_human_realistic_topdown_linework, 03_dog_references.
+Art Bible read: yes, from art-bible-production-structure branch. Missing from production-manager-department-logs at cleanup time.
+Reference Library read: no, missing from production-manager-department-logs and not available in current tool session.
+States/assets completed: 67 female states planned and manifest-listed, all required categories covered, A/B/C or documented hold logic included.
+Manifest status: manifest_female.json reconciled as the primary all-state manifest. Valid JSON. Every planned state includes state_id, category, character_type, action_name, frame_count, frames or planned frame names, frame logic, gameplay_tags, loop_frames, entry_frames, hold_frames, exit_frames, anchor_point, scale_notes, implementation_notes, and status.
 Generated assets/sheets: none.
-Blockers: shared reference pack not available, reference library did not exist on branch so placeholders were created, Art Bible was not on main.
+Blockers: shared reference pack apartment_god_shared_reference_pack.zip was not available to inspect, REFERENCE_LIBRARY missing on production-manager-department-logs, 00_ART_BIBLE missing on production-manager-department-logs.
 Runtime files changed: no
-Ready for QA: no, cleanup pass required first.
-Notes for game manager: Good planning/state-definition pass. Needs manifest cleanup and reference-library reconciliation before QA.
+Ready for QA: no
+Notes for game manager: Department planning cleanup is complete and manifest reconciliation is done. QA should wait until the actual Art Bible and shared reference pack are present on the production manager branch or merged into the department branch.
 
 ---
 
