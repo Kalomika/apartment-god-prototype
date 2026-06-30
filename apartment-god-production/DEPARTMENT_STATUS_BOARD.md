@@ -162,7 +162,7 @@ Notes for game manager:
 
 Status: PARTIALLY_READY
 Branch name: asset-qa-realistic-style-review
-Latest commit SHA: pending final board commit
+Latest commit SHA: 2b20df8c91f2da596e3baa724d41c0cbaf4a18ae
 Files created: approved_assets_only/.gitkeep, asset_registry.json, integration_notes.md, QA_REPORT.md, REWORK_LIST.md, READY_FOR_CODEX.md, README.md, 07_REJECTED_OR_REWORK/.gitkeep, DEPARTMENT_STATUS_BOARD.md.
 Folders created: apartment-god-production/06_INTEGRATION_QUEUE/, apartment-god-production/06_INTEGRATION_QUEUE/approved_assets_only/, apartment-god-production/07_REJECTED_OR_REWORK/.
 Art Bible read: yes, from available Art Bible branch and manager logs, but not present on this QA branch.
