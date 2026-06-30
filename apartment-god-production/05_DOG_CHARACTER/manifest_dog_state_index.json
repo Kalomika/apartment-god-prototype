@@ -2,7 +2,7 @@
   "schema_version": "0.2.0",
   "department": "05_DOG_CHARACTER",
   "source_manifest": "manifest_dog.json",
-  "state_count": 58,
+  "state_count": 63,
   "categories": {
     "idle": {
       "folder": "apartment-god-production/05_DOG_CHARACTER/idle/",
