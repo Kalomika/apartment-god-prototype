@@ -55,7 +55,7 @@ Notes for game manager:
 
 Status: READY_FOR_QA
 Branch name: art-bible-production-structure
-Latest commit SHA: 77b6a77278669a327f0106700024113a79a5f5f9
+Latest commit SHA: c9958451d15ded8a35f60ff1aa7dae1431849af1
 Files created: VISUAL_STYLE_GUIDE.md, SPRITE_STATE_LIST.md, NAMING_CONVENTIONS.md, SCALE_AND_ANCHOR_GUIDE.md, COLOR_PALETTE.md, MANIFEST_TEMPLATE.json, STYLE_QA_CHECKLIST.md, README.md.
 Folders created: apartment-god-production/00_ART_BIBLE/ completed with required Art Bible files.
 Art Bible read: not applicable, this department created the Art Bible source of truth.
@@ -112,7 +112,7 @@ Notes for game manager:
 
 Status: READY_FOR_QA
 Branch name: female-character-realistic-sprite-states
-Latest commit SHA: 0633d9671d5fee4e57f02c1d8617102db430d70f
+Latest commit SHA: a243a9991617a5c04aef2218ad63bfc02b35f48f
 Files created: README.md, FEMALE_STATE_BREAKDOWN.md, manifest_female.json, manifest_female_state_index.json, prompt_sheets/FEMALE_GENERATION_PROMPTS.md, .gitkeep files for required category folders.
 Folders created: apartment-god-production/03_FEMALE_CHARACTER/ with idle, walk, run, sit, sleep, phone, laptop, cooking, eating, shower_bathroom, reading, exercise, pet_dog, social_solo, transitions, prompt_sheets.
 Art Bible read: yes, final Art Bible read from art-bible-production-structure.
