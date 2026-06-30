@@ -129,20 +129,20 @@ Notes for game manager: Department planning cleanup is complete and manifest rec
 
 ## 04_JOINT_CHARACTER_STATES
 
-Status: NOT_STARTED
-Branch name:
-Latest commit SHA:
-Files created:
-Folders created:
-Art Bible read:
-Reference Library read:
-States/assets completed:
-Manifest status:
-Generated assets/sheets:
-Blockers:
-Runtime files changed:
-Ready for QA:
-Notes for game manager:
+Status: READY_FOR_QA
+Branch name: joint-character-realistic-sprite-states
+Latest commit SHA: a44891f9fee5380e401b1fc92868ed18d4eeebfe
+Files created: README.md, JOINT_STATE_BREAKDOWN.md, manifest_joint.json, manifest_joint_state_index.json, prompt_sheets/JOINT_GENERATION_PROMPTS.md, .gitkeep files for required category folders.
+Folders created: apartment-god-production/04_JOINT_CHARACTER_STATES/ with bed_shared, couch_shared, conversation, hug, kiss, argument, dance, cook_together, eat_together, watch_tv, desk_shared, pet_dog_together, transitions, prompt_sheets.
+Art Bible read: yes
+Reference Library read: yes
+States/assets completed: 18 joint states planned and manifest-listed across bed shared, couch shared, conversation, hug, kiss, argument, dance, cook together, eat together, watch TV, desk shared, pet dog together, and reusable transitions. A/B/C or B-only bed/rest logic documented.
+Manifest status: manifest_joint.json is the primary Codex-consumable manifest and is valid JSON. Every planned state includes state_id, category, joint_type, included_characters, action_name, frame_count, frames, frame_logic, gameplay_tags, loop_frames, entry_frames, hold_frames, exit_frames, anchor_point, character_anchor_offsets, scale_notes, implementation_notes, and status.
+Generated assets/sheets: none.
+Blockers: none.
+Runtime files changed: no
+Ready for QA: yes
+Notes for game manager: Joint department is a planning, prompt, folder, and manifest pass only. Art Bible and Reference Library were read from art-bible-production-structure. Male, female, and dog manifests were considered from their department branches. No final sprite sheets were generated.
 
 ---
 
