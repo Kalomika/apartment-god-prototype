@@ -148,20 +148,20 @@ Notes for game manager:
 
 ## 05_DOG_CHARACTER
 
-Status: NOT_STARTED
-Branch name:
-Latest commit SHA:
-Files created:
-Folders created:
-Art Bible read:
-Reference Library read:
-States/assets completed:
-Manifest status:
-Generated assets/sheets:
-Blockers:
-Runtime files changed:
-Ready for QA:
-Notes for game manager:
+Status: READY_FOR_QA
+Branch name: dog-character-realistic-sprite-states
+Latest commit SHA: 9142dee3fc964b300c175322d841559517a62520
+Files created: README.md, DOG_STATE_BREAKDOWN.md, manifest_dog.json, manifest_dog_state_index.json, prompt_sheets/DOG_GENERATION_PROMPTS.md, .gitkeep files for required category folders.
+Folders created: apartment-god-production/05_DOG_CHARACTER/ with idle, walk, run, sit, sleep, eat_drink, pet_interaction, follow_human, play, bathroom, alert, transitions, prompt_sheets.
+Art Bible read: yes
+Reference Library read: yes
+States/assets completed: 63 planned dog states covering idle, 8-direction walk, 8-direction run, sit, randomized sleep holds, eat/drink, pet interaction/comfort, follow human, play/fetch, bathroom/needs, alert/bark/sniff, and reusable transitions.
+Manifest status: manifest_dog.json is the primary Codex-consumable manifest. It is valid JSON and includes every planned state with state_id, category, character_type, action_name, frame_count, planned frame names, frame_logic, gameplay_tags, loop_frames, entry_frames, hold_frames, exit_frames, anchor_point, scale_notes, implementation_notes, and status.
+Generated assets/sheets: none, not requested in this pass.
+Blockers: none.
+Runtime files changed: no
+Ready for QA: yes
+Notes for game manager: Dog department planning pass is complete against the installed Art Bible and Reference Library. No final art or runtime integration was attempted.
 
 ---
 
