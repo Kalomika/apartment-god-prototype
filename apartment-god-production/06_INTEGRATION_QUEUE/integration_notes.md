@@ -7,10 +7,27 @@ This folder is the QA handoff for the realistic cyberpunk asset pass. At this ch
 - Do not integrate rejected assets.
 - Do not integrate assets that are missing manifests.
 - Do not integrate planning notes as final art.
+- Do not integrate source reference images as final gameplay art.
 - Do not edit `src/` as part of this QA handoff.
 - Do not change Render settings.
 - Do not deploy.
 - Use `asset_registry.json` as the source of truth for approved assets.
+
+## Reference library requirement
+
+Before department assets can be approved, the shared reference library must be present and inspected at:
+
+`apartment-god-production/REFERENCE_LIBRARY/`
+
+Expected contents:
+
+- `01_environment_references/`
+- `02_human_realistic_topdown_linework/`
+- `03_dog_references/`
+- `README_REFERENCE_USE.md`
+- `reference_manifest.json`
+
+Use references for pose logic, top-down linework, environment mood, dog anatomy, and safe transition planning only. Do not copy, watermark, or commit source reference images as gameplay-ready art.
 
 ## Mapping guidance
 
@@ -24,8 +41,18 @@ This folder is the QA handoff for the realistic cyberpunk asset pass. At this ch
 - Idle should alternate A/B.
 - Walk and run should loop A/B/C.
 
+## Frame reuse guidance
+
+- Use crouch as a transition into and out of yoga or stretching.
+- Use sitting-on-bed as the middle frame between standing and lying down.
+- Use seated-chair as the middle frame for laptop, desk, food, and phone actions.
+- Use one-hand-on-floor and push-up pose logic as get-up-from-floor frames.
+- Use side, back, curled, and sprawl sleep references as randomized sleep holds.
+- Use two-person bed and couch reference logic for joint states.
+
 ## Current blockers before integration
 
+- The shared reference pack was not accessible in the repo or uploaded workspace during this QA pass.
 - The QA branch does not currently contain the Art Bible or department folders from the separate production branches.
 - The environment folder exists on its department branch, but its manifest uses non-template anchor and status fields.
 - The male folder exists on its department branch, but its manifest uses `states` instead of Art Bible `entries`, uses `prompt_ready` status, and uses a non-approved anchor label.
@@ -54,9 +81,10 @@ Do not break:
 
 ## Recommended integration order after rework
 
-1. Merge or recreate the Art Bible and department folders into one production branch.
-2. Normalize all manifests to the Art Bible template.
-3. Replace planning-only statuses with allowed status values.
-4. Add approved transparent PNG files or keep assets out of the registry.
-5. Re-run this QA pass.
-6. Start `realistic-cyberpunk-visual-integration` only after `asset_registry.json` contains approved assets.
+1. Add or unpack the shared reference library into `apartment-god-production/REFERENCE_LIBRARY/`.
+2. Merge or recreate the Art Bible and department folders into one production branch.
+3. Normalize all manifests to the Art Bible template.
+4. Replace planning-only statuses with allowed status values.
+5. Add approved transparent PNG files or keep assets out of the registry.
+6. Re-run this QA pass.
+7. Start `realistic-cyberpunk-visual-integration` only after `asset_registry.json` contains approved assets.
