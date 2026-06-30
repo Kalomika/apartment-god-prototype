@@ -4,11 +4,13 @@
 
 Branch: `top-shot-v0-1`
 
+Commit: `a6c36dd311dd102f9da803eae1d03625d07eab67`
+
 Previous terrain commit: `fdec5fa91855c5dd7e84e5dec62d6485d8501860`
 
-Render URL: `https://top-shot-prototype.onrender.com/?v=<latest-checkpoint-sha>`
+Render URL: `https://top-shot-prototype.onrender.com/?v=a6c36dd`
 
-Status: Terrain plus four procedural 3D archetypes are implemented locally and ready for live-branch validation/push. The exact pushed commit is reported in the handoff.
+Status: Terrain plus four procedural 3D archetypes are pushed to the live branch and Render smoke passed.
 
 ## Completed
 
@@ -36,10 +38,10 @@ Status: Terrain plus four procedural 3D archetypes are implemented locally and r
 - [x] `npm run build` passed for this checkpoint.
 - [x] Local browser smoke showed nonblank WebGL canvas pixels on desktop and mobile.
 - [x] Local browser smoke confirmed no console errors.
+- [x] Render browser smoke confirmed the public build loads, serves Three.js, keeps the canvas nonblank, and starts Shadow Ninja versus Field Agent.
 
 ## Pending
 
-- [ ] Push and verify this archetype checkpoint on Render.
 - [ ] Replace procedural actors with verified permissive GLB/glTF assets if the asset inbox becomes available.
 - [ ] Move existing CQC timing and request states onto visible 3D actor limb contact.
 - [ ] Add the next two archetypes: Jeet Fighter and Infiltration Soldier.
@@ -97,10 +99,11 @@ Status: Terrain plus four procedural 3D archetypes are implemented locally and r
 - [x] `npm run check`
 - [x] `npm run smoke`
 - [x] `npm run build`
+- [x] Render Playwright smoke against `https://top-shot-prototype.onrender.com/?v=a6c36dd`
 
 ## Render URL
 
-- [ ] Render URL will be updated in the handoff after this checkpoint is pushed.
+- [x] `https://top-shot-prototype.onrender.com/?v=a6c36dd`
 
 ## Next Recommended Task
 

@@ -95,6 +95,7 @@ Add Shadow Ninja and Field Agent as the next two visible 3D archetypes. If the a
 - `npm run smoke` passed, including Shadow Ninja versus Field Agent.
 - `npm run build` passed.
 - Local browser visual validation passed: default matchup still loads, Shadow Ninja and Field Agent can be selected, the WebGL canvas is nonblank, and the running HUD shows the selected archetypes.
+- Render browser smoke passed at `https://top-shot-prototype.onrender.com/?v=a6c36dd`: Three.js loaded from the live site, the WebGL canvas was nonblank, and Shadow Ninja versus Field Agent started without console or page errors.
 
 ### Weak spots
 
