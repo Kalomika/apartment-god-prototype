@@ -74,7 +74,7 @@ Notes for game manager: Art Bible department is complete for department use. Oth
 
 Status: READY_FOR_QA
 Branch name: apartment-environment-cyberpunk-assets
-Latest commit SHA: 1dc529df4138ba6f521de32fae41a927b0077245
+Latest commit SHA: 4a9a85eb8e776020e551175d3d39e3b36640eac2
 Files created: README.md, layout/ENV_LAYOUT_PLAN.md, layout/INTEGRATION_NOTES.md, walls_doors_windows/WALL_DOOR_WINDOW_LANGUAGE.md, rooms/ROOM_STYLE_GUIDE.md, props/PROP_ASSET_LIST.md, lighting/LIGHTING_STYLE_GUIDE.md, manifest_environment.json.
 Folders created: apartment-god-production/01_APARTMENT_ENVIRONMENT/ with layout, walls_doors_windows, rooms, props, lighting.
 Art Bible read: yes
