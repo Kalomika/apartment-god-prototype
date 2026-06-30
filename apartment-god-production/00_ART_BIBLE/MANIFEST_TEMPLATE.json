@@ -1,65 +1,68 @@
 {
-  "schema_version": "0.1.0",
+  "schema_version": "0.2.0",
   "project": "Apartment God Prototype",
+  "department": "REPLACE_WITH_DEPARTMENT_NAME",
   "asset_set": "REPLACE_WITH_ASSET_SET_NAME",
-  "owner": "REPLACE_WITH_ASSET_OWNER",
   "source_folder": "REPLACE_WITH_SOURCE_FOLDER",
   "review_folder": "REPLACE_WITH_REVIEW_FOLDER",
   "entries": [
     {
-      "state_id": "MALE_IDLE_STAND",
+      "state_id": "MALE_LAPTOP_DESK_TYPING",
+      "action_name": "laptop desk typing",
       "category": "character",
       "character_type": "male",
-      "frame_count": 4,
+      "frame_count": 3,
+      "frame_files": [
+        "MALE_LAPTOP_DESK_TYPING_01_A.png",
+        "MALE_LAPTOP_DESK_TYPING_02_B.png",
+        "MALE_LAPTOP_DESK_TYPING_03_C.png"
+      ],
       "frames": [
         {
           "frame_index": 1,
-          "file": "MALE_IDLE_STAND_01_A.png",
-          "duration": 100
+          "frame_role": "A",
+          "file": "MALE_LAPTOP_DESK_TYPING_01_A.png",
+          "duration_ms": 120,
+          "logic": "enter seated-chair desk typing pose"
         },
         {
           "frame_index": 2,
-          "file": "MALE_IDLE_STAND_02_A.png",
-          "duration": 100
+          "frame_role": "B",
+          "file": "MALE_LAPTOP_DESK_TYPING_02_B.png",
+          "duration_ms": 140,
+          "logic": "main typing hold or loop frame 1"
         },
         {
           "frame_index": 3,
-          "file": "MALE_IDLE_STAND_03_A.png",
-          "duration": 100
-        },
-        {
-          "frame_index": 4,
-          "file": "MALE_IDLE_STAND_04_A.png",
-          "duration": 100
+          "frame_role": "C",
+          "file": "MALE_LAPTOP_DESK_TYPING_03_C.png",
+          "duration_ms": 140,
+          "logic": "typing loop frame 2 or recovery"
         }
       ],
+      "abc_frame_logic": {
+        "A": "enter, anticipation, or transition into action",
+        "B": "main hold pose or loop frame 1",
+        "C": "exit, recovery, or loop frame 2"
+      },
       "gameplay_tags": [
-        "idle",
-        "standing",
+        "laptop",
+        "desk",
+        "typing",
+        "seated",
         "solo",
         "top_down"
       ],
-      "loop_frames": [
-        1,
-        2,
-        3,
-        4
-      ],
-      "entry_frames": [],
-      "hold_frames": [
-        2,
-        3
-      ],
-      "exit_frames": [],
+      "loop_frames": [2, 3],
+      "entry_frames": [1],
+      "hold_frames": [2],
+      "exit_frames": [3],
       "anchor_point": {
-        "label": "feet_center",
-        "normalized_xy": [
-          0.5,
-          0.86
-        ]
+        "label": "seat_center",
+        "normalized_xy": [0.5, 0.62]
       },
-      "scale_notes": "Adult proportions, realistic top-down linework, consistent with apartment furniture scale.",
-      "implementation_notes": "Transparent PNG frames. Do not integrate until QA status is approved.",
+      "scale_notes": "Adult realistic top-down proportions, clothing-neutral base, matched to desk and chair scale.",
+      "implementation_notes": "Transparent PNG target. Do not integrate until QA status is approved. Reference images are pose guidance only, not final assets.",
       "status": "draft"
     }
   ],
@@ -77,5 +80,24 @@
     "bed_center",
     "object_center",
     "joint_center"
+  ],
+  "required_entry_fields": [
+    "state_id",
+    "action_name",
+    "category",
+    "character_type",
+    "frame_count",
+    "frame_files",
+    "frames",
+    "abc_frame_logic",
+    "gameplay_tags",
+    "loop_frames",
+    "entry_frames",
+    "hold_frames",
+    "exit_frames",
+    "anchor_point",
+    "scale_notes",
+    "implementation_notes",
+    "status"
   ]
 }

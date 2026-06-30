@@ -1,19 +1,27 @@
-# Master Sprite State List
+# Sprite State List
 
-This document defines the initial state IDs for Apartment God Prototype production art. State IDs are uppercase snake case and should be used in manifests, filenames, review notes, and integration queue records.
+This is the master state list for Apartment God Prototype production art. State IDs use uppercase snake case and should match manifest entries, planned frame names, folder notes, and QA records.
 
-Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`, `W`, and `NW` when a full directional set is needed.
+## Frame suffix rule
 
-## Male Character States
+Most states use A/B/C logic.
+
+- A = enter, anticipation, or transition.
+- B = main hold pose or loop frame 1.
+- C = exit, recovery, or loop frame 2.
+
+Simple idle can use A/B. Sleep can use randomized holds instead of constant animation.
+
+## Male character states
 
 ### Idle
 
 - MALE_IDLE_STAND
 - MALE_IDLE_STAND_RELAXED
 - MALE_IDLE_STAND_TIRED
+- MALE_IDLE_SHIFT_WEIGHT
 - MALE_IDLE_TURN_HEAD
 - MALE_IDLE_LOOK_PHONE
-- MALE_IDLE_SHIFT_WEIGHT
 
 ### Walk
 
@@ -43,13 +51,16 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - MALE_SIT_DESK_IDLE
 - MALE_SIT_COUCH_IDLE
 - MALE_SIT_COUCH_LEAN_BACK
-- MALE_SIT_TABLE_IDLE
+- MALE_SIT_BED_EDGE
+- MALE_SIT_FLOOR_IDLE
 
 ### Sleep
 
-- MALE_SLEEP_BED_SOLO
-- MALE_SLEEP_BED_TURN
-- MALE_SLEEP_COUCH
+- MALE_SLEEP_BED_SOLO_BACK
+- MALE_SLEEP_BED_SOLO_SIDE
+- MALE_SLEEP_BED_SOLO_CURLED
+- MALE_SLEEP_BED_SOLO_SPRAWL
+- MALE_SLEEP_COUCH_SIDE
 - MALE_WAKE_BED
 
 ### Phone
@@ -58,6 +69,7 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - MALE_PHONE_STAND_CALL
 - MALE_PHONE_COUCH_SCROLL
 - MALE_PHONE_DESK_CHECK
+- MALE_PHONE_BED_SCROLL
 
 ### Laptop
 
@@ -65,6 +77,7 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - MALE_LAPTOP_DESK_IDLE
 - MALE_LAPTOP_COUCH_TYPING
 - MALE_LAPTOP_COUCH_IDLE
+- MALE_LAPTOP_BED_IDLE
 
 ### Cooking
 
@@ -81,7 +94,7 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - MALE_EATING_COUCH_IDLE
 - MALE_EATING_COUNTER_IDLE
 
-### Shower and Bathroom
+### Shower and bathroom
 
 - MALE_SHOWER_ENTER
 - MALE_SHOWER_LOOP
@@ -95,24 +108,27 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - MALE_READING_COUCH
 - MALE_READING_BED
 - MALE_READING_DESK
+- MALE_READING_FLOOR
 
-### Exercise
+### Exercise and floor transitions
 
 - MALE_EXERCISE_PUSHUP
 - MALE_EXERCISE_STRETCH
+- MALE_EXERCISE_YOGA_CROUCH_TRANSITION
 - MALE_EXERCISE_SQUAT
 - MALE_EXERCISE_FLOOR_REST
+- MALE_GET_UP_FROM_FLOOR_ONE_HAND
 
-## Female Character States
+## Female character states
 
 ### Idle
 
 - FEMALE_IDLE_STAND
 - FEMALE_IDLE_STAND_RELAXED
 - FEMALE_IDLE_STAND_TIRED
+- FEMALE_IDLE_SHIFT_WEIGHT
 - FEMALE_IDLE_TURN_HEAD
 - FEMALE_IDLE_LOOK_PHONE
-- FEMALE_IDLE_SHIFT_WEIGHT
 
 ### Walk
 
@@ -142,13 +158,16 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - FEMALE_SIT_DESK_IDLE
 - FEMALE_SIT_COUCH_IDLE
 - FEMALE_SIT_COUCH_LEAN_BACK
-- FEMALE_SIT_TABLE_IDLE
+- FEMALE_SIT_BED_EDGE
+- FEMALE_SIT_FLOOR_IDLE
 
 ### Sleep
 
-- FEMALE_SLEEP_BED_SOLO
-- FEMALE_SLEEP_BED_TURN
-- FEMALE_SLEEP_COUCH
+- FEMALE_SLEEP_BED_SOLO_BACK
+- FEMALE_SLEEP_BED_SOLO_SIDE
+- FEMALE_SLEEP_BED_SOLO_CURLED
+- FEMALE_SLEEP_BED_SOLO_SPRAWL
+- FEMALE_SLEEP_COUCH_SIDE
 - FEMALE_WAKE_BED
 
 ### Phone
@@ -157,6 +176,7 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - FEMALE_PHONE_STAND_CALL
 - FEMALE_PHONE_COUCH_SCROLL
 - FEMALE_PHONE_DESK_CHECK
+- FEMALE_PHONE_BED_SCROLL
 
 ### Laptop
 
@@ -164,6 +184,7 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - FEMALE_LAPTOP_DESK_IDLE
 - FEMALE_LAPTOP_COUCH_TYPING
 - FEMALE_LAPTOP_COUCH_IDLE
+- FEMALE_LAPTOP_BED_IDLE
 
 ### Cooking
 
@@ -180,7 +201,7 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - FEMALE_EATING_COUCH_IDLE
 - FEMALE_EATING_COUNTER_IDLE
 
-### Shower and Bathroom
+### Shower and bathroom
 
 - FEMALE_SHOWER_ENTER
 - FEMALE_SHOWER_LOOP
@@ -194,15 +215,18 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - FEMALE_READING_COUCH
 - FEMALE_READING_BED
 - FEMALE_READING_DESK
+- FEMALE_READING_FLOOR
 
-### Exercise
+### Exercise and floor transitions
 
 - FEMALE_EXERCISE_PUSHUP
 - FEMALE_EXERCISE_STRETCH
+- FEMALE_EXERCISE_YOGA_CROUCH_TRANSITION
 - FEMALE_EXERCISE_SQUAT
 - FEMALE_EXERCISE_FLOOR_REST
+- FEMALE_GET_UP_FROM_FLOOR_ONE_HAND
 
-## Dog Character States
+## Dog states
 
 ### Idle
 
@@ -242,8 +266,10 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 
 ### Sleep
 
-- DOG_SLEEP_FLOOR
-- DOG_SLEEP_DOG_BED
+- DOG_SLEEP_FLOOR_CURLED
+- DOG_SLEEP_FLOOR_SIDE
+- DOG_SLEEP_DOG_BED_CURLED
+- DOG_SLEEP_DOG_BED_SIDE
 - DOG_SLEEP_COUCH
 - DOG_SLEEP_TWITCH
 
@@ -266,7 +292,7 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - DOG_FETCH_CARRY
 - DOG_FETCH_DROP
 
-### Eat and Drink
+### Eat and drink
 
 - DOG_EAT_BOWL
 - DOG_DRINK_BOWL
@@ -284,14 +310,16 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - DOG_COMFORT_LIE_NEAR
 - DOG_COMFORT_PAW_TOUCH
 
-## Joint and Two-Person States
+## Joint and two-person states
 
 - JOINT_HUG_STAND
 - JOINT_HUG_SIDE
 - JOINT_KISS_STAND
 - JOINT_CUDDLE_COUCH
 - JOINT_CUDDLE_BED
-- JOINT_SLEEP_TOGETHER_BED
+- JOINT_SLEEP_TOGETHER_BED_BACK_SIDE
+- JOINT_SLEEP_TOGETHER_BED_CURLED
+- JOINT_SLEEP_TOGETHER_BED_SPRAWL
 - JOINT_WATCH_TV_TOGETHER_COUCH
 - JOINT_PRIVATE_MOMENT_SAFE_BED
 - JOINT_EATING_TOGETHER_TABLE
@@ -303,9 +331,9 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - JOINT_PASS_OBJECT
 - JOINT_COOKING_TOGETHER_COUNTER
 
-## Apartment and Environment States
+## Apartment and environment states
 
-### Floor and Layout
+### Layout
 
 - ENV_FLOOR_1_BASE_LAYOUT
 - ENV_FLOOR_1_NIGHT_LAYOUT
@@ -313,7 +341,7 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - ENV_FLOOR_1_CLUTTER_HEAVY
 - ENV_FLOOR_1_CLEANED
 
-### Walls, Doors, and Windows
+### Walls, doors, windows
 
 - ENV_WALLS_DARK_BASE
 - ENV_DOORS_CLOSED
@@ -361,6 +389,19 @@ Directional movement states may use the suffixes `N`, `NE`, `E`, `SE`, `S`, `SW`
 - ENV_LIGHTING_BATHROOM_PRACTICAL
 - ENV_LIGHTING_ALARM_RED
 
-## State Approval Note
+## QA and integration records
 
-New states can be added later, but they must follow this naming logic and must be added here before asset production starts.
+These IDs are not gameplay sprite states. They are production records that may appear in QA and integration manifests.
+
+- QA_STYLE_REVIEW_PENDING
+- QA_STYLE_REVIEW_APPROVED
+- QA_STYLE_REVIEW_REWORK
+- QA_STYLE_REVIEW_REJECTED
+- INTEGRATION_QUEUE_APPROVED_ASSET
+- INTEGRATION_QUEUE_BLOCKED_ASSET
+- INTEGRATION_QUEUE_RUNTIME_READY
+- INTEGRATION_QUEUE_NEEDS_MANIFEST_FIX
+
+## New state rule
+
+New states may be added later only if they follow the naming rules, anchor rules, A/B/C logic, manifest requirements, and realistic top-down cyberpunk style target.

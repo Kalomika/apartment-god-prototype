@@ -1,157 +1,199 @@
-# Apartment God Prototype Visual Style Guide
+# Visual Style Guide
 
-This document defines the target look for the upgraded Apartment God Prototype art pipeline. Every asset chat, sprite pass, reference board, and production handoff should match this guide before anything moves into an integration queue.
+This guide defines the master visual rules for the upgraded realistic cyberpunk version of Apartment God Prototype. Every department must follow this before creating final gameplay assets.
 
-## Core Direction
+## Core visual target
 
-Apartment God Prototype is a realistic top-down cyberpunk life simulation set inside an apartment world. The future look should feel grounded, adult, lived in, and readable from gameplay distance.
+Apartment God Prototype should look like a realistic top-down life simulation set inside a dark cyberpunk apartment. The upgraded art should move away from cute procedural placeholders and toward adult, grounded, readable linework.
 
-The style target is realistic human linework seen from an orthographic top-down camera. Characters should feel like adults living in a cramped cyberpunk apartment, not mascots, toys, icons, emojis, or chibi sprites.
+The target is:
 
-## Camera and Projection
+- Realistic top-down human linework.
+- Adult Black male and female character sprites.
+- Realistic white or off-white dog sprite base, color-changeable later.
+- Cyberpunk apartment interiors with dark wall masses, blue-grey floors, neon cyan and magenta accents, tech clutter, and lived-in details.
+- Orthographic top-down staging with gameplay clarity.
+- Clear collision logic, doorway logic, furniture footprint logic, and prop readability.
 
-- Use an orthographic top-down game view.
-- Keep perspective distortion minimal.
-- Keep silhouettes readable at gameplay scale.
-- Keep props and furniture aligned to the same apartment floor grid.
-- Avoid dramatic side-view poses unless the state specifically needs a bed, couch, or floor interaction.
-- Avoid camera angles that make the sprite feel like a portrait, sticker, or side-scroller frame.
+## Forbidden style rules
 
-## Human Proportions
+Do not make the game look like:
 
-Human characters must use adult proportions.
+- Chibi sprites.
+- Cute toy characters.
+- Mascot bodies.
+- Emoji acting.
+- Sticker art.
+- Oversized-head character icons.
+- Childlike adult proportions.
+- Rounded mobile-game dolls.
+- Generic cute apartment icons.
+- Watermarked reference images used as final art.
+- AI images with broken anatomy used as final art.
 
-Do:
-- Use realistic adult anatomy.
-- Keep heads proportional to bodies.
-- Keep shoulders, hips, arms, legs, hands, and feet believable.
-- Show enough anatomical structure for the pose to read from overhead.
-- Use pose language that feels natural and restrained.
-- Build movement out of weight, balance, and body mechanics.
+Any asset that feels cute, toy-like, mascot-like, emoji-like, or childlike must be rejected or sent to rework.
 
-Do not:
-- Use chibi proportions.
-- Use oversized heads.
-- Use baby-like hands or feet.
-- Use cute toy bodies.
-- Use emoji body language.
-- Use bouncy mascot poses.
-- Use childish proportions for adult characters.
+## Camera and projection
 
-## Linework Expectations
-
-The linework should feel hand drawn, controlled, and practical for gameplay.
+The game view is orthographic top-down.
 
 Required:
-- Clean exterior contour lines.
-- Slightly heavier outer silhouettes.
-- Thinner interior lines for clothing folds, limbs, hair, and props.
-- Clear separation between overlapping limbs.
-- Enough detail to feel realistic without becoming noisy.
-- Transparent PNG delivery for sprites.
-- Consistent scale, anchor point, and state ID across frames.
+
+- Characters and furniture must feel viewed from above.
+- Top planes, shoulders, head masses, torso angles, beds, couches, desks, and floors must all agree with the camera.
+- Standing characters should show top plane logic through head, shoulders, torso, arms, and feet placement.
+- Sitting, sleeping, couch, bed, laptop, eating, and phone states must align with the furniture footprint.
+- No side-scroller camera logic unless a pose naturally exposes a side plane while still reading from top-down.
 
 Avoid:
-- Sketch fuzz.
-- Random scratch marks.
-- Icon style simplification.
-- Unreadable black blobs.
-- Overly thick cartoon outlines.
-- Soft painterly edges on gameplay sprites.
-- AI artifacts, extra fingers, fused limbs, broken joints, or mismatched anatomy.
 
-## Cyberpunk Apartment Tone
+- Portrait angle sprites.
+- Front-view character stickers.
+- Isometric furniture mixed with flat top-down bodies.
+- Decorative room paintings that break gameplay collision readability.
 
-The apartment should feel dark, cramped, expensive to maintain, and lived in. It is not a clean sci-fi showroom. The space should feel like someone actually sleeps, eats, works, argues, relaxes, and survives there.
+## Linework rules
 
-Use:
-- Dark walls.
-- Low ambient light.
-- Neon cyan and magenta accents.
-- Small practical light sources.
-- Lived-in clutter.
-- Cables, laundry, takeout, tools, monitors, dishes, papers, and personal objects.
-- Furniture that feels used, not showroom perfect.
-- Clear room function, even when messy.
-
-Avoid:
-- Empty rooms.
-- Cute dollhouse layouts.
-- Bright toy colors.
-- Sterile white sci-fi interiors.
-- Generic emoji apartment props.
-- Flat procedural rooms with no life.
-
-## Lighting Direction
-
-Lighting should support readability first, mood second.
+Linework should be clean, realistic, and readable at gameplay scale.
 
 Required:
-- Characters must still read clearly over dark floors and walls.
-- Neon should rim or accent forms, not erase them.
-- Cyan and magenta lights may separate room zones.
-- Use small pools of light around lamps, screens, windows, and appliances.
-- Keep shadows graphic and readable.
 
-Do not:
-- Flood every asset with neon.
-- Hide gameplay silhouettes in darkness.
-- Use neon as a replacement for drawing structure.
-- Overuse bloom in source art.
-- Bake lighting so hard that runtime color correction cannot work.
+- Slightly heavier outer contour lines.
+- Controlled interior lines for clothing folds, joints, hair, fingers, paws, furniture edges, and clutter.
+- Clear limb overlap.
+- Strong silhouettes.
+- No unnecessary scratch noise.
+- No muddy black blobs.
+- Transparent PNG target for final sprites.
+- Consistent canvas size and anchor point per state.
 
-## Color Direction
+Do not use heavy cartoon outlines, cute icon outlines, or painterly smears that remove the drawing structure.
 
-The palette should stay controlled and mature.
+## Human sprite rules
+
+Human characters must use adult proportions and realistic top-down pose construction.
+
+Required:
+
+- Adult Black male sprite base.
+- Adult Black female sprite base.
+- Clothing-neutral base look.
+- Simple fitted base clothing, such as tank, tee, fitted shorts, fitted leggings, simple sleepwear, or clean safe mannequin line-art with no explicit body detail.
+- No nude characters.
+- No explicit anatomical detail.
+- Head scale must be realistic.
+- Hands and feet must be believable.
+- Shoulders, hips, spine, elbows, knees, and wrists must follow natural pose mechanics.
+
+Pose language must be natural, not emoji acting. A tired pose should read through weight, shoulder angle, neck angle, and stance. A phone pose should read through hand and head direction, not a giant emoji gesture.
+
+## Reusable human pose logic
+
+Use nearby realistic top-down references to create missing A/B/C frames.
+
+Required reuse rules:
+
+- Crouch can transition into and out of yoga, stretching, floor reach, and floor recovery.
+- Sitting-on-bed can be the middle frame between standing and lying down.
+- Seated-chair can be the middle frame for laptop, desk, food, phone, and reading actions.
+- One-hand-on-floor and push-up poses can be get-up-from-floor frames.
+- Side, back, curled, and sprawl sleep poses can be randomized sleep holds.
+- Two-person bed and couch references define joint state logic.
+
+## A/B/C frame logic
+
+Most states use A/B/C planning.
+
+- A means enter, anticipation, or transition into the action.
+- B means main hold pose or loop frame 1.
+- C means exit, recovery, or loop frame 2.
+
+Simple idle can use A/B.
+
+- A means neutral.
+- B means subtle breathing, weight shift, head turn, or tail shift.
+
+Walk and run use A/B/C as a low-frame loop.
+
+Laptop, phone, cooking, eating, reading, and similar actions should enter on A, then loop or hold B/C.
+
+Sleep and rest should use multiple randomized hold poses. Do not over-animate sleep yet.
+
+## Joint sprite rules
+
+Joint states must feel like two adult bodies sharing one action from a top-down view.
+
+Required:
+
+- Use `joint_center` anchor logic.
+- Keep both characters adult-proportioned.
+- Match couch, bed, chair, table, and floor scale.
+- Use believable overlap, contact, and weight.
+- Avoid cute shorthand symbols, floating hearts, emoji gestures, or mascot acting.
+- Private moment safe states must stay non-explicit and gameplay-safe.
+
+## Dog sprite rules
+
+The dog should be a realistic white or off-white dog base that can be recolored later.
+
+Required:
+
+- Natural adult dog anatomy.
+- Realistic head-to-body ratio.
+- Readable spine, shoulder, hip, leg, paw, snout, and tail logic.
+- No giant head.
+- No cute puppy mascot proportions.
+- No emoji expressions.
+- No cartoon eyebrow acting.
+- Use natural dog body language for bark, sniff, comfort, fetch, sleep, and play.
+
+The dog should read as a real animal living in the apartment, not a mascot sidekick.
+
+## Apartment environment rules
+
+The apartment must support gameplay first, mood second.
+
+Required:
+
+- Dark wall masses.
+- Dark blue-grey or charcoal floors.
+- Cyan and magenta neon strips.
+- Lit windows.
+- Tech clutter.
+- Cables, screens, small appliances, bowls, laundry, takeout, tools, books, and personal mess.
+- Readable furniture footprints.
+- Clear doorways and collision edges.
+- Props that show life without blocking pathfinding readability.
+
+Avoid flat decorative images that look nice but cannot be understood as gameplay spaces.
+
+## Lighting rules
+
+Lighting should separate space and mood without destroying readability.
 
 Use:
-- Deep charcoal walls.
-- Blue-black shadows.
-- Muted concrete or worn wood floors.
-- Desaturated furniture colors.
-- Cyan, magenta, violet, and amber as accents.
-- Skin, hair, clothing, and dog colors that remain believable under colored light.
 
-Avoid:
-- Pastel candy palettes.
-- Bubblegum pink as a dominant color.
-- Toy-store primary colors.
-- Cute sticker colors.
-- Random rainbow lighting.
-- Flat app icon colors.
+- Cyan edge glow.
+- Magenta wall strips.
+- Dim amber practicals.
+- Cool bathroom light.
+- Monitor glow.
+- Window light.
+- Controlled red alert lighting only for special states.
 
-## Gameplay Readability Rules
+Avoid flooding the entire asset with neon. Linework and silhouettes must stay readable.
 
-Every asset must pass these checks before approval:
+## Approval standard
 
-- The state is readable at gameplay scale.
-- The character type is clear.
-- The action is clear without a text label.
-- The silhouette is not swallowed by the environment.
-- The anchor point stays stable across frames.
-- The sprite does not pop in size between states.
-- The style matches the other approved assets.
-- The asset can be used by runtime later without repainting the whole game.
+A finished asset must be:
 
-## Forbidden Styles
-
-The following styles are not allowed for final production assets:
-
-- Chibi.
-- Kawaii.
-- Emoji.
-- Cute mascot.
-- Toy figure.
-- Rounded mobile icon.
-- Childish sticker.
-- Procedural placeholder art.
-- Watermarked reference art as final art.
-- Overly clean sci-fi showroom.
-- Thick cartoon outline style.
-- AI output with visible anatomy errors.
-- Uncontrolled photobash.
-- Anything that ignores the top-down apartment view.
-
-## Approval Standard
-
-A finished asset should look like it belongs in a realistic cyberpunk apartment life sim. It should be adult, grounded, readable, and consistent with the production scale. If an asset looks cute, toy-like, childish, icon-like, or unrelated to the apartment tone, it goes to rework or rejection.
+- Realistic top-down.
+- Adult in proportion for humans.
+- Natural in anatomy for the dog.
+- Cyberpunk apartment appropriate.
+- Readable at gameplay scale.
+- Correctly named.
+- Manifest-listed.
+- Anchored correctly.
+- Free of watermarks and source references.
+- Safe for future runtime integration.

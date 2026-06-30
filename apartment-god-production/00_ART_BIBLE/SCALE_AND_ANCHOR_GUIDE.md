@@ -1,12 +1,10 @@
 # Scale and Anchor Guide
 
-This guide defines how Apartment God Prototype sprites should be scaled and anchored before they enter production review.
+This guide defines how sprites and environment assets should be anchored for stable gameplay placement.
 
-The goal is stable gameplay placement. Sprites can have rich linework, but they must not slide, pop, or change world scale between states.
+## Anchor labels
 
-## Anchor Labels
-
-Use these anchor labels in manifests:
+Allowed anchor labels:
 
 - body_center
 - feet_center
@@ -15,47 +13,47 @@ Use these anchor labels in manifests:
 - object_center
 - joint_center
 
-## General Scale Rules
+## Global scale rules
 
-- Male, female, dog, furniture, and room assets must share one apartment scale.
+- Male, female, dog, furniture, rooms, and props must share one apartment scale.
 - Adult human heads must not be enlarged for cuteness.
 - Furniture must be scaled to adult bodies.
-- Dogs must be scaled against the humans, not against icon art.
-- Props must be readable without becoming larger than believable real objects.
-- Every animation should preserve the same anchor label across the full state unless the manifest clearly explains a state transition.
+- Dog scale must be believable next to adult humans.
+- Props must be readable without becoming larger than real objects.
+- Related states must not pop in size.
+- Anchor points should stay stable across A/B/C frames unless the state intentionally moves through space.
 
-## Standing Human Sprites
+## Standing human sprites
 
 Primary anchor:
 
-`feet_center`
+```txt
+feet_center
+```
 
 Use for:
 
 - Idle standing.
-- Walk.
-- Run.
-- Standing phone states.
-- Standing conversation states.
+- Walking.
+- Running.
+- Standing phone.
+- Standing conversation.
+- Standing joint states when feet placement matters.
 
 Placement:
 
-- The anchor sits between the feet at the ground contact point.
-- The body should balance naturally over the anchor.
-- The head, shoulders, torso, arms, and legs must stay adult-proportioned.
-- The sprite may lean, but the anchor should not drift unless the feet actually move.
+- Anchor sits between the feet at the ground contact point.
+- Body mass should balance naturally over the anchor.
+- Head, shoulders, torso, arms, legs, hands, and feet must stay adult-proportioned.
+- The body may lean, but the anchor should not drift unless foot placement changes.
 
-Secondary review point:
-
-`body_center`
-
-Use `body_center` in notes to check targeting, collision, and visual centering.
-
-## Sitting Human Sprites
+## Sitting human sprites
 
 Primary anchor:
 
-`seat_center`
+```txt
+seat_center
+```
 
 Use for:
 
@@ -64,40 +62,47 @@ Use for:
 - Couch sitting.
 - Table eating.
 - Laptop desk use.
+- Phone on couch.
+- Reading while seated.
 
 Placement:
 
-- The anchor sits at the center of weight where the body meets the seat.
-- Legs can extend beyond the anchor.
-- Arms can reach to a laptop, food, phone, or table prop.
-- The pose must match the scale and angle of the furniture.
+- Anchor sits where body weight meets the seat.
+- Legs may extend forward from the seat.
+- Arms may reach to laptop, food, phone, book, table, or desk.
+- Pose must match furniture scale and angle.
 
-## Bed Pose Sprites
+## Bed pose sprites
 
 Primary anchor:
 
-`bed_center`
+```txt
+bed_center
+```
 
 Use for:
 
 - Solo sleep.
-- Wake up.
+- Wake bed.
+- Sitting-on-bed transition.
 - Cuddle bed.
 - Sleep together.
-- Private moment safe states.
+- Private moment safe bed states.
 
 Placement:
 
-- The anchor aligns to the center of the bed interaction area.
-- Human bodies must fit the bed at adult scale.
+- Anchor aligns to the bed interaction center.
+- Bodies must fit the bed at adult scale.
 - Pillows, blankets, and body overlap must remain readable.
-- Do not shrink or enlarge people just to fit the bed art.
+- Do not shrink or enlarge people to fit a bed drawing.
 
-## Couch Pose Sprites
+## Couch pose sprites
 
 Primary anchor:
 
-`seat_center`
+```txt
+seat_center
+```
 
 Use for:
 
@@ -110,16 +115,18 @@ Use for:
 
 Placement:
 
-- The anchor aligns with the couch seating area.
+- Anchor aligns with the couch seating area.
 - Bodies should sit into the couch, not float above it.
-- Feet and knees should respect the couch front edge.
-- Joint couch states must match the same couch scale as solo sitting states.
+- Knees and feet should respect the couch front edge.
+- Joint couch states must match solo couch scale.
 
-## Joint Pose Sprites
+## Joint sprites
 
 Primary anchor:
 
-`joint_center`
+```txt
+joint_center
+```
 
 Use for:
 
@@ -134,61 +141,81 @@ Use for:
 
 Placement:
 
-- The anchor sits at the visual center of the shared action.
+- Anchor sits at the visual center of the shared action.
 - Both characters must remain adult-proportioned.
-- Bodies must overlap believably.
-- The state must read as a shared action from top-down gameplay scale.
-- Avoid emoji pose language and exaggerated cartoon acting.
+- Body overlap must feel believable from top-down.
+- Shared action must read at gameplay scale.
+- Do not use emoji shorthand or floating symbols to explain the action.
 
-## Dog Sprites
-
-Primary anchors:
-
-`body_center` for idle, sit, sleep, bark, sniff, eat, drink, play, and comfort states.
-
-`feet_center` for walk and run states when the dog needs movement alignment.
-
-Placement:
-
-- The anchor should stay stable under the dog mass.
-- The dog must feel like a real animal, not a mascot.
-- Tail and head motion can add life, but they should not change body scale.
-- Dog comfort states must align to the human pose or furniture state they touch.
-
-## Furniture and Prop Sprites
+## Dog sprites
 
 Primary anchor:
 
-`object_center`
+```txt
+body_center
+```
+
+Use for:
+
+- Idle.
+- Sit.
+- Sleep.
+- Bark.
+- Sniff.
+- Eat.
+- Drink.
+- Play.
+- Comfort.
+
+Movement anchor:
+
+```txt
+feet_center
+```
+
+Use for walk and run cycles if runtime placement needs foot contact consistency.
+
+Placement:
+
+- Anchor should sit under the dog body mass.
+- The dog must use realistic animal proportions.
+- Tail and head movement can add life without changing body scale.
+- Comfort states must align with the human or furniture pose being touched.
+
+## Furniture and props
+
+Primary anchor:
+
+```txt
+object_center
+```
 
 Use for:
 
 - Tables.
 - Desks.
-- Lamps.
 - Appliances.
+- Lamps.
 - Bowls.
-- Clutter objects.
-- Loose props.
+- Loose clutter.
+- Screens.
 
 Special anchors:
 
-`seat_center` for chairs, couches, and stools.
-
-`bed_center` for beds.
+- `seat_center` for chairs, couches, and stools.
+- `bed_center` for beds.
 
 Placement:
 
-- The anchor sits at the gameplay placement center.
-- Objects must align to the apartment floor grid.
-- Props should not hide playable characters unless intentionally layered.
-- Clutter should support tone while preserving path readability.
+- Anchor sits at gameplay placement center.
+- Objects must align to apartment floor grid.
+- Furniture footprints must support collision logic.
+- Doorways must remain visually and mechanically clear.
+- Clutter should support tone without hiding path readability.
 
-## Anchor Data Format
+## Manifest anchor format
 
-Use a normalized anchor point in manifests.
-
-Example:
+Use this structure in manifests:
 
 ```json
 {
@@ -199,15 +226,17 @@ Example:
 }
 ```
 
-The label defines the intended gameplay anchor. The normalized values define the exact pixel placement inside the sprite canvas.
+The label defines gameplay intent. The normalized values define exact placement in the sprite canvas.
 
-## Rejection Triggers
+## Rejection triggers
 
-Send the asset to rework if:
+Send an asset to rework if:
 
-- The anchor changes between frames without reason.
-- The sprite grows or shrinks between related states.
-- The character looks like a child or chibi figure.
+- Anchor changes between frames without reason.
+- Sprite grows or shrinks between related states.
+- Human sprite looks childlike, chibi, or toy-like.
+- Dog sprite looks like a mascot or puppy icon.
 - Furniture scale does not match adult humans.
-- The action reads only from a side view.
-- The top-down placement is unclear.
+- Action reads only from a side view.
+- Top-down placement is unclear.
+- Collision footprint cannot be understood.

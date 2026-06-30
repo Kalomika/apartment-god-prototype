@@ -1,12 +1,14 @@
 # Color Palette
 
-This document defines the target color language for Apartment God Prototype production art.
+This document defines the target color language for the upgraded Apartment God Prototype art direction.
 
-The palette should support a dark cyberpunk apartment tone while keeping gameplay silhouettes readable.
+## Palette intent
 
-## Core Apartment Palette
+The apartment should feel dark, adult, cyberpunk, lived in, and readable. Neon colors should act as accents and light sources, not as the entire color identity.
 
-| Use | Color Name | Hex |
+## Core apartment palette
+
+| Use | Color name | Hex |
 | --- | --- | --- |
 | Deep wall base | Night Charcoal | #111218 |
 | Secondary wall | Blue Black | #151927 |
@@ -17,9 +19,9 @@ The palette should support a dark cyberpunk apartment tone while keeping gamepla
 | Metal surface | Gunmetal | #424854 |
 | Old appliance | Dull Graphite | #2E333A |
 
-## Neon Accent Palette
+## Neon accent palette
 
-| Use | Color Name | Hex |
+| Use | Color name | Hex |
 | --- | --- | --- |
 | Primary cyan neon | Electric Cyan | #00E5FF |
 | Cyan glow edge | Pale Cyan | #8CF6FF |
@@ -29,11 +31,9 @@ The palette should support a dark cyberpunk apartment tone while keeping gamepla
 | Warning accent | Dirty Amber | #FFB23F |
 | Alarm accent | Signal Red | #FF3B30 |
 
-## Wall Colors
+## Wall colors
 
-Use dark, low-reflective wall colors.
-
-Preferred:
+Preferred wall range:
 
 - #111218
 - #151927
@@ -41,40 +41,37 @@ Preferred:
 - #202431
 - #252733
 
-Avoid pure black except for deep occlusion or linework. Walls should still show planes, corners, damage, and trim.
+Walls should be dark but not flat pure black. Planes, corners, trim, damage, screens, and light strips should remain visible.
 
-## Floor Colors
+## Floor colors
 
-Floors should feel worn and lived in.
+Preferred floor range:
 
-Preferred:
-
-- #3A3C42 for concrete.
+- #3A3C42 for worn concrete.
 - #2B211E for dark wood.
 - #252A32 for painted industrial flooring.
 - #1D222B for shadowed floor zones.
 
-Add subtle scuffs, stains, seams, and worn traffic paths where useful.
+Add subtle scuffs, stains, seams, and traffic wear where useful.
 
-## Furniture Colors
+## Furniture colors
 
-Furniture should be muted and practical.
-
-Preferred:
+Preferred furniture colors:
 
 - Charcoal fabric.
 - Dark brown leather.
 - Black metal.
 - Dull chrome.
 - Smoked glass.
-- Dark red or dark teal only as controlled accents.
-- Worn beige or gray for old apartment pieces.
+- Muted burgundy.
+- Dark teal.
+- Old beige or gray for worn apartment pieces.
 
-Avoid clean plastic toy colors.
+Avoid clean toy plastic colors.
 
-## Screen and Practical Light Colors
+## Screen and practical light colors
 
-Use small, believable light sources:
+Use small believable light sources:
 
 - Cyan monitor glow.
 - Magenta signage spill.
@@ -84,11 +81,11 @@ Use small, believable light sources:
 - Blue TV spill.
 - Violet window spill.
 
-Neon should be an accent. It should not cover every object.
+Do not cover every object with neon. Keep forms readable.
 
-## Male Character Color Guidance
+## Male character color guidance
 
-Use grounded clothing colors that hold up under neon lighting.
+Use grounded base clothing that stays readable under neon lighting.
 
 Preferred:
 
@@ -99,13 +96,13 @@ Preferred:
 - Muted burgundy.
 - Worn denim.
 - Gray shoes.
-- Controlled cyan or magenta trim only if needed.
+- Controlled cyan or magenta trim only when needed.
 
-Skin, hair, and clothing should remain readable on dark floors.
+The male character base should support a Black adult character design and future clothing overlays.
 
-## Female Character Color Guidance
+## Female character color guidance
 
-Use grounded clothing colors and realistic material contrast.
+Use grounded base clothing with realistic material contrast.
 
 Preferred:
 
@@ -116,27 +113,36 @@ Preferred:
 - Muted red.
 - Worn denim.
 - Warm gray.
-- Controlled neon accent pieces only if needed.
+- Controlled neon accent pieces only when needed.
 
-Avoid cute fashion-doll color logic unless a specific character concept later justifies it.
+The female character base should support a Black adult character design and future clothing overlays.
 
-## Dog Color Guidance
+## Dog color guidance
 
-Dogs should use natural coat colors.
+The first dog base should be white or off-white, with clean separable linework so later recolors are possible.
 
-Preferred:
+Preferred dog base range:
 
-- Black.
-- Brown.
-- Tan.
-- Cream.
-- Gray.
-- Mixed markings.
-- Muted collar colors.
+- #F2F0E8
+- #E8E3D8
+- #D9D2C4
+- #BFB7AA for shadow accents.
 
-Avoid mascot color schemes, candy colors, or exaggerated cartoon markings.
+Do not use candy-colored fur, mascot markings, or exaggerated cartoon patches.
 
-## Forbidden Overly Cute Colors
+## Clothing-neutral base colors
+
+For early human sprite production, use restrained base clothing:
+
+- Dark tank or tee.
+- Fitted shorts.
+- Fitted leggings.
+- Simple sleepwear.
+- Plain socks or simple shoes.
+
+Do not use detailed fashion styling yet. Clothing overlays and outfit variants can be added later.
+
+## Forbidden overly cute colors
 
 Avoid these as dominant production colors:
 
@@ -151,14 +157,14 @@ Avoid these as dominant production colors:
 - Rainbow gradients.
 - Soft nursery palettes.
 
-These colors may only appear as tiny prop accents if they serve the apartment story and do not shift the game toward a cute style.
+Tiny prop accents may use brighter colors only when they support apartment story and do not shift the game toward a cute style.
 
 ## Palette QA
 
 Before approval, check:
 
-- The asset reads on dark walls or floors.
+- Asset reads on dark wall and floor colors.
 - Neon accents do not destroy linework.
-- Skin, hair, clothing, and props remain separated.
-- The room still feels like a cyberpunk apartment.
-- The palette does not make the game feel childish, cute, or toy-like.
+- Skin, hair, clothing, and props stay separated.
+- Room still feels like a cyberpunk apartment.
+- Palette does not make the game feel childish, cute, or toy-like.
