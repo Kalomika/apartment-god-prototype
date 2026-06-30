@@ -1,0 +1,37 @@
+{
+  "project": "Apartment God Prototype",
+  "library": "shared reference library",
+  "visual_version": "realistic_cyberpunk_v1",
+  "zip_source": "apartment_god_shared_reference_pack.zip",
+  "repo_location": "apartment-god-production/REFERENCE_LIBRARY/",
+  "reconstruction": "Concatenate pack_base64/part_001.txt through part_005.txt, base64 decode, unzip into apartment-god-production/REFERENCE_LIBRARY/.",
+  "contents": [
+    "00_contact_sheets/REFERENCE_CONTACT_SHEET.jpg",
+    "01_environment_references/ENV_REF_01_TOPDOWN_APARTMENT_MAP.jpg",
+    "01_environment_references/ENV_REF_02_DARK_CYBERPUNK_APARTMENT_MAP.jpg",
+    "02_human_realistic_topdown_linework/HUMAN_REF_01_MIXED_TOPDOWN_POSES_FULL_SHEET.png",
+    "02_human_realistic_topdown_linework/HUMAN_REF_02_SLEEP_BED_POSE_SHEET.jpg",
+    "02_human_realistic_topdown_linework/HUMAN_REF_03_BED_SOCIAL_REST_POSE_SHEET.jpg",
+    "02_human_realistic_topdown_linework/HUMAN_REF_04_DESK_WORK_GROUP_TOPDOWN.jpg",
+    "02_human_realistic_topdown_linework/HUMAN_REF_05_DESK_SEATED_YOGA_LINEWORK.jpg",
+    "02_human_realistic_topdown_linework/HUMAN_REF_06_DAILY_ACTION_LINEWORK.jpg",
+    "02_human_realistic_topdown_linework/HUMAN_REF_07_STOCK_TOPDOWN_MOVEMENT_SHEET.jpg",
+    "02_human_realistic_topdown_linework/HUMAN_REF_08_SITTING_FEMALE_DIMENSIONS_GUIDE.jpg",
+    "02_human_realistic_topdown_linework/HUMAN_REF_09_DESK_PHONE_YOGA_SELECTED_POSES.jpg",
+    "02_human_realistic_topdown_linework/HUMAN_REF_10_STANDING_CROUCH_DOG_POSE_SHEET.jpg",
+    "03_dog_references/DOG_REF_01_TOPDOWN_ANIMAL_POSE_SHEET.jpg",
+    "04_legacy_simple_character_refs/LEGACY_HUMAN_REF_01_SIMPLE_TOPDOWN_FRONT.jpg",
+    "04_legacy_simple_character_refs/LEGACY_HUMAN_REF_02_SIMPLE_TOPDOWN_WALK.jpg",
+    "05_current_game_context/CURRENT_GAME_CONTEXT_01_SCREENSHOT.png",
+    "06_department_reference_prompts/UNIVERSAL_REFERENCE_PROMPT.md",
+    "README_REFERENCE_USE.md",
+    "reference_manifest.json"
+  ],
+  "base64_parts": [
+    "pack_base64/part_001.txt",
+    "pack_base64/part_002.txt",
+    "pack_base64/part_003.txt",
+    "pack_base64/part_004.txt",
+    "pack_base64/part_005.txt"
+  ]
+}
