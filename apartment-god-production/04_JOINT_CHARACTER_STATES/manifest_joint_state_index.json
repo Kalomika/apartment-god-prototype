@@ -1,0 +1,28 @@
+{
+  "schema": "apartment_god_joint_state_index_v1",
+  "project": "Apartment God Prototype",
+  "department": "04_JOINT_CHARACTER_STATES",
+  "state_count": 18,
+  "primary_manifest": "manifest_joint.json",
+  "categories": {
+    "bed_shared": ["JOINT_CUDDLE_BED_SIDE_01", "JOINT_SLEEP_TOGETHER_BED_BACK_SIDE", "JOINT_PRIVATE_MOMENT_SAFE_BED"],
+    "couch_shared": ["JOINT_CUDDLE_COUCH_01"],
+    "conversation": ["JOINT_CONVERSATION_STAND"],
+    "hug": ["JOINT_HUG_STAND"],
+    "kiss": ["JOINT_KISS_STAND"],
+    "argument": ["JOINT_ARGUMENT_LOW_INTENSITY"],
+    "dance": ["JOINT_DANCE_SLOW_01"],
+    "cook_together": ["JOINT_COOKING_TOGETHER_COUNTER"],
+    "eat_together": ["JOINT_EATING_TOGETHER_TABLE"],
+    "watch_tv": ["JOINT_WATCH_TV_TOGETHER_COUCH"],
+    "desk_shared": ["JOINT_DESK_SHARED_REVIEW_01"],
+    "pet_dog_together": ["JOINT_PET_DOG_TOGETHER_01"],
+    "transitions": ["JOINT_STEP_TOGETHER_01", "JOINT_STAND_TO_COUCH_SIT_01", "JOINT_STAND_TO_BED_SIT_01", "JOINT_STAND_TO_DESK_SHARED_01"]
+  },
+  "anchor_coverage": {
+    "bed_center": ["JOINT_CUDDLE_BED_SIDE_01", "JOINT_SLEEP_TOGETHER_BED_BACK_SIDE", "JOINT_PRIVATE_MOMENT_SAFE_BED", "JOINT_STAND_TO_BED_SIT_01"],
+    "seat_center": ["JOINT_CUDDLE_COUCH_01", "JOINT_WATCH_TV_TOGETHER_COUCH", "JOINT_DESK_SHARED_REVIEW_01", "JOINT_STAND_TO_COUCH_SIT_01", "JOINT_STAND_TO_DESK_SHARED_01"],
+    "joint_center": ["JOINT_CONVERSATION_STAND", "JOINT_HUG_STAND", "JOINT_KISS_STAND", "JOINT_ARGUMENT_LOW_INTENSITY", "JOINT_DANCE_SLOW_01", "JOINT_COOKING_TOGETHER_COUNTER", "JOINT_EATING_TOGETHER_TABLE", "JOINT_PET_DOG_TOGETHER_01", "JOINT_STEP_TOGETHER_01"]
+  },
+  "notes": "Quick lookup index only. manifest_joint.json is the primary Codex-consumable manifest."
+}
