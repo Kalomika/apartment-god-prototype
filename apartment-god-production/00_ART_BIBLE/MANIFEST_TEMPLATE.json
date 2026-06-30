@@ -1,0 +1,81 @@
+{
+  "schema_version": "0.1.0",
+  "project": "Apartment God Prototype",
+  "asset_set": "REPLACE_WITH_ASSET_SET_NAME",
+  "owner": "REPLACE_WITH_ASSET_OWNER",
+  "source_folder": "REPLACE_WITH_SOURCE_FOLDER",
+  "review_folder": "REPLACE_WITH_REVIEW_FOLDER",
+  "entries": [
+    {
+      "state_id": "MALE_IDLE_STAND",
+      "category": "character",
+      "character_type": "male",
+      "frame_count": 4,
+      "frames": [
+        {
+          "frame_index": 1,
+          "file": "MALE_IDLE_STAND_01_A.png",
+          "duration": 100
+        },
+        {
+          "frame_index": 2,
+          "file": "MALE_IDLE_STAND_02_A.png",
+          "duration": 100
+        },
+        {
+          "frame_index": 3,
+          "file": "MALE_IDLE_STAND_03_A.png",
+          "duration": 100
+        },
+        {
+          "frame_index": 4,
+          "file": "MALE_IDLE_STAND_04_A.png",
+          "duration": 100
+        }
+      ],
+      "gameplay_tags": [
+        "idle",
+        "standing",
+        "solo",
+        "top_down"
+      ],
+      "loop_frames": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "entry_frames": [],
+      "hold_frames": [
+        2,
+        3
+      ],
+      "exit_frames": [],
+      "anchor_point": {
+        "label": "feet_center",
+        "normalized_xy": [
+          0.5,
+          0.86
+        ]
+      },
+      "scale_notes": "Adult proportions, realistic top-down linework, consistent with apartment furniture scale.",
+      "implementation_notes": "Transparent PNG frames. Do not integrate until QA status is approved.",
+      "status": "draft"
+    }
+  ],
+  "allowed_status_values": [
+    "draft",
+    "review",
+    "approved",
+    "rework",
+    "rejected"
+  ],
+  "allowed_anchor_labels": [
+    "body_center",
+    "feet_center",
+    "seat_center",
+    "bed_center",
+    "object_center",
+    "joint_center"
+  ]
+}
