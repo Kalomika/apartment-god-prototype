@@ -72,20 +72,20 @@ Notes for game manager: Art Bible department is complete for department use. Oth
 
 ## 01_APARTMENT_ENVIRONMENT
 
-Status: PARTIALLY_READY
+Status: READY_FOR_QA
 Branch name: apartment-environment-cyberpunk-assets
-Latest commit SHA: 02daa4e973cf23b243f1b22248b967a59b2ec300
+Latest commit SHA: 1dc529df4138ba6f521de32fae41a927b0077245
 Files created: README.md, layout/ENV_LAYOUT_PLAN.md, layout/INTEGRATION_NOTES.md, walls_doors_windows/WALL_DOOR_WINDOW_LANGUAGE.md, rooms/ROOM_STYLE_GUIDE.md, props/PROP_ASSET_LIST.md, lighting/LIGHTING_STYLE_GUIDE.md, manifest_environment.json.
 Folders created: apartment-god-production/01_APARTMENT_ENVIRONMENT/ with layout, walls_doors_windows, rooms, props, lighting.
-Art Bible read: yes, from art-bible-production-structure during production context. Missing from production-manager-department-logs at review time.
-Reference Library read: no, not present on production-manager-department-logs at review time and shared reference pack was unavailable in session.
-States/assets completed: Floor 1 and Floor 2 layout states, living room, kitchen, bathroom, entry, stairs, bedroom, office, upstairs bathroom, hall, basement future, garage future. Prop coverage includes couch, TV, stereo, fridge, stove, kitchen sink, shower, toilet, front door, dog bowl, living light, bedroom light, stairs, bed, laptop desk, bookshelf, living window, bedroom window, phone dock future, dining table future, car future, podcast desk future, basement couch future, garage tool rack future.
-Manifest status: manifest_environment.json exists and includes required environment and prop entries with state_id, category, asset_type, room, gameplay_tags, frame_count, frames, anchor_point, collision_notes, interaction_notes, visual_notes, implementation_notes, and status. Needs later reconciliation with final Art Bible and extracted Reference Library once both exist on the manager branch.
-Generated assets/sheets: none, structured blueprint and manifest only.
-Blockers: Art Bible is missing from production-manager-department-logs, Reference Library is missing from production-manager-department-logs, shared reference pack was not available in session, no polished PNG art created yet.
+Art Bible read: yes
+Reference Library read: yes
+States/assets completed: Floor 1 and Floor 2 layout planning reconciled, living room, kitchen, bathroom, entry, stairs, bedroom, office, upstairs bathroom, hall, future basement, future garage, dark wall and doorway states, window states, lighting states, and all known interactive props. Prop coverage includes couch, TV on/off, stereo, fridge, stove, kitchen sink, shower, toilet, bathroom sink, front door, dog bowl, living light, bedroom light, stairs, bed, laptop desk, bookshelf, living window, bedroom window, phone dock future, dining table future, car future, podcast desk future, basement couch future, garage tool rack future, and garage door future.
+Manifest status: manifest_environment.json reconciled as the primary Codex-consumable manifest. Valid JSON structure. Entries use Art Bible aligned ENV and ENV_PROP naming, include state_id, action_name, category, asset_type, room, gameplay_tags, frame_count, planned frame names, anchor_point, collision_notes, interaction_notes, visual_notes, scale_notes, implementation_notes, production_phase, and status. All statuses use Art Bible QA values.
+Generated assets/sheets: none, documentation and manifest cleanup only.
+Blockers: none.
 Runtime files changed: no
-Ready for QA: no
-Notes for game manager: Environment planning deliverables are complete as a blueprint pass and safe for review as documentation, but not ready for final QA until Art Bible and Reference Library are present on the manager branch and the manifest is reconciled against them.
+Ready for QA: yes
+Notes for game manager: Branch was reset to art-bible-production-structure before reconciliation, then the environment department files were reapplied and reconciled against the installed Art Bible and Reference Library. No polished PNGs were generated because this was a cleanup and manifest readiness pass.
 
 ---
 
