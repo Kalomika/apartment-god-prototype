@@ -154,8 +154,8 @@ function chooseStance(f, enemy, visible) {
   f.prone = false; f.crouch = false;
   if (f.hideCooldown > 0) return;
   if (['marine', 'survival_commando'].includes(f.archetypeId) && d > 220 && f.hp < 80 && visible) f.prone = true;
-  if (f.archetypeId === 'suit_operative' && d > 110 && (f.hp < 68 || f.shadowHidden)) f.crouch = true;
-  if ((f.archetypeId === 'ninja' || f.archetypeId === 'archer') && (!visible || f.bleed?.rate > 0) && d > 110) f.crouch = true;
+  if (['suit_operative', 'field_agent'].includes(f.archetypeId) && d > 110 && (f.hp < 68 || f.shadowHidden || f.archetypeId === 'field_agent')) f.crouch = true;
+  if ((['ninja', 'shadow_ninja'].includes(f.archetypeId) || f.archetypeId === 'archer') && (!visible || f.bleed?.rate > 0) && d > 110) f.crouch = true;
 }
 
 function commandedDestination(state, f, enemy) {
@@ -177,13 +177,13 @@ function nearestUsefulPickup(state, f) {
   const sorted = [...items].sort((a, b) => dist(f, a) - dist(f, b));
   const pick = sorted[0];
   if (pick.type === 'med' && f.hp > Math.min(72, f.vitalityCap ?? 100) && !f.bleed?.rate) return null;
-  if (pick.type === 'ammo' && !['marine', 'suit_operative', 'survival_commando', 'archer', 'ninja'].includes(f.archetypeId)) return null;
+  if (pick.type === 'ammo' && !['marine', 'suit_operative', 'survival_commando', 'field_agent', 'archer', 'ninja', 'shadow_ninja'].includes(f.archetypeId)) return null;
   return pick;
 }
 
 function nearestStuckProjectile(state, f) {
-  if (!['ninja', 'archer'].includes(f.archetypeId)) return null;
-  const owned = state.projectiles.filter(p => p.stuck && p.team === f.team && ((f.archetypeId === 'ninja' && p.type === 'shuriken') || (f.archetypeId === 'archer' && p.type === 'arrow')));
+  if (!['ninja', 'shadow_ninja', 'archer'].includes(f.archetypeId)) return null;
+  const owned = state.projectiles.filter(p => p.stuck && p.team === f.team && ((['ninja', 'shadow_ninja'].includes(f.archetypeId) && p.type === 'shuriken') || (f.archetypeId === 'archer' && p.type === 'arrow')));
   return owned.sort((a, b) => dist(f, a) - dist(f, b))[0] || null;
 }
 

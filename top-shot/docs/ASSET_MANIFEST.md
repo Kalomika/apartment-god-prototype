@@ -76,6 +76,32 @@
 - Usage: first 3D archetype checkpoint
 - Visible/UI name: Survival Commando
 
+### Shadow Ninja Placeholder
+
+- Source: original procedural Three.js articulated placeholder in `top-shot/src/three/actors3D.js`
+- License: project-owned procedural placeholder
+- Format: runtime Three.js primitives
+- Rigged: procedural part rig, not a skinned mesh
+- Animated: procedural pose scaffolding for idle, walk, run, crouch, prone, roll, blade, shuriken/combat reactions, and smoke/stealth states through simulation pose mapping
+- Polygon count: low-poly browser-safe primitives; exact runtime count depends on generated geometry
+- Texture size: no external textures
+- Modifications made: added black shinobi-style rig variant, hood/mask blocks, back blade accent, and blade weapon path
+- Usage: second 3D archetype pair checkpoint
+- Visible/UI name: Shadow Ninja
+
+### Field Agent Placeholder
+
+- Source: original procedural Three.js articulated placeholder in `top-shot/src/three/actors3D.js`
+- License: project-owned procedural placeholder
+- Format: runtime Three.js primitives
+- Rigged: procedural part rig, not a skinned mesh
+- Animated: procedural pose scaffolding for idle, walk, run, crouch, prone, roll, pistol, cover/evasion, and CQC reactions
+- Polygon count: low-poly browser-safe primitives; exact runtime count depends on generated geometry
+- Texture size: no external textures
+- Modifications made: added formal tacticalwear rig variant with lighter shirt, lapel/accent detail, and pistol stance
+- Usage: second 3D archetype pair checkpoint
+- Visible/UI name: Field Agent
+
 ## Asset Inbox
 
 - Requested manifest path: `top-shot/asset_inbox/ASSET_MANIFEST.md`

@@ -8,7 +8,7 @@ Previous terrain commit: `fdec5fa91855c5dd7e84e5dec62d6485d8501860`
 
 Render URL: `https://top-shot-prototype.onrender.com/?v=<latest-checkpoint-sha>`
 
-Status: Terrain plus first two procedural 3D archetypes are implemented locally and ready for live-branch validation/push. The exact pushed commit is reported in the handoff.
+Status: Terrain plus four procedural 3D archetypes are implemented locally and ready for live-branch validation/push. The exact pushed commit is reported in the handoff.
 
 ## Completed
 
@@ -27,6 +27,10 @@ Status: Terrain plus first two procedural 3D archetypes are implemented locally 
 - [x] Default matchup now uses Suit Operative versus Survival Commando.
 - [x] Basic actor animation scaffolding exists for idle, walk, run, crouch, prone, roll, ranged, and CQC/reactive poses.
 - [x] Simulation smoke covers Suit Operative versus Survival Commando.
+- [x] Added visible procedural 3D humanoid placeholders for Shadow Ninja and Field Agent.
+- [x] Shadow Ninja uses a black masked blade/projectile silhouette with stealth, crouch, smoke, and shuriken behavior.
+- [x] Field Agent uses a refined pistol/formal tacticalwear silhouette with cover/evasion/patience behavior.
+- [x] Simulation smoke covers Shadow Ninja versus Field Agent.
 - [x] `npm run check` passed for this checkpoint.
 - [x] `npm run smoke` passed for this checkpoint.
 - [x] `npm run build` passed for this checkpoint.
@@ -38,7 +42,7 @@ Status: Terrain plus first two procedural 3D archetypes are implemented locally 
 - [ ] Push and verify this archetype checkpoint on Render.
 - [ ] Replace procedural actors with verified permissive GLB/glTF assets if the asset inbox becomes available.
 - [ ] Move existing CQC timing and request states onto visible 3D actor limb contact.
-- [ ] Add the next two archetypes: Shadow Ninja and Field Agent.
+- [ ] Add the next two archetypes: Jeet Fighter and Infiltration Soldier.
 
 ## Blocked
 
@@ -49,6 +53,7 @@ Status: Terrain plus first two procedural 3D archetypes are implemented locally 
 - [ ] Asset inbox manifest and candidate folders are missing from this checkout, so no Agent Mode assets were selected.
 - [ ] The terrain art is procedural placeholder geometry and still needs material polish, scale tuning, and more cover readability.
 - [ ] Procedural actors are readable placeholders, not final rigged character models.
+- [ ] Shadow Ninja and Field Agent silhouettes still need authored animation clips and stronger weapon contact poses.
 - [ ] Actor animations are procedural pose scaffolds, not authored clips.
 - [ ] The collision debug boxes are rectangular first-pass volumes, not a finished navmesh.
 - [ ] Visible 3D combat contact is not yet driven by true limb-to-body collision; the simulation still owns combat results.
@@ -58,8 +63,8 @@ Status: Terrain plus first two procedural 3D archetypes are implemented locally 
 - [x] Legacy simulation archetypes remain available: Marine, Ninja, Archer, Martial Artist.
 - [x] Suit Operative.
 - [x] Survival Commando.
-- [ ] Shadow Ninja.
-- [ ] Field Agent.
+- [x] Shadow Ninja.
+- [x] Field Agent.
 - [ ] Jeet Fighter.
 - [ ] Infiltration Soldier.
 - [ ] Bride Blade.
@@ -70,6 +75,7 @@ Status: Terrain plus first two procedural 3D archetypes are implemented locally 
 - [x] Terrain uses original procedural Three.js primitives and runtime texture generation.
 - [x] Three.js `0.164.1` is vendored locally under `top-shot/vendor/three.module.js`.
 - [x] Suit Operative and Survival Commando use original procedural articulated placeholder rigs.
+- [x] Shadow Ninja and Field Agent use original procedural articulated placeholder rigs.
 - [ ] No external character models are used yet.
 - [ ] No GLB files are added yet.
 - [ ] Verified inbox GLB/glTF candidates are still pending.
@@ -86,6 +92,16 @@ Status: Terrain plus first two procedural 3D archetypes are implemented locally 
 - [x] Placeholder actor limb/body volume accessors are scaffolded.
 - [ ] Visible 3D blocks, parries, slips, counters, elbows, knees, kicks, grapples, and disarms need stronger visual/contact integration.
 
+## Latest Validation Commands
+
+- [x] `npm run check`
+- [x] `npm run smoke`
+- [x] `npm run build`
+
+## Render URL
+
+- [ ] Render URL will be updated in the handoff after this checkpoint is pushed.
+
 ## Next Recommended Task
 
-- [ ] Add Shadow Ninja and Field Agent as the next pair, using verified assets if available or procedural placeholders if not.
+- [ ] Add Jeet Fighter and Infiltration Soldier as the next pair, using verified assets if available or procedural placeholders if not.

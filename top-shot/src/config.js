@@ -5,7 +5,7 @@ export const ARENA_H = 720;
 export const TAU = Math.PI * 2;
 
 export const LIMBS = ['leftArm', 'rightArm', 'leftLeg', 'rightLeg'];
-export const ARCHETYPE_IDS = ['suit_operative', 'survival_commando', 'marine', 'ninja', 'archer', 'martial_artist'];
+export const ARCHETYPE_IDS = ['suit_operative', 'survival_commando', 'shadow_ninja', 'field_agent', 'marine', 'ninja', 'archer', 'martial_artist'];
 
 export const COACH_DROPS = {
   med: { label: 'Med Kit', radius: 15, charges: 2, color: '#78e0a0' },

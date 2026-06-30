@@ -43,10 +43,11 @@ function reactToGrenade(state, f, grenade) {
   const diveSkill = (f.stats.dodge + f.stats.stamina + f.stats.discipline) / 3;
   if (!chance(clamp(diveSkill / 115, 0.35, 0.94))) return;
   const away = angleTo(grenade, f);
-  f.diveT = f.archetypeId === 'ninja' ? 0.7 : 0.48;
-  f.diveVx = Math.cos(away) * (f.archetypeId === 'ninja' ? 250 : 190);
-  f.diveVy = Math.sin(away) * (f.archetypeId === 'ninja' ? 250 : 190);
-  f.pose = f.archetypeId === 'ninja' ? 'somersault_dive' : chance(0.5) ? 'dive_roll' : 'flat_dive';
+  const agile = f.archetypeId === 'ninja' || f.archetypeId === 'shadow_ninja';
+  f.diveT = agile ? 0.7 : 0.48;
+  f.diveVx = Math.cos(away) * (agile ? 250 : 190);
+  f.diveVy = Math.sin(away) * (agile ? 250 : 190);
+  f.pose = agile ? 'somersault_dive' : chance(0.5) ? 'dive_roll' : 'flat_dive';
   state.effects.push({ type: 'dive', x: f.x, y: f.y, ttl: EFFECT_TTL.dive });
   addLog(state, `${f.name} dives away from the grenade.`);
 }

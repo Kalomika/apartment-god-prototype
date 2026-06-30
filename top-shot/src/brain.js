@@ -32,14 +32,14 @@ function choosePlan(state, f, enemy, visible, audible) {
   if (!visible && f.memory.lastSeen) return { intent: 'investigate', dest: { x: f.memory.lastSeen.x, y: f.memory.lastSeen.y }, hold: 1.25 };
   if (!visible && audible) return { intent: 'listen_push', dest: cautiousPoint(f, enemy, 120), hold: 1.0 };
   if (!visible) return { intent: 'scan', dest: patrolPoint(state, f), hold: 1.4 };
-  if (['archer', 'marine', 'suit_operative', 'survival_commando'].includes(f.archetypeId)) {
-    const desired = f.archetypeId === 'archer' ? 190 : f.archetypeId === 'suit_operative' ? 112 : 150;
-    const orbit = f.archetypeId === 'archer' ? 280 : f.archetypeId === 'suit_operative' ? 175 : 230;
+  if (['archer', 'marine', 'suit_operative', 'survival_commando', 'field_agent'].includes(f.archetypeId)) {
+    const desired = f.archetypeId === 'archer' ? 190 : f.archetypeId === 'suit_operative' ? 112 : f.archetypeId === 'field_agent' ? 136 : 150;
+    const orbit = f.archetypeId === 'archer' ? 280 : f.archetypeId === 'suit_operative' ? 175 : f.archetypeId === 'field_agent' ? 205 : 230;
     if (d < 165) return { intent: 'evade_to_range', dest: awayPoint(f, enemy, desired), hold: 1.05 };
     if (d > 430) return { intent: 'close_to_range', dest: cautiousPoint(f, enemy, 260), hold: 1.0 };
-    return { intent: f.archetypeId === 'suit_operative' ? 'pistol_angle' : 'hold_angle', dest: orbitPoint(f, enemy, orbit), hold: 1.2 };
+    return { intent: ['suit_operative', 'field_agent'].includes(f.archetypeId) ? 'pistol_angle' : 'hold_angle', dest: orbitPoint(f, enemy, orbit), hold: f.archetypeId === 'field_agent' ? 1.45 : 1.2 };
   }
-  if (f.archetypeId === 'ninja') {
+  if (f.archetypeId === 'ninja' || f.archetypeId === 'shadow_ninja') {
     if (d > 110) return { intent: 'stalk_flank', dest: orbitPoint(f, enemy, 78), hold: 0.95 };
     return { intent: 'blade_pressure', dest: enemyPoint(enemy), hold: 0.65 };
   }

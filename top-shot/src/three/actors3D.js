@@ -17,7 +17,9 @@ const STYLE = {
     weapon: '#111316',
     accent: '#d8d1bd',
     build: 'lean',
-    weaponType: 'pistol'
+    weaponType: 'pistol',
+    bareArms: false,
+    accessoryType: 'tailored'
   },
   survival_commando: {
     label: 'Survival Commando',
@@ -34,7 +36,47 @@ const STYLE = {
     weapon: '#181713',
     accent: '#8a2721',
     build: 'rugged',
-    weaponType: 'rifle'
+    weaponType: 'rifle',
+    bareArms: true,
+    accessoryType: 'field'
+  },
+  shadow_ninja: {
+    label: 'Shadow Ninja',
+    skin: '#876653',
+    hair: '#05070a',
+    jacket: '#0b0d10',
+    shirt: '#14171c',
+    tie: '#252b33',
+    pants: '#0b0d10',
+    sleeve: '#0e1116',
+    glove: '#030405',
+    boot: '#030405',
+    gear: '#1d242b',
+    weapon: '#c9d3dd',
+    accent: '#343b45',
+    build: 'lean',
+    weaponType: 'blade',
+    bareArms: false,
+    accessoryType: 'shinobi'
+  },
+  field_agent: {
+    label: 'Field Agent',
+    skin: '#c49372',
+    hair: '#2a211b',
+    jacket: '#2c3944',
+    shirt: '#c7d5dd',
+    tie: '#506b7d',
+    pants: '#202933',
+    sleeve: '#314150',
+    glove: '#101418',
+    boot: '#0d1117',
+    gear: '#4f6070',
+    weapon: '#15181c',
+    accent: '#89a7bd',
+    build: 'lean',
+    weaponType: 'pistol',
+    bareArms: false,
+    accessoryType: 'agent'
   },
   default: {
     label: 'Fighter',
@@ -51,7 +93,9 @@ const STYLE = {
     weapon: '#10151d',
     accent: '#f0d36a',
     build: 'standard',
-    weaponType: 'rifle'
+    weaponType: 'rifle',
+    bareArms: false,
+    accessoryType: 'standard'
   }
 };
 
@@ -134,13 +178,18 @@ class Actor3D {
     this.parts.eyeLeft = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 6), this.materials.dark);
     this.parts.eyeRight = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 6), this.materials.dark);
     this.parts.tie = box(THREE, [0.025, 0.38, 0.05], this.style.weaponType === 'pistol' ? this.materials.tie : this.materials.gear);
-    this.parts.bandana = this.style.weaponType === 'rifle' ? box(THREE, [0.055, 0.04, 0.42], this.materials.accent) : null;
+    this.parts.bandana = this.style.accessoryType === 'field' ? box(THREE, [0.055, 0.04, 0.42], this.materials.accent) : null;
+    this.parts.mask = this.style.accessoryType === 'shinobi' ? box(THREE, [0.09, 0.09, 0.24], this.materials.dark) : null;
+    this.parts.hood = this.style.accessoryType === 'shinobi' ? new THREE.Mesh(new THREE.SphereGeometry(0.19, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.72), this.materials.jacket) : null;
+    this.parts.lapel = ['tailored', 'agent'].includes(this.style.accessoryType) ? box(THREE, [0.035, 0.48, 0.17], this.materials.accent) : null;
+    this.parts.backGear = this.style.accessoryType === 'shinobi' ? box(THREE, [0.62, 0.045, 0.045], this.materials.weapon) : null;
 
     for (const part of Object.values(this.parts)) if (part) this.rig.add(part);
 
     for (const side of ['left', 'right']) {
+      const forearmMaterial = this.style.bareArms ? this.materials.skin : this.materials.sleeve;
       this.parts[`${side}UpperArm`] = capsule(THREE, 0.055, 0.38, this.materials.sleeve);
-      this.parts[`${side}Forearm`] = capsule(THREE, 0.05, 0.34, side === 'left' || this.style.weaponType === 'rifle' ? this.materials.skinOrSleeve : this.materials.sleeve);
+      this.parts[`${side}Forearm`] = capsule(THREE, 0.05, 0.34, forearmMaterial);
       this.parts[`${side}Hand`] = new THREE.Mesh(new THREE.SphereGeometry(0.065, 12, 8), this.materials.skin);
       this.parts[`${side}Thigh`] = capsule(THREE, 0.07, 0.44, this.materials.pants);
       this.parts[`${side}Shin`] = capsule(THREE, 0.06, 0.43, this.materials.pants);
@@ -155,7 +204,7 @@ class Actor3D {
       );
     }
 
-    this.weapon = this.style.weaponType === 'pistol' ? this.buildPistol() : this.buildRifle();
+    this.weapon = this.style.weaponType === 'pistol' ? this.buildPistol() : this.style.weaponType === 'blade' ? this.buildBlade() : this.buildRifle();
     this.rig.add(this.weapon);
     this.placeCore(0, false, false);
     this.applyPose('idle', 0, null);
@@ -186,6 +235,17 @@ class Actor3D {
     barrel.rotation.z = Math.PI / 2;
     sling.position.set(0.13, -0.08, 0);
     group.add(stock, receiver, barrel, sling);
+    return group;
+  }
+
+  buildBlade() {
+    const THREE = this.THREE;
+    const group = new THREE.Group();
+    const blade = box(THREE, [0.5, 0.035, 0.045], this.materials.weapon);
+    const grip = box(THREE, [0.14, 0.04, 0.08], this.materials.gear);
+    blade.position.x = 0.24;
+    grip.position.x = -0.08;
+    group.add(blade, grip);
     return group;
   }
 
@@ -292,6 +352,13 @@ class Actor3D {
     this.parts.eyeRight.position.set(0.29, 1.76 + low, -0.055);
     this.parts.tie.position.set(0.292, 1.13 + low, 0);
     if (this.parts.bandana) this.parts.bandana.position.set(0.18, 1.79 + low, 0);
+    if (this.parts.mask) this.parts.mask.position.set(0.295, 1.7 + low, 0);
+    if (this.parts.hood) this.parts.hood.position.set(0.09, 1.78 + low, 0);
+    if (this.parts.lapel) this.parts.lapel.position.set(0.292, 1.17 + low, this.style.accessoryType === 'agent' ? 0.13 : -0.13);
+    if (this.parts.backGear) {
+      this.parts.backGear.position.set(-0.17, 1.22 + low, 0);
+      this.parts.backGear.rotation.y = 0.62;
+    }
   }
 
   setLimb(name, a, b) {
@@ -314,6 +381,12 @@ class Actor3D {
       this.weapon.visible = stateName !== 'prone' || action === 'pistol';
       return;
     }
+    if (this.style.weaponType === 'blade') {
+      this.weapon.position.copy(points.rightHand).add(v(0.23, 0.02, -0.02));
+      this.weapon.rotation.set(0, 0, action.includes('slash') || action.includes('knife') ? -0.02 : -0.18);
+      this.weapon.visible = stateName !== 'prone' || action.includes('slash');
+      return;
+    }
     const left = points.leftHand;
     const right = points.rightHand;
     this.weapon.position.set((left.x + right.x) / 2 + 0.18, (left.y + right.y) / 2 + 0.04, (left.z + right.z) / 2);
@@ -327,7 +400,7 @@ class Actor3D {
       volume('right_fist', points.rightHand, 0.09),
       volume('left_foot', points.leftFoot, 0.12),
       volume('right_foot', points.rightFoot, 0.12),
-      volume('weapon_hand', points.rightHand.clone().add(v(0.18, 0, 0)), this.style.weaponType === 'rifle' ? 0.18 : 0.11)
+      volume('weapon_hand', points.rightHand.clone().add(v(0.18, 0, 0)), this.style.weaponType === 'rifle' || this.style.weaponType === 'blade' ? 0.18 : 0.11)
     ];
     this.bodyZones = [
       volume('head', this.parts.head.position, stateName === 'prone' ? 0.2 : 0.16),
@@ -344,7 +417,6 @@ function makeMaterials(THREE, style) {
   const metal = color => new THREE.MeshStandardMaterial({ color, roughness: 0.54, metalness: 0.42 });
   return {
     skin: make(style.skin),
-    skinOrSleeve: make(style.weaponType === 'rifle' ? style.skin : style.sleeve),
     hair: make(style.hair),
     jacket: make(style.jacket),
     shirt: make(style.shirt),

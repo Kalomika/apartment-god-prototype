@@ -17,7 +17,7 @@ export function updateHiding(state, dt) {
         f.shadowHidden = false;
         f.hidden = f.prone || f.crouch;
         f.hideCooldown = 4.2;
-        f.pose = f.archetypeId === 'ninja' ? 'roll_out_shadow' : 'crawl_out_shadow';
+        f.pose = ['ninja', 'shadow_ninja'].includes(f.archetypeId) ? 'roll_out_shadow' : 'crawl_out_shadow';
         addLog(state, `${f.name} rolls back out of hiding.`);
       }
     } else {

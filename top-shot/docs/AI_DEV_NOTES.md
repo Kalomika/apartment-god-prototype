@@ -70,3 +70,38 @@ Add a reusable procedural humanoid actor system with `Actor3D`, `createPlacehold
 ### Next recommended task
 
 Add Shadow Ninja and Field Agent as the next two visible 3D archetypes. If the asset inbox appears, verify licenses and integrate only safe GLB/glTF candidates; otherwise continue the procedural rig variant approach.
+
+## 2026-06-30 - Shadow Ninja And Field Agent
+
+### Asset/model decision
+
+- `top-shot/asset_inbox/` is still not present in this checkout.
+- No external GLB/glTF models, FX, or map assets were available to verify.
+- This checkpoint creates browser-safe procedural variants with the existing actor rig instead of waiting on missing files.
+
+### What changed
+
+- Added Shadow Ninja and Field Agent to the generic simulation/UI archetype list.
+- Added Shadow Ninja visual style in `src/three/actors3D.js`: black masked shinobi silhouette, hood/mask, back blade accent, hand blade, dark gear, and no fantasy colors.
+- Added Field Agent visual style in `src/three/actors3D.js`: lighter formal tacticalwear, pistol, lapel/accent detail, composed suit silhouette distinct from Suit Operative.
+- Added a `blade` weapon path to the procedural actor rig for sword/knife silhouettes.
+- Changed the rig forearm material handling so suited characters keep covered sleeves while rugged characters can show bare arms.
+- Extended brain/combat/perception/hiding/tactics/request logic so Shadow Ninja inherits stealth/shuriken/smoke/blade behavior and Field Agent inherits pistol/cover/evasion behavior.
+- Added `shadow_ninja` versus `field_agent` to `tests/simSmoke.js`.
+
+### Validation notes
+
+- `npm run check` passed.
+- `npm run smoke` passed, including Shadow Ninja versus Field Agent.
+- `npm run build` passed.
+- Local browser visual validation passed: default matchup still loads, Shadow Ninja and Field Agent can be selected, the WebGL canvas is nonblank, and the running HUD shows the selected archetypes.
+
+### Weak spots
+
+- Shadow Ninja and Field Agent are still procedural placeholder rigs, not authored GLB characters.
+- Crouch/prone/roll poses are clearer than before through rig state, but still procedural.
+- Weapon poses are more obvious for pistol/rifle/blade, but true 3D limb collision is intentionally deferred.
+
+### Next recommended task
+
+Add Jeet Fighter and Infiltration Soldier as the next visible 3D archetype pair.

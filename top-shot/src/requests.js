@@ -37,11 +37,11 @@ export function fighterRequest(state, fighter) {
 }
 
 function ammoRequest(fighter) {
-  if (['marine', 'suit_operative', 'survival_commando'].includes(fighter.archetypeId)) {
+  if (['marine', 'suit_operative', 'survival_commando', 'field_agent'].includes(fighter.archetypeId)) {
     const ammo = (fighter.resources.rifle || 0) + (fighter.resources.pistol || 0);
     if (ammo <= 8) return makeRequest('ammo', ammo <= 0 ? 'Ammo empty' : 'Ammo low', ammo <= 0 ? 'Need ammo cache.' : `${ammo} rounds left.`, 'AM', '#f0cf68', ammo <= 4, 'ammo', 'ammunition');
   }
-  if (fighter.archetypeId === 'ninja' && (fighter.resources.shuriken || 0) <= 1) {
+  if (['ninja', 'shadow_ninja'].includes(fighter.archetypeId) && (fighter.resources.shuriken || 0) <= 1) {
     return makeRequest('ammo', 'Ammo low', 'Need blades to throw.', 'AM', '#f0cf68', true, 'ammo', 'ammunition');
   }
   if (fighter.archetypeId === 'archer' && (fighter.resources.arrows || 0) <= 3) {

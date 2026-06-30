@@ -9,6 +9,16 @@ export const ARCHETYPES = {
     stats: { speed: 116, stealth: 54, sight: 80, hearing: 76, aim: 78, cqc: 74, block: 74, dodge: 56, counter: 58, grapple: 82, sneakAttack: 60, sneakDefense: 70, toughness: 92, stamina: 88, aggression: 72, recovery: 62, discipline: 70, prestige: 66, ruthlessness: 50 },
     resources: { rifle: 48, pistol: 10, grenades: 2, heat: 0, special: 1 }
   },
+  shadow_ninja: {
+    id: 'shadow_ninja', name: 'Shadow Ninja', color: '#11151b', accent: '#39414b', weapon: 'shuriken', melee: 'sword', special: 'smoke',
+    stats: { speed: 154, stealth: 96, sight: 78, hearing: 84, aim: 64, cqc: 86, block: 62, dodge: 90, counter: 78, grapple: 58, sneakAttack: 94, sneakDefense: 82, toughness: 56, stamina: 94, aggression: 70, recovery: 74, discipline: 66, prestige: 54, ruthlessness: 66 },
+    resources: { shuriken: 12, smoke: 3, heat: 0, special: 3 }
+  },
+  field_agent: {
+    id: 'field_agent', name: 'Field Agent', color: '#2f3b47', accent: '#7a8fa3', weapon: 'pistol', melee: 'hands', special: 'cover',
+    stats: { speed: 122, stealth: 70, sight: 88, hearing: 74, aim: 88, cqc: 68, block: 68, dodge: 80, counter: 74, grapple: 54, sneakAttack: 66, sneakDefense: 84, toughness: 60, stamina: 78, aggression: 46, recovery: 76, discipline: 94, prestige: 84, ruthlessness: 30 },
+    resources: { pistol: 38, rifle: 0, grenades: 0, heat: 0, special: 2 }
+  },
   marine: {
     id: 'marine', name: 'Marine', color: '#6da3ff', accent: '#253b5f', weapon: 'rifle', melee: 'knife', special: 'prone',
     stats: { speed: 108, stealth: 38, sight: 82, hearing: 65, aim: 82, cqc: 62, block: 68, dodge: 48, counter: 52, grapple: 66, sneakAttack: 58, sneakDefense: 72, toughness: 88, stamina: 84, aggression: 62, recovery: 60, discipline: 78, prestige: 70, ruthlessness: 42 },

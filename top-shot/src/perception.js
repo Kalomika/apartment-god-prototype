@@ -48,11 +48,11 @@ export function chooseDestination(state, f, enemy) {
     if (cover) return safeDest(state.arena, f, coverPoint(state.arena, cover, f, enemy) || center(cover));
   }
   if (f.wallLean && d < 210 && f.hp < 55) return { x: f.x, y: f.y };
-  if (f.archetypeId === 'ninja' && d > 95) return safeDest(state.arena, f, flankPoint(f, enemy, 80));
+  if (['ninja', 'shadow_ninja'].includes(f.archetypeId) && d > 95) return safeDest(state.arena, f, flankPoint(f, enemy, 80));
   if (f.archetypeId === 'martial_artist') return safeDest(state.arena, f, flankPoint(f, enemy, 48));
   if (f.archetypeId === 'archer' && d < 260) return safeDest(state.arena, f, awayPoint(f, enemy, 170));
   if (['marine', 'survival_commando'].includes(f.archetypeId) && d < 180) return safeDest(state.arena, f, awayPoint(f, enemy, 130));
-  if (f.archetypeId === 'suit_operative' && d < 118) return safeDest(state.arena, f, awayPoint(f, enemy, 96));
+  if (['suit_operative', 'field_agent'].includes(f.archetypeId) && d < 118) return safeDest(state.arena, f, awayPoint(f, enemy, f.archetypeId === 'field_agent' ? 122 : 96));
   return safeDest(state.arena, f, flankPoint(f, enemy, f.weapon === 'rifle' || f.weapon === 'bow' ? 250 : 70));
 }
 
@@ -88,7 +88,7 @@ export function moveFighter(state, f, dest, dt) {
   f.wallLean = Boolean(nearWall(state.arena, f, 17) && (f.hp < 52 || f.bleed?.rate > 0 || f.stamina < 22));
   f.pose = movedAmount > 0.55 ? movementPose(f, stage, f.stuckT > 0.4) : f.stuckT > 0.4 ? 'reposition' : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : 'idle_guard';
   f.stamina = clamp(f.stamina - movedAmount * (f.memory.command?.urgent ? 0.012 : 0.005), 0, 100);
-  f.noise = f.prone ? 8 : f.crouch || f.shadowHidden ? 10 : f.archetypeId === 'ninja' ? 18 : f.memory.command?.urgent ? 55 : 34;
+  f.noise = f.prone ? 8 : f.crouch || f.shadowHidden ? 10 : ['ninja', 'shadow_ninja'].includes(f.archetypeId) ? 18 : f.memory.command?.urgent ? 55 : 34;
   f.hidden = f.shadowHidden || f.prone || f.crouch;
 }
 

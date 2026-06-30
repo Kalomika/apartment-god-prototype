@@ -3,6 +3,7 @@ import { updateBattle, placeCoachDrop } from '../src/systems.js';
 
 const matchups = [
   ['suit_operative', 'survival_commando'],
+  ['shadow_ninja', 'field_agent'],
   ['marine', 'ninja'],
   ['ninja', 'archer'],
   ['archer', 'martial_artist'],

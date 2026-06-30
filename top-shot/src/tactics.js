@@ -63,7 +63,7 @@ function tacticalRoll(state, f, enemy, reason) {
     f.rollCd = reason === 'unstick' ? 1.4 : 2.6;
     f.dodge = clamp(f.dodge - 28, 0, 100);
     f.stamina = clamp(f.stamina - (reason === 'unstick' ? 16 : 24), 0, 100);
-    f.pose = f.archetypeId === 'ninja' ? 'roll' : 'combat_roll';
+    f.pose = ['ninja', 'shadow_ninja'].includes(f.archetypeId) ? 'roll' : 'combat_roll';
     const cover = nearCover(state.arena, f);
     if (cover && reason !== 'unstick') f.memory.command = { type: 'roll_cover', x: cover.x + cover.w / 2, y: cover.y + cover.h / 2, urgent: false, until: state.clock + 1.25 };
     state.effects.push({ type: 'dive', x: f.x, y: f.y, ttl: EFFECT_TTL.dive || 0.42 });
