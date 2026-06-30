@@ -1,0 +1,85 @@
+{
+  "schema_version": "0.1.0",
+  "project": "Apartment God Prototype",
+  "asset_set": "shared_reference_library",
+  "source_folder": "apartment-god-production/REFERENCE_LIBRARY/",
+  "expected_uploaded_pack": "apartment_god_shared_reference_pack.zip",
+  "pack_status": "awaiting_uploaded_pack",
+  "reference_use_only": true,
+  "final_asset_rule": "References are style and pose guides only. Do not commit source references, watermarked images, or traced reference material as final gameplay assets.",
+  "primary_style_requirement": "Realistic top down linework inside a dark cyberpunk apartment. Avoid cute, chibi, mascot, toy, emoji, and childlike design logic.",
+  "department_manifest_requirement": {
+    "required_fields": [
+      "state_id",
+      "action_name",
+      "frame_count",
+      "frames",
+      "abc_frame_logic",
+      "gameplay_tags",
+      "anchor_point",
+      "scale_notes",
+      "implementation_notes",
+      "status"
+    ]
+  },
+  "abc_frame_logic_global": {
+    "A": "Enter, anticipation, or transition into the action. For simple idle, neutral pose.",
+    "B": "Main hold pose or loop frame 1. For simple idle, subtle breathing or weight shift.",
+    "C": "Exit, recovery, or loop frame 2. For movement, part of low frame loop."
+  },
+  "reference_folders": [
+    {
+      "folder_id": "REF_ENVIRONMENT",
+      "path": "apartment-god-production/REFERENCE_LIBRARY/01_environment_references/",
+      "reference_type": "environment_style_and_layout",
+      "intended_use": "Cyberpunk apartment room structure, dark wall masses, blue grey floors, cyan and magenta neon, windows, clutter, furniture readability, and collision aware layout logic.",
+      "allowed_use_notes": "Use for mood, structure, lighting, prop silhouette, and gameplay readability planning. Translate into original sliced production assets.",
+      "restrictions": [
+        "Do not use a flat reference image as final gameplay map.",
+        "Do not allow decoration to break object clicking.",
+        "Do not let fake wall gaps look walkable.",
+        "Do not commit watermarked references as final assets."
+      ],
+      "pack_files_status": "not_available_in_session"
+    },
+    {
+      "folder_id": "REF_HUMAN_REALISTIC_TOPDOWN_LINEWORK",
+      "path": "apartment-god-production/REFERENCE_LIBRARY/02_human_realistic_topdown_linework/",
+      "reference_type": "human_pose_and_linework",
+      "intended_use": "Primary visual style target for realistic adult male, female, and joint top down sprite poses.",
+      "allowed_use_notes": "Use pose logic closely for existing poses. For missing A/B/C frames, create realistic transition frames using nearby reference logic.",
+      "restrictions": [
+        "Do not create nude characters.",
+        "Do not create chibi or toy proportions.",
+        "Do not use emoji acting.",
+        "Do not commit watermarked references as final assets."
+      ],
+      "smart_reuse_notes": [
+        "Use crouch as transition into and out of yoga or stretching.",
+        "Use sitting on bed as the middle frame between standing and lying down.",
+        "Use seated chair as the middle frame for laptop, desk, food, and phone actions.",
+        "Use one hand on floor and push up poses as get up from floor frames.",
+        "Use side, back, curled, and sprawl sleep references as randomized sleep holds.",
+        "Use two person bed and couch references as joint state logic."
+      ],
+      "pack_files_status": "not_available_in_session"
+    },
+    {
+      "folder_id": "REF_DOG_REFERENCES",
+      "path": "apartment-god-production/REFERENCE_LIBRARY/03_dog_references/",
+      "reference_type": "dog_pose_and_anatomy",
+      "intended_use": "Realistic dog pose logic for a white or off white dog that remains color changeable later.",
+      "allowed_use_notes": "Use animal anatomy, walk, run, sit, lie, sniff, bark, and sleep reference logic. Keep proportions realistic.",
+      "restrictions": [
+        "No puppy mascot proportions.",
+        "No giant head.",
+        "No emoji expressions.",
+        "No candy colored fur.",
+        "Do not commit watermarked references as final assets."
+      ],
+      "pack_files_status": "not_available_in_session"
+    }
+  ],
+  "actual_reference_files": [],
+  "status_notes": "The active session did not expose apartment_god_shared_reference_pack.zip. Add actual reference file entries after the pack is available."
+}
