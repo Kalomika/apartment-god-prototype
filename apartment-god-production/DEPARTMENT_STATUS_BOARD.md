@@ -141,20 +141,20 @@ Notes for game manager:
 
 ## 05_DOG_CHARACTER
 
-Status: NOT_STARTED
-Branch name:
-Latest commit SHA:
-Files created:
-Folders created:
-Art Bible read:
-Reference Library read:
-States/assets completed:
-Manifest status:
-Generated assets/sheets:
-Blockers:
-Runtime files changed:
-Ready for QA:
-Notes for game manager:
+Status: PARTIALLY_READY
+Branch name: dog-character-realistic-sprite-states-production-log
+Latest commit SHA: 2389895cd6d1ac21c4c0d4244263fb83803bf724
+Files created: apartment-god-production/05_DOG_CHARACTER/README.md, apartment-god-production/05_DOG_CHARACTER/DOG_STATE_BREAKDOWN.md, apartment-god-production/05_DOG_CHARACTER/manifest_dog.json, apartment-god-production/05_DOG_CHARACTER/prompt_sheets/DOG_GENERATION_PROMPTS.md, .gitkeep files for required category folders.
+Folders created: apartment-god-production/05_DOG_CHARACTER/ with idle, walk, run, sit, sleep, bark, sniff, fetch, eat_drink, play, comfort, follow, transitions, prompt_sheets.
+Art Bible read: no
+Reference Library read: no
+States/assets completed: 46 dog states planned across idle, walk, run, sit, sleep, bark, sniff, fetch, eat_drink, play, comfort, follow, and reusable transitions. A/B/C or B-only sleep frame logic documented.
+Manifest status: manifest_dog.json valid JSON, includes every required state with required manifest fields using field_order row schema. Status values set to prompt_ready.
+Generated assets/sheets: none.
+Blockers: apartment-god-production/00_ART_BIBLE/ was missing or unreadable on the base branch. apartment-god-production/REFERENCE_LIBRARY/ was missing or unreadable on the base branch. No actual reference images were available for inspection in this pass.
+Runtime files changed: no
+Ready for QA: no
+Notes for game manager: Dog department planning is ready for Art Bible and reference-library reconciliation, then QA. No runtime integration was attempted.
 
 ---
 
