@@ -1,0 +1,13 @@
+{
+  "project": "Apartment God Prototype",
+  "visual_version": "realistic_cyberpunk_v1",
+  "status": "qa_pending_or_approved",
+  "source_folders": {
+    "environment": "apartment-god-production/01_APARTMENT_ENVIRONMENT/",
+    "male": "apartment-god-production/02_MALE_CHARACTER/",
+    "female": "apartment-god-production/03_FEMALE_CHARACTER/",
+    "joint_states": "apartment-god-production/04_JOINT_CHARACTER_STATES/",
+    "dog": "apartment-god-production/05_DOG_CHARACTER/"
+  },
+  "assets": []
+}
