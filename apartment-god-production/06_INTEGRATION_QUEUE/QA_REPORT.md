@@ -6,11 +6,13 @@ Overall status:
 
 - Not ready for integration
 
-This QA pass reviewed the requested Art Bible files and department folders as available across the current repo branches. The new QA branch was created from `main`, and `main` does not currently contain `apartment-god-production/`. The Art Bible and several department folders exist only on separate production branches. Until those folders are present together in one branch, Codex does not have one reliable integration source.
+This QA pass reviewed the requested Art Bible files, the available department folders, and the new shared reference requirement as far as the current repo and uploaded workspace allowed.
+
+The new QA branch was created from `main`. `main` does not currently contain the complete `apartment-god-production/` tree. The Art Bible and department folders exist only on separate production branches, and the shared reference library was not found in the repo or uploaded workspace during this pass. Until those folders and references are present together in one branch, Codex does not have one reliable integration source.
 
 Approved assets: 0
 
-Blocked or rework items: 12
+Blocked or rework items: 24
 
 Codex integration can begin: no
 
@@ -25,11 +27,46 @@ Codex integration can begin: no
 
 The likely joint branch name `joint-character-realistic-sprite-states` was checked, but the requested joint folder was not found.
 
+## Reference Library Review
+
+Status: fail, blocked
+
+Required reference path:
+
+`apartment-god-production/REFERENCE_LIBRARY/`
+
+Required reference pack:
+
+`apartment_god_shared_reference_pack.zip`
+
+Required contents:
+
+- `01_environment_references/`
+- `02_human_realistic_topdown_linework/`
+- `03_dog_references/`
+- `README_REFERENCE_USE.md`
+- `reference_manifest.json`
+
+Result:
+
+The reference library was not found in the QA branch, and the uploaded zip was not accessible in the active workspace during this pass. Because of that, I could not inspect the environment references, human top-down pose references, dog references, reference usage README, or reference manifest.
+
+Production impact:
+
+- Human pose reuse cannot be verified yet.
+- Dog pose logic cannot be verified yet.
+- Environment mood and structure reference compliance cannot be verified yet.
+- No department can be fully approved until the reference library is available and inspected.
+
+Reference handling rule:
+
+The reference files are style and pose references only. They must not be committed as final gameplay art, and they must not be copied into approved assets.
+
 ## Art Bible Compliance
 
 Status: partial pass, blocked for integration
 
-The Art Bible files exist on `art-bible-production-structure` and define the correct target clearly:
+The Art Bible files exist on `art-bible-production-structure` and define the correct target:
 
 - realistic orthographic top-down style
 - adult proportions
@@ -38,14 +75,13 @@ The Art Bible files exist on `art-bible-production-structure` and define the cor
 - transparent PNG sprite target
 - consistent state IDs, frame logic, anchor data, and manifests
 
-However, the Art Bible is not present on the new QA branch created from `main`, and multiple department branches state that the Art Bible was missing during their production pass. Because the departments were built without direct Art Bible access at creation time, all department work needs a second normalization pass before approval.
+However, the Art Bible is not present on the new QA branch created from `main`, and multiple department branches state that the Art Bible was missing during their production pass. Because those departments were built without direct Art Bible access at creation time, all department work needs a second normalization pass before approval.
 
 ## Folder Structure Review
 
-Required folders:
-
 | Folder | QA branch status | Source branch status | Result |
 | --- | --- | --- | --- |
+| `REFERENCE_LIBRARY` | missing | not found | blocker |
 | `00_ART_BIBLE` | missing | present on `art-bible-production-structure` | blocker until merged or recreated |
 | `01_APARTMENT_ENVIRONMENT` | missing | present on `apartment-environment-cyberpunk-assets` | blocker until merged or recreated |
 | `02_MALE_CHARACTER` | missing | present on `male-character-realistic-sprite-states` | blocker until merged or recreated |
@@ -74,11 +110,11 @@ Pass notes:
 
 - Floor 1 is defined with entry, living room, kitchen, bathroom, and stairs.
 - Floor 2 is defined with stairs, hall, bedroom, office, and upstairs bathroom.
-- Future basement is defined as basement lounge, podcast desk area, utility wall, storage clutter, and optional studio booth.
-- Future garage is defined as car bay, tool wall, storage lane, travel launch zone, and exterior roll-up door.
+- Future basement is defined.
+- Future garage is defined.
 - Room purposes are clear.
-- Collision notes exist for walls, doors, props, stairs, floor transitions, basement, and garage.
-- Prop IDs map to current gameplay concepts where possible, including couch, TV, stereo, fridge, stove, sink, shower, toilet, front door, dog bowl, lights, stairs, bed, laptop desk, bookshelf, and windows.
+- Collision notes exist.
+- Prop IDs map to current gameplay concepts where possible.
 - Wall and doorway visual rules support collision logic.
 - The environment is planned as layered gameplay art, not a single flat decorative background.
 
@@ -88,6 +124,7 @@ Rework notes:
 - `manifest_environment.json` uses `status: "current"` and `status: "future"`, but the Art Bible allows `draft`, `review`, `approved`, `rework`, and `rejected`.
 - Environment frame filenames are lowercase, but the Art Bible naming rule requires uppercase snake case for runtime-ready files.
 - No final transparent PNG art files were confirmed.
+- Environment reference compliance could not be verified because `REFERENCE_LIBRARY` was not available.
 
 ## Male Character Review
 
@@ -103,10 +140,9 @@ Required files checked on `male-character-realistic-sprite-states`:
 Pass notes:
 
 - Visual target is realistic top-down adult Black male.
-- The folder explicitly rejects chibi, cute toy, mascot, oversized head, and emoji pose language.
+- The folder rejects chibi, cute toy, mascot, oversized head, and emoji pose language.
 - Required categories are represented: idle, walk, run, sit, sleep, phone, laptop, cooking, eating, shower_bathroom, reading, exercise, pet_dog, social_solo, and transitions.
 - States include frame counts and A/B/C logic or documented B-only sleep exceptions.
-- Implementation notes exist in the manifest and readable breakdown.
 - Runtime safety notes confirm no `src/`, Render, or deploy changes.
 
 Rework notes:
@@ -116,6 +152,7 @@ Rework notes:
 - `manifest_male.json` uses `status: "prompt_ready"`, which is not an allowed Art Bible status.
 - `manifest_male.json` uses `anchor_point: "center_body_ground_projection"`, which is not an approved anchor label.
 - No final transparent PNG sprite frames were confirmed.
+- Human top-down reference compliance could not be verified because `REFERENCE_LIBRARY` was not available.
 
 ## Female Character Review
 
@@ -131,7 +168,7 @@ Required files checked on `female-character-realistic-sprite-states`:
 Pass notes:
 
 - Visual target is realistic top-down adult Black female.
-- The folder explicitly rejects chibi, cute mascot styling, oversized head, childish proportions, and emoji pose language.
+- The folder rejects chibi, cute mascot styling, oversized head, childish proportions, and emoji pose language.
 - Required categories are represented: idle, walk, run, sit, sleep, phone, laptop, cooking, eating, shower_bathroom, reading, exercise, pet_dog, social_solo, and transitions.
 - States include frame counts and A/B/C logic or documented B-only sleep exceptions.
 - Runtime safety notes confirm no `src/`, Render, or deploy changes.
@@ -142,6 +179,7 @@ Rework notes:
 - State IDs do not match the master Art Bible state IDs and need normalization.
 - No final transparent PNG sprite frames were confirmed.
 - Anchor labels and normalized anchor coordinates are not manifest-ready.
+- Human top-down reference compliance could not be verified because `REFERENCE_LIBRARY` was not available.
 
 ## Dog Character Review
 
@@ -170,6 +208,7 @@ Rework notes:
 - State IDs do not match the master Art Bible state IDs and need normalization.
 - No final transparent PNG sprite frames were confirmed.
 - Anchor labels and normalized anchor coordinates are not manifest-ready.
+- Dog reference compliance could not be verified because `REFERENCE_LIBRARY` was not available.
 
 ## Joint State Review
 
@@ -203,6 +242,7 @@ Required joint rules could not be verified:
 - implied private moments through lights-off, blanket coverage, or privacy silhouette
 - combined two-person sprites
 - anchors such as `joint_center`, `couch_center`, `bed_center`, `table_center`, or `dog_interaction_center`
+- two-person bed and couch reference logic
 
 ## Manifest Review
 
@@ -224,7 +264,7 @@ Status: needs revision
 Wrong or risky naming patterns:
 
 - Environment frames use lowercase filenames such as `env_floor_1_base_layout.png`, should be uppercase snake case before runtime approval.
-- Male states use numbered shorthand such as `MALE_WALK_01`, while the Art Bible lists directional movement states such as `MALE_WALK_N`, `MALE_WALK_NE`, `MALE_WALK_E`, and related directions.
+- Male states use numbered shorthand such as `MALE_WALK_01`, while the Art Bible lists directional movement states such as `MALE_WALK_N`, `MALE_WALK_NE`, and `MALE_WALK_E`.
 - Female states use numbered shorthand such as `FEMALE_WALK_01`, while the Art Bible lists directional movement states.
 - Dog states use numbered shorthand such as `DOG_WALK_01`, while the Art Bible lists directional movement states.
 - Joint state IDs could not be reviewed because the folder was not found.
@@ -233,9 +273,9 @@ Wrong or risky naming patterns:
 
 Status: no final art available to judge visually
 
-The planning documents strongly reject cute, chibi, mascot, toy, and emoji style. That passes as written direction. However, no actual final PNG sprites or environment art were available in the reviewed files, so visual style compliance cannot be approved yet.
+The planning documents strongly reject cute, chibi, mascot, toy, and emoji style. That passes as written direction. However, no actual final PNG sprites or environment art were available in the reviewed files, and the shared reference library was not available for comparison, so visual style compliance cannot be approved yet.
 
-Any future art must be rejected or sent to rework if it shows:
+Future art must be rejected or sent to rework if it shows:
 
 - oversized heads
 - childish proportions
@@ -258,4 +298,4 @@ The compared department branches add only `apartment-god-production/` files. No 
 
 Decision: needs revision
 
-The project is not ready for Codex visual integration. The planning foundation is useful, but the assets are not approved because the production folders are split across branches, the joint folder is missing, several manifests are missing or non-compliant, and no final transparent PNG assets were verified.
+The project is not ready for Codex visual integration. The planning foundation is useful, but the assets are not approved because the production folders are split across branches, the shared reference library was not available, the joint folder is missing, several manifests are missing or non-compliant, and no final transparent PNG assets were verified.
