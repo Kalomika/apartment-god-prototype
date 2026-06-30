@@ -8,7 +8,19 @@ Purpose: this is the central production handoff for the realistic cyberpunk visu
 
 The visual upgrade is planned but not complete in the repo yet.
 
-The department folders and Art Bible still need to be created or completed by their assigned chats. Do not assume assets exist until the relevant department reports a branch name, commit SHA, files created, and any blockers.
+The department folders and Art Bible still need to be created or completed by their assigned chats. Do not assume assets exist until the relevant department updates the central status board with branch name, commit SHA, files created, manifest status, and blockers.
+
+## One-file status rule
+
+Every department must update this one file before reporting done:
+
+```txt
+apartment-god-production/DEPARTMENT_STATUS_BOARD.md
+```
+
+The game manager should be able to read that status board and know what each department completed, what is blocked, what branch to inspect, and what next step is required.
+
+Do not make Kam carry status updates between chats. The department owns updating its assigned section of the board.
 
 ## Repo rules
 
@@ -30,6 +42,7 @@ Target folder structure:
 apartment-god-production/
   PRODUCTION_MANAGER_LOG.md
   DEPARTMENT_START_HERE.md
+  DEPARTMENT_STATUS_BOARD.md
   REFERENCE_LIBRARY/
   00_ART_BIBLE/
   01_APARTMENT_ENVIRONMENT/
@@ -125,22 +138,31 @@ apartment-god-production/05_DOG_CHARACTER/DEPARTMENT_LOG.md
 apartment-god-production/06_INTEGRATION_QUEUE/DEPARTMENT_LOG.md
 ```
 
-## What every department must report back
+## Required department completion update
 
-Each department must report:
+Each department must update its section in:
 
 ```txt
+apartment-god-production/DEPARTMENT_STATUS_BOARD.md
+```
+
+Required status block:
+
+```txt
+Status:
 Branch name:
-Commit SHA:
+Latest commit SHA:
 Files created:
 Folders created:
-Whether Art Bible was read:
-Whether Reference Library was read:
+Art Bible read: yes/no
+Reference Library read: yes/no
 States/assets completed:
 Manifest status:
+Generated assets/sheets:
 Blockers:
-Runtime files changed, yes/no:
-Ready for QA, yes/no:
+Runtime files changed: yes/no
+Ready for QA: yes/no
+Notes for game manager:
 ```
 
 ## Current blockers
@@ -155,4 +177,4 @@ Ready for QA, yes/no:
 
 Status: not ready for final Codex integration.
 
-Next move: each department should review its own `DEPARTMENT_LOG.md`, complete the assigned folder, commit to its assigned branch, and report back with the required status block.
+Next move: each department should review its own `DEPARTMENT_LOG.md`, complete the assigned folder, update its section in `DEPARTMENT_STATUS_BOARD.md`, commit to its assigned branch, and only then report that the board was updated.
