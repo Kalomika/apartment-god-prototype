@@ -1,0 +1,112 @@
+{
+  "schema_version": "0.1.0",
+  "project": "Apartment God Prototype",
+  "department": "02_MALE_CHARACTER",
+  "branch": "male-character-realistic-sprite-states",
+  "source_manifest": "apartment-god-production/02_MALE_CHARACTER/manifest_male.json",
+  "art_bible_source": "apartment-god-production/00_ART_BIBLE/SPRITE_STATE_LIST.md",
+  "reference_library_source": "apartment-god-production/REFERENCE_LIBRARY/reference_manifest.json",
+  "state_count": 69,
+  "categories": {
+    "idle": [
+      "MALE_IDLE_STAND",
+      "MALE_IDLE_SHIFT_WEIGHT",
+      "MALE_IDLE_TURN_HEAD"
+    ],
+    "walk": [
+      "MALE_WALK_N",
+      "MALE_WALK_NE",
+      "MALE_WALK_E",
+      "MALE_WALK_SE",
+      "MALE_WALK_S",
+      "MALE_WALK_SW",
+      "MALE_WALK_W",
+      "MALE_WALK_NW"
+    ],
+    "run": [
+      "MALE_RUN_N",
+      "MALE_RUN_NE",
+      "MALE_RUN_E",
+      "MALE_RUN_SE",
+      "MALE_RUN_S",
+      "MALE_RUN_SW",
+      "MALE_RUN_W",
+      "MALE_RUN_NW"
+    ],
+    "sit": [
+      "MALE_SIT_CHAIR_IDLE",
+      "MALE_SIT_COUCH_IDLE",
+      "MALE_SIT_FLOOR_IDLE"
+    ],
+    "sleep": [
+      "MALE_SLEEP_BED_SOLO_BACK",
+      "MALE_SLEEP_BED_SOLO_SIDE",
+      "MALE_SLEEP_BED_SOLO_CURLED",
+      "MALE_SLEEP_BED_SOLO_SPRAWL",
+      "MALE_SLEEP_COUCH_SIDE",
+      "MALE_WAKE_BED"
+    ],
+    "phone": [
+      "MALE_PHONE_STAND_TEXTING",
+      "MALE_PHONE_COUCH_SCROLL"
+    ],
+    "laptop": [
+      "MALE_LAPTOP_DESK_TYPING",
+      "MALE_LAPTOP_COUCH_TYPING"
+    ],
+    "cooking": [
+      "MALE_COOKING_COUNTER_PREP",
+      "MALE_COOKING_STOVE_IDLE",
+      "MALE_COOKING_STOVE_STIR",
+      "MALE_COOKING_MISTAKE_REACT"
+    ],
+    "eating": [
+      "MALE_EATING_COUCH_IDLE",
+      "MALE_EATING_TABLE_BITE",
+      "MALE_DRINK"
+    ],
+    "shower_bathroom": [
+      "MALE_BATHROOM_TOILET_IDLE",
+      "MALE_SHOWER_LOOP",
+      "MALE_BRUSH_TEETH",
+      "MALE_BATHROOM_MIRROR_IDLE"
+    ],
+    "reading": [
+      "MALE_READING_COUCH",
+      "MALE_READING_BED",
+      "MALE_READING_DESK",
+      "MALE_PULL_BOOK_FROM_SHELF"
+    ],
+    "exercise": [
+      "MALE_EXERCISE_PUSHUP",
+      "MALE_EXERCISE_STRETCH",
+      "MALE_PLANK",
+      "MALE_STRENGTH_TRAIN"
+    ],
+    "pet_dog": [
+      "MALE_DOG_PET_CROUCH",
+      "MALE_DOG_FETCH_THROW",
+      "MALE_DOG_COMFORT_CROUCH"
+    ],
+    "social_solo": [
+      "MALE_SOCIAL_WAIT_PARTNER",
+      "MALE_SOCIAL_CALL_PARTNER",
+      "MALE_REACT_HAPPY",
+      "MALE_REACT_TIRED",
+      "MALE_REACT_ANNOYED",
+      "MALE_REACT_SAD",
+      "MALE_REACT_SPOOKED"
+    ],
+    "transitions": [
+      "MALE_TRANSITION_STAND_TO_SIT",
+      "MALE_TRANSITION_SIT_TO_STAND",
+      "MALE_TRANSITION_STAND_TO_CROUCH",
+      "MALE_TRANSITION_CROUCH_TO_STAND",
+      "MALE_TRANSITION_STAND_TO_LIE_FLOOR",
+      "MALE_TRANSITION_LIE_FLOOR_TO_STAND",
+      "MALE_TRANSITION_STAND_TO_BED",
+      "MALE_TRANSITION_BED_TO_STAND"
+    ]
+  },
+  "notes": "The primary Codex-consumable manifest is manifest_male.json. This index is a quick lookup by production folder and state group."
+}

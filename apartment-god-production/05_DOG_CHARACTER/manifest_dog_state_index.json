@@ -1,0 +1,61 @@
+{
+  "schema_version": "0.2.0",
+  "department": "05_DOG_CHARACTER",
+  "source_manifest": "manifest_dog.json",
+  "state_count": 63,
+  "categories": {
+    "idle": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/idle/",
+      "states": ["DOG_IDLE_STAND", "DOG_IDLE_SIT", "DOG_IDLE_LIE", "DOG_IDLE_TAIL_SHIFT", "DOG_IDLE_LOOK_UP"]
+    },
+    "walk": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/walk/",
+      "states": ["DOG_WALK_N", "DOG_WALK_NE", "DOG_WALK_E", "DOG_WALK_SE", "DOG_WALK_S", "DOG_WALK_SW", "DOG_WALK_W", "DOG_WALK_NW"]
+    },
+    "run": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/run/",
+      "states": ["DOG_RUN_N", "DOG_RUN_NE", "DOG_RUN_E", "DOG_RUN_SE", "DOG_RUN_S", "DOG_RUN_SW", "DOG_RUN_W", "DOG_RUN_NW"]
+    },
+    "sit": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/sit/",
+      "states": ["DOG_SIT_IDLE", "DOG_SIT_LOOK_UP", "DOG_SIT_TAIL_WAG"]
+    },
+    "sleep": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/sleep/",
+      "states": ["DOG_SLEEP_FLOOR_CURLED", "DOG_SLEEP_FLOOR_SIDE", "DOG_SLEEP_DOG_BED_CURLED", "DOG_SLEEP_DOG_BED_SIDE", "DOG_SLEEP_COUCH"]
+    },
+    "eat_drink": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/eat_drink/",
+      "states": ["DOG_EAT_BOWL", "DOG_DRINK_BOWL", "DOG_BOWL_IDLE"]
+    },
+    "pet_interaction": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/pet_interaction/",
+      "states": ["DOG_COMFORT_NUZZLE", "DOG_COMFORT_LIE_NEAR", "DOG_COMFORT_PAW_TOUCH", "DOG_PET_STAND_LEAN"]
+    },
+    "follow_human": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/follow_human/",
+      "states": ["DOG_FOLLOW_HUMAN", "DOG_HEEL_FOLLOW", "DOG_WAIT_AT_DOOR"]
+    },
+    "play": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/play/",
+      "states": ["DOG_FETCH_WAIT", "DOG_FETCH_RUN", "DOG_FETCH_CARRY", "DOG_FETCH_DROP", "DOG_PLAY_BOW", "DOG_PLAY_ROLL", "DOG_PLAY_TOY_SHAKE"]
+    },
+    "bathroom": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/bathroom/",
+      "states": ["DOG_BATHROOM_POTTY_PAD", "DOG_BATHROOM_WAIT_DOOR", "DOG_BATHROOM_SNIFF_SPOT"]
+    },
+    "alert": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/alert/",
+      "states": ["DOG_BARK_STAND", "DOG_BARK_SIT", "DOG_BARK_ALERT", "DOG_SNIFF_FLOOR", "DOG_SNIFF_OBJECT", "DOG_SNIFF_PERSON"]
+    },
+    "transitions": {
+      "folder": "apartment-god-production/05_DOG_CHARACTER/transitions/",
+      "states": ["DOG_STAND_TO_SIT", "DOG_SIT_TO_STAND", "DOG_STAND_TO_LIE", "DOG_LIE_TO_STAND", "DOG_STAND_TO_PLAY_BOW", "DOG_PLAY_BOW_TO_STAND", "DOG_PICK_UP_BALL", "DOG_DROP_BALL"]
+    }
+  },
+  "anchor_summary": {
+    "body_center": "Default dog anchor for idle, sit, sleep, eat, drink, pet interaction, play holds, bathroom, alert, and transitions.",
+    "feet_center": "Movement anchor for walk, run, fetch run/carry, and follow loops."
+  },
+  "notes": "State IDs follow the Art Bible uppercase snake case rule. Planned frame names follow STATE_ID_01_A.png style. No final sprite sheets generated in this pass."
+}

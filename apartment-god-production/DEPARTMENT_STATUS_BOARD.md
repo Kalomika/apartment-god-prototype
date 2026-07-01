@@ -182,6 +182,16 @@ Runtime files changed: no
 Ready for QA: yes
 Notes for game manager: QA_REVIEW_REPORT.md approves all departments for Codex integration-prep only. Codex may read manifests and prepare guarded mapping/fallback logic, but must not treat Reference Library images or missing final PNG sprites as gameplay-ready assets.
 
+Production Manifest Rollup status:
+Status: READY_FOR_CODEX_INTEGRATION_PREP
+Branch name: production-manifest-rollup
+Latest commit SHA: final branch HEAD reported after commit and push
+Included departments: REFERENCE_LIBRARY, 00_ART_BIBLE, 01_APARTMENT_ENVIRONMENT, 02_MALE_CHARACTER, 03_FEMALE_CHARACTER, 04_JOINT_CHARACTER_STATES, 05_DOG_CHARACTER, 06_INTEGRATION_QUEUE
+Manifest validation: all required JSON manifests valid
+Runtime files changed: no
+Ready for Codex integration-prep: yes
+Blockers: none
+
 ---
 
 ## 07_CODEX_INTEGRATION, Runtime Integration
