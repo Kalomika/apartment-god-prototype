@@ -1,18 +1,21 @@
 import { COLORS, MOODS } from './config.js';
+import { drawProductionEntity } from './productionAssets.js';
 import { roundRect } from './renderHelpers.js';
 
 export function drawEntities(ctx, state) {
-  for (const e of state.entities.filter(e => !e.hidden && e.floor === state.floor)) drawEntity(ctx, e, state.selectedId === e.id);
+  for (const e of state.entities.filter(e => !e.hidden && e.floor === state.floor)) drawEntity(ctx, e, state.selectedId === e.id, state);
 }
 
-function drawEntity(ctx, e, selected) {
+function drawEntity(ctx, e, selected, state) {
   ctx.save();
   ctx.translate(e.x, e.y);
   ctx.shadowColor = COLORS.shadow;
   ctx.shadowBlur = 10;
   ctx.shadowOffsetY = 4;
   if (selected) { ctx.strokeStyle = COLORS.active; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 4, 28, 0, Math.PI * 2); ctx.stroke(); }
-  if (e.type === 'dog') drawDog(ctx, e); else drawPerson(ctx, e);
+  if (!drawProductionEntity(ctx, e, state)) {
+    if (e.type === 'dog') drawDog(ctx, e); else drawPerson(ctx, e);
+  }
   if (e.actionT > 0) drawActionBar(ctx, e);
   if (e.bubble && e.bubbleT > 0) drawBubble(ctx, e.bubble);
   ctx.restore();

@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node scripts/build.js",
     "check": "node scripts/check.js",
+    "generate:production-pass-01": "node scripts/generate-production-pass-01.js",
     "start": "node scripts/dev-server.js"
   },
   "devDependencies": {}

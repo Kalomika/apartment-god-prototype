@@ -1,0 +1,451 @@
+{
+  "schema_version": "1.0.0",
+  "pass": "production_pass_01",
+  "generated_by": "scripts/generate-production-pass-01.js",
+  "png_count": 49,
+  "reference_library_used_as_runtime_assets": false,
+  "feature_flag": "USE_PRODUCTION_PASS_01_ASSETS",
+  "entries": [
+    {
+      "file": "floor1_base.png",
+      "path": "public/assets/production_pass_01/environment/floor1_base.png",
+      "category": "environment",
+      "intended_use": "Environment base or overlay behind existing interactive objects and characters.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural apartment world.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/environment/floor1_base.png"
+    },
+    {
+      "file": "floor2_base.png",
+      "path": "public/assets/production_pass_01/environment/floor2_base.png",
+      "category": "environment",
+      "intended_use": "Environment base or overlay behind existing interactive objects and characters.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural apartment world.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/environment/floor2_base.png"
+    },
+    {
+      "file": "walls_dark_base.png",
+      "path": "public/assets/production_pass_01/environment/walls_dark_base.png",
+      "category": "environment",
+      "intended_use": "Environment base or overlay behind existing interactive objects and characters.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural apartment world.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/environment/walls_dark_base.png"
+    },
+    {
+      "file": "living_room_base.png",
+      "path": "public/assets/production_pass_01/environment/living_room_base.png",
+      "category": "environment",
+      "intended_use": "Environment base or overlay behind existing interactive objects and characters.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural apartment world.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/environment/living_room_base.png"
+    },
+    {
+      "file": "kitchen_base.png",
+      "path": "public/assets/production_pass_01/environment/kitchen_base.png",
+      "category": "environment",
+      "intended_use": "Environment base or overlay behind existing interactive objects and characters.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural apartment world.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/environment/kitchen_base.png"
+    },
+    {
+      "file": "bathroom_base.png",
+      "path": "public/assets/production_pass_01/environment/bathroom_base.png",
+      "category": "environment",
+      "intended_use": "Environment base or overlay behind existing interactive objects and characters.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural apartment world.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/environment/bathroom_base.png"
+    },
+    {
+      "file": "bedroom_base.png",
+      "path": "public/assets/production_pass_01/environment/bedroom_base.png",
+      "category": "environment",
+      "intended_use": "Environment base or overlay behind existing interactive objects and characters.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural apartment world.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/environment/bedroom_base.png"
+    },
+    {
+      "file": "office_base.png",
+      "path": "public/assets/production_pass_01/environment/office_base.png",
+      "category": "environment",
+      "intended_use": "Environment base or overlay behind existing interactive objects and characters.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural apartment world.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/environment/office_base.png"
+    },
+    {
+      "file": "stairs_base.png",
+      "path": "public/assets/production_pass_01/environment/stairs_base.png",
+      "category": "environment",
+      "intended_use": "Environment base or overlay behind existing interactive objects and characters.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural apartment world.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/environment/stairs_base.png"
+    },
+    {
+      "file": "neon_lighting_overlay.png",
+      "path": "public/assets/production_pass_01/environment/neon_lighting_overlay.png",
+      "category": "environment",
+      "intended_use": "Environment base or overlay behind existing interactive objects and characters.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural apartment world.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/environment/neon_lighting_overlay.png"
+    },
+    {
+      "file": "male_idle_a.png",
+      "path": "public/assets/production_pass_01/male/male_idle_a.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_idle_a.png"
+    },
+    {
+      "file": "male_idle_b.png",
+      "path": "public/assets/production_pass_01/male/male_idle_b.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_idle_b.png"
+    },
+    {
+      "file": "male_walk_north_a.png",
+      "path": "public/assets/production_pass_01/male/male_walk_north_a.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_walk_north_a.png"
+    },
+    {
+      "file": "male_walk_south_a.png",
+      "path": "public/assets/production_pass_01/male/male_walk_south_a.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_walk_south_a.png"
+    },
+    {
+      "file": "male_walk_east_a.png",
+      "path": "public/assets/production_pass_01/male/male_walk_east_a.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_walk_east_a.png"
+    },
+    {
+      "file": "male_walk_west_a.png",
+      "path": "public/assets/production_pass_01/male/male_walk_west_a.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_walk_west_a.png"
+    },
+    {
+      "file": "male_sit_b.png",
+      "path": "public/assets/production_pass_01/male/male_sit_b.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_sit_b.png"
+    },
+    {
+      "file": "male_sleep_b.png",
+      "path": "public/assets/production_pass_01/male/male_sleep_b.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_sleep_b.png"
+    },
+    {
+      "file": "male_phone_b.png",
+      "path": "public/assets/production_pass_01/male/male_phone_b.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_phone_b.png"
+    },
+    {
+      "file": "male_laptop_b.png",
+      "path": "public/assets/production_pass_01/male/male_laptop_b.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_laptop_b.png"
+    },
+    {
+      "file": "male_eat_b.png",
+      "path": "public/assets/production_pass_01/male/male_eat_b.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_eat_b.png"
+    },
+    {
+      "file": "male_transition_a.png",
+      "path": "public/assets/production_pass_01/male/male_transition_a.png",
+      "category": "male",
+      "intended_use": "First-pass top-down male runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/male/male_transition_a.png"
+    },
+    {
+      "file": "female_idle_a.png",
+      "path": "public/assets/production_pass_01/female/female_idle_a.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_idle_a.png"
+    },
+    {
+      "file": "female_idle_b.png",
+      "path": "public/assets/production_pass_01/female/female_idle_b.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_idle_b.png"
+    },
+    {
+      "file": "female_walk_north_a.png",
+      "path": "public/assets/production_pass_01/female/female_walk_north_a.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_walk_north_a.png"
+    },
+    {
+      "file": "female_walk_south_a.png",
+      "path": "public/assets/production_pass_01/female/female_walk_south_a.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_walk_south_a.png"
+    },
+    {
+      "file": "female_walk_east_a.png",
+      "path": "public/assets/production_pass_01/female/female_walk_east_a.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_walk_east_a.png"
+    },
+    {
+      "file": "female_walk_west_a.png",
+      "path": "public/assets/production_pass_01/female/female_walk_west_a.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_walk_west_a.png"
+    },
+    {
+      "file": "female_sit_b.png",
+      "path": "public/assets/production_pass_01/female/female_sit_b.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_sit_b.png"
+    },
+    {
+      "file": "female_sleep_b.png",
+      "path": "public/assets/production_pass_01/female/female_sleep_b.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_sleep_b.png"
+    },
+    {
+      "file": "female_phone_b.png",
+      "path": "public/assets/production_pass_01/female/female_phone_b.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_phone_b.png"
+    },
+    {
+      "file": "female_laptop_b.png",
+      "path": "public/assets/production_pass_01/female/female_laptop_b.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_laptop_b.png"
+    },
+    {
+      "file": "female_eat_b.png",
+      "path": "public/assets/production_pass_01/female/female_eat_b.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_eat_b.png"
+    },
+    {
+      "file": "female_transition_a.png",
+      "path": "public/assets/production_pass_01/female/female_transition_a.png",
+      "category": "female",
+      "intended_use": "First-pass top-down female runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/female/female_transition_a.png"
+    },
+    {
+      "file": "dog_idle_a.png",
+      "path": "public/assets/production_pass_01/dog/dog_idle_a.png",
+      "category": "dog",
+      "intended_use": "First-pass top-down dog runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/dog/dog_idle_a.png"
+    },
+    {
+      "file": "dog_idle_b.png",
+      "path": "public/assets/production_pass_01/dog/dog_idle_b.png",
+      "category": "dog",
+      "intended_use": "First-pass top-down dog runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/dog/dog_idle_b.png"
+    },
+    {
+      "file": "dog_walk_north_a.png",
+      "path": "public/assets/production_pass_01/dog/dog_walk_north_a.png",
+      "category": "dog",
+      "intended_use": "First-pass top-down dog runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/dog/dog_walk_north_a.png"
+    },
+    {
+      "file": "dog_walk_south_a.png",
+      "path": "public/assets/production_pass_01/dog/dog_walk_south_a.png",
+      "category": "dog",
+      "intended_use": "First-pass top-down dog runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/dog/dog_walk_south_a.png"
+    },
+    {
+      "file": "dog_walk_east_a.png",
+      "path": "public/assets/production_pass_01/dog/dog_walk_east_a.png",
+      "category": "dog",
+      "intended_use": "First-pass top-down dog runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/dog/dog_walk_east_a.png"
+    },
+    {
+      "file": "dog_walk_west_a.png",
+      "path": "public/assets/production_pass_01/dog/dog_walk_west_a.png",
+      "category": "dog",
+      "intended_use": "First-pass top-down dog runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/dog/dog_walk_west_a.png"
+    },
+    {
+      "file": "dog_sit_b.png",
+      "path": "public/assets/production_pass_01/dog/dog_sit_b.png",
+      "category": "dog",
+      "intended_use": "First-pass top-down dog runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/dog/dog_sit_b.png"
+    },
+    {
+      "file": "dog_sleep_b.png",
+      "path": "public/assets/production_pass_01/dog/dog_sleep_b.png",
+      "category": "dog",
+      "intended_use": "First-pass top-down dog runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/dog/dog_sleep_b.png"
+    },
+    {
+      "file": "dog_eat_b.png",
+      "path": "public/assets/production_pass_01/dog/dog_eat_b.png",
+      "category": "dog",
+      "intended_use": "First-pass top-down dog runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/dog/dog_eat_b.png"
+    },
+    {
+      "file": "dog_alert_b.png",
+      "path": "public/assets/production_pass_01/dog/dog_alert_b.png",
+      "category": "dog",
+      "intended_use": "First-pass top-down dog runtime sprite selected by current action or movement state.",
+      "fallback_behavior": "If missing or not loaded, draw the existing procedural entity renderer.",
+      "runtime_integrated": true,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/dog/dog_alert_b.png"
+    },
+    {
+      "file": "joint_conversation_b.png",
+      "path": "public/assets/production_pass_01/joint/joint_conversation_b.png",
+      "category": "joint",
+      "intended_use": "First-pass joint sprite available for future safe shared-action integration; runtime currently keeps procedural joint fallback.",
+      "fallback_behavior": "Current separate procedural characters remain visible until joint positioning is explicitly integrated.",
+      "runtime_integrated": false,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/joint/joint_conversation_b.png"
+    },
+    {
+      "file": "joint_couch_shared_b.png",
+      "path": "public/assets/production_pass_01/joint/joint_couch_shared_b.png",
+      "category": "joint",
+      "intended_use": "First-pass joint sprite available for future safe shared-action integration; runtime currently keeps procedural joint fallback.",
+      "fallback_behavior": "Current separate procedural characters remain visible until joint positioning is explicitly integrated.",
+      "runtime_integrated": false,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/joint/joint_couch_shared_b.png"
+    },
+    {
+      "file": "joint_bed_shared_b.png",
+      "path": "public/assets/production_pass_01/joint/joint_bed_shared_b.png",
+      "category": "joint",
+      "intended_use": "First-pass joint sprite available for future safe shared-action integration; runtime currently keeps procedural joint fallback.",
+      "fallback_behavior": "Current separate procedural characters remain visible until joint positioning is explicitly integrated.",
+      "runtime_integrated": false,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/joint/joint_bed_shared_b.png"
+    },
+    {
+      "file": "joint_hug_b.png",
+      "path": "public/assets/production_pass_01/joint/joint_hug_b.png",
+      "category": "joint",
+      "intended_use": "First-pass joint sprite available for future safe shared-action integration; runtime currently keeps procedural joint fallback.",
+      "fallback_behavior": "Current separate procedural characters remain visible until joint positioning is explicitly integrated.",
+      "runtime_integrated": false,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/joint/joint_hug_b.png"
+    },
+    {
+      "file": "joint_pet_dog_b.png",
+      "path": "public/assets/production_pass_01/joint/joint_pet_dog_b.png",
+      "category": "joint",
+      "intended_use": "First-pass joint sprite available for future safe shared-action integration; runtime currently keeps procedural joint fallback.",
+      "fallback_behavior": "Current separate procedural characters remain visible until joint positioning is explicitly integrated.",
+      "runtime_integrated": false,
+      "mirrored_source_copy": "apartment-god-production/generated_runtime_assets/pass_01/joint/joint_pet_dog_b.png"
+    }
+  ]
+}

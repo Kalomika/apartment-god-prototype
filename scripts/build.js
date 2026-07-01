@@ -9,8 +9,9 @@ for (const output of [dist, legacyDist]) {
   rmSync(output, { recursive: true, force: true });
   mkdirSync(output, { recursive: true });
 
-  for (const item of ['index.html', 'styles.css', 'src']) {
+  for (const item of ['index.html', 'styles.css', 'src', 'public']) {
     const source = join(root, item);
+    if (!existsSync(source) && item === 'public') continue;
     if (!existsSync(source)) {
       throw new Error(`Missing required build source: ${item}`);
     }
