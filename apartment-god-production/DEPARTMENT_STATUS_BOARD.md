@@ -196,19 +196,19 @@ Blockers: none
 
 ## 07_CODEX_INTEGRATION, Runtime Integration
 
-Status: NOT_STARTED
-Branch name:
-Latest commit SHA:
-Files created:
-Folders created:
-Art Bible read:
-Reference Library read:
-States/assets completed:
-Manifest status:
-Generated assets/sheets:
-Blockers:
-Runtime files changed:
-Ready for QA:
-Notes for game manager:
+Status: READY_FOR_REVIEW
+Branch name: codex-manifest-integration-prep
+Latest commit SHA: final branch HEAD reported after commit and push
+Files created: README.md, MANIFEST_INTEGRATION_PLAN.md, RUNTIME_STATE_MAPPING.md, MISSING_ASSET_REPORT.md, FALLBACK_RULES.md, CODEX_NEXT_STEPS.md.
+Folders created: apartment-god-production/07_CODEX_INTEGRATION/
+Art Bible read: yes
+Reference Library read: yes
+States/assets completed: Integration-prep documentation only. Current runtime state/action mapping prepared for future environment, male, female, dog, and joint manifest state IDs.
+Manifest status: All required rollup manifests present and inspected; no runtime asset integration performed. Planned PNGs remain missing and intentionally gated.
+Generated assets/sheets: none.
+Blockers: none for integration-prep review. Final visual integration remains blocked until original transparent PNG sprite sheets and environment PNGs are generated, QA-approved, and registered as approved assets.
+Runtime files changed: no
+Ready for QA: yes
+Notes for game manager: This branch prepares guarded manifest mapping and fallback rules only. It does not alter `src/`, does not use Reference Library images as runtime assets, and does not replace current prototype visuals.
 
 Runtime integration does not begin until QA says safe to integrate.
