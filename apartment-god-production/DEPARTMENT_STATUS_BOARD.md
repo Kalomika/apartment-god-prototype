@@ -73,19 +73,19 @@ Notes for game manager: Art Bible department is complete for department use. Oth
 ## 01_APARTMENT_ENVIRONMENT
 
 Status: PARTIALLY_READY
-Branch name: apartment-environment-cyberpunk-assets
-Latest commit SHA: 02daa4e973cf23b243f1b22248b967a59b2ec300
-Files created: README.md, layout/ENV_LAYOUT_PLAN.md, layout/INTEGRATION_NOTES.md, walls_doors_windows/WALL_DOOR_WINDOW_LANGUAGE.md, rooms/ROOM_STYLE_GUIDE.md, props/PROP_ASSET_LIST.md, lighting/LIGHTING_STYLE_GUIDE.md, manifest_environment.json.
-Folders created: apartment-god-production/01_APARTMENT_ENVIRONMENT/ with layout, walls_doors_windows, rooms, props, lighting.
-Art Bible read: yes, from art-bible-production-structure during production context. Missing from production-manager-department-logs at review time.
-Reference Library read: no, not present on production-manager-department-logs at review time and shared reference pack was unavailable in session.
-States/assets completed: Floor 1 and Floor 2 layout states, living room, kitchen, bathroom, entry, stairs, bedroom, office, upstairs bathroom, hall, basement future, garage future. Prop coverage includes couch, TV, stereo, fridge, stove, kitchen sink, shower, toilet, front door, dog bowl, living light, bedroom light, stairs, bed, laptop desk, bookshelf, living window, bedroom window, phone dock future, dining table future, car future, podcast desk future, basement couch future, garage tool rack future.
-Manifest status: manifest_environment.json exists and includes required environment and prop entries with state_id, category, asset_type, room, gameplay_tags, frame_count, frames, anchor_point, collision_notes, interaction_notes, visual_notes, implementation_notes, and status. Needs later reconciliation with final Art Bible and extracted Reference Library once both exist on the manager branch.
-Generated assets/sheets: none, structured blueprint and manifest only.
-Blockers: Art Bible is missing from production-manager-department-logs, Reference Library is missing from production-manager-department-logs, shared reference pack was not available in session, no polished PNG art created yet.
+Branch name: environment-png-production-pass-01
+Latest commit SHA: 844498d22b1948a19fd0083275bcfe6eac228c20
+Files created: generated_png/pass_01/ASSET_INDEX.md, generated_png/pass_01/PNG_QA_NOTES.md, and 10 original transparent PNG assets for floor base, room base, prop-set base, wall, stair, and lighting priorities.
+Folders created: apartment-god-production/01_APARTMENT_ENVIRONMENT/generated_png/pass_01/
+Art Bible read: yes
+Reference Library read: yes
+States/assets completed: PNG pass 01 generated for ENV_FLOOR_1_BASE_LAYOUT, ENV_FLOOR_2_BASE_LAYOUT, ENV_LIVING_ROOM_BASE, ENV_KITCHEN_BASE, ENV_BATHROOM_BASE, ENV_BEDROOM_BASE, ENV_WORKSPACE_BASE, ENV_PROP_STAIRS_BASE, ENV_WALLS_DARK_BASE, and ENV_LIGHTING_NEON_CYAN. Asset index maps manifest planned uppercase frame names to stable lowercase PNG filenames.
+Manifest status: manifest_environment.json was read and used as the source for state IDs and planned frame names. No manifest changes made in this pass.
+Generated assets/sheets: 10 original transparent PNG files in generated_png/pass_01/. First-pass production art only, needs visual QA before approval or runtime use.
+Blockers: none for PNG pass 01. Final runtime visual integration still requires visual QA approval and an approved asset registry.
 Runtime files changed: no
-Ready for QA: no
-Notes for game manager: Environment planning deliverables are complete as a blueprint pass and safe for review as documentation, but not ready for final QA until Art Bible and Reference Library are present on the manager branch and the manifest is reconciled against them.
+Ready for QA: yes
+Notes for game manager: Environment PNG pass 01 is generated and ready for visual QA. Assets are not integrated into runtime and Reference Library images were not reused as final assets.
 
 ---
 
