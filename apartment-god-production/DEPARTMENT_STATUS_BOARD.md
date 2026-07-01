@@ -167,20 +167,20 @@ Notes for game manager:
 
 ## 06_INTEGRATION_QUEUE, QA Review
 
-Status: NOT_STARTED
-Branch name:
-Latest commit SHA:
-Files created:
-Folders created:
-Art Bible read:
-Reference Library read:
-States/assets completed:
-Manifest status:
-Generated assets/sheets:
-Blockers:
-Runtime files changed:
-Ready for QA:
-Notes for game manager:
+Status: READY_FOR_QA
+Branch name: qa-review-production-manifests
+Latest commit SHA: 0f1a27c0b809ab0a0b648925b36f3b3500379011
+Files created: QA_REVIEW_REPORT.md.
+Folders created: none; used existing apartment-god-production/06_INTEGRATION_QUEUE/ from base production structure.
+Art Bible read: yes
+Reference Library read: yes
+States/assets completed: QA reviewed planning files, manifests, prompts, department folders, status board handoffs, and branch runtime safety for Reference Library, Art Bible, Apartment Environment, Male Character, Female Character, Dog Character, and Joint Character States. No final sprites generated or required.
+Manifest status: All five primary production manifests reviewed as valid JSON and PASS for planning-manifest QA: manifest_environment.json, manifest_male.json, manifest_female.json, manifest_joint.json, and manifest_dog.json.
+Generated assets/sheets: none, per instruction.
+Blockers: none for planning-manifest QA. Final gameplay visual integration remains blocked until original transparent PNG sprite sheets are generated and visually QA-approved.
+Runtime files changed: no
+Ready for QA: yes
+Notes for game manager: QA_REVIEW_REPORT.md approves all departments for Codex integration-prep only. Codex may read manifests and prepare guarded mapping/fallback logic, but must not treat Reference Library images or missing final PNG sprites as gameplay-ready assets.
 
 ---
 
