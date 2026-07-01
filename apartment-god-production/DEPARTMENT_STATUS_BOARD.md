@@ -131,7 +131,7 @@ Notes for game manager: Department planning cleanup is complete and manifest rec
 
 Status: READY_FOR_QA
 Branch name: joint-character-realistic-sprite-states
-Latest commit SHA: a44891f9fee5380e401b1fc92868ed18d4eeebfe
+Latest commit SHA: d64147ae70a6f25f30030f1644789827eb621dbb
 Files created: README.md, JOINT_STATE_BREAKDOWN.md, manifest_joint.json, manifest_joint_state_index.json, prompt_sheets/JOINT_GENERATION_PROMPTS.md, .gitkeep files for required category folders.
 Folders created: apartment-god-production/04_JOINT_CHARACTER_STATES/ with bed_shared, couch_shared, conversation, hug, kiss, argument, dance, cook_together, eat_together, watch_tv, desk_shared, pet_dog_together, transitions, prompt_sheets.
 Art Bible read: yes
