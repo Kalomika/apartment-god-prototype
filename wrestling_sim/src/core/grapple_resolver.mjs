@@ -64,10 +64,6 @@ export function scoreMove(move, wrestler, opponent, context, managerState) {
 export function applyMoveResult(move, actor, opponent, context) {
   actor.condition.stamina = clamp01(actor.condition.stamina - move.staminaCost);
 
-  if (move.staminaCost < 0) {
-    actor.condition.stamina = clamp01(actor.condition.stamina - move.staminaCost);
-  }
-
   const successBase = 0.55 + actor.profile.stats.technique * 0.18 + actor.profile.stats.awareness * 0.12;
   const riskPenalty = move.risk * (0.35 + opponent.profile.stats.counterSkill * 0.25);
   const staminaPenalty = actor.condition.stamina < 0.25 ? 0.2 : 0;
