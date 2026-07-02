@@ -1,0 +1,11 @@
+{
+  "name": "kalomika_wrestling_sim_foundation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Isolated foundation for a realistic AI driven wrestling sim prototype.",
+  "scripts": {
+    "start": "node src/sim_runner.mjs",
+    "test": "node tests/smoke_test.mjs"
+  }
+}
