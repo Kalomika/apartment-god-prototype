@@ -6,6 +6,7 @@
   "description": "Isolated foundation for a realistic AI driven wrestling sim prototype.",
   "scripts": {
     "start": "node src/sim_runner.mjs",
-    "test": "node tests/smoke_test.mjs"
+    "test": "node tests/smoke_test.mjs",
+    "export:scad": "node tools/export_openscad_assets.mjs"
   }
 }
