@@ -2,14 +2,14 @@ import { COLORS } from './config.js';
 import { roundRect } from './renderHelpers.js';
 
 const INK = '#071018';
-const SKIN = '#3a241f';
-const SKIN_LIT = '#5a372f';
-const CLOTH_M = '#111820';
-const CLOTH_F = '#17131b';
-const CYAN = '#74e6ff';
-const MAGENTA = '#ff75df';
-const DOG_COAT = '#f6f2e8';
-const DOG_SHADE = '#d8d0c0';
+const PAPER = '#fbfbf7';
+const PAPER_DIM = '#e9e6dc';
+const HAIR = '#05070a';
+const DOG_COAT = '#fbfbf7';
+const DOG_SHADE = '#e5e0d5';
+const GUIDE = 'rgba(7,16,24,.16)';
+
+const FACING_STEP = (Math.PI * 2) / 8;
 
 export function drawEntities(ctx, state) {
   for (const e of state.entities.filter(e => !e.hidden && e.floor === state.floor)) drawEntity(ctx, e, state.selectedId === e.id);
@@ -42,8 +42,16 @@ function heading(e) {
   const dx = e.vx || (e.target ? e.target.x - e.x : 0);
   const dy = e.vy || (e.target ? e.target.y - e.y : 0);
   if (Math.abs(dx) + Math.abs(dy) < 0.01) return e.lastHeading ?? 0;
-  e.lastHeading = Math.atan2(dy, dx) + Math.PI / 2;
-  return e.lastHeading;
+  const raw = Math.atan2(dy, dx) + Math.PI / 2;
+  const quantized = Math.round(raw / FACING_STEP) * FACING_STEP;
+  e.lastHeading = quantized;
+  e.facing8 = directionName(quantized);
+  return quantized;
+}
+
+function directionName(angle) {
+  const normalized = ((Math.round(angle / FACING_STEP) % 8) + 8) % 8;
+  return ['down', 'down-left', 'left', 'up-left', 'up', 'up-right', 'right', 'down-right'][normalized];
 }
 
 function drawPerson(ctx, e) {
@@ -51,67 +59,58 @@ function drawPerson(ctx, e) {
   const moving = Boolean(e.path?.length) || e.pose === 'walk' || action.includes('walk') || action.includes('run');
   const step = moving ? [-1, .45, 1, -.45][Math.floor(performance.now() / 120) % 4] : Math.sin(performance.now() / 700) * .12;
   const female = e.id === 'girlfriend';
-  const accent = female ? MAGENTA : CYAN;
-  const cloth = female ? CLOTH_F : CLOTH_M;
 
   if (e.pose === 'sleep' || action.includes('sleep') || action.includes('nap')) {
     ctx.save();
     ctx.rotate(-Math.PI / 2 + .08);
-    drawHumanBody(ctx, female, cloth, accent, 0, true);
+    drawHumanBody(ctx, female, 0, true);
     ctx.restore();
     return;
   }
 
   if (e.pose === 'sit' || action.includes('tv') || action.includes('desk') || action.includes('phone') || action.includes('game') || action.includes('ordering')) {
-    drawHumanBody(ctx, female, cloth, accent, step * .25, true);
+    drawHumanBody(ctx, female, step * .25, true);
     return;
   }
 
-  drawHumanBody(ctx, female, cloth, accent, step, false);
+  drawHumanBody(ctx, female, step, false);
 
   if (action.includes('dance') || action.includes('music')) {
-    ctx.fillStyle = accent;
+    ctx.fillStyle = INK;
     ctx.font = '900 15px system-ui';
     ctx.fillText('♪', 25, -35);
   }
 }
 
-function drawHumanBody(ctx, female, cloth, accent, step, seated) {
+function drawHumanBody(ctx, female, step, seated) {
   const shoulder = female ? 29 : 34;
   const hip = female ? 24 : 28;
   const torsoH = seated ? female ? 36 : 40 : female ? 42 : 46;
 
-  ell(ctx, 0, 8, 34, 45, 'rgba(0,0,0,.22)', '', 0);
+  ell(ctx, 0, 8, 34, 45, GUIDE, '', 0);
 
-  limb(ctx, -hip * .28, 15, -12 - step * 4, seated ? 28 : 35 + Math.abs(step) * 3, 8, cloth);
-  limb(ctx, hip * .28, 15, 12 + step * 4, seated ? 28 : 35 - Math.abs(step) * 2, 8, cloth);
+  limb(ctx, -hip * .28, 15, -12 - step * 4, seated ? 28 : 35 + Math.abs(step) * 3, 8, PAPER_DIM);
+  limb(ctx, hip * .28, 15, 12 + step * 4, seated ? 28 : 35 - Math.abs(step) * 2, 8, PAPER_DIM);
   shoe(ctx, -12 - step * 4, seated ? 31 : 39 + Math.abs(step) * 3, -.08);
   shoe(ctx, 12 + step * 4, seated ? 31 : 39 - Math.abs(step) * 2, .08);
 
-  torso(ctx, shoulder, hip, torsoH, cloth, accent);
+  torso(ctx, shoulder, hip, torsoH, female);
 
-  limb(ctx, -shoulder * .47, -8, -28, 10 - step * 5, 7, cloth);
-  limb(ctx, shoulder * .47, -8, 28, 10 + step * 5, 7, cloth);
-  hand(ctx, -29, 12 - step * 5, accent);
-  hand(ctx, 29, 12 + step * 5, accent);
+  limb(ctx, -shoulder * .47, -8, -28, 10 - step * 5, 7, PAPER_DIM);
+  limb(ctx, shoulder * .47, -8, 28, 10 + step * 5, 7, PAPER_DIM);
+  hand(ctx, -29, 12 - step * 5);
+  hand(ctx, 29, 12 + step * 5);
 
-  ell(ctx, 0, -24, 8, 7, SKIN, INK, 2);
-  ell(ctx, 0, -37, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5);
-  ell(ctx, 0, -34, female ? 10 : 11, female ? 11 : 10, SKIN_LIT, '', 0);
+  ell(ctx, 0, -24, 8, 7, PAPER, INK, 2);
+  ell(ctx, 0, -37, female ? 15 : 16, female ? 17 : 16, PAPER, INK, 2.5);
   hair(ctx, female);
 
-  ctx.strokeStyle = '#f0d7bd';
+  ctx.strokeStyle = INK;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(-4, -34);
   ctx.lineTo(4, -34);
   ctx.stroke();
-
-  ctx.fillStyle = accent;
-  ctx.font = '900 7px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText(female ? 'FEMALE' : 'MALE', 0, 11);
-  ctx.textAlign = 'left';
 }
 
 function drawDog(ctx, e) {
@@ -119,7 +118,7 @@ function drawDog(ctx, e) {
   const moving = Boolean(e.path?.length) || action.includes('fetch');
   const step = moving ? [-1, .5, 1, -.5][Math.floor(performance.now() / 110) % 4] : Math.sin(performance.now() / 600) * .15;
 
-  ell(ctx, 1, 6, 36, 23, 'rgba(0,0,0,.22)', '', 0);
+  ell(ctx, 1, 6, 36, 23, GUIDE, '', 0);
   limb(ctx, -12, 8, -17 - step * 3, 25, 5.5, DOG_COAT);
   limb(ctx, 9, 8, 14 + step * 3, 25, 5.5, DOG_COAT);
   limb(ctx, -14, -7, -22 + step * 4, -20, 5, DOG_COAT);
@@ -139,35 +138,45 @@ function drawDog(ctx, e) {
   ctx.quadraticCurveTo(-37, -17 - step * 5, -42, -4 - step * 2);
   ctx.stroke();
 
-  ctx.fillStyle = CYAN;
-  ctx.fillRect(-10, -17, 20, 3);
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-10, -17);
+  ctx.lineTo(10, -17);
+  ctx.moveTo(-6, -12);
+  ctx.lineTo(6, -12);
+  ctx.stroke();
 }
 
-function torso(ctx, shoulder, hip, torsoH, cloth, accent) {
+function torso(ctx, shoulder, hip, torsoH, female) {
   ctx.beginPath();
   ctx.moveTo(-shoulder / 2, -11);
   ctx.lineTo(shoulder / 2, -11);
   ctx.lineTo(hip / 2, torsoH * .45);
   ctx.lineTo(-hip / 2, torsoH * .45);
   ctx.closePath();
-  ctx.fillStyle = cloth;
+  ctx.fillStyle = PAPER;
   ctx.fill();
   ctx.strokeStyle = INK;
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  ctx.strokeStyle = accent;
+  ctx.strokeStyle = INK;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(-shoulder * .32, -7);
   ctx.lineTo(-hip * .25, torsoH * .34);
   ctx.moveTo(shoulder * .32, -7);
   ctx.lineTo(hip * .25, torsoH * .34);
+  if (female) {
+    ctx.moveTo(-shoulder * .18, 1);
+    ctx.lineTo(shoulder * .18, 1);
+  }
   ctx.stroke();
 }
 
 function hair(ctx, female) {
-  ctx.fillStyle = '#05070a';
+  ctx.fillStyle = HAIR;
   ctx.strokeStyle = INK;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -175,8 +184,8 @@ function hair(ctx, female) {
     ctx.ellipse(0, -41, 19, 20, 0, Math.PI * .85, Math.PI * 2.15);
     ctx.fill();
     ctx.stroke();
-    ell(ctx, -15, -34, 5, 9, '#05070a', INK, 1);
-    ell(ctx, 15, -34, 5, 9, '#05070a', INK, 1);
+    ell(ctx, -15, -34, 5, 9, HAIR, INK, 1);
+    ell(ctx, 15, -34, 5, 9, HAIR, INK, 1);
   } else {
     ctx.ellipse(0, -43, 16, 11, 0, Math.PI, Math.PI * 2);
     ctx.fill();
@@ -201,17 +210,15 @@ function limb(ctx, x1, y1, x2, y2, width, fill) {
   ctx.stroke();
 }
 
-function hand(ctx, x, y, accent) {
-  ell(ctx, x, y, 4.5, 4.5, SKIN, INK, 1.5);
-  ctx.fillStyle = accent;
-  ctx.fillRect(x - 2, y - 2, 4, 1);
+function hand(ctx, x, y) {
+  ell(ctx, x, y, 4.5, 4.5, PAPER, INK, 1.5);
 }
 
 function shoe(ctx, x, y, rot) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(rot);
-  ell(ctx, 0, 0, 5, 8, '#05070a', INK, 1);
+  ell(ctx, 0, 0, 5, 8, PAPER_DIM, INK, 1);
   ctx.restore();
 }
 
