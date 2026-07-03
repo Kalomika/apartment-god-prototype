@@ -1,0 +1,80 @@
+{
+  "project": "Apartment God Prototype",
+  "created": "2026-07-03",
+  "visual_standard": {
+    "priority": "approved reference library first, no invented style",
+    "reference_paths": [
+      "apartment-god-production/REFERENCE_LIBRARY/",
+      "apartment-god-production/00_ART_BIBLE/",
+      "apartment-god-production/REFERENCE_LIBRARY/02_human_realistic_topdown_linework/",
+      "apartment-god-production/REFERENCE_LIBRARY/03_dog_references/"
+    ],
+    "line_style": "black or dark gray line art on white or transparent background",
+    "camera": "true top-down 2D gameplay sprite, with side and back views only as production turnaround references",
+    "avoid": [
+      "isometric",
+      "high-angle front portrait",
+      "cartoon chibi bodies",
+      "color-dependent readability",
+      "new improvised style that ignores the reference library"
+    ]
+  },
+  "directions": [
+    "down",
+    "down-right",
+    "right",
+    "up-right",
+    "up",
+    "up-left",
+    "left",
+    "down-left"
+  ],
+  "required_initial_states": [
+    "idle",
+    "walk"
+  ],
+  "planned_states": [
+    "sit",
+    "sleep",
+    "interact",
+    "pet",
+    "fetch",
+    "phone",
+    "eating",
+    "object-use"
+  ],
+  "characters": {
+    "male_resident": {
+      "type": "human",
+      "minimum_frames_per_direction": {
+        "idle": 1,
+        "walk": 4
+      },
+      "anchor": "feet_or_body_center_for_runtime_rotation",
+      "notes": "Adult male proportions, realistic top-down, clean linework, no face-forward angle."
+    },
+    "female_resident": {
+      "type": "human",
+      "minimum_frames_per_direction": {
+        "idle": 1,
+        "walk": 4
+      },
+      "anchor": "feet_or_body_center_for_runtime_rotation",
+      "notes": "Adult female proportions, realistic top-down, clean linework, no face-forward angle."
+    },
+    "dog": {
+      "type": "dog",
+      "minimum_frames_per_direction": {
+        "idle": 1,
+        "walk": 4
+      },
+      "anchor": "body_center_between_front_and_back paws",
+      "notes": "Natural companion dog anatomy, white dog readable in black linework, no toy or cute cartoon body."
+    }
+  },
+  "runtime_fallback_status": {
+    "file": "src/renderEntities.js",
+    "status": "procedural line-art fallback only, to be replaced by approved PNG atlases once available",
+    "current_support": "quantized eight-direction facing, idle and walk motion timing"
+  }
+}
