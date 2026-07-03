@@ -21,6 +21,7 @@ function entity(id, name, type, floor, x, y, color) {
     path: [], target: null, action: null, actionT: 0, pending: null,
     pose: 'stand', mood: type === 'dog' ? 'dog' : 'neutral', bubble: '', bubbleT: 0,
     idleT: 0, stopped: false, hidden: false, trainingSkill: null,
+    sharedJobId: null, sharedWith: null, blockedT: 0,
     needs: baseNeeds(), skills: baseSkills(id, type), skillCaps: skillCaps(id, type),
     traits: id === 'girlfriend' ? { frugal: true, spender: false } : { frugal: false, spender: false }
   };
@@ -41,9 +42,12 @@ export function createState() {
     assign: null,
     movePick: null,
     moveJob: null,
+    buildPick: null,
     fetch: null,
     routines: [],
     appointments: [],
+    requests: [],
+    sharedJobs: [],
     notifications: ['Apartment God booted.'],
     tv: { on: false, channel: 'Idle', pulse: 0 },
     offsite: null,
@@ -68,22 +72,29 @@ export function byId(state, id) {
   return state.entities.find(e => e.id === id) || null;
 }
 
+export function humanSelected(state) {
+  const picked = selected(state);
+  return picked?.type === 'person' ? picked : state.entities.find(e => e.id === 'resident') || state.entities.find(e => e.type === 'person') || picked;
+}
+
 export function log(state, text) {
   state.notifications.unshift(text);
   state.notifications = state.notifications.slice(0, 8);
 }
 
 export function say(entity, text, seconds = 2.4) {
+  if (!entity) return;
   entity.bubble = text;
   entity.bubbleT = seconds;
 }
 
 export function setMood(entity, mood) {
+  if (!entity) return;
   entity.mood = MOODS[mood] ? mood : 'neutral';
 }
 
 export function changeNeed(entity, key, amount) {
-  if (!entity.needs || !(key in entity.needs)) return;
+  if (!entity?.needs || !(key in entity.needs)) return;
   entity.needs[key] = Math.max(0, Math.min(100, entity.needs[key] + amount));
 }
 
@@ -93,6 +104,8 @@ export function stopEntity(entity) {
   entity.pending = null;
   entity.action = null;
   entity.actionT = 0;
+  entity.sharedJobId = null;
+  entity.sharedWith = null;
   entity.pose = 'stand';
   entity.stopped = true;
 }

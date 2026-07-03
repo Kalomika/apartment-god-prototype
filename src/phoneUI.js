@@ -6,7 +6,7 @@ import { genreList, startMusic } from './music.js';
 import { addRequest, updateRequests } from './requests.js';
 import { loadGame, saveGame, slotSummary } from './saveSystem.js';
 import { startSharedObjectAction } from './sharedActions.js';
-import { log, selected } from './state.js';
+import { humanSelected, log } from './state.js';
 
 let built = false;
 let open = false;
@@ -32,13 +32,13 @@ function buildPhoneUi(state) {
   const wrap = document.getElementById('game-wrap');
 
   const up = document.createElement('button');
-  up.textContent = '↑ Floor';
+  up.textContent = 'Up Floor';
   up.style.cssText = 'position:absolute;right:12px;top:12px;z-index:6;opacity:.82;padding:8px 10px;border-radius:999px;';
   up.onclick = event => { event.stopPropagation(); state.floor = 1; state.viewHoldT = state.buildPick ? 30 : 18; log(state, state.buildPick ? 'Tap upstairs placement spot.' : 'Viewing upstairs.'); dirty = true; };
   wrap.appendChild(up);
 
   const down = document.createElement('button');
-  down.textContent = '↓ Floor';
+  down.textContent = 'Down Floor';
   down.style.cssText = 'position:absolute;right:12px;bottom:12px;z-index:6;opacity:.82;padding:8px 10px;border-radius:999px;';
   down.onclick = event => { event.stopPropagation(); state.floor = 0; state.viewHoldT = state.buildPick ? 30 : 0; log(state, state.buildPick ? 'Tap downstairs placement spot.' : 'Viewing downstairs.'); dirty = true; };
   wrap.appendChild(down);
@@ -60,6 +60,10 @@ function buildPhoneUi(state) {
   hud.prepend(dock);
   els = { button, panel };
   updatePhoneButton(state);
+}
+
+function phoneActor(state) {
+  return humanSelected(state);
 }
 
 function updatePhoneButton(state) {
@@ -101,12 +105,12 @@ function actionButton(label, fn) {
 }
 
 function renderHome(screen, state) {
-  const actor = selected(state);
+  const actor = phoneActor(state);
   screen.innerHTML = `<h3 style="margin:0 0 8px;">${actor.name}'s phone</h3><p style="color:#b6c1d2;margin:0 0 10px;">Money: $${Math.round(state.money || 0)}<br>Autonomy: ${state.autonomyMode}<br>Open requests: ${(state.requests || []).filter(r => !r.done).length}</p>`;
 }
 
 function renderShop(screen, state) {
-  const actor = selected(state);
+  const actor = phoneActor(state);
   screen.innerHTML = '<h3>Shop</h3>';
   screen.appendChild(actionButton('Order food delivery, $18', () => orderFood(state, actor, false)));
   screen.appendChild(actionButton('Buy workout gear, $220', () => buyWorkoutGear(state, actor)));
@@ -120,13 +124,13 @@ function renderContacts(screen, state) {
 }
 
 function renderMusic(screen, state) {
-  const actor = selected(state);
+  const actor = phoneActor(state);
   screen.innerHTML = `<h3>Music</h3><p style="color:#b6c1d2;">Pretend music only. Genres: ${genreList()}</p>`;
   for (const g of ['rap','rock','classical','jazz','afrobeat','electronic']) screen.appendChild(actionButton(`Play ${g}`, () => startMusic(state, actor, g)));
 }
 
 function renderActivities(screen, state) {
-  const actor = selected(state);
+  const actor = phoneActor(state);
   screen.innerHTML = '<h3>Activities</h3>';
   screen.appendChild(actionButton('Cook for myself', () => startCookingFlow(state, actor, 'self')));
   screen.appendChild(actionButton('Cook for the house', () => startCookingFlow(state, actor, 'house')));
@@ -137,7 +141,7 @@ function renderActivities(screen, state) {
 }
 
 function renderRequests(screen, state) {
-  const actor = selected(state);
+  const actor = phoneActor(state);
   screen.innerHTML = '<h3>Requests</h3>';
   screen.appendChild(actionButton('Ask selected character what they want', () => addRequest(state, actor, `${actor.name} wants attention or a new activity.`, 'manual')));
   const requests = state.requests || [];

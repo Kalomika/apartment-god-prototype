@@ -142,3 +142,35 @@ Known limitations:
 Next recommended step:
 
 Test the phone apps again after Render deploy. Verify phone buttons execute, private moment moves both characters, watch TV together calls the partner, and characters do not jitter endlessly at walls or doors.
+
+## 2026-06-28, Repair branch audit pass
+
+Tool or person: ChatGPT
+
+Branch: repair-core-regressions
+
+Summary:
+
+- Created repair branch `repair-core-regressions` from current main.
+- Audited the active bootstrap, autonomy hook, state, movement, blueprint, phone UI, shared-action, action resolver, and save-system surfaces.
+- Patched state to declare build placement, requests, shared jobs, blocked navigation timing, and human selection helper explicitly.
+- Patched blueprint wall crossing so non-room gaps are rejected instead of treated as walkable space.
+- Patched phone actions so they use a human phone owner. If the dog is selected, phone actions now fall back to Resident instead of trying to make the dog cook, shop, play music, or start human activities.
+
+Connector-blocked items:
+
+- Full `actions.js` replacement for true shared-action arrival synchronization was blocked by the connector.
+- Save-slot persistence for dynamic objects was blocked by the connector.
+- `sharedActions.js` partner-validation replacement was blocked by the connector.
+
+Current branch status:
+
+- `repair-core-regressions` is ahead of `main` by three commits.
+- Not merged to main yet.
+- Needs local `npm run check`, `npm run build`, and browser QA before merge.
+
+Next required local/Codex fixes:
+
+1. Implement true shared-action rendezvous in `actions.js`: both people must arrive before Watch TV Together, Go To Bed Together, or Private Moment begins.
+2. Persist dynamic apartment objects in `saveSystem.js`, including delivered shelves and moved furniture.
+3. Run browser QA for phone taps, floor arrows, dog selection, build placement, upstairs routing, wall blocking, and fetch.
