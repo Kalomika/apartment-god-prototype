@@ -69,6 +69,42 @@ Required basement activities:
 
 Together activities must require characters to gather near the activity area before the activity starts. The game needs invisible shared activity zones/circles for together actions unless the real activity requires separated positions, like pool, table tennis, sports, or similar games.
 
+## Together consent, routines, and hearing realism
+
+Together features should not force another character to obey. Invitees need autonomy.
+
+When the player or another character asks someone to do something together, the invitee should evaluate:
+
+- Current action
+- Hunger
+- Bathroom/bladder urgency
+- Shower/freshness need
+- Energy/tiredness
+- Work or computer task
+- Personal routine
+- Mood
+- Relationship
+- Trait priorities
+- Distance and whether they can hear the request
+- Whether the activity matches their favorites or dislikes
+
+Most times a free partner may say yes, but they can say no when something more important is happening.
+
+Important refusal rules:
+
+- If the character is eating, cooking, showering, using the toilet, leaving for work, doing a high-priority routine, or handling an urgent need, they can refuse.
+- Refusal bubble should usually be short, like `not rn`.
+- Acceptance bubble can be short, like `yeah`.
+- If something funny happens during an activity, bubbles like `lol` are allowed.
+- If someone is in the bathroom, the calling character may need to be near the bathroom door for the request to be heard.
+- The game should avoid unrealistic whole-house hearing unless the speaker is close enough, yelling, calling by phone, or in the same/open room.
+
+Routine system:
+
+- Meticulous characters should have invisible personal routines.
+- Routines can reserve time blocks for showering, cleaning, working, studying, cooking, exercise, sleep, computer work, or other habits.
+- Characters should protect high-priority routines unless the invite is more urgent or very appealing.
+
 ## Garage and vehicles
 
 Add a garage connected to the house by its own garage door, separate from the front door.
