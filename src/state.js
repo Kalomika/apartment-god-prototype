@@ -20,10 +20,10 @@ function entity(id, name, type, floor, x, y, color) {
     vx: 0, vy: 0, speed: type === 'dog' ? 120 : 92,
     path: [], target: null, action: null, actionT: 0, pending: null,
     pose: 'stand', mood: type === 'dog' ? 'dog' : 'neutral', bubble: '', bubbleT: 0,
-    idleT: 0, stopped: false, hidden: false, trainingSkill: null,
+    idleT: 0, stopped: false, hidden: false, trainingSkill: null, carrying: null,
     needs: baseNeeds(), skills: baseSkills(id, type), skillCaps: skillCaps(id, type),
     memory: { favorites: [], dislikes: [], activities: [], movies: [], foods: [] },
-    traits: id === 'girlfriend' ? { frugal: true, spender: false, social: true } : { frugal: false, spender: false, social: false }
+    traits: id === 'girlfriend' ? { frugal: true, spender: false, social: true, meticulous: true } : { frugal: false, spender: false, social: false }
   };
 }
 
@@ -44,15 +44,19 @@ export function createState() {
     moveJob: null,
     fetch: null,
     delivery: null,
+    partyPick: null,
     routines: [],
     appointments: [],
     notifications: ['Apartment God booted.'],
     tv: { on: false, channel: 'Idle', pulse: 0 },
     offsite: null,
+    garbage: { kitchen: 0, bagsOutside: 0, looseItems: [] },
     roomLights: {
       living: true, kitchen: true, bath: true, entry: true, stairs: true,
       bedroom: true, office: true, bath2: true, hall: true, stairs2: true,
-      basement_game: true, basement_media: true, basement_utility: true, basement_stairs: true
+      basement_game: true, basement_gym: true, basement_media: true, basement_stairs: true,
+      garage_bay: true, garage_storage: true, garage_entry: true,
+      yard: true, pool_area: true, kennel_area: true
     },
     objectState: { workoutGear: false, bookshelf: false, openWindows: {} },
     entities: [
