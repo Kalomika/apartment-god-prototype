@@ -6,8 +6,10 @@ export const doorways = [
   { floor: 0, a: 'living', b: 'entry', x: 226, y: 336, w: 86, h: 18 },
   { floor: 0, a: 'kitchen', b: 'entry', x: 586, y: 336, w: 92, h: 18 },
   { floor: 0, a: 'bath', b: 'entry', x: 840, y: 336, w: 58, h: 18 },
+  { floor: 0, a: 'entry', b: 'front_porch', x: 218, y: 632, w: 96, h: 16 },
+  { floor: 0, a: 'entry', b: 'front_porch', x: 326, y: 632, w: 46, h: 16 },
   { floor: 0, a: 'entry', b: 'stairs', x: 704, y: 410, w: 18, h: 62 },
-  { floor: 0, a: 'entry', b: 'stairs', x: 802, y: 516, w: 58, h: 22 },
+  { floor: 0, a: 'entry', b: 'stairs', x: 642, y: 538, w: 72, h: 54 },
   { floor: 0, a: 'kitchen', b: 'stairs', x: 770, y: 300, w: 68, h: 22 },
   { floor: 1, a: 'bedroom', b: 'hall', x: 226, y: 382, w: 88, h: 18 },
   { floor: 1, a: 'office', b: 'hall', x: 574, y: 382, w: 82, h: 18 },
@@ -31,13 +33,8 @@ export const windows = [
   { id: 'win_garage', label: 'Garage Vent', floor: 3, room: 'garage_bay', x: 420, y: 34, w: 110, h: 8 }
 ];
 
-export function doorwayCenter(d) {
-  return { x: d.x + d.w / 2, y: d.y + d.h / 2 };
-}
-
-function nearDoorway(point, floor, pad = 22) {
-  return doorways.some(d => d.floor === floor && point.x >= d.x - pad && point.x <= d.x + d.w + pad && point.y >= d.y - pad && point.y <= d.y + d.h + pad);
-}
+export function doorwayCenter(d) { return { x: d.x + d.w / 2, y: d.y + d.h / 2 }; }
+function nearDoorway(point, floor, pad = 22) { return doorways.some(d => d.floor === floor && point.x >= d.x - pad && point.x <= d.x + d.w + pad && point.y >= d.y - pad && point.y <= d.y + d.h + pad); }
 
 export function routeThroughDoors(from, to, floor) {
   const start = roomAt(from.x, from.y, floor);
@@ -68,22 +65,14 @@ export function canStepThroughRooms(from, to, floor) {
   return to.x >= door.x - pad && to.x <= door.x + door.w + pad && to.y >= door.y - pad && to.y <= door.y + door.h + pad;
 }
 
-export function windowAt(x, y, floor) {
-  return windows.find(w => w.floor === floor && x >= w.x - 12 && x <= w.x + w.w + 12 && y >= w.y - 14 && y <= w.y + w.h + 22) || null;
-}
+export function windowAt(x, y, floor) { return windows.find(w => w.floor === floor && x >= w.x - 12 && x <= w.x + w.w + 12 && y >= w.y - 14 && y <= w.y + w.h + 22) || null; }
 
 export function toggleWindow(state, actor, win) {
   state.objectState.openWindows ??= {};
   state.objectState.openWindows[win.id] = !state.objectState.openWindows[win.id];
   const open = state.objectState.openWindows[win.id];
-  if (open) {
-    changeNeed(actor, 'freshness', 4);
-    say(actor, '🌬️');
-    log(state, `${actor.name} opened ${win.label} for fresh air.`);
-  } else {
-    say(actor, '🔒');
-    log(state, `${actor.name} closed ${win.label}.`);
-  }
+  if (open) { changeNeed(actor, 'freshness', 4); say(actor, '🌬️'); log(state, `${actor.name} opened ${win.label} for fresh air.`); }
+  else { say(actor, '🔒'); log(state, `${actor.name} closed ${win.label}.`); }
 }
 
 export function updateFreshAir(state, dt) {

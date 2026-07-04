@@ -8,6 +8,7 @@ import { updateMusic } from './music.js';
 import { updateMoveJob } from './objectMove.js';
 import { updateAutosave } from './saveSystem.js';
 import { runRoutines, updateTraining } from './training.js';
+import { updateVehicleDeparture } from './vehicleSystem.js';
 
 export function updateAutoHooks(state, dt) {
   if (state.viewHoldT > 0) state.viewHoldT = Math.max(0, state.viewHoldT - dt);
@@ -20,6 +21,7 @@ export function updateAutoHooks(state, dt) {
   updateMoveJob(state);
   updateAppointments(state, dt);
   updateGarbage(state, dt);
+  updateVehicleDeparture(state, dt);
   updateAutosave(state, dt);
   runRoutines(state);
 }
