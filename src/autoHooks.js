@@ -1,5 +1,6 @@
 import { updateFreshAir } from './blueprint.js';
 import { updateAppointments } from './buildRequests.js';
+import { updateCellPhone } from './cellPhone.js';
 import { updateCooking } from './cooking.js';
 import { updateDelivery } from './economy.js';
 import { updateFetch } from './fetchSystem.js';
@@ -18,6 +19,7 @@ export function updateAutoHooks(state, dt) {
   updateTraining(state);
   updateMoveJob(state);
   updateAppointments(state, dt);
+  updateCellPhone(state, dt);
   updateAutosave(state, dt);
   runRoutines(state);
 }
