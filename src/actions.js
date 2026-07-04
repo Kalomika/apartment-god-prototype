@@ -1,7 +1,7 @@
 import { ACTION_TIMES } from './config.js';
 import { startFetchThrow } from './fetchSystem.js';
 import { byId, changeNeed, log, say, setMood } from './state.js';
-import { getObject } from './world.js';
+import { getObject, getStairExit } from './world.js';
 import { commandObject, commandSocial } from './movement.js';
 
 export function startObjectAction(state, actor, obj, actionId) {
@@ -12,11 +12,15 @@ export function startObjectAction(state, actor, obj, actionId) {
   }
   if (obj.kind === 'stairs') {
     actor.floor = obj.toFloor;
-    const dest = getObject(obj.toFloor === 1 ? 'stairs_up' : 'stairs_down');
+    const dest = getStairExit(obj);
     if (dest) { actor.x = dest.x + dest.w / 2; actor.y = dest.y + dest.h + 34; }
     if (actor.id === 'resident') state.floor = actor.floor;
     actor.action = 'Changed floor';
-    say(actor, obj.toFloor === 1 ? 'UP' : 'DOWN');
+    actor.path = [];
+    actor.target = null;
+    actor.pending = null;
+    say(actor, obj.toFloor === 2 ? 'BASE' : obj.toFloor === 1 ? 'UP' : 'DOWN');
+    log(state, `${actor.name} used ${obj.label}.`);
     return;
   }
   commandObject(actor, obj, actionId);
@@ -43,7 +47,7 @@ function beginTimedAction(entity, label, actionId) {
   entity.action = label;
   entity.actionT = ACTION_TIMES[actionId] ?? 4;
   entity.actionTotal = entity.actionT;
-  entity.pose = ['sleep', 'nap', 'bed_together', 'intimacy'].includes(actionId) ? 'sleep' : ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop'].includes(actionId) ? 'sit' : 'stand';
+  entity.pose = ['sleep', 'nap', 'bed_together', 'intimacy'].includes(actionId) ? 'sleep' : ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together'].includes(actionId) ? 'sit' : 'stand';
 }
 
 export function resolveArrival(state, entity) {
@@ -63,8 +67,11 @@ export function resolveArrival(state, entity) {
       say(entity, '❤️');
       log(state, 'The bedroom lights turn off for privacy.');
     }
-    if (target.actionId === 'bed_together' || target.actionId === 'watch_together') syncPartnerForSharedAction(state, entity, target.actionId);
-    if (obj.kind === 'fridge') state.objectState.fridgeOpen = true;
+    if (target.actionId === 'bed_together' || target.actionId === 'watch_together' || target.actionId.endsWith('_together')) syncPartnerForSharedAction(state, entity, target.actionId, obj);
+    if (obj.kind === 'fridge') {
+      state.objectState.fridgeOpen = true;
+      state.objectState.fridgeActivity = target.actionId;
+    }
     if (obj.kind === 'door') state.objectState.doorOpen = true;
     if (obj.kind === 'tv' || ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports'].includes(target.actionId)) {
       state.tv.on = true;
@@ -100,9 +107,18 @@ export function resolveArrival(state, entity) {
   }
 }
 
-function syncPartnerForSharedAction(state, entity, actionId) {
+function syncPartnerForSharedAction(state, entity, actionId, obj = null) {
   const partner = state.entities.find(e => e.id !== entity.id && e.type === 'person' && !e.hidden && e.floor === entity.floor);
-  if (!partner) return;
+  if (!partner) {
+    log(state, `${entity.name} needs someone nearby for ${actionId.replaceAll('_', ' ')}.`);
+    return;
+  }
+  const distance = Math.hypot(partner.x - entity.x, partner.y - entity.y);
+  if (distance > 96) {
+    partner.x = entity.x + 44;
+    partner.y = entity.y + 8;
+    log(state, `${partner.name} stepped into the shared activity zone for ${obj?.label || actionId.replaceAll('_', ' ')}.`);
+  }
   partner.action = `${actionId.replaceAll('_', ' ')} with ${entity.name}`;
   partner.actionT = entity.actionT;
   partner.actionTotal = entity.actionT;
@@ -149,13 +165,14 @@ function finishAction(state, e) {
   if (text.includes('tv') || text.includes('comedy')) { changeNeed(e, 'fun', 20); setMood(e, 'happy'); }
   if (text.includes('horror')) { changeNeed(e, 'fun', 14); setMood(e, 'spooked'); }
   if (text.includes('sports')) { changeNeed(e, 'fun', 16); setMood(e, 'hyped'); }
-  if (text.includes('game')) { changeNeed(e, 'fun', 22); setMood(e, 'happy'); }
+  if (text.includes('game') || text.includes('console') || text.includes('arcade') || text.includes('pool') || text.includes('darts')) { changeNeed(e, 'fun', 18); changeNeed(e, 'social', text.includes('together') ? 12 : 0); changeNeed(e, 'stamina', -3); setMood(e, 'hyped'); }
   if (text.includes('phone') || text.includes('talk')) { changeNeed(e, 'social', 18); setMood(e, 'phone'); }
   if (text.includes('kiss') || text.includes('cuddle') || text.includes('hands')) { changeNeed(e, 'social', 22); setMood(e, 'love'); }
   if (text.includes('pet') || text.includes('train') || text.includes('tickle')) { changeNeed(e, 'fun', 14); setMood(e, e.type === 'dog' ? 'dog' : 'happy'); }
   if (text.includes('feed dog')) { const dog = byId(state, 'dog'); if (dog) changeNeed(dog, 'hunger', 40); }
   if (text.includes('light')) { toggleRoomLight(state, e); }
   state.objectState.fridgeOpen = false;
+  state.objectState.fridgeActivity = null;
   state.objectState.doorOpen = false;
   e.action = 'Idle';
   e.actionT = 0;
@@ -164,7 +181,7 @@ function finishAction(state, e) {
 }
 
 function toggleRoomLight(state, entity) {
-  const room = entity.floor === 0 ? 'living' : 'bedroom';
+  const room = entity.floor === 0 ? 'living' : entity.floor === 1 ? 'bedroom' : 'basement_game';
   state.roomLights[room] = !state.roomLights[room];
   state.bill += state.roomLights[room] ? 1 : -1;
 }
@@ -195,6 +212,6 @@ function finishOffsite(state) {
 }
 
 function speechFor(actionId) {
-  const map = { shower: '🚿', toilet: '🚽', snack: '🍎', meal: '🍳', bring_food: '🍽️', comedy: '😂', horror: '😱', sports: '🏆', phone: '📱', play_game: '🎮', sleep: '😴', nap: '😴', kiss: '😘', cuddle: '🤗', tickle: '😂', hands: '🤝', watch_together: '📺', bed_together: '🛏️', intimacy: '❤️', pet: '🐾', train: '🎾', feed_dog: '🍖' };
+  const map = { shower: '🚿', toilet: '🚽', snack: '🍎', meal: '🍳', bring_food: '🍽️', comedy: '😂', horror: '😱', sports: '🏆', phone: '📱', play_game: '🎮', sleep: '😴', nap: '😴', kiss: '😘', cuddle: '🤗', tickle: '😂', hands: '🤝', watch_together: '📺', bed_together: '🛏️', intimacy: '❤️', pet: '🐾', train: '🎾', feed_dog: '🍖', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', darts: 'DARTS', darts_together: 'DARTS' };
   return map[actionId] || actionId.toUpperCase().slice(0, 8);
 }
