@@ -1,7 +1,7 @@
 import { ACTION_TIMES } from './config.js';
 import { startFetchThrow } from './fetchSystem.js';
 import { byId, changeNeed, log, say, setMood } from './state.js';
-import { getObject, getStairExit } from './world.js';
+import { getObject, getStairExit, roomAt } from './world.js';
 import { commandObject, commandSocial } from './movement.js';
 
 export function startObjectAction(state, actor, obj, actionId) {
@@ -50,6 +50,10 @@ function beginTimedAction(entity, label, actionId) {
   entity.pose = ['sleep', 'nap', 'bed_together', 'intimacy'].includes(actionId) ? 'sleep' : ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together'].includes(actionId) ? 'sit' : 'stand';
 }
 
+function isTogetherAction(actionId) {
+  return actionId === 'watch_together' || actionId === 'bed_together' || actionId === 'intimacy' || actionId.endsWith('_together');
+}
+
 export function resolveArrival(state, entity) {
   if (!entity.target) return;
   const target = entity.target;
@@ -58,22 +62,22 @@ export function resolveArrival(state, entity) {
   if (target.type === 'object') {
     const obj = getObject(target.objectId);
     if (!obj) return;
+    if (isTogetherAction(target.actionId)) {
+      if (queuePartnerForSharedAction(state, entity, target.actionId, obj)) return;
+      entity.action = 'Idle';
+      entity.actionT = 0;
+      entity.pose = 'stand';
+      return;
+    }
     const label = `${obj.label}: ${target.actionId.replaceAll('_', ' ')}`;
     beginTimedAction(entity, label, target.actionId);
     say(entity, speechFor(target.actionId));
-    if (target.actionId === 'intimacy') {
-      state.roomLights.bedroom = false;
-      state.roomLights.hall = false;
-      say(entity, '❤️');
-      log(state, 'The bedroom lights turn off for privacy.');
-    }
-    if (target.actionId === 'bed_together' || target.actionId === 'watch_together' || target.actionId.endsWith('_together')) syncPartnerForSharedAction(state, entity, target.actionId, obj);
     if (obj.kind === 'fridge') {
       state.objectState.fridgeOpen = true;
       state.objectState.fridgeActivity = target.actionId;
     }
     if (obj.kind === 'door') state.objectState.doorOpen = true;
-    if (obj.kind === 'tv' || ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports'].includes(target.actionId)) {
+    if (obj.kind === 'tv' || ['watch_tv', 'comedy', 'horror', 'sports'].includes(target.actionId)) {
       state.tv.on = true;
       state.tv.channel = target.actionId;
     }
@@ -107,23 +111,43 @@ export function resolveArrival(state, entity) {
   }
 }
 
-function syncPartnerForSharedAction(state, entity, actionId, obj = null) {
+function queuePartnerForSharedAction(state, entity, actionId, obj) {
   const partner = state.entities.find(e => e.id !== entity.id && e.type === 'person' && !e.hidden && e.floor === entity.floor);
   if (!partner) {
+    say(entity, 'rn?');
     log(state, `${entity.name} needs someone nearby for ${actionId.replaceAll('_', ' ')}.`);
-    return;
+    return false;
   }
-  const distance = Math.hypot(partner.x - entity.x, partner.y - entity.y);
-  if (distance > 96) {
-    partner.x = entity.x + 44;
-    partner.y = entity.y + 8;
-    log(state, `${partner.name} stepped into the shared activity zone for ${obj?.label || actionId.replaceAll('_', ' ')}.`);
+  const decision = canInviteeJoin(state, entity, partner);
+  if (!decision.ok) {
+    if (decision.heard) say(partner, 'not rn');
+    say(entity, 'rn?');
+    log(state, `${partner.name} declined ${obj.label}: ${decision.reason}.`);
+    return false;
   }
-  partner.action = `${actionId.replaceAll('_', ' ')} with ${entity.name}`;
-  partner.actionT = entity.actionT;
-  partner.actionTotal = entity.actionT;
-  partner.pose = entity.pose;
-  say(partner, speechFor(actionId));
+  say(partner, 'yeah');
+  entity.action = `Waiting for ${partner.name}`;
+  entity.actionT = 0;
+  entity.pose = 'stand';
+  commandSocial(partner, entity, actionId);
+  log(state, `${partner.name} agreed to join ${entity.name} at ${obj.label}.`);
+  return true;
+}
+
+function canInviteeJoin(state, actor, invitee) {
+  const distance = Math.hypot(invitee.x - actor.x, invitee.y - actor.y);
+  const actorRoom = roomAt(actor.x, actor.y, actor.floor)?.id || '';
+  const inviteeRoom = roomAt(invitee.x, invitee.y, invitee.floor)?.id || '';
+  const bathroomTalk = actorRoom.includes('bath') || inviteeRoom.includes('bath');
+  const hearingRange = bathroomTalk ? 120 : 260;
+  if (distance > hearingRange) return { ok: false, heard: false, reason: 'too far to hear' };
+  const current = String(invitee.action || '').toLowerCase();
+  if (invitee.path?.length || invitee.actionT > 0) return { ok: false, heard: true, reason: 'busy' };
+  if (current.includes('shower') || current.includes('toilet') || current.includes('cooking') || current.includes('eating')) return { ok: false, heard: true, reason: 'busy' };
+  if ((invitee.needs?.bladder ?? 100) < 25) return { ok: false, heard: true, reason: 'bathroom need' };
+  if ((invitee.needs?.hunger ?? 100) < 25) return { ok: false, heard: true, reason: 'hungry' };
+  if ((invitee.needs?.energy ?? 100) < 18) return { ok: false, heard: true, reason: 'tired' };
+  return { ok: true, heard: true, reason: 'available' };
 }
 
 export function throwFetchBall(state, x, y) {
