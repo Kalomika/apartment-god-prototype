@@ -4,6 +4,7 @@ import { roundRect } from './renderHelpers.js';
 export function drawDynamicProps(ctx, state) {
   drawPulledBook(ctx, state);
   drawCourier(ctx, state);
+  drawFetchBall(ctx, state);
   drawBuildPrompt(ctx, state);
 }
 
@@ -56,6 +57,20 @@ function drawCourier(ctx, state) {
   ctx.textAlign = 'center';
   ctx.fillText(text, 0, -49);
   ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+function drawFetchBall(ctx, state) {
+  const ball = state.fetch?.ball;
+  if (!ball || ball.floor !== state.floor) return;
+  ctx.save();
+  ctx.fillStyle = '#f1c66a';
+  ctx.strokeStyle = '#11151c';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
   ctx.restore();
 }
 
