@@ -49,7 +49,8 @@ export function routeThroughDoors(from, to, floor) {
 export function canStepThroughRooms(from, to, floor) {
   const a = roomAt(from.x, from.y, floor);
   const b = roomAt(to.x, to.y, floor);
-  if (!a || !b || a.id === b.id) return true;
+  if (!a || !b) return false;
+  if (a.id === b.id) return true;
   const door = doorways.find(d => d.floor === floor && ((d.a === a.id && d.b === b.id) || (d.b === a.id && d.a === b.id)));
   if (!door) return false;
   const pad = 18;
