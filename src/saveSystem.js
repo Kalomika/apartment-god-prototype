@@ -19,6 +19,7 @@ function cleanStateForSave(state) {
   saved.assign = null;
   saved.movePick = null;
   saved.buildPick = null;
+  saved.phone = null;
   saved.paused = false;
   saved.autosaveT = 0;
   saved.saveStatus = saved.saveStatus || {};
@@ -26,9 +27,10 @@ function cleanStateForSave(state) {
 }
 
 function restoreObjects(savedObjects) {
-  if (!Array.isArray(savedObjects)) return;
+  if (!Array.isArray(savedObjects)) return false;
   objects.length = 0;
   for (const obj of savedObjects) objects.push(obj);
+  return true;
 }
 
 function restoreWholeState(target, saved) {
@@ -38,6 +40,7 @@ function restoreWholeState(target, saved) {
   target.assign = null;
   target.movePick = null;
   target.buildPick = null;
+  target.phone = null;
   target.paused = false;
   target.autosaveT = 0;
   target.saveStatus ??= {};
@@ -85,13 +88,15 @@ export function loadGame(state, slot = 1) {
     return false;
   }
 
+  let restoredObjects = false;
   if (data.version >= 2 && data.state) {
-    restoreObjects(data.objects);
+    restoredObjects = restoreObjects(data.objects);
     restoreWholeState(state, data.state);
   } else {
     restoreLegacyState(state, data);
   }
 
+  recoverMissingSavedObjects(state, restoredObjects);
   state.saveStatus = { message: `Loaded slot ${data.slot || slot}`, slot: data.slot || slot, savedAt: data.savedAt || null };
   log(state, `Loaded saved game from slot ${data.slot || slot}.`);
   return true;
@@ -128,6 +133,29 @@ function restoreLegacyState(state, data) {
   }
 }
 
+function recoverMissingSavedObjects(state, restoredObjects) {
+  state.objectState ??= {};
+  const needsBookshelf = state.objectState.bookshelf || state.objectState.library;
+  const hasBookshelf = objects.some(o => o.kind === 'bookshelf');
+  if (!needsBookshelf || hasBookshelf) return;
+
+  objects.push({
+    id: 'bookshelf_recovered_1',
+    label: 'Recovered Bookshelf',
+    kind: 'bookshelf',
+    floor: 0,
+    room: 'living',
+    x: 352,
+    y: 174,
+    w: 78,
+    h: 118,
+    solid: true,
+    facing: 'west'
+  });
+  state.objectState.bookshelf = true;
+  log(state, restoredObjects ? 'Recovered missing bookshelf from saved library flag.' : 'Recovered bookshelf from older save data.');
+}
+
 export function clearSaveSlot(state, slot = 1) {
   localStorage.removeItem(slotKey(slot));
   state.saveStatus = { message: `Cleared slot ${slot}` };
@@ -149,7 +177,9 @@ export function slotSummary(slot = 1) {
       const time = data.state?.time ?? 0;
       const money = data.state?.money ?? 0;
       const savedAt = data.savedAt ? new Date(data.savedAt).toLocaleTimeString() : 'saved';
-      return `${Math.round(time / 60)}h, $${Math.round(money)}, ${savedAt}`;
+      const built = Array.isArray(data.objects) ? data.objects.filter(o => o.kind === 'bookshelf' || o.id?.includes('bookshelf')).length : 0;
+      const builtText = built ? `, ${built} shelf` : '';
+      return `${Math.round(time / 60)}h, $${Math.round(money)}, ${savedAt}${builtText}`;
     }
     return `Day time ${Math.round((data.time || 0) / 60)}h, $${Math.round(data.money || 0)}`;
   } catch {
