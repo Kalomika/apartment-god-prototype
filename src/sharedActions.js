@@ -12,12 +12,10 @@ export function startSharedObjectAction(state, actor, objectId, actionId) {
     return true;
   }
 
-  startObjectAction(state, actor, obj, actionId);
-  startObjectAction(state, partner, obj, actionId);
   actor.sharedWith = partner.id;
   partner.sharedWith = actor.id;
-  say(actor, 'COME');
-  say(partner, 'OK');
-  log(state, `${actor.name} called ${partner.name} for ${actionId.replaceAll('_', ' ')}.`);
+  say(actor, 'rn?');
+  startObjectAction(state, actor, obj, actionId);
+  log(state, `${actor.name} is heading to ${obj.label} before inviting ${partner.name} for ${actionId.replaceAll('_', ' ')}.`);
   return true;
 }
