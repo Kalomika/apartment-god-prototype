@@ -22,7 +22,8 @@ function entity(id, name, type, floor, x, y, color) {
     pose: 'stand', mood: type === 'dog' ? 'dog' : 'neutral', bubble: '', bubbleT: 0,
     idleT: 0, stopped: false, hidden: false, trainingSkill: null,
     needs: baseNeeds(), skills: baseSkills(id, type), skillCaps: skillCaps(id, type),
-    traits: id === 'girlfriend' ? { frugal: true, spender: false } : { frugal: false, spender: false }
+    memory: { favorites: [], dislikes: [], activities: [], movies: [], foods: [] },
+    traits: id === 'girlfriend' ? { frugal: true, spender: false, social: true } : { frugal: false, spender: false, social: false }
   };
 }
 
@@ -42,6 +43,7 @@ export function createState() {
     movePick: null,
     moveJob: null,
     fetch: null,
+    delivery: null,
     routines: [],
     appointments: [],
     notifications: ['Apartment God booted.'],
@@ -49,7 +51,8 @@ export function createState() {
     offsite: null,
     roomLights: {
       living: true, kitchen: true, bath: true, entry: true, stairs: true,
-      bedroom: true, office: true, bath2: true, hall: true, stairs2: true
+      bedroom: true, office: true, bath2: true, hall: true, stairs2: true,
+      basement_game: true, basement_media: true, basement_utility: true, basement_stairs: true
     },
     objectState: { workoutGear: false, bookshelf: false, openWindows: {} },
     entities: [
