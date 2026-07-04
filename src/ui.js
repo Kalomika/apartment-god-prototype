@@ -133,6 +133,7 @@ export function createUi(state, canvas) {
 
   function handleObjectUse(actor, obj, actionId) {
     if (actionId === 'meal') return startCookingFlow(state, actor);
+    if (actionId === 'use_stairs') return startObjectAction(state, actor, obj, actionId);
     if (obj.kind === 'door' && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId);
     startObjectAction(state, actor, obj, actionId);
   }
@@ -151,6 +152,8 @@ export function createUi(state, canvas) {
   function bindButtons() {
     document.getElementById('floor-0').onclick = () => { state.floor = 0; state.viewHoldT = state.buildPick ? 30 : 0; closeMenu(); };
     document.getElementById('floor-1').onclick = () => { state.floor = 1; state.viewHoldT = 18; log(state, state.buildPick ? 'Tap upstairs placement spot.' : 'Inspecting upstairs for 18 seconds.'); closeMenu(); };
+    const basementButton = document.getElementById('floor-2');
+    if (basementButton) basementButton.onclick = () => { state.floor = 2; state.viewHoldT = 18; log(state.buildPick ? 'Tap basement placement spot.' : 'Inspecting basement game room for 18 seconds.'); closeMenu(); };
     document.getElementById('speed-1').onclick = () => { state.speed = 1; };
     document.getElementById('speed-3').onclick = () => { state.speed = 3; };
     document.getElementById('pause').onclick = () => { state.paused = !state.paused; };
@@ -179,7 +182,8 @@ export function createUi(state, canvas) {
     }).join('');
     const music = state.music ? `<br>Music: ${state.music.genre}` : '';
     const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : '';
-    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}${music}${build}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
+    const delivery = state.delivery ? `<br>Delivery: ${state.delivery.phase}` : '';
+    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}${music}${build}${delivery}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
     logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
   }
 
