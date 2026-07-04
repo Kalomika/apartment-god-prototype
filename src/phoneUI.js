@@ -1,4 +1,5 @@
 import { handleBuildRequest } from './buildRequests.js';
+import { markPhoneActivity, setPhonePanelOpen } from './cellPhone.js';
 import { startCookingFlow } from './cooking.js';
 import { startOffsite } from './actions.js';
 import { buyWorkoutGear, orderFood } from './economy.js';
@@ -23,6 +24,7 @@ export function syncPhoneUi(state) {
     if (open && tab === 'requests') dirty = true;
   }
   updatePhoneButton(state);
+  if (open) setPhonePanelOpen(state, selected(state), true);
   if (open && dirty) renderPhone(state);
 }
 
@@ -34,13 +36,13 @@ function buildPhoneUi(state) {
   const up = document.createElement('button');
   up.textContent = '↑ Floor';
   up.style.cssText = 'position:absolute;right:12px;top:12px;z-index:6;opacity:.82;padding:8px 10px;border-radius:999px;';
-  up.onclick = event => { event.stopPropagation(); state.floor = 1; state.viewHoldT = state.buildPick ? 30 : 18; log(state, state.buildPick ? 'Tap upstairs placement spot.' : 'Viewing upstairs.'); dirty = true; };
+  up.onclick = event => { event.stopPropagation(); changeViewedFloor(state, state.floor === 2 ? 0 : Math.min(1, state.floor + 1)); };
   wrap.appendChild(up);
 
   const down = document.createElement('button');
   down.textContent = '↓ Floor';
   down.style.cssText = 'position:absolute;right:12px;bottom:12px;z-index:6;opacity:.82;padding:8px 10px;border-radius:999px;';
-  down.onclick = event => { event.stopPropagation(); state.floor = 0; state.viewHoldT = state.buildPick ? 30 : 0; log(state, state.buildPick ? 'Tap downstairs placement spot.' : 'Viewing downstairs.'); dirty = true; };
+  down.onclick = event => { event.stopPropagation(); changeViewedFloor(state, state.floor === 0 ? 2 : Math.max(0, state.floor - 1)); };
   wrap.appendChild(down);
 
   const dock = document.createElement('section');
@@ -49,7 +51,13 @@ function buildPhoneUi(state) {
 
   const button = document.createElement('button');
   button.style.cssText = 'width:100%;font-size:16px;padding:12px;border-radius:14px;';
-  button.onclick = event => { event.stopPropagation(); open = !open; dirty = true; renderPhone(state); };
+  button.onclick = event => {
+    event.stopPropagation();
+    open = !open;
+    setPhonePanelOpen(state, selected(state), open);
+    dirty = true;
+    renderPhone(state);
+  };
 
   const panel = document.createElement('div');
   panel.style.cssText = 'display:none;margin-top:10px;border-radius:18px;background:#10141d;border:2px solid #2d3545;padding:12px;min-height:280px;';
@@ -60,6 +68,14 @@ function buildPhoneUi(state) {
   hud.prepend(dock);
   els = { button, panel };
   updatePhoneButton(state);
+}
+
+function changeViewedFloor(state, floor) {
+  state.floor = floor;
+  state.viewHoldT = state.buildPick ? 30 : floor === selected(state).floor ? 0 : 18;
+  const names = ['downstairs', 'upstairs', 'basement'];
+  log(state, state.buildPick ? `Tap ${names[floor]} placement spot.` : `Viewing ${names[floor]}.`);
+  dirty = true;
 }
 
 function updatePhoneButton(state) {
@@ -73,8 +89,9 @@ function renderPhone(state) {
   updatePhoneButton(state);
   if (!open) return;
   dirty = false;
-  els.panel.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
-    ${phoneTab('home','Home')}${phoneTab('shop','Shop')}${phoneTab('contacts','Contacts')}${phoneTab('music','Music')}${phoneTab('activities','Acts')}${phoneTab('requests','Requests')}${phoneTab('saves','Saves')}
+  markPhoneActivity(state, selected(state), 'panel', 9999);
+  els.panel.innerHTML = `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;">
+    ${phoneTab('home','Home')}${phoneTab('shop','Shop')}${phoneTab('contacts','Contacts')}${phoneTab('music','Music')}${phoneTab('activities','Acts')}${phoneTab('requests','Requests')}${phoneTab('save','Save')}${phoneTab('load','Load')}
   </div><div id="phone-screen"></div>`;
   els.panel.querySelectorAll('[data-tab]').forEach(b => b.onclick = event => { event.stopPropagation(); tab = b.dataset.tab; dirty = true; renderPhone(state); });
   const screen = els.panel.querySelector('#phone-screen');
@@ -84,7 +101,8 @@ function renderPhone(state) {
   if (tab === 'music') renderMusic(screen, state);
   if (tab === 'activities') renderActivities(screen, state);
   if (tab === 'requests') renderRequests(screen, state);
-  if (tab === 'saves') renderSaves(screen, state);
+  if (tab === 'save') renderSave(screen, state);
+  if (tab === 'load') renderLoad(screen, state);
 }
 
 function phoneTab(id, label) {
@@ -108,10 +126,10 @@ function renderHome(screen, state) {
 function renderShop(screen, state) {
   const actor = selected(state);
   screen.innerHTML = '<h3>Shop</h3>';
-  screen.appendChild(actionButton('Order food delivery, $18', () => orderFood(state, actor, false)));
-  screen.appendChild(actionButton('Buy workout gear, $220', () => buyWorkoutGear(state, actor)));
-  screen.appendChild(actionButton('Build request: bookshelf', () => handleBuildRequest(state, actor, 'bookshelf')));
-  screen.appendChild(actionButton('Custom build request', () => handleBuildRequest(state, actor, prompt('What do you want built or ordered?') || '')));
+  screen.appendChild(actionButton('Order food delivery, $18', () => { markPhoneActivity(state, actor, 'ordering', 8); orderFood(state, actor, false); }));
+  screen.appendChild(actionButton('Buy workout gear, $220', () => { markPhoneActivity(state, actor, 'shopping', 6); buyWorkoutGear(state, actor); }));
+  screen.appendChild(actionButton('Build request: bookshelf', () => { markPhoneActivity(state, actor, 'build app', 8); handleBuildRequest(state, actor, 'bookshelf'); }));
+  screen.appendChild(actionButton('Custom build request', () => { markPhoneActivity(state, actor, 'build app', 8); handleBuildRequest(state, actor, prompt('What do you want built or ordered?') || ''); }));
 }
 
 function renderContacts(screen, state) {
@@ -122,24 +140,24 @@ function renderContacts(screen, state) {
 function renderMusic(screen, state) {
   const actor = selected(state);
   screen.innerHTML = `<h3>Music</h3><p style="color:#b6c1d2;">Pretend music only. Genres: ${genreList()}</p>`;
-  for (const g of ['rap','rock','classical','jazz','afrobeat','electronic']) screen.appendChild(actionButton(`Play ${g}`, () => startMusic(state, actor, g)));
+  for (const g of ['rap','rock','classical','jazz','afrobeat','electronic']) screen.appendChild(actionButton(`Play ${g}`, () => { markPhoneActivity(state, actor, 'music app', 5); startMusic(state, actor, g); }));
 }
 
 function renderActivities(screen, state) {
   const actor = selected(state);
   screen.innerHTML = '<h3>Activities</h3>';
-  screen.appendChild(actionButton('Cook for myself', () => startCookingFlow(state, actor, 'self')));
-  screen.appendChild(actionButton('Cook for the house', () => startCookingFlow(state, actor, 'house')));
-  screen.appendChild(actionButton('Watch TV together', () => startSharedObjectAction(state, actor, 'tv', 'watch_together')));
-  screen.appendChild(actionButton('Go to bed together', () => startSharedObjectAction(state, actor, 'bed', 'bed_together')));
-  screen.appendChild(actionButton('Private moment upstairs', () => startSharedObjectAction(state, actor, 'bed', 'intimacy')));
-  screen.appendChild(actionButton('Movie theater, together', () => startOffsite(state, actor, 'date')));
+  screen.appendChild(actionButton('Cook for myself', () => { markPhoneActivity(state, actor, 'activity app', 5); startCookingFlow(state, actor, 'self'); }));
+  screen.appendChild(actionButton('Cook for the house', () => { markPhoneActivity(state, actor, 'activity app', 5); startCookingFlow(state, actor, 'house'); }));
+  screen.appendChild(actionButton('Watch TV together', () => { markPhoneActivity(state, actor, 'invite app', 5); startSharedObjectAction(state, actor, 'tv', 'watch_together'); }));
+  screen.appendChild(actionButton('Go to bed together', () => { markPhoneActivity(state, actor, 'invite app', 5); startSharedObjectAction(state, actor, 'bed', 'bed_together'); }));
+  screen.appendChild(actionButton('Private moment upstairs', () => { markPhoneActivity(state, actor, 'invite app', 5); startSharedObjectAction(state, actor, 'bed', 'intimacy'); }));
+  screen.appendChild(actionButton('Movie theater, together', () => { markPhoneActivity(state, actor, 'invite app', 5); startOffsite(state, actor, 'date'); }));
 }
 
 function renderRequests(screen, state) {
   const actor = selected(state);
   screen.innerHTML = '<h3>Requests</h3>';
-  screen.appendChild(actionButton('Ask selected character what they want', () => addRequest(state, actor, `${actor.name} wants attention or a new activity.`, 'manual')));
+  screen.appendChild(actionButton('Ask selected character what they want', () => { markPhoneActivity(state, actor, 'requests', 5); addRequest(state, actor, `${actor.name} wants attention or a new activity.`, 'manual'); }));
   const requests = state.requests || [];
   if (!requests.length) screen.insertAdjacentHTML('beforeend', '<p style="color:#b6c1d2;">No requests yet.</p>');
   for (const r of requests) {
@@ -150,10 +168,12 @@ function renderRequests(screen, state) {
   }
 }
 
-function renderSaves(screen, state) {
-  screen.innerHTML = '<h3>Saves</h3>';
-  for (const slot of [1,2,3]) {
-    screen.appendChild(actionButton(`Save Slot ${slot}: ${slotSummary(slot)}`, () => { saveGame(state, slot); log(state, `Saved slot ${slot}.`); }));
-    screen.appendChild(actionButton(`Load Slot ${slot}`, () => { if (loadGame(state, slot)) log(state, `Loaded slot ${slot}.`); else log(state, `Slot ${slot} is empty.`); }));
-  }
+function renderSave(screen, state) {
+  screen.innerHTML = '<h3>Save</h3>';
+  for (const slot of [1,2,3]) screen.appendChild(actionButton(`Save Slot ${slot}: ${slotSummary(slot)}`, () => { markPhoneActivity(state, selected(state), 'save app', 4); saveGame(state, slot); log(state, `Saved slot ${slot}.`); }));
+}
+
+function renderLoad(screen, state) {
+  screen.innerHTML = '<h3>Load</h3>';
+  for (const slot of [1,2,3]) screen.appendChild(actionButton(`Load Slot ${slot}: ${slotSummary(slot)}`, () => { markPhoneActivity(state, selected(state), 'load app', 4); if (loadGame(state, slot)) log(state, `Loaded slot ${slot}.`); else log(state, `Slot ${slot} is empty.`); }));
 }
