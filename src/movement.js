@@ -45,9 +45,10 @@ function routeLeg(a, b, floor, allowId = '') {
   return [candidates[0], b];
 }
 
-export function commandMove(entity, x, y, run = false) {
+export function commandMove(entity, x, y, run = false, allowId = '') {
   const to = clampToPlay(x, y);
-  entity.path = routeAround({ x: entity.x, y: entity.y }, to, entity.floor);
+  entity.moveAllowId = allowId || '';
+  entity.path = routeAround({ x: entity.x, y: entity.y }, to, entity.floor, entity.moveAllowId);
   entity.target = null;
   entity.pending = null;
   entity.blockedT = 0;
@@ -57,11 +58,16 @@ export function commandMove(entity, x, y, run = false) {
   entity.stopped = false;
 }
 
+export function clearMoveAllowance(entity) {
+  entity.moveAllowId = '';
+}
+
 export function commandObject(entity, obj, actionId) {
   const target = approachPoint(obj, actionId);
   entity.target = { type: 'object', objectId: obj.id, actionId };
   entity.pending = null;
   entity.blockedT = 0;
+  entity.moveAllowId = obj.id;
   entity.action = `Going to ${obj.label}`;
   entity.pose = 'walk';
   entity.stopped = false;
@@ -71,6 +77,7 @@ export function commandObject(entity, obj, actionId) {
     if (stairs && stairs.floor === entity.floor) {
       entity.pending = { type: 'floorTravel', targetFloor: obj.floor, objectId: obj.id, actionId, stairId: stairs.id };
       entity.path = routeAround({ x: entity.x, y: entity.y }, approachPoint(stairs), entity.floor, stairs.id);
+      entity.moveAllowId = stairs.id;
       return;
     }
   }
@@ -83,6 +90,7 @@ export function commandSocial(actor, target, socialId) {
   actor.path = routeAround({ x: actor.x, y: actor.y }, near, target.floor);
   actor.target = { type: 'social', targetId: target.id, socialId };
   actor.blockedT = 0;
+  actor.moveAllowId = '';
   actor.action = `Going to ${target.name}`;
   actor.pose = 'walk';
   actor.stopped = false;
@@ -90,14 +98,14 @@ export function commandSocial(actor, target, socialId) {
 
 function blockedStep(entity, from, to) {
   if (!canStepThroughRooms(from, to, entity.floor)) return true;
-  return solidObjects(entity.floor).some(o => pointInRect(to.x, to.y, expandedRect(o, entity.type === 'dog' ? 12 : 16)));
+  return solidObjects(entity.floor, entity.moveAllowId || '').some(o => pointInRect(to.x, to.y, expandedRect(o, entity.type === 'dog' ? 12 : 16)));
 }
 
 function finishFloorTravel(state, entity) {
   const pending = entity.pending;
   if (!pending || pending.type !== 'floorTravel') return false;
   const stairs = getObject(pending.stairId);
-  if (!stairs) { entity.pending = null; return false; }
+  if (!stairs) { entity.pending = null; clearMoveAllowance(entity); return false; }
   const oldFloor = entity.floor;
   entity.floor = stairs.toFloor;
   const exit = getStairExit(stairs);
@@ -108,11 +116,13 @@ function finishFloorTravel(state, entity) {
   const obj = getObject(pending.objectId);
   entity.pending = null;
   entity.blockedT = 0;
+  clearMoveAllowance(entity);
   if (obj) {
     if (entity.floor !== obj.floor) {
       commandObject(entity, obj, pending.actionId);
     } else {
       const target = approachPoint(obj, pending.actionId);
+      entity.moveAllowId = obj.id;
       entity.path = routeAround({ x: entity.x, y: entity.y }, target, entity.floor, obj.id);
       entity.target = { type: 'object', objectId: obj.id, actionId: pending.actionId };
     }
@@ -132,6 +142,7 @@ function recoverBlocked(entity, next, dt) {
   }
   entity.path = [];
   entity.target = null;
+  clearMoveAllowance(entity);
   entity.action = 'Blocked';
   entity.pose = 'stand';
 }
@@ -156,6 +167,7 @@ export function updateMovement(state, entity, dt) {
       entity.path.shift();
       if (!entity.path.length) {
         if (finishFloorTravel(state, entity)) return false;
+        clearMoveAllowance(entity);
         return true;
       }
     } else {
