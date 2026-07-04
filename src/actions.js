@@ -1,14 +1,17 @@
 import { ACTION_TIMES } from './config.js';
 import { startFetchThrow } from './fetchSystem.js';
+import { addGarbageFromAction, callDogToYard, continueTrashRun, startTakeTrashOut } from './garbage.js';
 import { byId, changeNeed, log, say, setMood } from './state.js';
 import { getObject, getStairExit, roomAt } from './world.js';
 import { commandObject, commandSocial } from './movement.js';
 
 export function startObjectAction(state, actor, obj, actionId) {
   if (!obj) return;
-  if (actor.type === 'dog' && obj.kind !== 'dog_bowl') {
+  if (obj.kind === 'trash_can' && actionId === 'take_trash_out') return startTakeTrashOut(state, actor);
+  if (obj.kind === 'kennel' && actionId === 'call_dog_yard') return callDogToYard(state, actor);
+  if (actor.type === 'dog' && !['dog_bowl', 'kennel'].includes(obj.kind)) {
     say(actor, 'wo?');
-    return log(state, 'The dog can only use dog actions and the bowl for now.');
+    return log(state, 'The dog can only use dog actions, kennel, and the bowl for now.');
   }
   if (obj.kind === 'stairs') {
     actor.floor = obj.toFloor;
@@ -19,7 +22,7 @@ export function startObjectAction(state, actor, obj, actionId) {
     actor.path = [];
     actor.target = null;
     actor.pending = null;
-    say(actor, obj.toFloor === 2 ? 'BASE' : obj.toFloor === 1 ? 'UP' : 'DOWN');
+    say(actor, obj.toFloor === 4 ? 'YARD' : obj.toFloor === 3 ? 'GARAGE' : obj.toFloor === 2 ? 'BASE' : obj.toFloor === 1 ? 'UP' : 'MAIN');
     log(state, `${actor.name} used ${obj.label}.`);
     return;
   }
@@ -47,7 +50,7 @@ function beginTimedAction(entity, label, actionId) {
   entity.action = label;
   entity.actionT = ACTION_TIMES[actionId] ?? 4;
   entity.actionTotal = entity.actionT;
-  entity.pose = ['sleep', 'nap', 'bed_together', 'intimacy'].includes(actionId) ? 'sleep' : ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together'].includes(actionId) ? 'sit' : 'stand';
+  entity.pose = ['sleep', 'nap', 'bed_together', 'intimacy', 'dog_rest'].includes(actionId) ? 'sleep' : ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together'].includes(actionId) ? 'sit' : ['treadmill', 'lift_weights', 'heavy_bag', 'swim', 'swim_together'].includes(actionId) ? actionId : 'stand';
 }
 
 function isTogetherAction(actionId) {
@@ -75,11 +78,13 @@ export function resolveArrival(state, entity) {
     if (obj.kind === 'fridge') {
       state.objectState.fridgeOpen = true;
       state.objectState.fridgeActivity = target.actionId;
+      if (target.actionId === 'snack') entity.carrying = 'snack';
     }
     if (obj.kind === 'door') state.objectState.doorOpen = true;
     if (obj.kind === 'tv' || ['watch_tv', 'comedy', 'horror', 'sports'].includes(target.actionId)) {
       state.tv.on = true;
       state.tv.channel = target.actionId;
+      if (['watch_tv', 'comedy', 'horror', 'sports'].includes(target.actionId)) entity.carrying = 'popcorn';
     }
     return;
   }
@@ -91,6 +96,7 @@ export function resolveArrival(state, entity) {
       state.fetch = { phase: 'ready', actorId: other.id, dogId: entity.id, ball: null };
       say(entity, 'READY');
       say(other, 'THROW');
+      other.carrying = 'ball';
       log(state, 'Tap an open floor spot to throw the ball.');
       return;
     }
@@ -177,8 +183,10 @@ export function updateActions(state, dt) {
 
 function finishAction(state, e) {
   const text = String(e.action || '').toLowerCase();
-  if (text.includes('snack')) { changeNeed(e, 'hunger', 18); setMood(e, 'happy'); }
-  if (text.includes('meal')) { changeNeed(e, 'hunger', 30); changeNeed(e, 'fun', 4); setMood(e, 'happy'); }
+  const continued = continueTrashRun(state, e, text);
+  if (continued && text.includes('take trash out')) return;
+  if (text.includes('snack')) { changeNeed(e, 'hunger', 18); setMood(e, 'happy'); addGarbageFromAction(state, 'snack', e); }
+  if (text.includes('meal')) { changeNeed(e, 'hunger', 30); changeNeed(e, 'fun', 4); setMood(e, 'happy'); addGarbageFromAction(state, 'meal', e); }
   if (text.includes('bring food')) { changeNeed(e, 'social', 5); setMood(e, 'happy'); }
   if (text.includes('shower')) { changeNeed(e, 'freshness', 36); setMood(e, 'calm'); }
   if (text.includes('brush')) { changeNeed(e, 'freshness', 12); setMood(e, 'calm'); }
@@ -186,13 +194,16 @@ function finishAction(state, e) {
   if (text.includes('toilet')) { changeNeed(e, 'bladder', 36); setMood(e, 'calm'); }
   if (text.includes('sleep') || text.includes('nap') || text.includes('bed together')) { changeNeed(e, 'energy', 32); changeNeed(e, 'stamina', 24); setMood(e, 'calm'); }
   if (text.includes('intimacy')) { changeNeed(e, 'social', 30); changeNeed(e, 'fun', 10); setMood(e, 'love'); }
-  if (text.includes('tv') || text.includes('comedy')) { changeNeed(e, 'fun', 20); setMood(e, 'happy'); }
-  if (text.includes('horror')) { changeNeed(e, 'fun', 14); setMood(e, 'spooked'); }
-  if (text.includes('sports')) { changeNeed(e, 'fun', 16); setMood(e, 'hyped'); }
+  if (text.includes('tv') || text.includes('comedy')) { changeNeed(e, 'fun', 20); setMood(e, 'happy'); addGarbageFromAction(state, 'popcorn', e); }
+  if (text.includes('horror')) { changeNeed(e, 'fun', 14); setMood(e, 'spooked'); addGarbageFromAction(state, 'popcorn', e); }
+  if (text.includes('sports')) { changeNeed(e, 'fun', 16); setMood(e, 'hyped'); addGarbageFromAction(state, 'popcorn', e); }
   if (text.includes('game') || text.includes('console') || text.includes('arcade') || text.includes('pool') || text.includes('darts')) { changeNeed(e, 'fun', 18); changeNeed(e, 'social', text.includes('together') ? 12 : 0); changeNeed(e, 'stamina', -3); setMood(e, 'hyped'); }
+  if (text.includes('treadmill') || text.includes('lift weights') || text.includes('heavy bag')) { changeNeed(e, 'stamina', -12); changeNeed(e, 'fun', 8); changeNeed(e, 'freshness', -8); setMood(e, 'hyped'); }
+  if (text.includes('swim')) { changeNeed(e, 'stamina', -7); changeNeed(e, 'fun', 18); changeNeed(e, 'freshness', 8); setMood(e, 'happy'); }
   if (text.includes('phone') || text.includes('talk')) { changeNeed(e, 'social', 18); setMood(e, 'phone'); }
   if (text.includes('kiss') || text.includes('cuddle') || text.includes('hands')) { changeNeed(e, 'social', 22); setMood(e, 'love'); }
   if (text.includes('pet') || text.includes('train') || text.includes('tickle')) { changeNeed(e, 'fun', 14); setMood(e, e.type === 'dog' ? 'dog' : 'happy'); }
+  if (text.includes('dog rest')) { changeNeed(e, 'energy', 12); setMood(e, 'dog'); }
   if (text.includes('feed dog')) { const dog = byId(state, 'dog'); if (dog) changeNeed(dog, 'hunger', 40); }
   if (text.includes('light')) { toggleRoomLight(state, e); }
   state.objectState.fridgeOpen = false;
@@ -205,37 +216,56 @@ function finishAction(state, e) {
 }
 
 function toggleRoomLight(state, entity) {
-  const room = entity.floor === 0 ? 'living' : entity.floor === 1 ? 'bedroom' : 'basement_game';
+  const room = roomAt(entity.x, entity.y, entity.floor)?.id || (entity.floor === 0 ? 'living' : entity.floor === 1 ? 'bedroom' : entity.floor === 2 ? 'basement_game' : entity.floor === 3 ? 'garage_bay' : 'yard');
   state.roomLights[room] = !state.roomLights[room];
   state.bill += state.roomLights[room] ? 1 : -1;
 }
 
-export function startOffsite(state, actor, actionId) {
-  const partner = actionId === 'date' ? byId(state, 'girlfriend') : null;
-  state.offsite = { actionId, t: ACTION_TIMES[actionId] ?? 10, actors: partner ? [actor.id, partner.id] : [actor.id] };
-  for (const id of state.offsite.actors) {
-    const e = byId(state, id);
-    if (e) { e.hidden = true; e.action = actionId; }
+export function startOffsite(state, actor, actionId, invitedIds = []) {
+  const party = buildParty(state, actor, invitedIds, actionId);
+  state.offsite = { actionId, t: ACTION_TIMES[actionId] ?? 10, actors: party.map(e => e.id) };
+  for (const e of party) {
+    e.hidden = true;
+    e.action = actionId;
+    e.path = [];
+    say(e, 'GO');
   }
   state.objectState.doorOpen = true;
-  log(state, `${actor.name} left for ${actionId.replaceAll('_', ' ')}.`);
+  log(state, `${actor.name} left for ${actionId.replaceAll('_', ' ')} with ${party.length - 1} guest(s).`);
+}
+
+function buildParty(state, actor, invitedIds, actionId) {
+  const party = [actor];
+  for (const id of invitedIds || []) {
+    const e = byId(state, id);
+    if (!e || e.id === actor.id || e.hidden) continue;
+    if (e.type === 'dog' && !['errand', 'mall', 'date', 'movies', 'dog_park'].includes(actionId)) continue;
+    const current = String(e.action || '').toLowerCase();
+    const urgent = e.actionT > 0 || e.path?.length || current.includes('toilet') || current.includes('shower') || (e.needs?.bladder ?? 100) < 25 || (e.needs?.hunger ?? 100) < 20;
+    if (urgent) { say(e, 'not rn'); log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}.`); continue; }
+    say(e, 'yeah');
+    party.push(e);
+  }
+  return party;
 }
 
 function finishOffsite(state) {
+  const action = state.offsite.actionId;
   for (const id of state.offsite.actors) {
     const e = byId(state, id);
     if (e) {
       e.hidden = false; e.floor = 0; e.x = 112; e.y = 424; e.action = 'Returned'; e.pose = 'stand';
-      changeNeed(e, 'fun', state.offsite.actionId === 'work' ? -5 : 22);
-      changeNeed(e, 'hunger', -12); changeNeed(e, 'energy', -12);
+      changeNeed(e, 'fun', action === 'work' ? -5 : 22);
+      changeNeed(e, 'hunger', -12); changeNeed(e, 'energy', -12); changeNeed(e, 'freshness', -3);
+      if (action === 'movies') addGarbageFromAction(state, 'popcorn', e);
     }
   }
-  log(state, `Returned from ${state.offsite.actionId.replaceAll('_', ' ')}.`);
+  log(state, `Returned from ${action.replaceAll('_', ' ')}.`);
   state.offsite = null;
   state.objectState.doorOpen = false;
 }
 
 function speechFor(actionId) {
-  const map = { shower: '🚿', toilet: '🚽', snack: '🍎', meal: '🍳', bring_food: '🍽️', comedy: '😂', horror: '😱', sports: '🏆', phone: '📱', play_game: '🎮', sleep: '😴', nap: '😴', kiss: '😘', cuddle: '🤗', tickle: '😂', hands: '🤝', watch_together: '📺', bed_together: '🛏️', intimacy: '❤️', pet: '🐾', train: '🎾', feed_dog: '🍖', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', darts: 'DARTS', darts_together: 'DARTS' };
+  const map = { shower: '🚿', toilet: '🚽', snack: '🍎', meal: '🍳', bring_food: '🍽️', comedy: '😂', horror: '😱', sports: '🏆', phone: '📱', play_game: '🎮', sleep: '😴', nap: '😴', kiss: '😘', cuddle: '🤗', tickle: '😂', hands: '🤝', watch_together: '📺', bed_together: '🛏️', intimacy: '❤️', pet: '🐾', train: '🎾', feed_dog: '🍖', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'KENNEL', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO' };
   return map[actionId] || actionId.toUpperCase().slice(0, 8);
 }
