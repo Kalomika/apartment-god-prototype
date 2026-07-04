@@ -1,3 +1,4 @@
+import { startObjectAction } from './actions.js';
 import { commandMove } from './movement.js';
 import { changeNeed, log, say, setMood } from './state.js';
 import { approachPoint, getObject } from './world.js';
@@ -5,9 +6,8 @@ import { approachPoint, getObject } from './world.js';
 export function startCookingFlow(state, actor) {
   const fridge = getObject('fridge');
   if (!fridge) return false;
-  const p = approachPoint(fridge, 'snack');
   state.cookingJob = { actorId: actor.id, phase: 'toFridge' };
-  commandMove(actor, p.x, p.y);
+  startObjectAction(state, actor, fridge, 'cooking_prep');
   actor.action = 'Getting ingredients';
   say(actor, 'FOOD');
   log(state, `${actor.name} started cooking prep.`);
@@ -20,8 +20,9 @@ export function updateCooking(state) {
   const actor = state.entities.find(e => e.id === job.actorId);
   if (!actor) { state.cookingJob = null; return; }
 
-  if (job.phase === 'toFridge' && !actor.path.length) {
+  if (job.phase === 'toFridge' && !actor.path.length && actor.floor === 0) {
     state.objectState.fridgeOpen = true;
+    state.objectState.fridgeActivity = 'meal';
     actor.action = 'Taking food from fridge';
     actor.actionT = 3;
     actor.actionTotal = 3;
@@ -33,6 +34,7 @@ export function updateCooking(state) {
 
   if (job.phase === 'prep' && actor.actionT <= 0) {
     state.objectState.fridgeOpen = false;
+    state.objectState.fridgeActivity = null;
     const stove = getObject('stove');
     const p = approachPoint(stove, 'meal');
     commandMove(actor, p.x, p.y);
