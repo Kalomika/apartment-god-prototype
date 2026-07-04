@@ -3,6 +3,7 @@ import { draw } from './rendering.js';
 import { createUi } from './ui.js';
 import { updateMovement } from './movement.js';
 import { resolveArrival, updateActions } from './actions.js';
+import { updateAutoHooks } from './autoHooks.js';
 import { updateAutonomy } from './autonomy.js';
 
 const canvas = document.getElementById('game');
@@ -22,6 +23,7 @@ function frame(now) {
       if (arrived) resolveArrival(state, entity);
     }
     updateActions(state, dt);
+    updateAutoHooks(state, dt);
     updateAutonomy(state, dt);
     state.time += dt * 0.6;
   }

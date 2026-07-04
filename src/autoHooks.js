@@ -5,6 +5,7 @@ import { updateDelivery } from './economy.js';
 import { updateFetch } from './fetchSystem.js';
 import { updateMusic } from './music.js';
 import { updateMoveJob } from './objectMove.js';
+import { updateAutosave } from './saveSystem.js';
 import { runRoutines, updateTraining } from './training.js';
 
 export function updateAutoHooks(state, dt) {
@@ -17,5 +18,6 @@ export function updateAutoHooks(state, dt) {
   updateTraining(state);
   updateMoveJob(state);
   updateAppointments(state, dt);
+  updateAutosave(state, dt);
   runRoutines(state);
 }

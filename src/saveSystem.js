@@ -1,30 +1,103 @@
+import { log } from './state.js';
+import { objects } from './world.js';
+
 const PREFIX = 'apartment_god_slot_';
+const AUTOSAVE_SLOT = 'autosave';
+const SAVE_VERSION = 2;
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function slotKey(slot = 1) {
+  return `${PREFIX}${slot}`;
+}
+
+function cleanStateForSave(state) {
+  const saved = clone(state);
+  saved.menu = null;
+  saved.assign = null;
+  saved.movePick = null;
+  saved.buildPick = null;
+  saved.paused = false;
+  saved.autosaveT = 0;
+  saved.saveStatus = saved.saveStatus || {};
+  return saved;
+}
+
+function restoreObjects(savedObjects) {
+  if (!Array.isArray(savedObjects)) return;
+  objects.length = 0;
+  for (const obj of savedObjects) objects.push(obj);
+}
+
+function restoreWholeState(target, saved) {
+  for (const key of Object.keys(target)) delete target[key];
+  Object.assign(target, saved);
+  target.menu = null;
+  target.assign = null;
+  target.movePick = null;
+  target.buildPick = null;
+  target.paused = false;
+  target.autosaveT = 0;
+  target.saveStatus ??= {};
+}
+
+function readSlot(slot = 1) {
+  const raw = localStorage.getItem(slotKey(slot));
+  if (!raw) return null;
+  return JSON.parse(raw);
+}
 
 export function saveGame(state, slot = 1) {
-  const data = {
-    time: state.time,
-    money: state.money,
-    bill: state.bill,
-    floor: state.floor,
-    selectedId: state.selectedId,
-    autonomyMode: state.autonomyMode,
-    roomLights: state.roomLights,
-    objectState: state.objectState,
-    routines: state.routines,
-    appointments: state.appointments,
-    requests: state.requests || [],
-    entities: state.entities.map(e => ({
-      id: e.id, floor: e.floor, x: e.x, y: e.y, needs: e.needs, skills: e.skills, skillCaps: e.skillCaps, traits: e.traits
-    }))
-  };
-  localStorage.setItem(`${PREFIX}${slot}`, JSON.stringify(data));
-  return true;
+  try {
+    const data = {
+      version: SAVE_VERSION,
+      savedAt: new Date().toISOString(),
+      slot,
+      state: cleanStateForSave(state),
+      objects: clone(objects)
+    };
+    localStorage.setItem(slotKey(slot), JSON.stringify(data));
+    state.saveStatus = { message: slot === AUTOSAVE_SLOT ? 'Autosaved' : `Saved slot ${slot}`, slot, savedAt: data.savedAt };
+    if (slot !== AUTOSAVE_SLOT) log(state, `Saved game to slot ${slot}.`);
+    return true;
+  } catch (error) {
+    state.saveStatus = { message: 'Save failed' };
+    log(state, 'Save failed. Browser storage may be blocked or full.');
+    console.error(error);
+    return false;
+  }
 }
 
 export function loadGame(state, slot = 1) {
-  const raw = localStorage.getItem(`${PREFIX}${slot}`);
-  if (!raw) return false;
-  const data = JSON.parse(raw);
+  let data = null;
+  try {
+    data = readSlot(slot) || readSlot(AUTOSAVE_SLOT);
+  } catch (error) {
+    log(state, 'Save file is corrupt.');
+    console.error(error);
+    return false;
+  }
+  if (!data) {
+    state.saveStatus = { message: 'No save found' };
+    log(state, `No save found in slot ${slot}.`);
+    return false;
+  }
+
+  if (data.version >= 2 && data.state) {
+    restoreObjects(data.objects);
+    restoreWholeState(state, data.state);
+  } else {
+    restoreLegacyState(state, data);
+  }
+
+  state.saveStatus = { message: `Loaded slot ${data.slot || slot}`, slot: data.slot || slot, savedAt: data.savedAt || null };
+  log(state, `Loaded saved game from slot ${data.slot || slot}.`);
+  return true;
+}
+
+function restoreLegacyState(state, data) {
   state.time = data.time ?? state.time;
   state.money = data.money ?? state.money;
   state.bill = data.bill ?? state.bill;
@@ -39,21 +112,45 @@ export function loadGame(state, slot = 1) {
   for (const saved of data.entities || []) {
     const e = state.entities.find(x => x.id === saved.id);
     if (!e) continue;
-    e.floor = saved.floor; e.x = saved.x; e.y = saved.y;
+    e.floor = saved.floor;
+    e.x = saved.x;
+    e.y = saved.y;
     e.needs = saved.needs || e.needs;
     e.skills = saved.skills || e.skills;
     e.skillCaps = saved.skillCaps || e.skillCaps;
     e.traits = saved.traits || e.traits;
-    e.path = []; e.target = null; e.action = 'Loaded'; e.actionT = 0; e.pose = 'stand'; e.hidden = false;
+    e.path = [];
+    e.target = null;
+    e.action = 'Loaded';
+    e.actionT = 0;
+    e.pose = 'stand';
+    e.hidden = false;
   }
-  return true;
+}
+
+export function clearSaveSlot(state, slot = 1) {
+  localStorage.removeItem(slotKey(slot));
+  state.saveStatus = { message: `Cleared slot ${slot}` };
+  log(state, `Cleared save slot ${slot}.`);
+}
+
+export function updateAutosave(state, dt) {
+  state.autosaveT = (state.autosaveT || 0) + dt;
+  if (state.autosaveT < 30) return;
+  state.autosaveT = 0;
+  saveGame(state, AUTOSAVE_SLOT);
 }
 
 export function slotSummary(slot = 1) {
-  const raw = localStorage.getItem(`${PREFIX}${slot}`);
-  if (!raw) return 'Empty';
   try {
-    const data = JSON.parse(raw);
+    const data = readSlot(slot);
+    if (!data) return 'Empty';
+    if (data.version >= 2) {
+      const time = data.state?.time ?? 0;
+      const money = data.state?.money ?? 0;
+      const savedAt = data.savedAt ? new Date(data.savedAt).toLocaleTimeString() : 'saved';
+      return `${Math.round(time / 60)}h, $${Math.round(money)}, ${savedAt}`;
+    }
     return `Day time ${Math.round((data.time || 0) / 60)}h, $${Math.round(data.money || 0)}`;
   } catch {
     return 'Corrupt';
