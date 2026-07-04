@@ -14,7 +14,7 @@ export function beginVehicleDeparture(state, actionId, partyIds = []) {
   state.objectState.garageDoorOpen = true;
   state.floor = 3;
   state.viewHoldT = 5;
-  log(`Garage door opening for ${actionId.replaceAll('_', ' ')}.`);
+  log(state, `Garage door opening for ${actionId.replaceAll('_', ' ')}.`);
 }
 
 export function updateVehicleDeparture(state, dt) {
