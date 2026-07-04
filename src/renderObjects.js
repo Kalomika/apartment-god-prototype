@@ -5,7 +5,7 @@ export function drawObjects(ctx, state) {
   for (const obj of objects.filter(o => o.floor === state.floor)) {
     const active = state.entities.some(e => e.target?.objectId === obj.id || String(e.action || '').toLowerCase().includes(obj.kind));
     ctx.save();
-    ctx.shadowColor = active ? 'rgba(242,214,109,.45)' : 'transparent';
+    ctx.shadowColor = active ? 'rgba(116,230,255,.55)' : 'transparent';
     ctx.shadowBlur = active ? 18 : 0;
     drawObject(ctx, obj, state, active);
     ctx.restore();
@@ -29,12 +29,32 @@ function drawObject(ctx, o, state, active) {
   if (o.kind === 'bookshelf') return bookshelf(ctx, o);
   if (o.kind === 'workout') return workout(ctx, o);
   if (o.kind === 'stereo') return stereo(ctx, o, state);
+  if (o.kind === 'pool_table') return poolTable(ctx, o);
+  if (o.kind === 'arcade') return arcade(ctx, o);
+  if (o.kind === 'game_console') return gameConsole(ctx, o);
+  if (o.kind === 'dartboard') return dartboard(ctx, o);
   roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#667085');
 }
 
 function couch(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 16, '#775f7f'); roundRect(ctx, o.x + 10, o.y + 9, 58, 44, 10, '#8b72a0'); roundRect(ctx, o.x + 82, o.y + 9, 58, 44, 10, '#8b72a0'); }
 function tv(ctx, o, state) { roundRect(ctx, o.x, o.y, o.w, o.h, 6, '#151923'); roundRect(ctx, o.x + 8, o.y + 6, o.w - 16, o.h - 12, 4, state.tv.on ? '#5fc7ff' : '#242b38'); }
-function fridge(ctx, o, state) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#d5dde8'); if (state.objectState.fridgeOpen) { ctx.fillStyle = '#dff7ff'; ctx.fillRect(o.x + o.w, o.y + 10, 20, o.h - 20); } }
+function fridge(ctx, o, state) {
+  roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#d5dde8');
+  ctx.fillStyle = '#8795a8';
+  ctx.fillRect(o.x + 8, o.y + 8, o.w - 16, 2);
+  ctx.fillStyle = '#74e6ff';
+  ctx.fillRect(o.x + 8, o.y + 18, 6, 44);
+  if (state.objectState.fridgeOpen) {
+    roundRect(ctx, o.x + o.w - 2, o.y + 8, 42, o.h - 16, 4, '#dff7ff');
+    ctx.strokeStyle = '#74e6ff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(o.x + o.w - 2, o.y + 8, 42, o.h - 16);
+    ctx.fillStyle = '#243647';
+    ctx.font = '900 10px system-ui';
+    ctx.fillText('OPEN', o.x + o.w + 4, o.y + 28);
+    ctx.fillText(state.objectState.fridgeActivity === 'snack' ? 'SNACK' : 'FOOD', o.x + o.w + 4, o.y + 48);
+  }
+}
 function stove(ctx, o, state) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#606878'); for (let i = 0; i < 4; i++) { ctx.strokeStyle = '#252b35'; ctx.beginPath(); ctx.arc(o.x + 18 + (i % 2) * 34, o.y + 18 + Math.floor(i / 2) * 28, 9, 0, Math.PI * 2); ctx.stroke(); } if (state.objectState.stovePan) { ctx.fillStyle = '#1f2530'; ctx.beginPath(); ctx.ellipse(o.x + 38, o.y + 34, 22, 13, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#11151c'; ctx.beginPath(); ctx.moveTo(o.x + 56, o.y + 34); ctx.lineTo(o.x + 78, o.y + 28); ctx.stroke(); } if (state.objectState.stoveSmoke) { ctx.strokeStyle = 'rgba(230,235,240,.65)'; ctx.lineWidth = 2; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(o.x + 24 + i * 12, o.y - 2); ctx.bezierCurveTo(o.x + 12 + i * 12, o.y - 14, o.x + 38 + i * 8, o.y - 20, o.x + 26 + i * 12, o.y - 32); ctx.stroke(); } } }
 function sink(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#aab7c8'); roundRect(ctx, o.x + 10, o.y + 9, o.w - 20, o.h - 18, 8, '#62778f'); }
 function shower(ctx, o, active) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#6d8ea6'); ctx.strokeStyle = active ? '#9ce8ff' : '#cdefff'; ctx.strokeRect(o.x + 8, o.y + 8, o.w - 16, o.h - 16); }
@@ -44,7 +64,11 @@ function bed(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 14, '#59739c'); roundR
 function desk(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#795d45'); roundRect(ctx, o.x + 36, o.y + 10, 50, 34, 5, '#222936'); ctx.fillStyle = '#7de1ff'; ctx.fillRect(o.x + 42, o.y + 15, 38, 18); }
 function bowl(ctx, o) { ctx.fillStyle = '#b43f4e'; ctx.beginPath(); ctx.ellipse(o.x + o.w / 2, o.y + o.h / 2, o.w / 2, o.h / 2, 0, 0, Math.PI * 2); ctx.fill(); }
 function light(ctx, o, state) { const room = roomAt(o.x, o.y, o.floor); ctx.fillStyle = room && state.roomLights[room.id] !== false ? '#ffe377' : '#555d69'; ctx.beginPath(); ctx.arc(o.x + o.w / 2, o.y + o.h / 2, 11, 0, Math.PI * 2); ctx.fill(); }
-function stairs(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#3b4656'); ctx.strokeStyle = '#93a0b3'; for (let y = o.y + 12; y < o.y + o.h; y += 14) { ctx.beginPath(); ctx.moveTo(o.x + 12, y); ctx.lineTo(o.x + o.w - 12, y); ctx.stroke(); } }
+function stairs(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#3b4656'); ctx.strokeStyle = '#93a0b3'; for (let y = o.y + 12; y < o.y + o.h; y += 14) { ctx.beginPath(); ctx.moveTo(o.x + 12, y); ctx.lineTo(o.x + o.w - 12, y); ctx.stroke(); } ctx.fillStyle = '#74e6ff'; ctx.font = '900 10px system-ui'; ctx.fillText(o.toFloor === 2 ? 'BASE' : o.toFloor === 1 ? 'UP' : 'MAIN', o.x + 10, o.y + o.h - 10); }
 function bookshelf(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#6c4b33'); for (let y = o.y + 14; y < o.y + o.h - 8; y += 24) { ctx.fillStyle = '#d7a45f'; ctx.fillRect(o.x + 8, y, o.w - 16, 5); ctx.fillStyle = '#8fb3e8'; ctx.fillRect(o.x + 12, y + 7, 10, 14); ctx.fillStyle = '#e88fae'; ctx.fillRect(o.x + 28, y + 7, 8, 14); ctx.fillStyle = '#90d68c'; ctx.fillRect(o.x + 42, y + 7, 12, 14); } }
 function workout(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#45505e'); ctx.strokeStyle = '#d7e1f0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(o.x + 12, o.y + 22); ctx.lineTo(o.x + o.w - 12, o.y + 22); ctx.stroke(); ctx.fillStyle = '#d7e1f0'; ctx.fillRect(o.x + 8, o.y + 14, 8, 16); ctx.fillRect(o.x + o.w - 16, o.y + 14, 8, 16); }
 function stereo(ctx, o, state) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#202735'); ctx.fillStyle = '#0f141e'; ctx.beginPath(); ctx.arc(o.x + 16, o.y + 18, 10, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(o.x + o.w - 16, o.y + 18, 10, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = state.music ? '#f1c66a' : '#6a7280'; ctx.font = '900 13px system-ui'; ctx.fillText(state.music ? '♪' : 'ST', o.x + 24, o.y + 23); }
+function poolTable(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 20, '#123b35'); roundRect(ctx, o.x + 14, o.y + 14, o.w - 28, o.h - 28, 14, '#185c4f'); ctx.fillStyle = '#080b10'; for (const [px, py] of [[16, 16], [o.w / 2, 12], [o.w - 16, 16], [16, o.h - 16], [o.w / 2, o.h - 12], [o.w - 16, o.h - 16]]) { ctx.beginPath(); ctx.arc(o.x + px, o.y + py, 8, 0, Math.PI * 2); ctx.fill(); } ctx.fillStyle = '#f8fbff'; ctx.beginPath(); ctx.arc(o.x + o.w / 2 - 24, o.y + o.h / 2, 7, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#f1c66a'; ctx.beginPath(); ctx.arc(o.x + o.w / 2 + 22, o.y + o.h / 2 - 12, 6, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#f1c66a'; ctx.beginPath(); ctx.moveTo(o.x + 28, o.y + o.h - 18); ctx.lineTo(o.x + o.w - 38, o.y + 24); ctx.stroke(); }
+function arcade(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#22152f'); roundRect(ctx, o.x + 8, o.y + 10, o.w - 16, 28, 5, '#10141b'); ctx.fillStyle = '#74e6ff'; ctx.fillRect(o.x + 14, o.y + 16, o.w - 28, 12); ctx.fillStyle = '#ff75df'; ctx.beginPath(); ctx.arc(o.x + 18, o.y + 52, 5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#f1c66a'; ctx.fillRect(o.x + 30, o.y + 50, 12, 4); }
+function gameConsole(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 10, '#202735'); roundRect(ctx, o.x + 16, o.y + 10, o.w - 32, 28, 6, '#0f141e'); ctx.fillStyle = '#74e6ff'; ctx.fillRect(o.x + 32, o.y + 16, o.w - 64, 14); ctx.fillStyle = '#f8fbff'; ctx.font = '900 11px system-ui'; ctx.fillText('PS / XBOX', o.x + 50, o.y + 52); }
+function dartboard(ctx, o) { ctx.fillStyle = '#10141b'; ctx.beginPath(); ctx.arc(o.x + o.w / 2, o.y + o.h / 2, o.w / 2, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#f8fbff'; ctx.lineWidth = 2; for (let r = 6; r < o.w / 2; r += 7) { ctx.beginPath(); ctx.arc(o.x + o.w / 2, o.y + o.h / 2, r, 0, Math.PI * 2); ctx.stroke(); } ctx.strokeStyle = '#ff75df'; ctx.beginPath(); ctx.moveTo(o.x + o.w / 2, o.y); ctx.lineTo(o.x + o.w / 2, o.y + o.h); ctx.moveTo(o.x, o.y + o.h / 2); ctx.lineTo(o.x + o.w, o.y + o.h / 2); ctx.stroke(); }
