@@ -1,5 +1,5 @@
 import { canStepThroughRooms, routeThroughDoors } from './blueprint.js';
-import { approachPoint, clampToPlay, expandedRect, getObject, pointInRect, segmentHitsRect, solidObjects } from './world.js';
+import { approachPoint, clampToPlay, expandedRect, getObject, getStairExit, getTravelStair, pointInRect, segmentHitsRect, solidObjects } from './world.js';
 
 function directBlocked(a, b, floor, allowId = '') {
   return solidObjects(floor, allowId).some(o => segmentHitsRect(a, b, expandedRect(o, 20)));
@@ -67,9 +67,9 @@ export function commandObject(entity, obj, actionId) {
   entity.stopped = false;
 
   if (entity.floor !== obj.floor) {
-    const stairs = obj.floor === 1 ? getObject('stairs_down') : getObject('stairs_up');
+    const stairs = getTravelStair(entity.floor, obj.floor);
     if (stairs && stairs.floor === entity.floor) {
-      entity.pending = { type: 'floorTravel', toFloor: obj.floor, target, objectId: obj.id, actionId };
+      entity.pending = { type: 'floorTravel', targetFloor: obj.floor, objectId: obj.id, actionId, stairId: stairs.id };
       entity.path = routeAround({ x: entity.x, y: entity.y }, approachPoint(stairs), entity.floor, stairs.id);
       return;
     }
@@ -96,21 +96,27 @@ function blockedStep(entity, from, to) {
 function finishFloorTravel(state, entity) {
   const pending = entity.pending;
   if (!pending || pending.type !== 'floorTravel') return false;
+  const stairs = getObject(pending.stairId);
+  if (!stairs) { entity.pending = null; return false; }
   const oldFloor = entity.floor;
-  entity.floor = pending.toFloor;
-  const exit = getObject(pending.toFloor === 1 ? 'stairs_up' : 'stairs_down');
+  entity.floor = stairs.toFloor;
+  const exit = getStairExit(stairs);
   if (exit) {
     entity.x = exit.x + exit.w / 2;
     entity.y = exit.y + exit.h + 34;
   }
   const obj = getObject(pending.objectId);
-  if (obj) {
-    const target = approachPoint(obj, pending.actionId);
-    entity.path = routeAround({ x: entity.x, y: entity.y }, target, entity.floor, obj.id);
-    entity.target = { type: 'object', objectId: obj.id, actionId: pending.actionId };
-  }
   entity.pending = null;
   entity.blockedT = 0;
+  if (obj) {
+    if (entity.floor !== obj.floor) {
+      commandObject(entity, obj, pending.actionId);
+    } else {
+      const target = approachPoint(obj, pending.actionId);
+      entity.path = routeAround({ x: entity.x, y: entity.y }, target, entity.floor, obj.id);
+      entity.target = { type: 'object', objectId: obj.id, actionId: pending.actionId };
+    }
+  }
   if (entity.id === 'resident' && state.viewHoldT <= 0) state.floor = entity.floor;
   entity.action = oldFloor !== entity.floor ? 'Using stairs' : entity.action;
   return true;
