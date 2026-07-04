@@ -36,13 +36,13 @@ function buildPhoneUi(state) {
   const up = document.createElement('button');
   up.textContent = '↑ Floor';
   up.style.cssText = 'position:absolute;right:12px;top:12px;z-index:6;opacity:.82;padding:8px 10px;border-radius:999px;';
-  up.onclick = event => { event.stopPropagation(); state.floor = 1; state.viewHoldT = state.buildPick ? 30 : 18; log(state, state.buildPick ? 'Tap upstairs placement spot.' : 'Viewing upstairs.'); dirty = true; };
+  up.onclick = event => { event.stopPropagation(); changeViewedFloor(state, state.floor === 2 ? 0 : Math.min(1, state.floor + 1)); };
   wrap.appendChild(up);
 
   const down = document.createElement('button');
   down.textContent = '↓ Floor';
   down.style.cssText = 'position:absolute;right:12px;bottom:12px;z-index:6;opacity:.82;padding:8px 10px;border-radius:999px;';
-  down.onclick = event => { event.stopPropagation(); state.floor = 0; state.viewHoldT = state.buildPick ? 30 : 0; log(state, state.buildPick ? 'Tap downstairs placement spot.' : 'Viewing downstairs.'); dirty = true; };
+  down.onclick = event => { event.stopPropagation(); changeViewedFloor(state, state.floor === 0 ? 2 : Math.max(0, state.floor - 1)); };
   wrap.appendChild(down);
 
   const dock = document.createElement('section');
@@ -68,6 +68,14 @@ function buildPhoneUi(state) {
   hud.prepend(dock);
   els = { button, panel };
   updatePhoneButton(state);
+}
+
+function changeViewedFloor(state, floor) {
+  state.floor = floor;
+  state.viewHoldT = state.buildPick ? 30 : floor === selected(state).floor ? 0 : 18;
+  const names = ['downstairs', 'upstairs', 'basement'];
+  log(state, state.buildPick ? `Tap ${names[floor]} placement spot.` : `Viewing ${names[floor]}.`);
+  dirty = true;
 }
 
 function updatePhoneButton(state) {
