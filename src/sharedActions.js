@@ -4,20 +4,16 @@ import { getObject } from './world.js';
 
 export function startSharedObjectAction(state, actor, objectId, actionId) {
   const obj = getObject(objectId);
-  if (!obj) return false;
-  const partner = state.entities.find(e => e.id !== actor.id && e.type === 'person' && !e.hidden);
-  if (!partner) {
-    log(state, `${actor.name} has no available partner for ${actionId.replaceAll('_', ' ')}.`);
-    startObjectAction(state, actor, obj, actionId);
-    return true;
+  if (!obj) {
+    say(actor, 'NO');
+    log(state, `Missing object for ${actionId.replaceAll('_', ' ')}.`);
+    return false;
   }
 
   startObjectAction(state, actor, obj, actionId);
-  startObjectAction(state, partner, obj, actionId);
-  actor.sharedWith = partner.id;
-  partner.sharedWith = actor.id;
-  say(actor, 'COME');
-  say(partner, 'OK');
-  log(state, `${actor.name} called ${partner.name} for ${actionId.replaceAll('_', ' ')}.`);
+  if (actionId.endsWith('_together') || actionId === 'watch_together' || actionId === 'bed_together' || actionId === 'intimacy') {
+    say(actor, 'ASK');
+    log(state, `${actor.name} is asking someone to join ${actionId.replaceAll('_', ' ')}.`);
+  }
   return true;
 }
