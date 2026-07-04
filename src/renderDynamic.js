@@ -5,6 +5,7 @@ export function drawDynamicProps(ctx, state) {
   drawPulledBook(ctx, state);
   drawCourier(ctx, state);
   drawBuildPrompt(ctx, state);
+  drawVisiblePhone(ctx, state);
 }
 
 function drawPulledBook(ctx, state) {
@@ -67,5 +68,26 @@ function drawBuildPrompt(ctx, state) {
   ctx.fillStyle = '#f8fbff';
   ctx.font = '900 15px system-ui';
   ctx.fillText(`Tap placement spot for ${state.buildPick.label}`, 294, 32);
+  ctx.restore();
+}
+
+function drawVisiblePhone(ctx, state) {
+  if (!state.phone) return;
+  const actor = state.entities.find(e => e.id === state.phone.actorId);
+  if (!actor || actor.hidden || actor.type === 'dog' || actor.floor !== state.floor) return;
+  const bob = Math.sin(performance.now() / 180) * 1.5;
+  ctx.save();
+  ctx.translate(actor.x + 32, actor.y - 8 + bob);
+  ctx.rotate(-0.18);
+  roundRect(ctx, -8, -14, 16, 28, 4, '#0b1018');
+  ctx.strokeStyle = '#74e6ff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-5, -10, 10, 18);
+  ctx.fillStyle = state.phone.open ? '#f1c66a' : '#74e6ff';
+  ctx.fillRect(-3, -8, 6, 12);
+  ctx.fillStyle = '#f8fbff';
+  ctx.font = '900 7px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText('CELL', 0, 22);
   ctx.restore();
 }
