@@ -4,6 +4,7 @@ import { roundRect } from './renderHelpers.js';
 export function drawDynamicProps(ctx, state) {
   drawPulledBook(ctx, state);
   drawCourier(ctx, state);
+  drawDeliveredFood(ctx, state);
   drawBuildPrompt(ctx, state);
 }
 
@@ -28,7 +29,7 @@ function drawPulledBook(ctx, state) {
 
 function drawCourier(ctx, state) {
   const d = state.delivery;
-  if (!d || d.floor !== state.floor) return;
+  if (!d || d.floor !== state.floor || !['arriving', 'exchange'].includes(d.phase)) return;
   ctx.save();
   ctx.translate(d.x, d.y);
   ctx.fillStyle = 'rgba(0,0,0,.25)';
@@ -48,13 +49,34 @@ function drawCourier(ctx, state) {
   ctx.beginPath();
   ctx.arc(0, -20, 11, 0, Math.PI * 2);
   ctx.fill();
-  const text = d.phase === 'arriving' ? '...' : d.bubble || 'ORDER';
+  const text = d.phase === 'arriving' ? '...' : d.bubble || 'here';
   const w = Math.max(76, text.length * 10 + 22);
   roundRect(ctx, -w / 2, -66, w, 26, 10, '#f8fbff');
   ctx.fillStyle = '#10141b';
   ctx.font = '900 12px system-ui';
   ctx.textAlign = 'center';
   ctx.fillText(text, 0, -49);
+  ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+function drawDeliveredFood(ctx, state) {
+  const d = state.delivery;
+  if (!d || d.phase !== 'eating' || d.floor !== state.floor) return;
+  ctx.save();
+  ctx.translate(d.x, d.y);
+  ctx.fillStyle = 'rgba(0,0,0,.22)';
+  ctx.beginPath();
+  ctx.ellipse(3, 17, 20, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  roundRect(ctx, -15, -10, 34, 28, 6, '#f1c66a');
+  ctx.strokeStyle = '#11151c';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-10, -6, 24, 14);
+  ctx.fillStyle = '#11151c';
+  ctx.font = '900 9px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText('FOOD', 2, 8);
   ctx.textAlign = 'left';
   ctx.restore();
 }
