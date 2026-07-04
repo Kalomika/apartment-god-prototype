@@ -64,6 +64,7 @@ export function resolveArrival(state, entity) {
     if (!obj) return;
     if (isTogetherAction(target.actionId)) {
       if (queuePartnerForSharedAction(state, entity, target.actionId, obj)) return;
+      state.sharedActivity = null;
       entity.action = 'Idle';
       entity.actionT = 0;
       entity.pose = 'stand';
@@ -94,6 +95,7 @@ export function resolveArrival(state, entity) {
       log(state, 'Tap an open floor spot to throw the ball.');
       return;
     }
+    if (isTogetherAction(target.socialId)) state.sharedActivity = null;
     beginTimedAction(entity, `${target.socialId} with ${other.name}`, target.socialId);
     entity.pose = target.socialId;
     other.action = `${target.socialId} with ${entity.name}`;
@@ -129,8 +131,9 @@ function queuePartnerForSharedAction(state, entity, actionId, obj) {
   entity.action = `Waiting for ${partner.name}`;
   entity.actionT = 0;
   entity.pose = 'stand';
+  state.sharedActivity = { floor: entity.floor, x: entity.x, y: entity.y, r: 64, label: actionId.replaceAll('_', ' ') };
   commandSocial(partner, entity, actionId);
-  log(state, `${partner.name} agreed to join ${entity.name} at ${obj.label}.`);
+  log(state, `${partner.name} agreed to join ${entity.name} at ${obj.label}. Meet inside the shared activity circle.`);
   return true;
 }
 
