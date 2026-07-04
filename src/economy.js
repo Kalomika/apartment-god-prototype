@@ -46,28 +46,49 @@ export function updateDelivery(state, dt) {
     job.t = 4;
     job.x = 70;
     job.y = 430;
-    job.bubble = 'DELIVERY';
+    job.bubble = 'here';
     state.objectState.doorOpen = true;
     actor.action = 'Receiving food delivery';
-    actor.actionT = Math.max(actor.actionT, 4);
-    actor.actionTotal = Math.max(actor.actionTotal || 0, 4);
+    actor.actionT = 4;
+    actor.actionTotal = 4;
     actor.pose = 'stand';
-    say(actor, 'THANKS');
-    log(state, 'The delivery person arrived at the door.');
+    say(actor, 'thanks');
+    log(state, 'The delivery person arrived at the door. Food has to be received before eating.');
     return;
   }
 
   if (job.phase === 'exchange' && job.t <= 0) {
-    changeNeed(actor, 'hunger', 30);
-    changeNeed(actor, 'fun', 3);
-    setMood(actor, 'happy');
-    say(actor, 'EAT');
-    actor.action = 'Ate delivered food';
-    actor.actionT = 0;
-    actor.actionTotal = 0;
+    job.phase = 'eating';
+    job.t = 7;
+    job.x = actor.x + 26;
+    job.y = actor.y + 18;
+    job.floor = actor.floor;
+    job.bubble = 'bag';
     state.objectState.doorOpen = false;
-    log(state, `${actor.name} picked up and ate the delivered food.`);
-    state.delivery = null;
+    actor.action = 'Eating delivered food';
+    actor.actionT = 7;
+    actor.actionTotal = 7;
+    actor.pose = 'sit';
+    say(actor, 'rn');
+    log(state, `${actor.name} received the food and is eating now.`);
+    return;
+  }
+
+  if (job.phase === 'eating') {
+    job.x = actor.x + 26;
+    job.y = actor.y + 18;
+    job.floor = actor.floor;
+    if (job.t <= 0) {
+      changeNeed(actor, 'hunger', 30);
+      changeNeed(actor, 'fun', 3);
+      setMood(actor, 'happy');
+      say(actor, 'good');
+      actor.action = 'Ate delivered food';
+      actor.actionT = 0;
+      actor.actionTotal = 0;
+      log(state, `${actor.name} finished the delivered food.`);
+      state.delivery = null;
+    }
   }
 }
 
