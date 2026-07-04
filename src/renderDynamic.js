@@ -1,7 +1,9 @@
 import { objects } from './world.js';
+import { roundRect } from './renderHelpers.js';
 
 export function drawDynamicProps(ctx, state) {
   drawPulledBook(ctx, state);
+  drawCourier(ctx, state);
   drawBuildPrompt(ctx, state);
 }
 
@@ -21,6 +23,39 @@ function drawPulledBook(ctx, state) {
   ctx.fillStyle = '#11151c';
   ctx.font = '900 10px system-ui';
   ctx.fillText('BOOK', -1, 13);
+  ctx.restore();
+}
+
+function drawCourier(ctx, state) {
+  const d = state.delivery;
+  if (!d || d.floor !== state.floor) return;
+  ctx.save();
+  ctx.translate(d.x, d.y);
+  ctx.fillStyle = 'rgba(0,0,0,.25)';
+  ctx.beginPath();
+  ctx.ellipse(0, 18, 22, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  roundRect(ctx, -15, -10, 30, 38, 8, '#1e2937');
+  ctx.strokeStyle = '#74e6ff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-12, -6, 24, 18);
+  ctx.fillStyle = '#f1c66a';
+  ctx.fillRect(-24, 3, 16, 14);
+  ctx.fillStyle = '#11151c';
+  ctx.font = '900 8px system-ui';
+  ctx.fillText('BAG', -23, 13);
+  ctx.fillStyle = '#f8fbff';
+  ctx.beginPath();
+  ctx.arc(0, -20, 11, 0, Math.PI * 2);
+  ctx.fill();
+  const text = d.phase === 'arriving' ? '...' : d.bubble || 'ORDER';
+  const w = Math.max(76, text.length * 10 + 22);
+  roundRect(ctx, -w / 2, -66, w, 26, 10, '#f8fbff');
+  ctx.fillStyle = '#10141b';
+  ctx.font = '900 12px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, 0, -49);
+  ctx.textAlign = 'left';
   ctx.restore();
 }
 

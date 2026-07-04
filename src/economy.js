@@ -1,5 +1,6 @@
+import { commandMove } from './movement.js';
 import { changeNeed, log, say, setMood } from './state.js';
-import { objects } from './world.js';
+import { approachPoint, getObject, objects } from './world.js';
 
 export function pay(state, amount, label) {
   if (state.money < amount) {
@@ -14,14 +15,60 @@ export function pay(state, amount, label) {
 export function orderFood(state, actor, auto = false) {
   if (auto && state.autonomyMode !== 'free') return false;
   if (auto && actor.traits?.frugal && (actor.skills?.money ?? 1) < 4) return false;
+  if (state.delivery) {
+    log(state, 'A delivery is already on the way.');
+    return false;
+  }
   if (!pay(state, 18, 'food delivery')) return false;
-  actor.action = 'Ordering food';
-  actor.actionT = 5;
-  actor.pose = 'sit';
+  const door = getObject('door');
+  if (door) {
+    const p = approachPoint(door, 'delivery');
+    commandMove(actor, p.x, p.y);
+  }
+  actor.action = 'Waiting for food delivery';
+  actor.pose = 'walk';
   setMood(actor, 'phone');
   say(actor, 'ORDER');
-  setTimeout(() => changeNeed(actor, 'hunger', 30), 0);
+  state.delivery = { type: 'food', phase: 'arriving', actorId: actor.id, t: 7, x: 36, y: 430, floor: 0, bubble: 'FOOD' };
+  log(state, `${actor.name} ordered food. The delivery person is on the way.`);
   return true;
+}
+
+export function updateDelivery(state, dt) {
+  const job = state.delivery;
+  if (!job) return;
+  const actor = state.entities.find(e => e.id === job.actorId);
+  if (!actor) { state.delivery = null; return; }
+  job.t -= dt;
+
+  if (job.phase === 'arriving' && job.t <= 0) {
+    job.phase = 'exchange';
+    job.t = 4;
+    job.x = 70;
+    job.y = 430;
+    job.bubble = 'DELIVERY';
+    state.objectState.doorOpen = true;
+    actor.action = 'Receiving food delivery';
+    actor.actionT = Math.max(actor.actionT, 4);
+    actor.actionTotal = Math.max(actor.actionTotal || 0, 4);
+    actor.pose = 'stand';
+    say(actor, 'THANKS');
+    log(state, 'The delivery person arrived at the door.');
+    return;
+  }
+
+  if (job.phase === 'exchange' && job.t <= 0) {
+    changeNeed(actor, 'hunger', 30);
+    changeNeed(actor, 'fun', 3);
+    setMood(actor, 'happy');
+    say(actor, 'EAT');
+    actor.action = 'Ate delivered food';
+    actor.actionT = 0;
+    actor.actionTotal = 0;
+    state.objectState.doorOpen = false;
+    log(state, `${actor.name} picked up and ate the delivered food.`);
+    state.delivery = null;
+  }
 }
 
 export function buyWorkoutGear(state, actor) {

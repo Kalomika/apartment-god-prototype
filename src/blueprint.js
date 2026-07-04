@@ -6,11 +6,15 @@ export const doorways = [
   { floor: 0, a: 'living', b: 'entry', x: 226, y: 336, w: 86, h: 18 },
   { floor: 0, a: 'kitchen', b: 'entry', x: 586, y: 336, w: 92, h: 18 },
   { floor: 0, a: 'bath', b: 'entry', x: 840, y: 336, w: 58, h: 18 },
+  { floor: 0, a: 'entry', b: 'stairs', x: 704, y: 410, w: 18, h: 62 },
   { floor: 0, a: 'entry', b: 'stairs', x: 802, y: 516, w: 58, h: 22 },
   { floor: 1, a: 'bedroom', b: 'hall', x: 226, y: 382, w: 88, h: 18 },
   { floor: 1, a: 'office', b: 'hall', x: 574, y: 382, w: 82, h: 18 },
   { floor: 1, a: 'bath2', b: 'hall', x: 826, y: 382, w: 64, h: 18 },
-  { floor: 1, a: 'hall', b: 'stairs2', x: 802, y: 516, w: 58, h: 22 }
+  { floor: 1, a: 'hall', b: 'stairs2', x: 802, y: 516, w: 58, h: 22 },
+  { floor: 2, a: 'basement_game', b: 'basement_media', x: 526, y: 126, w: 16, h: 76 },
+  { floor: 2, a: 'basement_media', b: 'basement_utility', x: 704, y: 248, w: 78, h: 16 },
+  { floor: 2, a: 'basement_utility', b: 'basement_stairs', x: 802, y: 516, w: 58, h: 22 }
 ];
 
 export const windows = [
