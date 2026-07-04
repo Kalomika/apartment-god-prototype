@@ -1,3 +1,4 @@
+import { addGarbage } from './garbage.js';
 import { commandMove } from './movement.js';
 import { changeNeed, log, say, setMood } from './state.js';
 import { approachPoint, getObject, objects } from './world.js';
@@ -52,6 +53,7 @@ export function updateDelivery(state, dt) {
     actor.actionT = Math.max(actor.actionT, 4);
     actor.actionTotal = Math.max(actor.actionTotal || 0, 4);
     actor.pose = 'stand';
+    actor.carrying = 'food bag';
     say(actor, 'THANKS');
     log(state, 'The delivery person arrived at the door.');
     return;
@@ -60,6 +62,7 @@ export function updateDelivery(state, dt) {
   if (job.phase === 'exchange' && job.t <= 0) {
     changeNeed(actor, 'hunger', 30);
     changeNeed(actor, 'fun', 3);
+    addGarbage(state, 'delivery', 14, actor);
     setMood(actor, 'happy');
     say(actor, 'EAT');
     actor.action = 'Ate delivered food';

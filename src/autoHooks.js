@@ -3,6 +3,7 @@ import { updateAppointments } from './buildRequests.js';
 import { updateCooking } from './cooking.js';
 import { updateDelivery } from './economy.js';
 import { updateFetch } from './fetchSystem.js';
+import { updateGarbage } from './garbage.js';
 import { updateMusic } from './music.js';
 import { updateMoveJob } from './objectMove.js';
 import { updateAutosave } from './saveSystem.js';
@@ -18,6 +19,7 @@ export function updateAutoHooks(state, dt) {
   updateTraining(state);
   updateMoveJob(state);
   updateAppointments(state, dt);
+  updateGarbage(state, dt);
   updateAutosave(state, dt);
   runRoutines(state);
 }

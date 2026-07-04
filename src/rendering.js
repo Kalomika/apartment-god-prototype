@@ -2,7 +2,7 @@ import './fit.js';
 import { PLAY_H, PLAY_W, COLORS } from './config.js';
 import { drawWorld } from './renderWorld.js';
 import { drawObjects } from './renderObjects.js';
-import { drawDynamicProps } from './renderDynamic.js';
+import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
 import { syncPhoneUi } from './phoneUI.js';
 import { formatTime } from './renderHelpers.js';
@@ -17,6 +17,7 @@ export function draw(ctx, state) {
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
+  drawCarriedItems(ctx, state);
   drawStatus(ctx, state);
   drawOverlay(ctx, state);
 }
@@ -41,10 +42,11 @@ function drawFetchBall(ctx, state) {
 
 function drawStatus(ctx, state) {
   ctx.fillStyle = 'rgba(10,12,18,.72)';
-  ctx.fillRect(12, 10, 260, 34);
+  ctx.fillRect(12, 10, 360, 34);
   ctx.fillStyle = COLORS.text;
   ctx.font = '900 16px system-ui';
-  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode || 'guided'}`, 24, 32);
+  const trash = state.garbage ? ` trash ${Math.round(state.garbage.kitchen || 0)}%` : '';
+  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode || 'guided'}${trash}`, 24, 32);
 }
 
 function drawOverlay(ctx, state) {

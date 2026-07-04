@@ -9,7 +9,7 @@ import { commandMove } from './movement.js';
 import { loadGame, saveGame, slotSummary } from './saveSystem.js';
 import { startBook } from './training.js';
 import { log, resumeEntity, selected, stopEntity } from './state.js';
-import { objectAt, objects } from './world.js';
+import { floors, objectAt, objects } from './world.js';
 import { formatTime } from './rendering.js';
 
 export function createUi(state, canvas) {
@@ -25,15 +25,8 @@ export function createUi(state, canvas) {
   const closeMenu = () => { menu.classList.add('hidden'); menu.innerHTML = ''; state.menu = null; };
   const openMenu = (x, y, title, items) => {
     menu.innerHTML = `<h3>${title}</h3>`;
-    for (const item of items) {
-      const b = document.createElement('button');
-      b.textContent = item.label;
-      b.onclick = () => { closeMenu(); item.run(); };
-      menu.appendChild(b);
-    }
-    menu.style.left = `${Math.min(x, canvas.clientWidth - 240)}px`;
-    menu.style.top = `${Math.min(y, canvas.clientHeight - 280)}px`;
-    menu.classList.remove('hidden');
+    for (const item of items) { const b = document.createElement('button'); b.textContent = item.label; b.onclick = () => { closeMenu(); item.run(); }; menu.appendChild(b); }
+    menu.style.left = `${Math.min(x, canvas.clientWidth - 240)}px`; menu.style.top = `${Math.min(y, canvas.clientHeight - 280)}px`; menu.classList.remove('hidden');
   };
   const pt = event => { const r = canvas.getBoundingClientRect(); return { x: (event.clientX - r.left) * canvas.width / r.width, y: (event.clientY - r.top) * canvas.height / r.height }; };
   const entityAt = (x, y) => [...state.entities].reverse().find(e => !e.hidden && e.floor === state.floor && Math.hypot(e.x - x, e.y - y) < (e.type === 'dog' ? 34 : 30));
@@ -47,36 +40,22 @@ export function createUi(state, canvas) {
     const win = windowAt(p.x, p.y, state.floor);
     if (win) return openMenu(event.offsetX, event.offsetY, win.label, [{ label: state.objectState.openWindows?.[win.id] ? 'Close Window' : 'Open Window', run: () => toggleWindow(state, selected(state), win) }]);
     const ent = entityAt(p.x, p.y);
-    if (state.assign && ent) {
-      const obj = objects.find(o => o.id === state.assign.objectId);
-      if (obj) startObjectAction(state, ent, obj, state.assign.actionId);
-      state.assign = null; return closeMenu();
-    }
+    if (state.assign && ent) { const obj = objects.find(o => o.id === state.assign.objectId); if (obj) startObjectAction(state, ent, obj, state.assign.actionId); state.assign = null; return closeMenu(); }
     if (ent) return openMenu(event.offsetX, event.offsetY, ent.name, ent.id === selected(state).id ? selfItems(ent) : socialItems(selected(state), ent));
     const obj = objectAt(p.x, p.y, state.floor);
     if (obj) return openMenu(event.offsetX, event.offsetY, obj.label, objectItems(selected(state), obj));
     if (throwFetchBall(state, p.x, p.y)) return closeMenu();
     if (!menu.classList.contains('hidden')) return closeMenu();
-    const now = performance.now();
-    const run = now - lastTap < DOUBLE_TAP_MS; lastTap = now;
-    commandMove(selected(state), p.x, p.y, run);
+    const now = performance.now(); const run = now - lastTap < DOUBLE_TAP_MS; lastTap = now; commandMove(selected(state), p.x, p.y, run);
   }
 
-  function selfItems(actor) {
-    return [
-      { label: 'Cell', run: () => cell(actor) },
-      { label: 'Stop', run: () => stopEntity(actor) },
-      { label: 'Resume / Auto', run: () => resumeEntity(actor) },
-      { label: 'Get food', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'fridge'), 'snack') },
-      { label: 'Cook meal', run: () => startCookingFlow(state, actor) },
-      { label: 'Shower', run: () => startObjectAction(state, actor, objects.find(o => o.kind === 'shower' && o.floor === actor.floor) || objects.find(o => o.id === 'shower'), 'shower') }
-    ];
-  }
+  function selfItems(actor) { return [
+    { label: 'Cell', run: () => cell(actor) }, { label: 'Stop', run: () => stopEntity(actor) }, { label: 'Resume / Auto', run: () => resumeEntity(actor) },
+    { label: 'Get food', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'fridge'), 'snack') }, { label: 'Cook meal', run: () => startCookingFlow(state, actor) },
+    { label: 'Shower', run: () => startObjectAction(state, actor, objects.find(o => o.kind === 'shower' && o.floor === actor.floor) || objects.find(o => o.id === 'shower'), 'shower') }
+  ]; }
 
-  function socialItems(actor, target) {
-    const list = target.type === 'dog' ? DOG_SOCIAL_ACTIONS : SOCIAL_ACTIONS;
-    return [...list.map(([id, label]) => ({ label, run: () => startSocialAction(state, actor, target, id) })), { label: `Select ${target.name}`, run: () => { state.selectedId = target.id; log(state, `${target.name} selected.`); } }];
-  }
+  function socialItems(actor, target) { const list = target.type === 'dog' ? DOG_SOCIAL_ACTIONS : SOCIAL_ACTIONS; return [...list.map(([id, label]) => ({ label, run: () => startSocialAction(state, actor, target, id) })), { label: `Select ${target.name}`, run: () => { state.selectedId = target.id; log(state, `${target.name} selected.`); } }]; }
 
   function objectItems(actor, obj) {
     const actions = ACTIONS[obj.kind] || [['use', 'Use']];
@@ -88,44 +67,25 @@ export function createUi(state, canvas) {
     return items;
   }
 
-  function useObject(actor, obj, actionId) {
-    if (actionId === 'meal') return startCookingFlow(state, actor);
-    if (obj.kind === 'door' && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId);
-    startObjectAction(state, actor, obj, actionId);
-  }
+  function useObject(actor, obj, actionId) { if (actionId === 'meal') return startCookingFlow(state, actor); if (obj.kind === 'door' && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId); startObjectAction(state, actor, obj, actionId); }
+  function setFloor(floor) { state.floor = floor; state.viewHoldT = floor === 0 ? 0 : 18; closeMenu(); log(state, `Viewing ${floors[floor]?.name || 'floor'}.`); }
 
   function bindButtons() {
-    document.getElementById('floor-0').onclick = () => { state.floor = 0; state.viewHoldT = 0; closeMenu(); };
-    document.getElementById('floor-1').onclick = () => { state.floor = 1; state.viewHoldT = 18; closeMenu(); };
-    const basement = document.getElementById('floor-2');
-    if (basement) basement.onclick = () => { state.floor = 2; state.viewHoldT = 18; closeMenu(); };
-    document.getElementById('speed-1').onclick = () => { state.speed = 1; };
-    document.getElementById('speed-3').onclick = () => { state.speed = 3; };
-    document.getElementById('pause').onclick = () => { state.paused = !state.paused; };
-    document.getElementById('reset').onclick = () => location.reload();
+    for (let i = 0; i <= 4; i++) { const btn = document.getElementById(`floor-${i}`); if (btn) btn.onclick = () => setFloor(i); }
+    document.getElementById('speed-1').onclick = () => { state.speed = 1; }; document.getElementById('speed-3').onclick = () => { state.speed = 3; };
+    document.getElementById('pause').onclick = () => { state.paused = !state.paused; }; document.getElementById('reset').onclick = () => location.reload();
     commandPanel.innerHTML = '';
-    const buttons = [
-      ['Cell', () => cell(selected(state))], ['Save', () => saveGame(state, 1)], ['Load', () => loadGame(state, 1)],
-      ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))], ['Auto Mode', () => { state.autonomyMode = state.autonomyMode === 'free' ? 'guided' : 'free'; log(state, `Autonomy: ${state.autonomyMode}.`); }]
-    ];
+    const buttons = [['Cell', () => cell(selected(state))], ['Save', () => saveGame(state, 1)], ['Load', () => loadGame(state, 1)], ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))], ['Auto Mode', () => { state.autonomyMode = state.autonomyMode === 'free' ? 'guided' : 'free'; log(state, `Autonomy: ${state.autonomyMode}.`); }]];
     for (const [label, run] of buttons) { const b = document.createElement('button'); b.textContent = label; b.onclick = run; commandPanel.appendChild(b); }
   }
 
   function renderHud() {
-    const actor = selected(state);
-    selectedName.textContent = actor.name;
-    currentAction.textContent = actor.action || 'Idle';
+    const actor = selected(state); selectedName.textContent = actor.name; currentAction.textContent = actor.action || 'Idle';
     needs.innerHTML = NEEDS.map(([key, label]) => { const value = Math.round(actor.needs[key] ?? 0); return `<div class="need-row"><span>${label}</span><div class="need-bar"><div class="need-fill" style="width:${value}%"></div></div><span>${value}</span></div>`; }).join('');
-    const music = state.music ? `<br>Music: ${state.music.genre}` : '';
-    const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : '';
-    const delivery = state.delivery ? `<br>Delivery: ${state.delivery.phase}` : '';
-    const save = state.saveStatus?.message ? `<br>Save: ${state.saveStatus.message}` : `<br>Slot 1: ${slotSummary(1)}`;
-    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}${music}${build}${delivery}${save}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
+    const music = state.music ? `<br>Music: ${state.music.genre}` : ''; const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : ''; const delivery = state.delivery ? `<br>Delivery: ${state.delivery.phase}` : ''; const save = state.saveStatus?.message ? `<br>Save: ${state.saveStatus.message}` : `<br>Slot 1: ${slotSummary(1)}`; const trash = state.garbage ? `<br>Trash: ${Math.round(state.garbage.kitchen || 0)}%` : '';
+    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Area: ${floors[state.floor]?.name || state.floor}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}${music}${build}${delivery}${trash}${save}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
     logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
   }
 
-  canvas.addEventListener('click', clickCanvas);
-  document.addEventListener('click', e => { if (!menu.contains(e.target) && e.target !== canvas) closeMenu(); });
-  bindButtons();
-  return { renderHud, closeMenu };
+  canvas.addEventListener('click', clickCanvas); document.addEventListener('click', e => { if (!menu.contains(e.target) && e.target !== canvas) closeMenu(); }); bindButtons(); return { renderHud, closeMenu };
 }

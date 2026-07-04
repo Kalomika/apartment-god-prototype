@@ -7,6 +7,28 @@ export function drawDynamicProps(ctx, state) {
   drawBuildPrompt(ctx, state);
 }
 
+export function drawCarriedItems(ctx, state) {
+  for (const e of state.entities || []) {
+    if (e.hidden || e.floor !== state.floor || !e.carrying) continue;
+    ctx.save();
+    ctx.translate(e.x + 20, e.y - 22);
+    drawCarryIcon(ctx, e.carrying);
+    ctx.restore();
+  }
+}
+
+function drawCarryIcon(ctx, item) {
+  const text = String(item).toLowerCase();
+  if (text.includes('ball')) {
+    ctx.fillStyle = '#f1c66a'; ctx.strokeStyle = '#11151c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); return;
+  }
+  if (text.includes('bag') || text.includes('trash')) {
+    roundRect(ctx, -10, -8, 20, 18, 5, text.includes('trash') ? '#20252f' : '#f1c66a'); ctx.fillStyle = '#10141b'; ctx.font = '900 7px system-ui'; ctx.textAlign = 'center'; ctx.fillText(text.includes('trash') ? 'TR' : 'FOOD', 0, 3); ctx.textAlign = 'left'; return;
+  }
+  if (text.includes('dish')) { roundRect(ctx, -11, -5, 22, 10, 5, '#d7e1f0'); return; }
+  roundRect(ctx, -9, -7, 18, 14, 4, '#f1c66a');
+}
+
 function drawPulledBook(ctx, state) {
   const bookOut = state.objectState.bookOut;
   if (!bookOut) return;
