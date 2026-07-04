@@ -1,7 +1,9 @@
+import { orderFood } from './economy.js';
+
 export function openDeviceHome(state, actor, openMenu) {
-  actor.action = 'Using device';
-  openMenu(660, 86, 'Device', [
-    { label: 'Order Food', run: () => {} },
+  actor.action = 'Using cell';
+  openMenu(660, 86, 'Cell', [
+    { label: 'Order Food', run: () => orderFood(state, actor, false) },
     { label: 'Shop', run: () => {} },
     { label: 'Music', run: () => {} }
   ]);
