@@ -5,6 +5,7 @@ export function drawDynamicProps(ctx, state) {
   drawPulledBook(ctx, state);
   drawCourier(ctx, state);
   drawBuildPrompt(ctx, state);
+  drawSharedActivityCircle(ctx, state);
   drawVisiblePhone(ctx, state);
 }
 
@@ -68,6 +69,26 @@ function drawBuildPrompt(ctx, state) {
   ctx.fillStyle = '#f8fbff';
   ctx.font = '900 15px system-ui';
   ctx.fillText(`Tap placement spot for ${state.buildPick.label}`, 294, 32);
+  ctx.restore();
+}
+
+function drawSharedActivityCircle(ctx, state) {
+  const zone = state.sharedActivity;
+  if (!zone || zone.floor !== state.floor) return;
+  const pulse = 0.5 + Math.sin(performance.now() / 180) * 0.18;
+  ctx.save();
+  ctx.strokeStyle = `rgba(241,198,106,${pulse})`;
+  ctx.fillStyle = 'rgba(241,198,106,.08)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(zone.x, zone.y, zone.r || 64, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#f8fbff';
+  ctx.font = '900 11px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText('MEET', zone.x, zone.y - (zone.r || 64) - 8);
+  ctx.textAlign = 'left';
   ctx.restore();
 }
 
