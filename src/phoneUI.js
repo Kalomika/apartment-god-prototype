@@ -148,9 +148,9 @@ function renderActivities(screen, state) {
   screen.innerHTML = '<h3>Activities</h3>';
   screen.appendChild(actionButton('Cook for myself', () => { markPhoneActivity(state, actor, 'activity app', 5); startCookingFlow(state, actor, 'self'); }));
   screen.appendChild(actionButton('Cook for the house', () => { markPhoneActivity(state, actor, 'activity app', 5); startCookingFlow(state, actor, 'house'); }));
-  screen.appendChild(actionButton('Watch TV together', () => { markPhoneActivity(state, actor, 'invite app', 5); startSharedObjectAction(state, actor, 'tv', 'watch_together'); }));
-  screen.appendChild(actionButton('Go to bed together', () => { markPhoneActivity(state, actor, 'invite app', 5); startSharedObjectAction(state, actor, 'bed', 'bed_together'); }));
-  screen.appendChild(actionButton('Private moment upstairs', () => { markPhoneActivity(state, actor, 'invite app', 5); startSharedObjectAction(state, actor, 'bed', 'intimacy'); }));
+  screen.appendChild(actionButton('Watch TV together', () => { startSharedObjectAction(state, actor, 'tv', 'watch_together', { phoneInvite: true }); }));
+  screen.appendChild(actionButton('Go to bed together', () => { startSharedObjectAction(state, actor, 'bed', 'bed_together', { phoneInvite: true }); }));
+  screen.appendChild(actionButton('Private moment upstairs', () => { startSharedObjectAction(state, actor, 'bed', 'intimacy', { phoneInvite: true }); }));
   screen.appendChild(actionButton('Movie theater, together', () => { markPhoneActivity(state, actor, 'invite app', 5); startOffsite(state, actor, 'date'); }));
 }
 

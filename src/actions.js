@@ -64,6 +64,7 @@ export function resolveArrival(state, entity) {
     if (!obj) return;
     if (isTogetherAction(target.actionId)) {
       if (queuePartnerForSharedAction(state, entity, target.actionId, obj)) return;
+      state.sharedActivity = null;
       entity.action = 'Idle';
       entity.actionT = 0;
       entity.pose = 'stand';
@@ -94,6 +95,7 @@ export function resolveArrival(state, entity) {
       log(state, 'Tap an open floor spot to throw the ball.');
       return;
     }
+    if (isTogetherAction(target.socialId)) state.sharedActivity = null;
     beginTimedAction(entity, `${target.socialId} with ${other.name}`, target.socialId);
     entity.pose = target.socialId;
     other.action = `${target.socialId} with ${entity.name}`;
@@ -112,13 +114,16 @@ export function resolveArrival(state, entity) {
 }
 
 function queuePartnerForSharedAction(state, entity, actionId, obj) {
-  const partner = state.entities.find(e => e.id !== entity.id && e.type === 'person' && !e.hidden && e.floor === entity.floor);
+  const phoneInvite = Boolean(entity.sharedInviteByPhone);
+  const partner = state.entities.find(e => e.id !== entity.id && e.type === 'person' && !e.hidden && (phoneInvite || e.floor === entity.floor));
   if (!partner) {
     say(entity, 'rn?');
-    log(state, `${entity.name} needs someone nearby for ${actionId.replaceAll('_', ' ')}.`);
+    log(state, `${entity.name} needs someone reachable for ${actionId.replaceAll('_', ' ')}.`);
     return false;
   }
-  const decision = canInviteeJoin(state, entity, partner);
+  const decision = canInviteeJoin(state, entity, partner, { phoneInvite });
+  entity.sharedInviteByPhone = false;
+  partner.sharedInviteByPhone = false;
   if (!decision.ok) {
     if (decision.heard) say(partner, 'not rn');
     say(entity, 'rn?');
@@ -129,25 +134,30 @@ function queuePartnerForSharedAction(state, entity, actionId, obj) {
   entity.action = `Waiting for ${partner.name}`;
   entity.actionT = 0;
   entity.pose = 'stand';
+  state.sharedActivity = { floor: entity.floor, x: entity.x, y: entity.y, r: 64, label: actionId.replaceAll('_', ' ') };
+  if (partner.floor !== entity.floor) partner.floor = entity.floor;
   commandSocial(partner, entity, actionId);
-  log(state, `${partner.name} agreed to join ${entity.name} at ${obj.label}.`);
+  log(state, `${partner.name} agreed to join ${entity.name} at ${obj.label}${phoneInvite ? ' by phone' : ''}. Meet inside the shared activity circle.`);
   return true;
 }
 
-function canInviteeJoin(state, actor, invitee) {
+function canInviteeJoin(state, actor, invitee, options = {}) {
+  const phoneInvite = Boolean(options.phoneInvite);
   const distance = Math.hypot(invitee.x - actor.x, invitee.y - actor.y);
   const actorRoom = roomAt(actor.x, actor.y, actor.floor)?.id || '';
   const inviteeRoom = roomAt(invitee.x, invitee.y, invitee.floor)?.id || '';
   const bathroomTalk = actorRoom.includes('bath') || inviteeRoom.includes('bath');
-  const hearingRange = bathroomTalk ? 120 : 260;
-  if (distance > hearingRange) return { ok: false, heard: false, reason: 'too far to hear' };
   const current = String(invitee.action || '').toLowerCase();
   if (invitee.path?.length || invitee.actionT > 0) return { ok: false, heard: true, reason: 'busy' };
   if (current.includes('shower') || current.includes('toilet') || current.includes('cooking') || current.includes('eating')) return { ok: false, heard: true, reason: 'busy' };
   if ((invitee.needs?.bladder ?? 100) < 25) return { ok: false, heard: true, reason: 'bathroom need' };
   if ((invitee.needs?.hunger ?? 100) < 25) return { ok: false, heard: true, reason: 'hungry' };
   if ((invitee.needs?.energy ?? 100) < 18) return { ok: false, heard: true, reason: 'tired' };
-  return { ok: true, heard: true, reason: 'available' };
+  if (!phoneInvite) {
+    const hearingRange = bathroomTalk ? 120 : 260;
+    if (distance > hearingRange) return { ok: false, heard: false, reason: 'too far to hear' };
+  }
+  return { ok: true, heard: true, reason: phoneInvite ? 'available by phone' : 'available' };
 }
 
 export function throwFetchBall(state, x, y) {
