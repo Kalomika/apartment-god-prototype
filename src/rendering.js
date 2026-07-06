@@ -42,25 +42,19 @@ function drawFetchBall(ctx, state) {
 }
 
 function drawActivityCloneFx(ctx, state) {
-  if (state.poolGame?.balls && state.floor === 2) {
-    ctx.save();
-    for (const ball of state.poolGame.balls) {
-      if (ball.pocketed) continue;
-      ctx.fillStyle = ball.fill || '#f8fbff';
-      ctx.beginPath();
-      ctx.arc(ball.x, ball.y, ball.id === 'cue' ? 6 : 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#11151c';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    }
-    if (state.poolGame.winner) {
-      ctx.fillStyle = '#f1c66a';
-      ctx.font = '900 14px system-ui';
-      ctx.fillText(`${state.poolGame.winner} wins`, 112, 92);
-    }
-    ctx.restore();
+  if (!state.poolGame?.balls || state.floor !== 2) return;
+  ctx.save();
+  for (const ball of state.poolGame.balls) {
+    if (ball.pocketed) continue;
+    ctx.fillStyle = ball.fill || '#f8fbff';
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.id === 'cue' ? 6 : 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#11151c';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   }
+  ctx.restore();
 }
 
 function drawStatus(ctx, state) {
@@ -74,13 +68,35 @@ function drawStatus(ctx, state) {
 
 function drawOverlay(ctx, state) {
   if (!state.offsite) return;
-  ctx.fillStyle = 'rgba(8,10,15,.72)';
-  ctx.fillRect(0, 0, PLAY_W, PLAY_H);
+  const allPeopleAway = state.entities.filter(e => e.type === 'person').every(e => e.hidden);
+  const label = state.offsite.actionId.replaceAll('_', ' ');
+  if (allPeopleAway) {
+    ctx.fillStyle = 'rgba(8,10,15,.72)';
+    ctx.fillRect(0, 0, PLAY_W, PLAY_H);
+    ctx.fillStyle = COLORS.text;
+    ctx.font = '900 36px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Time: ${label}`, PLAY_W / 2, 320);
+    ctx.font = '700 20px system-ui';
+    ctx.fillText(`Clock ${formatTime(state.time)}`, PLAY_W / 2, 358);
+    ctx.textAlign = 'left';
+    return;
+  }
+  ctx.save();
+  const x = PLAY_W - 254;
+  const y = 12;
+  ctx.fillStyle = 'rgba(8,10,15,.82)';
+  ctx.fillRect(x, y, 242, 54);
+  ctx.strokeStyle = 'rgba(241,198,106,.7)';
+  ctx.strokeRect(x, y, 242, 54);
+  ctx.fillStyle = '#f1c66a';
+  ctx.beginPath();
+  ctx.arc(x + 28, y + 27, 11, 0, Math.PI * 2);
+  ctx.fill();
   ctx.fillStyle = COLORS.text;
-  ctx.font = '900 36px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText(`Time lapse: ${state.offsite.actionId.replaceAll('_', ' ')}`, PLAY_W / 2, 320);
-  ctx.font = '700 20px system-ui';
-  ctx.fillText(`Clock ${formatTime(state.time)}`, PLAY_W / 2, 358);
-  ctx.textAlign = 'left';
+  ctx.font = '900 13px system-ui';
+  ctx.fillText(`Off site: ${label}`, x + 54, y + 23);
+  ctx.font = '700 11px system-ui';
+  ctx.fillText(`${Math.ceil(state.offsite.t || 0)}s left`, x + 54, y + 42);
+  ctx.restore();
 }
