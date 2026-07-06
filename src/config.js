@@ -51,7 +51,7 @@ export const ACTIONS = {
   heavy_bag: [['heavy_bag', 'Hit Heavy Bag']],
   swim_pool: [['swim', 'Swim'], ['swim_together', 'Swim Together']],
   kennel: [['dog_rest', 'Dog Rest'], ['call_dog_yard', 'Call Dog To Yard']],
-  car: [['drive', 'Drive'], ['maintain_vehicle', 'Maintain Vehicle']],
+  car: [['work', 'Drive to Work'], ['errand', 'Drive Errand'], ['mall', 'Drive to Mall'], ['movies', 'Drive to Movies'], ['date', 'Drive Date Night'], ['drive', 'Cruise Around'], ['maintain_vehicle', 'Maintain Vehicle']],
   bike: [['bike_trip', 'Bike Trip']],
   motorbike: [['motorbike_trip', 'Motorbike Trip']]
 };
@@ -68,7 +68,7 @@ export const ACTION_TIMES = {
   bed_together: 12, intimacy: 14, desk_work: 8, play_game: 7, phone: 5, shop: 5, feed_dog: 3, toggle_light: 1,
   talk: 4, kiss: 3, cuddle: 6, tickle: 3, hands: 4, pet: 3, train: 5, fetch: 0,
   work: 14, errand: 9, mall: 12, movies: 13, date: 14,
-  pool_solo: 10, pool_together: 12, arcade: 8, arcade_together: 10, console_game: 10, console_together: 12, darts: 7, darts_together: 9,
+  pool_solo: 14, pool_together: 18, arcade: 8, arcade_together: 10, console_game: 10, console_together: 12, darts: 7, darts_together: 9,
   throw_trash: 3, take_trash_out: 9, dump_trash: 3, treadmill: 10, lift_weights: 10, heavy_bag: 8, swim: 10, swim_together: 12,
   dog_rest: 6, call_dog_yard: 3, drive: 5, maintain_vehicle: 8, bike_trip: 10, motorbike_trip: 8
 };

@@ -4,6 +4,7 @@ import { updateCooking } from './cooking.js';
 import { updateDelivery } from './economy.js';
 import { updateFetch } from './fetchSystem.js';
 import { updateGarbage } from './garbage.js';
+import { updateGameActivities } from './activitySystems.js';
 import { updateMusic } from './music.js';
 import { updateMoveJob } from './objectMove.js';
 import { updateAutosave } from './saveSystem.js';
@@ -16,6 +17,7 @@ export function updateAutoHooks(state, dt) {
   updateCooking(state);
   updateDelivery(state, dt);
   updateFetch(state);
+  updateGameActivities(state, dt);
   updateMusic(state);
   updateTraining(state);
   updateMoveJob(state);

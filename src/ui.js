@@ -26,7 +26,14 @@ export function createUi(state, canvas) {
   const openMenu = (x, y, title, items) => {
     menu.innerHTML = `<h3>${title}</h3>`;
     for (const item of items) { const b = document.createElement('button'); b.textContent = item.label; b.onclick = () => { closeMenu(); item.run(); }; menu.appendChild(b); }
-    menu.style.left = `${Math.min(x, canvas.clientWidth - 240)}px`; menu.style.top = `${Math.min(y, canvas.clientHeight - 280)}px`; menu.classList.remove('hidden');
+    const w = Math.min(420, window.innerWidth - 24);
+    const h = Math.min(window.innerHeight - 24, 620);
+    const left = Math.max(12, Math.min(x, window.innerWidth - w - 12));
+    const top = Math.max(12, Math.min(y, window.innerHeight - h - 12));
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+    menu.style.maxHeight = `${window.innerWidth <= 760 ? window.innerHeight - 16 : h}px`;
+    menu.classList.remove('hidden');
   };
   const pt = event => { const r = canvas.getBoundingClientRect(); return { x: (event.clientX - r.left) * canvas.width / r.width, y: (event.clientY - r.top) * canvas.height / r.height }; };
   const entityAt = (x, y) => [...state.entities].reverse().find(e => !e.hidden && e.floor === state.floor && Math.hypot(e.x - x, e.y - y) < (e.type === 'dog' ? 34 : 30));
@@ -38,12 +45,12 @@ export function createUi(state, canvas) {
     if (state.buildPick && placeBuildRequest(state, selected(state), p.x, p.y)) return closeMenu();
     if (state.movePick && placeMoveObject(state, selected(state), p.x, p.y)) return closeMenu();
     const win = windowAt(p.x, p.y, state.floor);
-    if (win) return openMenu(event.offsetX, event.offsetY, win.label, [{ label: state.objectState.openWindows?.[win.id] ? 'Close Window' : 'Open Window', run: () => toggleWindow(state, selected(state), win) }]);
+    if (win) return openMenu(event.clientX, event.clientY, win.label, [{ label: state.objectState.openWindows?.[win.id] ? 'Close Window' : 'Open Window', run: () => toggleWindow(state, selected(state), win) }]);
     const ent = entityAt(p.x, p.y);
     if (state.assign && ent) { const obj = objects.find(o => o.id === state.assign.objectId); if (obj) startObjectAction(state, ent, obj, state.assign.actionId); state.assign = null; return closeMenu(); }
-    if (ent) return openMenu(event.offsetX, event.offsetY, ent.name, ent.id === selected(state).id ? selfItems(ent) : socialItems(selected(state), ent));
+    if (ent) return openMenu(event.clientX, event.clientY, ent.name, ent.id === selected(state).id ? selfItems(ent) : socialItems(selected(state), ent));
     const obj = objectAt(p.x, p.y, state.floor);
-    if (obj) return openMenu(event.offsetX, event.offsetY, obj.label, objectItems(selected(state), obj));
+    if (obj) return openMenu(event.clientX, event.clientY, obj.label, objectItems(selected(state), obj));
     if (throwFetchBall(state, p.x, p.y)) return closeMenu();
     if (!menu.classList.contains('hidden')) return closeMenu();
     const now = performance.now(); const run = now - lastTap < DOUBLE_TAP_MS; lastTap = now; commandMove(selected(state), p.x, p.y, run);
@@ -67,7 +74,7 @@ export function createUi(state, canvas) {
     return items;
   }
 
-  function useObject(actor, obj, actionId) { if (actionId === 'meal') return startCookingFlow(state, actor); if (obj.kind === 'door' && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId); startObjectAction(state, actor, obj, actionId); }
+  function useObject(actor, obj, actionId) { if (actionId === 'meal') return startCookingFlow(state, actor); if ((obj.kind === 'door' || obj.kind === 'car') && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId); startObjectAction(state, actor, obj, actionId); }
   function setFloor(floor) { state.floor = floor; state.viewHoldT = floor === 0 ? 0 : 18; closeMenu(); log(state, `Viewing ${floors[floor]?.name || 'floor'}.`); }
 
   function bindButtons() {

@@ -45,6 +45,7 @@ export function createState() {
     fetch: null,
     delivery: null,
     partyPick: null,
+    poolGame: null,
     routines: [],
     appointments: [],
     notifications: ['Apartment God booted.'],
@@ -52,9 +53,9 @@ export function createState() {
     offsite: null,
     garbage: { kitchen: 0, bagsOutside: 0, looseItems: [] },
     roomLights: {
-      living: true, kitchen: true, bath: true, entry: true, stairs: true,
+      living: true, kitchen: true, bath: true, entry: true, stairs: true, front_porch: true,
       bedroom: true, office: true, bath2: true, hall: true, stairs2: true,
-      basement_game: true, basement_gym: true, basement_media: true, basement_stairs: true,
+      basement_game: true, basement_gym: true, basement_stairs: true,
       garage_bay: true, garage_storage: true, garage_entry: true,
       yard: true, pool_area: true, kennel_area: true
     },

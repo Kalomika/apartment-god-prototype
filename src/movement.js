@@ -30,7 +30,9 @@ function routeLeg(a, b, floor, allowId = '') {
     clampToPlay(r.x - 20, r.y + r.h + 20),
     clampToPlay(r.x + r.w + 20, r.y + r.h + 20),
     clampToPlay(r.x - 20, r.y + r.h / 2),
-    clampToPlay(r.x + r.w + 20, r.y + r.h / 2)
+    clampToPlay(r.x + r.w + 20, r.y + r.h / 2),
+    clampToPlay(r.x + r.w / 2, r.y - 24),
+    clampToPlay(r.x + r.w / 2, r.y + r.h + 24)
   ];
 
   candidates.sort((p, q) => {
@@ -52,6 +54,7 @@ export function commandMove(entity, x, y, run = false, allowId = '') {
   entity.target = null;
   entity.pending = null;
   entity.blockedT = 0;
+  entity.recoveryCount = 0;
   entity.action = run ? 'Running' : 'Walking';
   entity.speed = (entity.type === 'dog' ? 125 : 92) * (run ? 1.6 : 1);
   entity.pose = 'walk';
@@ -67,6 +70,7 @@ export function commandObject(entity, obj, actionId) {
   entity.target = { type: 'object', objectId: obj.id, actionId };
   entity.pending = null;
   entity.blockedT = 0;
+  entity.recoveryCount = 0;
   entity.moveAllowId = obj.id;
   entity.action = `Going to ${obj.label}`;
   entity.pose = 'walk';
@@ -90,10 +94,16 @@ export function commandSocial(actor, target, socialId) {
   actor.path = routeAround({ x: actor.x, y: actor.y }, near, target.floor);
   actor.target = { type: 'social', targetId: target.id, socialId };
   actor.blockedT = 0;
+  actor.recoveryCount = 0;
   actor.moveAllowId = '';
   actor.action = `Going to ${target.name}`;
   actor.pose = 'walk';
   actor.stopped = false;
+}
+
+function pointBlocked(entity, p) {
+  if (!canStepThroughRooms({ x: entity.x, y: entity.y }, p, entity.floor)) return true;
+  return solidObjects(entity.floor, entity.moveAllowId || '').some(o => pointInRect(p.x, p.y, expandedRect(o, entity.type === 'dog' ? 12 : 16)));
 }
 
 function blockedStep(entity, from, to) {
@@ -116,6 +126,7 @@ function finishFloorTravel(state, entity) {
   const obj = getObject(pending.objectId);
   entity.pending = null;
   entity.blockedT = 0;
+  entity.recoveryCount = 0;
   clearMoveAllowance(entity);
   if (obj) {
     if (entity.floor !== obj.floor) {
@@ -136,8 +147,24 @@ function recoverBlocked(entity, next, dt) {
   entity.blockedT = (entity.blockedT || 0) + dt;
   if (entity.blockedT < 0.35) return;
   entity.blockedT = 0;
+  entity.recoveryCount = (entity.recoveryCount || 0) + 1;
   if (entity.path.length > 1) {
     entity.path.shift();
+    return;
+  }
+  const sideSteps = [
+    clampToPlay(entity.x + 34, entity.y),
+    clampToPlay(entity.x - 34, entity.y),
+    clampToPlay(entity.x, entity.y + 34),
+    clampToPlay(entity.x, entity.y - 34),
+    clampToPlay(entity.x + 28, entity.y + 28),
+    clampToPlay(entity.x - 28, entity.y + 28),
+    clampToPlay(entity.x + 28, entity.y - 28),
+    clampToPlay(entity.x - 28, entity.y - 28)
+  ].filter(p => !pointBlocked(entity, p));
+  sideSteps.sort((a, b) => Math.hypot(a.x - next.x, a.y - next.y) - Math.hypot(b.x - next.x, b.y - next.y));
+  if (sideSteps.length && entity.recoveryCount < 4) {
+    entity.path = [sideSteps[0], next];
     return;
   }
   entity.path = [];
@@ -162,6 +189,7 @@ export function updateMovement(state, entity, dt) {
     const from = { x: entity.x, y: entity.y };
     if (!blockedStep(entity, from, next)) {
       entity.blockedT = 0;
+      entity.recoveryCount = 0;
       entity.x = next.x;
       entity.y = next.y;
       entity.path.shift();
@@ -180,6 +208,7 @@ export function updateMovement(state, entity, dt) {
   const to = { x: entity.x + (dx / dist) * step, y: entity.y + (dy / dist) * step };
   if (!blockedStep(entity, from, to)) {
     entity.blockedT = 0;
+    entity.recoveryCount = 0;
     entity.x = to.x;
     entity.y = to.y;
   } else {
