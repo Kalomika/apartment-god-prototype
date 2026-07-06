@@ -5,11 +5,40 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.js",
-    "check": "node scripts/check.js",
-    "start": "node scripts/dev-server.js"
+    "check": "node scripts/check.js && node scripts/validate-sprite-pipeline.js --schema-only",
+    "start": "node scripts/dev-server.js",
+    "dev": "vite --host 0.0.0.0",
+    "preview": "vite preview --host 0.0.0.0",
+    "lint": "eslint src scripts tests --ext .js",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "qa:mobile": "playwright test tests/mobile-smoke.spec.js",
+    "assets:validate": "node scripts/validate-sprite-pipeline.js",
+    "assets:atlas": "node scripts/build-sprite-atlas.js",
+    "assets:optimize": "node scripts/optimize-pngs.js"
   },
   "dependencies": {
-    "phaser": "^3.90.0"
+    "easystarjs": "^0.4.4",
+    "howler": "^2.2.4",
+    "phaser": "^3.90.0",
+    "seedrandom": "^3.0.5",
+    "simplex-noise": "^4.0.3",
+    "tinycolor2": "^1.6.0",
+    "zod": "^3.24.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@playwright/test": "^1.49.1",
+    "chokidar": "^4.0.3",
+    "eslint": "^9.18.0",
+    "fast-glob": "^3.3.3",
+    "globals": "^15.14.0",
+    "pixelmatch": "^7.1.0",
+    "pngjs": "^7.0.0",
+    "prettier": "^3.4.2",
+    "sharp": "^0.33.5",
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8"
+  }
 }
