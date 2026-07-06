@@ -2,8 +2,6 @@ import './fit.js';
 import { PLAY_H, PLAY_W, COLORS } from './config.js';
 import { drawWorld } from './renderWorld.js';
 import { drawObjects } from './renderObjects.js';
-import { drawVehicleCorrections } from './renderVehicleCorrections.js';
-import { drawActivityOverlays as drawFx } from './renderActivityOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
 import { syncPhoneUi } from './phoneUI.js';
@@ -16,11 +14,10 @@ export function draw(ctx, state) {
   syncPhoneUi(state);
   drawWorld(ctx, state);
   drawObjects(ctx, state);
-  drawVehicleCorrections(ctx, state);
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
-  drawFx(ctx, state);
+  drawActivityCloneFx(ctx, state);
   drawCarriedItems(ctx, state);
   drawStatus(ctx, state);
   drawOverlay(ctx, state);
@@ -42,6 +39,28 @@ function drawFetchBall(ctx, state) {
   ctx.textAlign = 'center';
   ctx.fillText('o', ball.x, ball.y + 4);
   ctx.restore();
+}
+
+function drawActivityCloneFx(ctx, state) {
+  if (state.poolGame?.balls && state.floor === 2) {
+    ctx.save();
+    for (const ball of state.poolGame.balls) {
+      if (ball.pocketed) continue;
+      ctx.fillStyle = ball.fill || '#f8fbff';
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.id === 'cue' ? 6 : 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#11151c';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    if (state.poolGame.winner) {
+      ctx.fillStyle = '#f1c66a';
+      ctx.font = '900 14px system-ui';
+      ctx.fillText(`${state.poolGame.winner} wins`, 112, 92);
+    }
+    ctx.restore();
+  }
 }
 
 function drawStatus(ctx, state) {
