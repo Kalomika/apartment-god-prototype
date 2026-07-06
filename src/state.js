@@ -68,7 +68,11 @@ export function createState() {
 }
 
 export function selected(state) {
-  return state.entities.find(e => e.id === state.selectedId) || state.entities[0];
+  const current = state.entities.find(e => e.id === state.selectedId);
+  if (current && !current.hidden) return current;
+  const fallback = state.entities.find(e => !e.hidden && e.type === 'person') || state.entities.find(e => !e.hidden) || current || state.entities[0];
+  if (fallback) state.selectedId = fallback.id;
+  return fallback;
 }
 
 export function byId(state, id) {
