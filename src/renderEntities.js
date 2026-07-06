@@ -217,13 +217,22 @@ function shoe(ctx, x, y, rot) {
 
 function drawActionBar(ctx, e) {
   if (!e.actionTotal || e.actionTotal < e.actionT) e.actionTotal = e.actionT;
-  const pct = Math.max(0, Math.min(1, 1 - e.actionT / Math.max(1, e.actionTotal)));
-  roundRect(ctx, -38, 42, 76, 10, 5, 'rgba(10,12,18,.82)');
-  roundRect(ctx, -36, 44, 72 * pct, 6, 4, '#f1c66a');
+  const total = Math.max(1, e.actionTotal);
+  const remaining = Math.max(0, e.actionT);
+  const pct = Math.max(0, Math.min(1, 1 - remaining / total));
+  const label = String(e.action || 'Working').replace(/:.*/, '').slice(0, 15);
+  const seconds = `${Math.ceil(remaining)}s`;
+
+  roundRect(ctx, -44, 41, 88, 13, 6, 'rgba(10,12,18,.86)');
+  roundRect(ctx, -41, 44, 82, 7, 4, 'rgba(248,251,255,.18)');
+  roundRect(ctx, -41, 44, 82 * pct, 7, 4, '#f1c66a');
+  ctx.strokeStyle = '#f8fbff';
+  ctx.lineWidth = 1.25;
+  ctx.strokeRect(-41, 44, 82, 7);
   ctx.fillStyle = '#f8fbff';
   ctx.font = '800 9px system-ui';
   ctx.textAlign = 'center';
-  ctx.fillText(String(e.action || 'Working').slice(0, 16), 0, 63);
+  ctx.fillText(`${label} ${seconds}`, 0, 64);
   ctx.textAlign = 'left';
 }
 
