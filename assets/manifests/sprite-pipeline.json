@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "style_target": "High-end late 80s / early 90s arcade and 16-bit inspired top-down adult apartment life sim. Detailed, readable, mature, not cute or chibi.",
+  "forbidden_looks": [
+    "chibi",
+    "cute mascot",
+    "toy-like",
+    "emoji body language",
+    "oversized heads",
+    "childlike proportions",
+    "blob characters",
+    "generic programmer-art boxes",
+    "unclear top-down read",
+    "inconsistent scale"
+  ],
+  "atlas": {
+    "image": "assets/generated/apartment-god-sprites.png",
+    "json": "assets/generated/apartment-god-sprites.json",
+    "padding": 2,
+    "max_size": 2048
+  },
+  "animations": [
+    {
+      "state_id": "resident_walk_down",
+      "category": "character",
+      "character_type": "adult_black_male_resident",
+      "action_name": "Walk Down",
+      "frame_count": 3,
+      "frame_logic": "directional_cycle",
+      "frames": [
+        { "id": "A", "file": "assets/sprites/characters/resident/walk_down_A.png", "duration_ms": 110, "tags": ["entry"] },
+        { "id": "B", "file": "assets/sprites/characters/resident/walk_down_B.png", "duration_ms": 110, "tags": ["step"] },
+        { "id": "C", "file": "assets/sprites/characters/resident/walk_down_C.png", "duration_ms": 110, "tags": ["step"] }
+      ],
+      "loop": true,
+      "anchor": { "x": 0.5, "y": 0.88 },
+      "scale": 1,
+      "status": "planned",
+      "notes": "Adult proportions, clear top-down shoulder/head read, not chibi."
+    },
+    {
+      "state_id": "girlfriend_walk_down",
+      "category": "character",
+      "character_type": "adult_black_female_girlfriend",
+      "action_name": "Walk Down",
+      "frame_count": 3,
+      "frame_logic": "directional_cycle",
+      "frames": [
+        { "id": "A", "file": "assets/sprites/characters/girlfriend/walk_down_A.png", "duration_ms": 110, "tags": ["entry"] },
+        { "id": "B", "file": "assets/sprites/characters/girlfriend/walk_down_B.png", "duration_ms": 110, "tags": ["step"] },
+        { "id": "C", "file": "assets/sprites/characters/girlfriend/walk_down_C.png", "duration_ms": 110, "tags": ["step"] }
+      ],
+      "loop": true,
+      "anchor": { "x": 0.5, "y": 0.88 },
+      "scale": 1,
+      "status": "planned",
+      "notes": "Adult proportions, readable top-down silhouette, no mascot proportions."
+    },
+    {
+      "state_id": "dog_trot_down",
+      "category": "dog",
+      "character_type": "realistic_off_white_dog",
+      "action_name": "Trot Down",
+      "frame_count": 3,
+      "frame_logic": "directional_cycle",
+      "frames": [
+        { "id": "A", "file": "assets/sprites/dog/trot_down_A.png", "duration_ms": 100, "tags": ["entry"] },
+        { "id": "B", "file": "assets/sprites/dog/trot_down_B.png", "duration_ms": 100, "tags": ["step"] },
+        { "id": "C", "file": "assets/sprites/dog/trot_down_C.png", "duration_ms": 100, "tags": ["step"] }
+      ],
+      "loop": true,
+      "anchor": { "x": 0.5, "y": 0.78 },
+      "scale": 1,
+      "status": "planned",
+      "notes": "Natural dog anatomy, not a toy dog."
+    },
+    {
+      "state_id": "pool_play_loop",
+      "category": "activity",
+      "character_type": "adult_pair_safe",
+      "action_name": "Play Pool",
+      "frame_count": 3,
+      "frame_logic": "enter_hold_exit",
+      "frames": [
+        { "id": "A", "file": "assets/sprites/activities/pool_play_A.png", "duration_ms": 160, "tags": ["enter"] },
+        { "id": "B", "file": "assets/sprites/activities/pool_play_B.png", "duration_ms": 240, "tags": ["hold"] },
+        { "id": "C", "file": "assets/sprites/activities/pool_play_C.png", "duration_ms": 160, "tags": ["exit"] }
+      ],
+      "loop": true,
+      "anchor": { "x": 0.5, "y": 0.85 },
+      "scale": 1,
+      "status": "planned",
+      "notes": "Safe non-explicit activity read, clear from top-down."
+    }
+  ],
+  "sprites": [
+    { "id": "couch_main", "kind": "couch", "role": "object", "file": "assets/sprites/objects/couch_main.png", "anchor": { "x": 0.5, "y": 0.85 }, "scale": 1, "status": "planned", "notes": "Readable fabric shape, mature apartment style." },
+    { "id": "bed_main", "kind": "bed", "role": "object", "file": "assets/sprites/objects/bed_main.png", "anchor": { "x": 0.5, "y": 0.9 }, "scale": 1, "status": "planned", "notes": "Top-down adult bed scale." },
+    { "id": "fridge_main", "kind": "fridge", "role": "object", "file": "assets/sprites/objects/fridge_main.png", "anchor": { "x": 0.5, "y": 0.9 }, "scale": 1, "status": "planned", "notes": "Crisp appliance read." },
+    { "id": "stove_main", "kind": "stove", "role": "object", "file": "assets/sprites/objects/stove_main.png", "anchor": { "x": 0.5, "y": 0.9 }, "scale": 1, "status": "planned", "notes": "Top-down burners visible." },
+    { "id": "sink_main", "kind": "sink", "role": "object", "file": "assets/sprites/objects/sink_main.png", "anchor": { "x": 0.5, "y": 0.9 }, "scale": 1, "status": "planned", "notes": "Readable basin highlight." },
+    { "id": "shower_main", "kind": "shower", "role": "object", "file": "assets/sprites/objects/shower_main.png", "anchor": { "x": 0.5, "y": 0.9 }, "scale": 1, "status": "planned", "notes": "Top-down shower stall." },
+    { "id": "toilet_main", "kind": "toilet", "role": "object", "file": "assets/sprites/objects/toilet_main.png", "anchor": { "x": 0.5, "y": 0.9 }, "scale": 1, "status": "planned", "notes": "Readable without oversized icon treatment." },
+    { "id": "pet_flap_main", "kind": "pet_flap", "role": "object", "file": "assets/sprites/objects/pet_flap_main.png", "anchor": { "x": 0.5, "y": 1 }, "scale": 1, "status": "planned", "notes": "Functional dog route read." },
+    { "id": "car_sedan_top", "kind": "car", "role": "vehicle", "file": "assets/sprites/vehicles/car_sedan_top.png", "anchor": { "x": 0.5, "y": 0.5 }, "scale": 1, "status": "planned", "notes": "Top-down garage car with headlights and rear lights." },
+    { "id": "kennel_backyard", "kind": "kennel", "role": "object", "file": "assets/sprites/objects/kennel_backyard.png", "anchor": { "x": 0.5, "y": 0.9 }, "scale": 1, "status": "planned", "notes": "Dog scale must feel natural." }
+  ]
+}
