@@ -3,6 +3,7 @@ import { PLAY_H, PLAY_W, COLORS } from './config.js';
 import { drawWorld } from './renderWorld.js';
 import { drawObjects } from './renderObjects.js';
 import { drawVehicleCorrections } from './renderVehicleCorrections.js';
+import { drawActivityOverlays as drawFx } from './renderActivityOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
 import { syncPhoneUi } from './phoneUI.js';
@@ -19,6 +20,7 @@ export function draw(ctx, state) {
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
+  drawFx(ctx, state);
   drawCarriedItems(ctx, state);
   drawStatus(ctx, state);
   drawOverlay(ctx, state);
@@ -58,7 +60,7 @@ function drawOverlay(ctx, state) {
   ctx.fillStyle = COLORS.text;
   ctx.font = '900 36px system-ui';
   ctx.textAlign = 'center';
-  ctx.fillText(`Time-lapse: ${state.offsite.actionId.replaceAll('_', ' ')}`, PLAY_W / 2, 320);
+  ctx.fillText(`Time lapse: ${state.offsite.actionId.replaceAll('_', ' ')}`, PLAY_W / 2, 320);
   ctx.font = '700 20px system-ui';
   ctx.fillText(`Clock ${formatTime(state.time)}`, PLAY_W / 2, 358);
   ctx.textAlign = 'left';
