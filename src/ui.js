@@ -10,9 +10,9 @@ import { loadGame, saveGame, slotSummary } from './saveSystem.js';
 import { startBook } from './training.js';
 import { log, resumeEntity, selected, stopEntity } from './state.js';
 import { floors, objectAt, objects } from './world.js';
-import { formatTime } from './rendering.js';
+import { formatTime } from './renderHelpers.js';
 
-export function createUi(state, canvas) {
+export function createUi(state, surface, options = {}) {
   const menu = document.getElementById('interaction-menu');
   const selectedName = document.getElementById('selected-name');
   const currentAction = document.getElementById('current-action');
@@ -25,28 +25,58 @@ export function createUi(state, canvas) {
   const closeMenu = () => { menu.classList.add('hidden'); menu.innerHTML = ''; state.menu = null; };
   const openMenu = (x, y, title, items) => {
     menu.innerHTML = `<h3>${title}</h3>`;
-    for (const item of items) { const b = document.createElement('button'); b.textContent = item.label; b.onclick = () => { closeMenu(); item.run(); }; menu.appendChild(b); }
-    menu.style.left = `${Math.min(x, canvas.clientWidth - 240)}px`; menu.style.top = `${Math.min(y, canvas.clientHeight - 280)}px`; menu.classList.remove('hidden');
+    for (const item of items) {
+      const b = document.createElement('button');
+      b.textContent = item.label;
+      b.onclick = () => { closeMenu(); item.run(); };
+      menu.appendChild(b);
+    }
+    const maxX = (surface.clientWidth || 960) - 240;
+    const maxY = (surface.clientHeight || 720) - 280;
+    menu.style.left = `${Math.max(8, Math.min(x, maxX))}px`;
+    menu.style.top = `${Math.max(8, Math.min(y, maxY))}px`;
+    menu.classList.remove('hidden');
   };
-  const pt = event => { const r = canvas.getBoundingClientRect(); return { x: (event.clientX - r.left) * canvas.width / r.width, y: (event.clientY - r.top) * canvas.height / r.height }; };
+  const pt = event => {
+    const r = surface.getBoundingClientRect();
+    return { x: (event.clientX - r.left) * 960 / r.width, y: (event.clientY - r.top) * 720 / r.height, menuX: event.clientX - r.left, menuY: event.clientY - r.top };
+  };
+  const menuPoint = (x, y) => {
+    const sx = (surface.clientWidth || 960) / 960;
+    const sy = (surface.clientHeight || 720) / 720;
+    return { x: x * sx, y: y * sy };
+  };
   const entityAt = (x, y) => [...state.entities].reverse().find(e => !e.hidden && e.floor === state.floor && Math.hypot(e.x - x, e.y - y) < (e.type === 'dog' ? 34 : 30));
   const cell = actor => openDeviceHome(state, actor, openMenu);
 
+  function handleCanvasPoint(x, y, menuX = null, menuY = null) {
+    const menuPos = menuX == null || menuY == null ? menuPoint(x, y) : { x: menuX, y: menuY };
+    if (x > 960 || y > 720) return closeMenu();
+    if (state.buildPick && placeBuildRequest(state, selected(state), x, y)) return closeMenu();
+    if (state.movePick && placeMoveObject(state, selected(state), x, y)) return closeMenu();
+    const win = windowAt(x, y, state.floor);
+    if (win) return openMenu(menuPos.x, menuPos.y, win.label, [{ label: state.objectState.openWindows?.[win.id] ? 'Close Window' : 'Open Window', run: () => toggleWindow(state, selected(state), win) }]);
+    const ent = entityAt(x, y);
+    if (state.assign && ent) {
+      const obj = objects.find(o => o.id === state.assign.objectId);
+      if (obj) startObjectAction(state, ent, obj, state.assign.actionId);
+      state.assign = null;
+      return closeMenu();
+    }
+    if (ent) return openMenu(menuPos.x, menuPos.y, ent.name, ent.id === selected(state).id ? selfItems(ent) : socialItems(selected(state), ent));
+    const obj = objectAt(x, y, state.floor);
+    if (obj) return openMenu(menuPos.x, menuPos.y, obj.label, objectItems(selected(state), obj));
+    if (throwFetchBall(state, x, y)) return closeMenu();
+    if (!menu.classList.contains('hidden')) return closeMenu();
+    const now = performance.now();
+    const run = now - lastTap < DOUBLE_TAP_MS;
+    lastTap = now;
+    commandMove(selected(state), x, y, run);
+  }
+
   function clickCanvas(event) {
     const p = pt(event);
-    if (p.x > 960 || p.y > 720) return closeMenu();
-    if (state.buildPick && placeBuildRequest(state, selected(state), p.x, p.y)) return closeMenu();
-    if (state.movePick && placeMoveObject(state, selected(state), p.x, p.y)) return closeMenu();
-    const win = windowAt(p.x, p.y, state.floor);
-    if (win) return openMenu(event.offsetX, event.offsetY, win.label, [{ label: state.objectState.openWindows?.[win.id] ? 'Close Window' : 'Open Window', run: () => toggleWindow(state, selected(state), win) }]);
-    const ent = entityAt(p.x, p.y);
-    if (state.assign && ent) { const obj = objects.find(o => o.id === state.assign.objectId); if (obj) startObjectAction(state, ent, obj, state.assign.actionId); state.assign = null; return closeMenu(); }
-    if (ent) return openMenu(event.offsetX, event.offsetY, ent.name, ent.id === selected(state).id ? selfItems(ent) : socialItems(selected(state), ent));
-    const obj = objectAt(p.x, p.y, state.floor);
-    if (obj) return openMenu(event.offsetX, event.offsetY, obj.label, objectItems(selected(state), obj));
-    if (throwFetchBall(state, p.x, p.y)) return closeMenu();
-    if (!menu.classList.contains('hidden')) return closeMenu();
-    const now = performance.now(); const run = now - lastTap < DOUBLE_TAP_MS; lastTap = now; commandMove(selected(state), p.x, p.y, run);
+    handleCanvasPoint(p.x, p.y, p.menuX, p.menuY);
   }
 
   function selfItems(actor) { return [
@@ -55,7 +85,10 @@ export function createUi(state, canvas) {
     { label: 'Shower', run: () => startObjectAction(state, actor, objects.find(o => o.kind === 'shower' && o.floor === actor.floor) || objects.find(o => o.id === 'shower'), 'shower') }
   ]; }
 
-  function socialItems(actor, target) { const list = target.type === 'dog' ? DOG_SOCIAL_ACTIONS : SOCIAL_ACTIONS; return [...list.map(([id, label]) => ({ label, run: () => startSocialAction(state, actor, target, id) })), { label: `Select ${target.name}`, run: () => { state.selectedId = target.id; log(state, `${target.name} selected.`); } }]; }
+  function socialItems(actor, target) {
+    const list = target.type === 'dog' ? DOG_SOCIAL_ACTIONS : SOCIAL_ACTIONS;
+    return [...list.map(([id, label]) => ({ label, run: () => startSocialAction(state, actor, target, id) })), { label: `Select ${target.name}`, run: () => { state.selectedId = target.id; log(state, `${target.name} selected.`); } }];
+  }
 
   function objectItems(actor, obj) {
     const actions = ACTIONS[obj.kind] || [['use', 'Use']];
@@ -67,13 +100,19 @@ export function createUi(state, canvas) {
     return items;
   }
 
-  function useObject(actor, obj, actionId) { if (actionId === 'meal') return startCookingFlow(state, actor); if (obj.kind === 'door' && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId); startObjectAction(state, actor, obj, actionId); }
+  function useObject(actor, obj, actionId) {
+    if (actionId === 'meal') return startCookingFlow(state, actor);
+    if (obj.kind === 'door' && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId);
+    startObjectAction(state, actor, obj, actionId);
+  }
   function setFloor(floor) { state.floor = floor; state.viewHoldT = floor === 0 ? 0 : 18; closeMenu(); log(state, `Viewing ${floors[floor]?.name || 'floor'}.`); }
 
   function bindButtons() {
     for (let i = 0; i <= 4; i++) { const btn = document.getElementById(`floor-${i}`); if (btn) btn.onclick = () => setFloor(i); }
-    document.getElementById('speed-1').onclick = () => { state.speed = 1; }; document.getElementById('speed-3').onclick = () => { state.speed = 3; };
-    document.getElementById('pause').onclick = () => { state.paused = !state.paused; }; document.getElementById('reset').onclick = () => location.reload();
+    document.getElementById('speed-1').onclick = () => { state.speed = 1; };
+    document.getElementById('speed-3').onclick = () => { state.speed = 3; };
+    document.getElementById('pause').onclick = () => { state.paused = !state.paused; };
+    document.getElementById('reset').onclick = () => location.reload();
     commandPanel.innerHTML = '';
     const buttons = [['Cell', () => cell(selected(state))], ['Save', () => saveGame(state, 1)], ['Load', () => loadGame(state, 1)], ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))], ['Auto Mode', () => { state.autonomyMode = state.autonomyMode === 'free' ? 'guided' : 'free'; log(state, `Autonomy: ${state.autonomyMode}.`); }]];
     for (const [label, run] of buttons) { const b = document.createElement('button'); b.textContent = label; b.onclick = run; commandPanel.appendChild(b); }
@@ -87,5 +126,8 @@ export function createUi(state, canvas) {
     logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
   }
 
-  canvas.addEventListener('click', clickCanvas); document.addEventListener('click', e => { if (!menu.contains(e.target) && e.target !== canvas) closeMenu(); }); bindButtons(); return { renderHud, closeMenu };
+  if (!options.externalInput) surface.addEventListener('click', clickCanvas);
+  document.addEventListener('click', e => { if (!menu.contains(e.target) && e.target !== surface) closeMenu(); });
+  bindButtons();
+  return { renderHud, closeMenu, handleCanvasPoint, openMenu };
 }
