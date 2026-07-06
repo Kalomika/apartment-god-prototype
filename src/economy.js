@@ -30,7 +30,7 @@ export function orderFood(state, actor, auto = false) {
   actor.pose = 'walk';
   setMood(actor, 'phone');
   say(actor, 'ORDER');
-  state.delivery = { type: 'food', phase: 'arriving', actorId: actor.id, t: 7, x: 36, y: 430, floor: 0, bubble: 'FOOD' };
+  state.delivery = { type: 'food', phase: 'arriving', actorId: actor.id, t: 7, x: 220, y: 630, floor: 0, bubble: 'FOOD' };
   log(state, `${actor.name} ordered food. The delivery person is on the way.`);
   return true;
 }
@@ -45,8 +45,8 @@ export function updateDelivery(state, dt) {
   if (job.phase === 'arriving' && job.t <= 0) {
     job.phase = 'exchange';
     job.t = 4;
-    job.x = 70;
-    job.y = 430;
+    job.x = 286;
+    job.y = 622;
     job.bubble = 'DELIVERY';
     state.objectState.doorOpen = true;
     actor.action = 'Receiving food delivery';
@@ -55,7 +55,7 @@ export function updateDelivery(state, dt) {
     actor.pose = 'stand';
     actor.carrying = 'food bag';
     say(actor, 'THANKS');
-    log(state, 'The delivery person arrived at the door.');
+    log(state, 'The delivery person arrived at the front porch.');
     return;
   }
 
