@@ -101,11 +101,6 @@ export function commandSocial(actor, target, socialId) {
   actor.stopped = false;
 }
 
-function pointBlocked(entity, p) {
-  if (!canStepThroughRooms({ x: entity.x, y: entity.y }, p, entity.floor)) return true;
-  return solidObjects(entity.floor, entity.moveAllowId || '').some(o => pointInRect(p.x, p.y, expandedRect(o, entity.type === 'dog' ? 12 : 16)));
-}
-
 function blockedStep(entity, from, to) {
   if (!canStepThroughRooms(from, to, entity.floor)) return true;
   return solidObjects(entity.floor, entity.moveAllowId || '').some(o => pointInRect(to.x, to.y, expandedRect(o, entity.type === 'dog' ? 12 : 16)));
@@ -143,28 +138,13 @@ function finishFloorTravel(state, entity) {
   return true;
 }
 
-function recoverBlocked(entity, next, dt) {
+function recoverBlocked(entity, _next, dt) {
   entity.blockedT = (entity.blockedT || 0) + dt;
   if (entity.blockedT < 0.35) return;
   entity.blockedT = 0;
   entity.recoveryCount = (entity.recoveryCount || 0) + 1;
   if (entity.path.length > 1) {
     entity.path.shift();
-    return;
-  }
-  const sideSteps = [
-    clampToPlay(entity.x + 34, entity.y),
-    clampToPlay(entity.x - 34, entity.y),
-    clampToPlay(entity.x, entity.y + 34),
-    clampToPlay(entity.x, entity.y - 34),
-    clampToPlay(entity.x + 28, entity.y + 28),
-    clampToPlay(entity.x - 28, entity.y + 28),
-    clampToPlay(entity.x + 28, entity.y - 28),
-    clampToPlay(entity.x - 28, entity.y - 28)
-  ].filter(p => !pointBlocked(entity, p));
-  sideSteps.sort((a, b) => Math.hypot(a.x - next.x, a.y - next.y) - Math.hypot(b.x - next.x, b.y - next.y));
-  if (sideSteps.length && entity.recoveryCount < 4) {
-    entity.path = [sideSteps[0], next];
     return;
   }
   entity.path = [];
