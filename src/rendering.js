@@ -2,6 +2,7 @@ import './fit.js';
 import { PLAY_H, PLAY_W, COLORS } from './config.js';
 import { drawWorld } from './renderWorld.js';
 import { drawObjects } from './renderObjects.js';
+import { drawVehicleCorrections } from './renderVehicleCorrections.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
 import { syncPhoneUi } from './phoneUI.js';
@@ -14,6 +15,7 @@ export function draw(ctx, state) {
   syncPhoneUi(state);
   drawWorld(ctx, state);
   drawObjects(ctx, state);
+  drawVehicleCorrections(ctx, state);
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
