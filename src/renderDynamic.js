@@ -40,14 +40,19 @@ function drawCourier(ctx, state) {
 function drawVehicleDeparture(ctx, state) {
   const v = state.vehicleDeparture;
   if (!v || state.floor !== 3) return;
+  const w = v.w || 116;
+  const h = v.h || 230;
+  const dark = (state.time % 1440) >= 18 * 60 || (state.time % 1440) < 6 * 60 || (state.time % 1440) >= 12 * 60;
   ctx.save();
   ctx.fillStyle = state.objectState.garageDoorOpen ? 'rgba(116,230,255,.35)' : '#2a3140';
   ctx.fillRect(118, 38, 548, 30);
   ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(118, 38, 548, 30);
-  ctx.fillStyle = '#202838'; roundRect(ctx, v.x, v.y, 230, 116, 26, '#202838');
-  ctx.fillStyle = '#0d1118'; roundRect(ctx, v.x + 46, v.y + 20, 138, 76, 16, '#0d1118');
-  ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(v.x + 60, v.y + 30, 110, 56);
-  ctx.fillStyle = '#f1c66a'; ctx.font = '900 12px system-ui'; ctx.fillText('LEAVING', v.x + 78, v.y + 62);
+  roundRect(ctx, v.x, v.y, w, h, 24, '#202838');
+  roundRect(ctx, v.x + 22, v.y + 52, w - 44, h - 104, 18, '#0d1118');
+  ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(v.x + 32, v.y + 76, w - 64, h - 152);
+  ctx.fillStyle = dark ? '#ffe66e' : '#98a4b8'; ctx.fillRect(v.x + 20, v.y + 8, 20, 10); ctx.fillRect(v.x + w - 40, v.y + 8, 20, 10);
+  ctx.fillStyle = 'rgba(255,230,110,.26)'; ctx.beginPath(); ctx.moveTo(v.x + 18, v.y + 8); ctx.lineTo(v.x - 16, v.y - 46); ctx.lineTo(v.x + 48, v.y - 46); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(v.x + w - 18, v.y + 8); ctx.lineTo(v.x + w - 48, v.y - 46); ctx.lineTo(v.x + w + 16, v.y - 46); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#f1c66a'; ctx.font = '900 12px system-ui'; ctx.textAlign = 'center'; ctx.fillText('LEAVING', v.x + w / 2, v.y + h / 2); ctx.textAlign = 'left';
   ctx.restore();
 }
 
