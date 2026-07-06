@@ -5,15 +5,12 @@ import { updateMovement } from './movement.js';
 import { resolveArrival, updateActions } from './actions.js';
 import { updateAutoHooks } from './autoHooks.js';
 import { updateAutonomy } from './autonomy.js';
-import { applyCurrentGameClonePatches } from './clonePatches.js';
 
-export function bootCanvasGame(note = '') {
-  applyCurrentGameClonePatches();
+export function bootCanvasGame() {
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const state = createState();
   const ui = createUi(state, canvas);
-  if (note) console.warn('Apartment God using clone-first visual parity mode:', note);
 
   let last = performance.now();
   function frame(now) {
