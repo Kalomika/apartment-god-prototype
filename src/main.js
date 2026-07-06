@@ -5,6 +5,7 @@ import { updateMovement } from './movement.js';
 import { resolveArrival, updateActions } from './actions.js';
 import { updateAutoHooks } from './autoHooks.js';
 import { updateAutonomy } from './autonomy.js';
+import { updateCooking } from './cooking.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -23,6 +24,7 @@ function frame(now) {
       if (arrived) resolveArrival(state, entity);
     }
     updateActions(state, dt);
+    updateCooking(state);
     updateAutoHooks(state, dt);
     updateAutonomy(state, dt);
     state.time += dt * 0.6;
