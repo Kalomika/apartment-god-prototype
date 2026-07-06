@@ -40,7 +40,7 @@ function drawObject(ctx, o, state, active) {
   if (o.kind === 'heavy_bag') return heavyBag(ctx, o);
   if (o.kind === 'swim_pool') return swimPool(ctx, o);
   if (o.kind === 'kennel') return kennel(ctx, o);
-  if (o.kind === 'car') return car(ctx, o);
+  if (o.kind === 'car') return car(ctx, o, state);
   if (o.kind === 'bike') return bike(ctx, o);
   if (o.kind === 'motorbike') return motorbike(ctx, o);
   roundRect(ctx, o.x, o.y, o.w, o.h, 8, '#667085');
@@ -73,6 +73,6 @@ function weightBench(ctx, o) { roundRect(ctx, o.x, o.y + 12, o.w, 24, 10, '#2027
 function heavyBag(ctx, o) { ctx.strokeStyle = '#f1c66a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(o.x + o.w / 2, o.y); ctx.lineTo(o.x + o.w / 2, o.y + 16); ctx.stroke(); roundRect(ctx, o.x + 6, o.y + 16, o.w - 12, o.h - 20, 16, '#3b1622'); }
 function swimPool(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 28, '#0e5278'); roundRect(ctx, o.x + 12, o.y + 12, o.w - 24, o.h - 24, 22, '#1fa9d8'); ctx.strokeStyle = 'rgba(255,255,255,.45)'; for (let y = o.y + 40; y < o.y + o.h; y += 36) { ctx.beginPath(); ctx.moveTo(o.x + 24, y); ctx.quadraticCurveTo(o.x + o.w / 2, y - 20, o.x + o.w - 24, y); ctx.stroke(); } }
 function kennel(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 14, '#4a2f22'); ctx.fillStyle = '#10141b'; ctx.beginPath(); ctx.arc(o.x + o.w / 2, o.y + o.h - 16, 20, Math.PI, 0); ctx.fill(); ctx.fillStyle = '#f1c66a'; ctx.font = '900 10px system-ui'; ctx.fillText('KENNEL', o.x + 30, o.y + 20); }
-function car(ctx, o) { roundRect(ctx, o.x, o.y, o.w, o.h, 24, '#252d3c'); roundRect(ctx, o.x + 42, o.y + 18, o.w - 84, o.h - 36, 16, '#111820'); ctx.strokeStyle = '#74e6ff'; ctx.strokeRect(o.x + 60, o.y + 28, o.w - 120, o.h - 56); }
+function car(ctx, o, state) { const night = (state.time % 1440) >= 18 * 60 || (state.time % 1440) < 6 * 60; const vertical = o.h > o.w; roundRect(ctx, o.x, o.y, o.w, o.h, 22, '#252d3c'); roundRect(ctx, o.x + o.w * .18, o.y + o.h * .18, o.w * .64, o.h * .64, 16, '#111820'); ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(o.x + o.w * .28, o.y + o.h * .26, o.w * .44, o.h * .34); ctx.fillStyle = night ? '#ffe66e' : '#dfe7f2'; if (vertical) { ctx.fillRect(o.x + o.w * .2, o.y + 10, 18, 10); ctx.fillRect(o.x + o.w * .66, o.y + 10, 18, 10); ctx.fillStyle = '#d84b4b'; ctx.fillRect(o.x + o.w * .2, o.y + o.h - 20, 18, 8); ctx.fillRect(o.x + o.w * .66, o.y + o.h - 20, 18, 8); } else { ctx.fillRect(o.x + o.w - 24, o.y + 20, 12, 18); ctx.fillRect(o.x + o.w - 24, o.y + o.h - 38, 12, 18); ctx.fillStyle = '#d84b4b'; ctx.fillRect(o.x + 10, o.y + 20, 8, 18); ctx.fillRect(o.x + 10, o.y + o.h - 38, 8, 18); } }
 function bike(ctx, o) { ctx.strokeStyle = '#d7e1f0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(o.x + 18, o.y + 18, 14, 0, Math.PI * 2); ctx.arc(o.x + o.w - 18, o.y + 18, 14, 0, Math.PI * 2); ctx.moveTo(o.x + 18, o.y + 18); ctx.lineTo(o.x + 46, o.y + 8); ctx.lineTo(o.x + o.w - 18, o.y + 18); ctx.lineTo(o.x + 42, o.y + 18); ctx.lineTo(o.x + 18, o.y + 18); ctx.stroke(); }
 function motorbike(ctx, o) { roundRect(ctx, o.x + 20, o.y + 8, o.w - 40, o.h - 16, 16, '#111820'); ctx.fillStyle = '#74e6ff'; ctx.fillRect(o.x + 44, o.y + 16, 34, 8); ctx.strokeStyle = '#d7e1f0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(o.x + 18, o.y + o.h - 12, 12, 0, Math.PI * 2); ctx.arc(o.x + o.w - 18, o.y + o.h - 12, 12, 0, Math.PI * 2); ctx.stroke(); }
