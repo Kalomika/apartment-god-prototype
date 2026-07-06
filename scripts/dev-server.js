@@ -4,6 +4,7 @@ import { extname, join, normalize } from 'node:path';
 
 const port = Number(process.env.PORT || 5173);
 const root = process.cwd();
+const vendor = join(root, 'node_modules', 'phaser', 'dist', 'phaser.esm.js');
 const types = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -14,6 +15,16 @@ const types = {
 createServer((req, res) => {
   const url = new URL(req.url || '/', `http://localhost:${port}`);
   let path = normalize(url.pathname).replace(/^\/+/, '');
+  if (path === 'vendor/phaser.esm.js') {
+    if (!existsSync(vendor)) {
+      res.statusCode = 500;
+      res.end('Phaser dependency missing. Run npm install.');
+      return;
+    }
+    res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+    res.end(readFileSync(vendor));
+    return;
+  }
   if (!path) path = 'index.html';
   let full = join(root, path);
   if (!existsSync(full) || statSync(full).isDirectory()) full = join(root, 'index.html');
@@ -21,5 +32,5 @@ createServer((req, res) => {
   res.setHeader('Content-Type', types[ext] || 'application/octet-stream');
   res.end(readFileSync(full));
 }).listen(port, () => {
-  console.log(`Apartment God running at http://localhost:${port}`);
+  console.log(`Apartment God Phaser running at http://localhost:${port}`);
 });
