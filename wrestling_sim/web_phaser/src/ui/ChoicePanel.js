@@ -3,12 +3,25 @@ export class ChoicePanel {
     this.scene = scene;
     this.graphics = scene.add.graphics();
     this.buttons = [];
+    this.mode = 'match';
     this.logText = scene.add.text(0, 0, '', {
       fontFamily: 'Arial',
       fontSize: '14px',
       color: '#f5f5f5',
       wordWrap: { width: 320 }
     });
+    this.speakerText = scene.add.text(0, 0, '', {
+      fontFamily: 'Arial',
+      fontSize: '13px',
+      color: '#cfcfcf'
+    });
+  }
+
+  setMode(mode) {
+    this.mode = mode;
+    if (this.titleText) {
+      this.titleText.setText(mode === 'match' ? 'MOVE SUGGESTIONS' : 'GM OFFICE');
+    }
   }
 
   setChoices(choices, onChoice) {
@@ -36,8 +49,13 @@ export class ChoicePanel {
     });
   }
 
-  setLog(message) {
+  setDialogue(speaker, message) {
+    this.speakerText.setText(speaker ? `${speaker}:` : '');
     this.logText.setText(message);
+  }
+
+  setLog(message) {
+    this.setDialogue('MATCH LOG', message);
   }
 
   layout(layout) {
@@ -55,7 +73,7 @@ export class ChoicePanel {
 
     const titleY = panelY + pad * 0.6;
     if (!this.titleText) {
-      this.titleText = this.scene.add.text(0, 0, 'MANAGER CHOICE', {
+      this.titleText = this.scene.add.text(0, 0, this.mode === 'match' ? 'MOVE SUGGESTIONS' : 'GM OFFICE', {
         fontFamily: 'Arial',
         fontSize: '13px',
         color: '#ffffff',
@@ -64,11 +82,14 @@ export class ChoicePanel {
     }
     this.titleText.setPosition(pad, titleY);
 
-    const buttonTop = panelY + pad * 1.4;
-    const buttonW = Math.min(156, Math.max(104, (width - pad * 2 - 10) / 2));
-    const buttonH = Math.min(48, Math.max(40, panelH * 0.17));
-    const cols = width < 620 ? 2 : 3;
-    const gap = Math.max(8, width * 0.015);
+    this.speakerText.setPosition(pad, titleY + Math.max(16, pad * 0.8));
+    this.speakerText.setFontSize(width < 430 ? 11 : 13);
+
+    const buttonTop = panelY + pad * 2.05;
+    const buttonW = Math.min(152, Math.max(102, (width - pad * 2 - 10) / 2));
+    const buttonH = Math.min(46, Math.max(38, panelH * 0.145));
+    const cols = width < 620 ? 2 : 4;
+    const gap = Math.max(7, width * 0.012);
 
     this.buttons.forEach((button, index) => {
       const col = index % cols;
@@ -83,11 +104,12 @@ export class ChoicePanel {
       button.bg.fillRoundedRect(-buttonW * 0.5, -buttonH * 0.5, buttonW, buttonH, 10);
       button.bg.lineStyle(2, 0x000000, 1);
       button.bg.strokeRoundedRect(-buttonW * 0.5, -buttonH * 0.5, buttonW, buttonH, 10);
-      button.text.setFontSize(width < 430 ? 12 : 14);
+      button.text.setFontSize(width < 430 ? 11 : 13);
       button.text.setWordWrapWidth(buttonW - 16);
     });
 
-    const logY = buttonTop + Math.ceil(this.buttons.length / cols) * (buttonH + gap) + gap * 0.75;
+    const rows = Math.ceil(this.buttons.length / cols);
+    const logY = buttonTop + rows * (buttonH + gap) + gap * 0.85;
     this.logText.setPosition(pad, logY);
     this.logText.setFontSize(width < 430 ? 12 : 14);
     this.logText.setWordWrapWidth(width - pad * 2);
