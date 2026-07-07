@@ -40,10 +40,10 @@ export class WrestlerProxy {
     const g = this.graphics;
     g.clear();
 
-    const ink = 0x3d3d3d;
-    const softInk = 0x7a7a7a;
+    const ink = 0x3c3c3c;
+    const softInk = 0x8a8a8a;
     const bodyFill = 0xffffff;
-    const gear = this.profile.gearColor ?? 0xf1f1f1;
+    const gear = this.profile.gearColor ?? 0xefefef;
     const hair = this.profile.hairColor ?? 0x111111;
 
     const locking = this.state === 'lockup' || this.state === 'grappleAdvantage';
@@ -54,167 +54,97 @@ export class WrestlerProxy {
 
     if (down) {
       this.drawDowned(g, ink, softInk, bodyFill, gear, hair);
-      this.nameText.setY(45);
+      this.nameText.setY(48);
       return;
     }
 
-    const armReach = locking ? -24 : 0;
-    const strikeReach = striking ? -34 : 0;
-    const step = running ? 11 : selling ? 5 : 0;
-    const tilt = selling ? 5 : 0;
+    const armReach = locking ? -20 : 0;
+    const strikeReach = striking ? -28 : 0;
+    const step = running ? 10 : selling ? 5 : 0;
 
-    this.drawLimb(g, -13, 18, -18, 43 + step, -15, 62 + step * 0.2, 5.2, ink, bodyFill);
-    this.drawLimb(g, 13, 18, 20, 35 - step * 0.45, 22, 54 - step * 0.35, 5.2, ink, bodyFill);
-    this.drawShoe(g, -16, 64 + step * 0.2, -0.25, ink, gear);
-    this.drawShoe(g, 23, 56 - step * 0.35, 0.25, ink, gear);
-    this.ellipse(g, -18, 42 + step, 14, 9, ink, gear, 1.4);
-    this.ellipse(g, 20, 35 - step * 0.45, 14, 9, ink, gear, 1.4);
+    // Legs, smaller and thinner than the previous capsule placeholder.
+    this.drawSegment(g, -13, 18, -20, 42 + step, 4.5, ink, bodyFill);
+    this.drawSegment(g, 13, 18, 20, 36 - step * 0.4, 4.5, ink, bodyFill);
+    this.drawFoot(g, -20, 57 + step * 0.25, ink, gear);
+    this.drawFoot(g, 22, 51 - step * 0.35, ink, gear);
 
-    g.lineStyle(1.7, ink, 1);
-    g.fillStyle(bodyFill, 1);
-    g.beginPath();
-    g.moveTo(-33, -18 + tilt);
-    g.quadraticCurveTo(-22, -34, -5, -35);
-    g.quadraticCurveTo(17, -36, 34, -18 - tilt);
-    g.quadraticCurveTo(35, 0, 24, 15);
-    g.quadraticCurveTo(12, 27, 0, 27);
-    g.quadraticCurveTo(-14, 27, -25, 15);
-    g.quadraticCurveTo(-36, 0, -33, -18 + tilt);
-    g.closePath();
-    g.fillPath();
-    g.strokePath();
+    this.ellipse(g, -19, 39 + step, 13, 8, ink, gear, 1.2);
+    this.ellipse(g, 19, 34 - step * 0.35, 13, 8, ink, gear, 1.2);
 
-    g.fillStyle(gear, 1);
-    g.beginPath();
-    g.moveTo(-23, 12);
-    g.quadraticCurveTo(-11, 25, 0, 27);
-    g.quadraticCurveTo(12, 25, 23, 12);
-    g.quadraticCurveTo(14, 35, 0, 35);
-    g.quadraticCurveTo(-14, 35, -23, 12);
-    g.closePath();
-    g.fillPath();
-    g.strokePath();
+    // Torso, shoulders, trunks. Only safe primitive calls, no path curves.
+    this.ellipse(g, 0, -8, 58, 46, ink, bodyFill, 1.6);
+    this.ellipse(g, -26, -11, 17, 22, ink, bodyFill, 1.3);
+    this.ellipse(g, 26, -11, 17, 22, ink, bodyFill, 1.3);
+    this.ellipse(g, 0, 18, 39, 24, ink, gear, 1.3);
 
-    g.lineStyle(1, softInk, 0.55);
-    g.beginPath();
-    g.moveTo(0, -28);
-    g.lineTo(0, 4);
-    g.moveTo(-18, -14);
-    g.quadraticCurveTo(-8, -7, -2, -6);
-    g.moveTo(18, -14);
-    g.quadraticCurveTo(8, -7, 2, -6);
-    g.moveTo(-20, 15);
-    g.quadraticCurveTo(0, 21, 20, 15);
-    g.strokePath();
+    g.lineStyle(1, softInk, 0.65);
+    g.lineBetween(0, -28, 0, 2);
+    g.lineBetween(-17, -12, -3, -7);
+    g.lineBetween(17, -12, 3, -7);
+    g.lineBetween(-18, 13, 18, 13);
 
-    this.drawLimb(g, -31, -15 + tilt, -44, 4 + armReach, -38, 27 + armReach, 4.8, ink, bodyFill);
-    this.drawLimb(g, 31, -15 - tilt, 45, 4 + armReach + strikeReach * 0.45, 39, 27 + armReach + strikeReach, 4.8, ink, bodyFill);
-    this.ellipse(g, -38, 27 + armReach, 9, 7, ink, gear, 1.2);
-    this.ellipse(g, 39, 27 + armReach + strikeReach, 9, 7, ink, gear, 1.2);
-    this.drawHand(g, -38, 38 + armReach, ink, bodyFill, -0.2);
-    this.drawHand(g, 39, 38 + armReach + strikeReach, ink, bodyFill, 0.2);
+    // Arms with elbows and hands. Lockup actually lifts arms toward the opponent.
+    this.drawSegment(g, -29, -8, -42, 11 + armReach, 4.3, ink, bodyFill);
+    this.drawSegment(g, -42, 11 + armReach, -37, 31 + armReach, 3.9, ink, bodyFill);
+    this.drawSegment(g, 29, -8, 42 + strikeReach * 0.4, 11 + armReach, 4.3, ink, bodyFill);
+    this.drawSegment(g, 42 + strikeReach * 0.4, 11 + armReach, 37 + strikeReach, 31 + armReach, 3.9, ink, bodyFill);
 
-    this.ellipse(g, 0, -49, 23, 30, ink, bodyFill, 1.7);
+    this.ellipse(g, -38, 31 + armReach, 8, 6, ink, gear, 1.1);
+    this.ellipse(g, 37 + strikeReach, 31 + armReach, 8, 6, ink, gear, 1.1);
+    this.ellipse(g, -37, 41 + armReach, 10, 8, ink, bodyFill, 1.1);
+    this.ellipse(g, 37 + strikeReach, 41 + armReach, 10, 8, ink, bodyFill, 1.1);
+
+    // Head and hair mass, faceless from directly overhead.
+    this.ellipse(g, 0, -44, 24, 30, ink, bodyFill, 1.5);
     g.fillStyle(hair, 1);
     if (this.profile.hair === 'bald') {
-      g.fillEllipse(0, -58, 10, 5);
+      g.fillEllipse(0, -55, 9, 5);
     } else {
-      g.beginPath();
-      g.moveTo(-13, -60);
-      g.quadraticCurveTo(-7, -72, 4, -68);
-      g.quadraticCurveTo(17, -64, 12, -53);
-      g.quadraticCurveTo(4, -57, -3, -55);
-      g.quadraticCurveTo(-9, -53, -13, -60);
-      g.closePath();
-      g.fillPath();
+      g.fillEllipse(0, -58, 27, 11);
+      g.fillEllipse(-8, -53, 9, 7);
+      g.fillEllipse(8, -53, 9, 7);
     }
 
     if (locking) {
-      g.lineStyle(1.2, softInk, 0.75);
-      g.strokeCircle(0, -2, 36);
+      g.lineStyle(1, softInk, 0.65);
+      g.strokeCircle(0, -2, 34);
     }
 
-    this.nameText.setY(70);
+    this.nameText.setY(66);
   }
 
   drawDowned(g, ink, softInk, bodyFill, gear, hair) {
-    g.lineStyle(1.7, ink, 1);
-    g.fillStyle(bodyFill, 1);
-    g.beginPath();
-    g.moveTo(-36, -11);
-    g.quadraticCurveTo(-15, -35, 18, -24);
-    g.quadraticCurveTo(40, -14, 36, 8);
-    g.quadraticCurveTo(16, 25, -18, 18);
-    g.quadraticCurveTo(-40, 11, -36, -11);
-    g.closePath();
-    g.fillPath();
-    g.strokePath();
-
-    this.ellipse(g, 47, -12, 25, 22, ink, bodyFill, 1.6);
+    this.ellipse(g, 0, 0, 72, 36, ink, bodyFill, 1.6);
+    this.ellipse(g, 43, -10, 24, 21, ink, bodyFill, 1.4);
     g.fillStyle(hair, 1);
-    g.fillEllipse(55, -18, 15, 8);
-    this.drawLimb(g, -11, 15, -26, 36, -48, 46, 4.5, ink, bodyFill);
-    this.drawLimb(g, 8, 17, 18, 39, 41, 45, 4.5, ink, bodyFill);
-    this.drawShoe(g, -51, 47, -0.9, ink, gear);
-    this.drawShoe(g, 44, 46, 0.7, ink, gear);
-    this.drawLimb(g, -20, -14, -43, -21, -55, -2, 4.2, ink, bodyFill);
-    this.drawLimb(g, 18, -20, 33, -38, 51, -34, 4.2, ink, bodyFill);
-    this.drawHand(g, -58, 1, ink, bodyFill, -0.7);
-    this.drawHand(g, 54, -34, ink, bodyFill, 0.4);
+    g.fillEllipse(51, -16, 15, 8);
 
-    g.lineStyle(1, softInk, 0.45);
-    g.beginPath();
-    g.moveTo(-22, -15);
-    g.quadraticCurveTo(0, -6, 24, -14);
-    g.moveTo(-16, 6);
-    g.quadraticCurveTo(5, 14, 28, 5);
-    g.strokePath();
+    this.drawSegment(g, -13, 14, -33, 34, 4.0, ink, bodyFill);
+    this.drawSegment(g, 9, 14, 31, 34, 4.0, ink, bodyFill);
+    this.drawFoot(g, -43, 40, ink, gear);
+    this.drawFoot(g, 39, 39, ink, gear);
+    this.drawSegment(g, -22, -12, -47, -10, 3.8, ink, bodyFill);
+    this.drawSegment(g, 18, -15, 42, -28, 3.8, ink, bodyFill);
+    this.ellipse(g, -55, -9, 9, 7, ink, bodyFill, 1.1);
+    this.ellipse(g, 50, -32, 9, 7, ink, bodyFill, 1.1);
+
+    g.lineStyle(1, softInk, 0.55);
+    g.lineBetween(-20, -8, 22, -11);
+    g.lineBetween(-18, 8, 26, 6);
   }
 
-  drawLimb(g, sx, sy, ex, ey, wx, wy, width, ink, fill) {
+  drawSegment(g, x1, y1, x2, y2, width, ink, fill) {
     g.lineStyle(width + 2, ink, 1);
-    g.beginPath();
-    g.moveTo(sx, sy);
-    g.quadraticCurveTo(ex, ey, wx, wy);
-    g.strokePath();
+    g.lineBetween(x1, y1, x2, y2);
     g.lineStyle(width, fill, 1);
-    g.beginPath();
-    g.moveTo(sx, sy);
-    g.quadraticCurveTo(ex, ey, wx, wy);
-    g.strokePath();
-    g.lineStyle(1.1, ink, 1);
-    g.beginPath();
-    g.moveTo(sx, sy);
-    g.quadraticCurveTo(ex, ey, wx, wy);
-    g.strokePath();
+    g.lineBetween(x1, y1, x2, y2);
+    g.lineStyle(1, ink, 1);
+    g.strokeCircle(x1, y1, width * 0.55);
+    g.strokeCircle(x2, y2, width * 0.55);
   }
 
-  drawHand(g, x, y, ink, fill, lean) {
-    g.fillStyle(fill, 1);
-    g.lineStyle(1.2, ink, 1);
-    g.beginPath();
-    g.moveTo(x - 4 + lean * 4, y - 4);
-    g.quadraticCurveTo(x, y - 8, x + 5 + lean * 4, y - 4);
-    g.quadraticCurveTo(x + 6, y + 3, x + 1, y + 7);
-    g.quadraticCurveTo(x - 5, y + 4, x - 4 + lean * 4, y - 4);
-    g.closePath();
-    g.fillPath();
-    g.strokePath();
-  }
-
-  drawShoe(g, x, y, lean, ink, fill) {
-    const dx = Math.sin(lean) * 3;
-    const dy = Math.cos(lean) * 4;
-    g.fillStyle(fill, 1);
-    g.lineStyle(1.2, ink, 1);
-    g.beginPath();
-    g.moveTo(x - 5 + dx, y - 7 - dy);
-    g.quadraticCurveTo(x, y - 11 - dy, x + 5 + dx, y - 7 - dy);
-    g.quadraticCurveTo(x + 6 - dx, y + 7 + dy, x, y + 10 + dy);
-    g.quadraticCurveTo(x - 6 - dx, y + 7 + dy, x - 5 + dx, y - 7 - dy);
-    g.closePath();
-    g.fillPath();
-    g.strokePath();
+  drawFoot(g, x, y, ink, fill) {
+    this.ellipse(g, x, y, 10, 18, ink, fill, 1.1);
   }
 
   ellipse(g, x, y, w, h, ink, fill, lineWidth = 1.5) {
