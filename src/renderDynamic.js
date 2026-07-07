@@ -50,26 +50,51 @@ function drawGarageDoor(ctx, state) {
 function drawAnimatedVehicle(ctx, v, label) {
   if (v.vehicleKind === 'bike') return drawBike(ctx, v, label);
   if (v.vehicleKind === 'motorbike') return drawMotorbike(ctx, v, label);
+  if (v.vehicleKind === 'atv') return drawAtv(ctx, v, label);
   return drawCar(ctx, v, label);
 }
 
 function drawCar(ctx, v, label) {
   const x = v.x, y = v.y, w = v.w || 116, h = v.h || 230;
-  roundRect(ctx, x, y, w, h, 28, v.vehicleId === 'car_2' ? '#26334b' : '#202838');
-  roundRect(ctx, x + w * 0.16, y + h * 0.18, w * 0.68, h * 0.62, 18, '#0d1118');
-  ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3;
-  ctx.strokeRect(x + w * 0.25, y + h * 0.24, w * 0.5, h * 0.2);
-  ctx.strokeRect(x + w * 0.25, y + h * 0.56, w * 0.5, h * 0.18);
-  ctx.fillStyle = '#dfe7f2';
-  ctx.fillRect(x + w * 0.18, y + 8, Math.max(12, w * 0.18), 10);
-  ctx.fillRect(x + w * 0.64, y + 8, Math.max(12, w * 0.18), 10);
-  ctx.fillStyle = '#d84b4b';
-  ctx.fillRect(x + w * 0.18, y + h - 18, Math.max(12, w * 0.18), 8);
-  ctx.fillRect(x + w * 0.64, y + h - 18, Math.max(12, w * 0.18), 8);
-  ctx.strokeStyle = '#d7e1f0'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(x - 8, y + h * .44); ctx.lineTo(x + 4, y + h * .44); ctx.moveTo(x + w - 4, y + h * .44); ctx.lineTo(x + w + 8, y + h * .44); ctx.stroke();
+  const sports = v.vehicleId === 'car_2';
+  const body = sports ? '#954334' : '#d9d7ce';
+  const edge = sports ? '#5d2a25' : '#756d63';
+  const glass = '#263a3d';
+  const cx = x + w / 2;
+  ctx.save();
+  ctx.strokeStyle = '#181a20'; ctx.lineWidth = 2.4; ctx.fillStyle = body;
+  ctx.beginPath();
+  if (sports) {
+    ctx.moveTo(cx, y + 3);
+    ctx.bezierCurveTo(x + w - 12, y + 18, x + w - 4, y + 58, x + w - 8, y + h - 28);
+    ctx.quadraticCurveTo(cx, y + h + 1, x + 8, y + h - 28);
+    ctx.bezierCurveTo(x + 4, y + 58, x + 12, y + 18, cx, y + 3);
+  } else {
+    ctx.moveTo(cx, y + 4);
+    ctx.bezierCurveTo(x + w - 8, y + 18, x + w - 4, y + 64, x + w - 13, y + h - 18);
+    ctx.quadraticCurveTo(cx, y + h + 4, x + 13, y + h - 18);
+    ctx.bezierCurveTo(x + 4, y + 64, x + 8, y + 18, cx, y + 4);
+  }
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  styledRect(ctx, x + w * .22, y + h * .15, w * .56, h * .16, 8, glass, edge, 1.5);
+  styledRect(ctx, x + w * .20, y + h * .60, w * .60, h * .18, 8, glass, edge, 1.5);
+  styledRect(ctx, x + w * .18, y + h * .34, w * .12, h * .30, 7, '#ecdfce', edge, 1);
+  styledRect(ctx, x + w * .70, y + h * .34, w * .12, h * .30, 7, '#ecdfce', edge, 1);
+  strokeLine(ctx, x + 14, y + h * .39, x + w - 14, y + h * .39, 'rgba(24,26,32,.35)', 1.3);
+  strokeLine(ctx, x + 16, y + h * .69, x + w - 16, y + h * .69, 'rgba(24,26,32,.35)', 1.3);
+  ellipse(ctx, x + 24, y + 14, 9, 6, '#fff8dc'); ellipse(ctx, x + w - 24, y + 14, 9, 6, '#fff8dc');
+  ellipse(ctx, x + 24, y + h - 13, 8, 5, '#b66d55'); ellipse(ctx, x + w - 24, y + h - 13, 8, 5, '#b66d55');
+  strokeLine(ctx, x - 6, y + h * .38, x + 4, y + h * .42, '#181a20', 2);
+  strokeLine(ctx, x + w + 6, y + h * .38, x + w - 4, y + h * .42, '#181a20', 2);
+  if (sports) {
+    for (const side of [-1, 1]) {
+      strokeLine(ctx, cx + side * 24, y + 45, cx + side * 12, y + 82, '#52251f', 3);
+      strokeLine(ctx, cx + side * 32, y + 58, cx + side * 19, y + 94, '#52251f', 2);
+    }
+  }
   if (v.open) drawDoorOpen(ctx, x, y, w, h);
   ctx.fillStyle = '#f1c66a'; ctx.font = '900 11px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, x + w / 2, y + h / 2 + 4); ctx.textAlign = 'left';
+  ctx.restore();
 }
 
 function drawDoorOpen(ctx, x, y, w, h) {
@@ -83,26 +108,54 @@ function drawDoorOpen(ctx, x, y, w, h) {
 
 function drawBike(ctx, v, label) {
   const x = v.x, y = v.y, w = v.w || 34, h = v.h || 96;
-  ctx.strokeStyle = '#d7e1f0'; ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.arc(x + w / 2, y + 16, 13, 0, Math.PI * 2);
-  ctx.arc(x + w / 2, y + h - 16, 13, 0, Math.PI * 2);
-  ctx.moveTo(x + w / 2, y + 16); ctx.lineTo(x + 8, y + h * .48); ctx.lineTo(x + w / 2, y + h - 16); ctx.lineTo(x + w - 8, y + h * .5); ctx.lineTo(x + w / 2, y + 16);
-  ctx.stroke();
-  ctx.fillStyle = '#f1c66a'; ctx.fillRect(x + 5, y + h * .45, w - 10, 8);
+  const cx = x + w / 2;
+  ctx.save();
+  circle(ctx, cx, y + 14, Math.min(13, w * .42), false, '#181a20');
+  circle(ctx, cx, y + h - 14, Math.min(13, w * .42), false, '#181a20');
+  strokeLine(ctx, cx, y + 14, x + 6, y + h * .50, '#3f5f67', 3);
+  strokeLine(ctx, x + 6, y + h * .50, cx, y + h - 14, '#3f5f67', 3);
+  strokeLine(ctx, cx, y + 14, x + w - 6, y + h * .50, '#3f5f67', 3);
+  strokeLine(ctx, x + w - 6, y + h * .50, cx, y + h - 14, '#3f5f67', 3);
+  strokeLine(ctx, x + 4, y + 8, x + w - 4, y + 8, '#181a20', 2);
+  styledRect(ctx, cx - 7, y + h * .47, 14, 9, 4, '#5a4a3e');
+  strokeLine(ctx, cx, y + h * .52, cx + 12, y + h * .60, '#181a20', 2);
+  strokeLine(ctx, cx, y + h * .52, cx - 12, y + h * .60, '#181a20', 2);
   if (v.open) { ctx.fillStyle = '#f1c66a'; ctx.font = '900 9px system-ui'; ctx.fillText('MOUNT', x + w + 8, y + h * .5); }
   ctx.fillStyle = '#f8fbff'; ctx.font = '900 10px system-ui'; ctx.fillText(label, x - 8, y + h + 18);
+  ctx.restore();
 }
 
 function drawMotorbike(ctx, v, label) {
   const x = v.x, y = v.y, w = v.w || 48, h = v.h || 122;
-  roundRect(ctx, x + w * .22, y + 22, w * .56, h - 44, 14, '#111820');
-  ctx.fillStyle = '#74e6ff'; ctx.fillRect(x + w * .24, y + 34, w * .52, 16);
-  ctx.strokeStyle = '#d7e1f0'; ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.arc(x + w / 2, y + 16, 12, 0, Math.PI * 2); ctx.arc(x + w / 2, y + h - 16, 12, 0, Math.PI * 2); ctx.stroke();
-  ctx.strokeStyle = '#f1c66a'; ctx.beginPath(); ctx.moveTo(x + 4, y + 18); ctx.lineTo(x + w - 4, y + 18); ctx.stroke();
+  const cx = x + w / 2;
+  ctx.save();
+  circle(ctx, cx, y + 14, 12, false, '#181a20');
+  circle(ctx, cx, y + h - 14, 13, false, '#181a20');
+  styledRect(ctx, cx - 13, y + 28, 26, h - 56, 13, '#504b47', '#181a20', 2);
+  styledRect(ctx, cx - 10, y + 39, 20, 24, 8, '#cfd8d6');
+  styledRect(ctx, cx - 12, y + 72, 24, 28, 11, '#2c2a28');
+  strokeLine(ctx, x + 4, y + 17, x + w - 4, y + 17, '#181a20', 2.5);
+  strokeLine(ctx, x + 9, y + h - 36, x - 2, y + h - 21, '#5a524a', 2);
+  strokeLine(ctx, x + w - 9, y + h - 36, x + w + 2, y + h - 21, '#5a524a', 2);
   if (v.open) { ctx.fillStyle = '#f1c66a'; ctx.font = '900 9px system-ui'; ctx.fillText('MOUNT', x + w + 8, y + h * .5); }
   ctx.fillStyle = '#f8fbff'; ctx.font = '900 10px system-ui'; ctx.fillText(label, x - 14, y + h + 18);
+  ctx.restore();
+}
+
+function drawAtv(ctx, v, label) {
+  const x = v.x, y = v.y, w = v.w || 82, h = v.h || 116;
+  const cx = x + w / 2;
+  ctx.save();
+  for (const [dx, dy] of [[7, 10], [w - 7, 10], [7, h - 14], [w - 7, h - 14]]) {
+    styledRect(ctx, x + dx - 9, y + dy - 14, 18, 28, 8, '#2c2a25', '#181a20', 1.5);
+  }
+  styledRect(ctx, x + 13, y + 15, w - 26, h - 34, 12, '#66764c', '#181a20', 2);
+  styledRect(ctx, cx - 13, y + 34, 26, 34, 11, '#8ca064');
+  styledRect(ctx, cx - 13, y + h - 52, 26, 36, 11, '#3d3a33');
+  strokeLine(ctx, x + 10, y + 20, x + w - 10, y + 20, '#181a20', 2.5);
+  if (v.open) { ctx.fillStyle = '#f1c66a'; ctx.font = '900 9px system-ui'; ctx.fillText('MOUNT', x + w + 8, y + h * .5); }
+  ctx.fillStyle = '#f8fbff'; ctx.font = '900 10px system-ui'; ctx.fillText(label, x - 10, y + h + 18);
+  ctx.restore();
 }
 
 function drawVehicleDeparture(ctx, state) {
@@ -129,3 +182,15 @@ function drawBuildPrompt(ctx, state) {
   if (!state.buildPick) return;
   ctx.save(); ctx.fillStyle = 'rgba(10,12,18,.78)'; ctx.fillRect(282, 10, 380, 34); ctx.fillStyle = '#f8fbff'; ctx.font = '900 15px system-ui'; ctx.fillText(`Tap placement spot for ${state.buildPick.label}`, 294, 32); ctx.restore();
 }
+
+function styledRect(ctx, x, y, w, h, r, fill, stroke = null, lineWidth = 1) {
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, Math.max(1, w), Math.max(1, h), Math.max(0, r));
+  else { ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); }
+  ctx.fillStyle = fill;
+  ctx.fill();
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth; ctx.stroke(); }
+}
+function circle(ctx, x, y, r, fill = true, color = '#000') { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); if (fill) { ctx.fillStyle = color; ctx.fill(); } else { ctx.strokeStyle = color; ctx.stroke(); } }
+function ellipse(ctx, x, y, rx, ry, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); }
+function strokeLine(ctx, x1, y1, x2, y2, color, width = 2) { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
