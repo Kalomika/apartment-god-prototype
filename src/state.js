@@ -50,6 +50,9 @@ export function createState() {
     notifications: ['Apartment God booted.'],
     tv: { on: false, channel: 'Idle', pulse: 0 },
     offsite: null,
+    investments: { holdings: {}, tick: 0, lifetime: 0 },
+    rewards: { freeTickets: {}, messages: [] },
+    secretLog: { used: {}, lastRewardAt: 0 },
     garbage: { kitchen: 0, bagsOutside: 0, looseItems: [] },
     roomLights: {
       living: true, kitchen: true, bath: true, entry: true, stairs: true,
@@ -58,7 +61,7 @@ export function createState() {
       garage_bay: true, garage_storage: true, garage_entry: true,
       yard: true, pool_area: true, kennel_area: true
     },
-    objectState: { workoutGear: false, bookshelf: false, openWindows: {} },
+    objectState: { workoutGear: false, bookshelf: false, openWindows: {}, vehicleInUse: null, garageDoorOpen: false },
     entities: [
       entity('resident', 'Resident', 'person', 0, 150, 420, '#79b7ff'),
       entity('girlfriend', 'Girlfriend', 'person', 0, 265, 420, '#f2a3d7'),
