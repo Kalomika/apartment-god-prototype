@@ -53,12 +53,12 @@ export class ArenaScene extends Phaser.Scene {
     }).setOrigin(0.5, 0);
 
     g.fillStyle(0xffffff, 1);
-    g.lineStyle(2, 0x000000, 1);
+    g.lineStyle(1.6, 0x333333, 1);
     g.fillEllipse(0, 0, 20, 28);
     g.strokeEllipse(0, 0, 20, 28);
-    g.fillStyle(0x000000, 1);
-    g.fillRect(-8, -8, 4, 17);
-    g.fillRect(1, -8, 4, 17);
+    g.fillStyle(0x333333, 1);
+    g.fillRect(-8, -8, 3, 17);
+    g.fillRect(2, -8, 3, 17);
     g.fillEllipse(0, -20, 13, 15);
     container.add([g, label]);
     return container;
@@ -81,11 +81,11 @@ export class ArenaScene extends Phaser.Scene {
     }
 
     this.snapshot = this.engine.update(delta);
-    this.positionFromSnapshot(time);
+    this.positionFromSnapshot();
     this.choicePanel.setLog(this.snapshot.log);
   }
 
-  positionFromSnapshot(time = 0) {
+  positionFromSnapshot() {
     if (!this.snapshot || !this.ring.bounds) {
       const first = this.engine?.getSnapshot();
       if (!first) {
@@ -98,10 +98,9 @@ export class ArenaScene extends Phaser.Scene {
     const blueScreen = this.ring.ringToScreen(this.snapshot.blue.position.x, this.snapshot.blue.position.y);
     const refScreen = this.ring.ringToScreen(this.snapshot.referee.position.x, this.snapshot.referee.position.y);
     const sizeScale = Phaser.Math.Clamp(this.ring.bounds.size / 680, 0.40, 0.72);
-    const pulse = Math.sin(time / 260) * 0.012;
 
-    this.wrestlerA.setSpriteScale(sizeScale + pulse);
-    this.wrestlerB.setSpriteScale(sizeScale - pulse * 0.7);
+    this.wrestlerA.setSpriteScale(sizeScale);
+    this.wrestlerB.setSpriteScale(sizeScale);
     this.wrestlerA.setPosition(redScreen.x, redScreen.y);
     this.wrestlerB.setPosition(blueScreen.x, blueScreen.y);
     this.wrestlerA.setFacingRadians(this.snapshot.red.facing);
