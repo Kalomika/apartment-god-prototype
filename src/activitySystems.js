@@ -1,8 +1,10 @@
 import { changeNeed, log, say, setMood } from './state.js';
 import { getObject } from './world.js';
+import { updateSoccerGame } from './soccerSystem.js';
 
 export function updateGameActivities(state, dt) {
   updatePoolGame(state, dt);
+  updateSoccerGame(state, dt);
 }
 
 function poolPlayers(state) {
@@ -58,7 +60,6 @@ function startPoolGame(state, table, players) {
 }
 
 function rackBalls(table) {
-  const cx = table.x + table.w * .5;
   const cy = table.y + table.h * .5;
   return [
     { id: 'cue', value: 0, x: table.x + table.w * .30, y: cy, vx: 0, vy: 0, fill: '#f8fbff' },
