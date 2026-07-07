@@ -9,7 +9,7 @@ export class WrestlerProxy {
 
     if (textureKey && scene.textures.exists(textureKey)) {
       this.sprite = scene.add.image(0, 0, textureKey).setOrigin(0.5, 0.52);
-      this.sprite.setDisplaySize(92, 108);
+      this.sprite.setDisplaySize(98, 112);
       this.graphics.setVisible(false);
     }
 
@@ -60,17 +60,11 @@ export class WrestlerProxy {
     this.graphics.clear();
     const locking = this.state === 'lockup' || this.state === 'grappleAdvantage';
     const down = this.state === 'downed' || this.state === 'pinned';
-    const running = this.state === 'ropeRun' || this.state === 'closingDistance';
-    const striking = this.state === 'striking';
 
     this.sprite.setAngle(down ? 86 : 0);
-    this.sprite.setScale(running ? 1.04 : 1);
+    this.sprite.setPosition(0, down ? 3 : 0);
     this.sprite.setAlpha(down ? 0.95 : 1);
     this.sprite.setTint(0xffffff);
-
-    if (striking) {
-      this.sprite.setScale(1.03, 0.98);
-    }
 
     if (locking) {
       this.graphics.setVisible(true);
