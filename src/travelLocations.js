@@ -40,7 +40,7 @@ export function isDestinationOpen(state, destination) {
 }
 
 export function hasTravelPass(state, actionId) {
-  return Boolean(state.rewards?.freeTickets?.[actionId] || state.rewards?.freeTickets?.vacation_any);
+  return Boolean(state.rewards?.freeTickets?.[actionId] || (actionId.startsWith('vacation_') && state.rewards?.freeTickets?.vacation_any));
 }
 
 export function consumeTravelPass(state, actionId) {
@@ -120,7 +120,7 @@ export function applyOffsiteRewards(state, job) {
     changeNeed(e, 'energy', destination?.energy ?? -12);
     changeNeed(e, 'freshness', destination?.freshness ?? -3);
     if (destination?.social) changeNeed(e, 'social', destination.social);
-    if (action === 'work') { state.money += destination?.money ?? 95; changeNeed(e, 'social', -4); }
+    if (action === 'work') { state.money += destination?.money ?? 95; changeNeed(e, 'social', -4); awardWorkPerks(state, e); }
     if (action === 'movies') e.memory.movies.push(randomMovieTitle(state));
     if (action.includes('beach') && job.activities?.includes('treasure_search')) maybeFindBeachGold(state, e, job);
     setMood(e, action === 'work' ? 'tired' : 'happy');
@@ -128,6 +128,24 @@ export function applyOffsiteRewards(state, job) {
   }
   recordSecretActivity(state, action);
   maybeAwardSecretTickets(state);
+}
+
+function awardWorkPerks(state, actor) {
+  state.careers ??= { workHours: 0, movieTheaterHours: 0, airlineHours: 0 };
+  state.rewards ??= { freeTickets: {}, messages: [] };
+  state.careers.workHours += 8;
+  state.careers.movieTheaterHours += 2;
+  state.careers.airlineHours += 1;
+  if (state.careers.movieTheaterHours >= 6) {
+    state.careers.movieTheaterHours = 0;
+    state.rewards.freeTickets.movies = (state.rewards.freeTickets.movies || 0) + 1;
+    log(state, `${actor.name} earned free movie tickets from theater work perks.`);
+  }
+  if (state.careers.airlineHours >= 10) {
+    state.careers.airlineHours = 0;
+    state.rewards.freeTickets.vacation_any = (state.rewards.freeTickets.vacation_any || 0) + 1;
+    log(state, `${actor.name} earned an airline standby vacation ticket.`);
+  }
 }
 
 export function recordSecretActivity(state, actionId) {
