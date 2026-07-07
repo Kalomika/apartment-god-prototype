@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" role="img" aria-labelledby="title desc">
+  <title id="title">Grapple Gods strict top down ring reference</title>
+  <desc id="desc">Editable overhead ring model for the Grapple Gods Phaser prototype.</desc>
+  <defs>
+    <style>
+      .label{font:700 24px Arial,sans-serif;fill:#071018;text-anchor:middle}
+      .ink{stroke:#071018;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;fill:none}
+      .rope{stroke:#071018;stroke-width:4;stroke-linecap:round;fill:none}
+      .mat{fill:#ffffff;stroke:#071018;stroke-width:4}
+      .pad{fill:#ffffff;stroke:#071018;stroke-width:4}
+      .post{fill:#071018;stroke:#071018;stroke-width:4}
+      .postCore{fill:#ffffff;stroke:#071018;stroke-width:3}
+    </style>
+  </defs>
+
+  <text x="450" y="58" class="label">GRAPPLE GODS, STRICT TOP DOWN RING</text>
+
+  <rect x="190" y="190" width="520" height="520" class="mat"/>
+  <rect x="170" y="170" width="560" height="560" class="ink"/>
+  <rect x="182" y="182" width="536" height="536" class="rope"/>
+  <rect x="196" y="196" width="508" height="508" class="rope"/>
+  <rect x="210" y="210" width="480" height="480" class="rope"/>
+
+  <circle cx="170" cy="170" r="25" class="post"/><circle cx="170" cy="170" r="14" class="postCore"/>
+  <circle cx="730" cy="170" r="25" class="post"/><circle cx="730" cy="170" r="14" class="postCore"/>
+  <circle cx="170" cy="730" r="25" class="post"/><circle cx="170" cy="730" r="14" class="postCore"/>
+  <circle cx="730" cy="730" r="25" class="post"/><circle cx="730" cy="730" r="14" class="postCore"/>
+
+  <rect x="190" y="190" width="46" height="46" rx="8" class="pad"/>
+  <rect x="664" y="190" width="46" height="46" rx="8" class="pad"/>
+  <rect x="190" y="664" width="46" height="46" rx="8" class="pad"/>
+  <rect x="664" y="664" width="46" height="46" rx="8" class="pad"/>
+
+  <g opacity="0.18">
+    <line x1="450" y1="190" x2="450" y2="710" class="rope"/>
+    <line x1="190" y1="450" x2="710" y2="450" class="rope"/>
+    <circle cx="450" cy="450" r="120" class="rope"/>
+  </g>
+</svg>
