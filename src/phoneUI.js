@@ -53,17 +53,26 @@ function buildPhoneUi(state) {
 
   const button = document.createElement('button');
   button.style.cssText = 'width:100%;font-size:16px;padding:12px;border-radius:14px;';
-  button.onclick = event => { event.stopPropagation(); open = !open; dirty = true; renderPhone(state); };
+  button.onclick = event => { event.stopPropagation(); open = !open; dirty = true; fitPhonePanel(); renderPhone(state); };
 
   const panel = document.createElement('div');
-  panel.style.cssText = 'display:none;margin-top:10px;border-radius:18px;background:#10141d;border:2px solid #2d3545;padding:12px;min-height:280px;max-height:62vh;overflow-y:auto;';
+  panel.style.cssText = 'display:none;margin-top:10px;border-radius:18px;background:#10141d;border:2px solid #2d3545;padding:12px;min-height:0;max-height:44vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;';
   panel.onclick = event => event.stopPropagation();
+  panel.onpointerdown = event => event.stopPropagation();
 
   dock.appendChild(button);
   dock.appendChild(panel);
   hud.prepend(dock);
-  els = { button, panel };
+  els = { button, panel, hud, wrap };
+  window.addEventListener('resize', fitPhonePanel);
   updatePhoneButton(state);
+}
+
+function fitPhonePanel() {
+  if (!els.panel) return;
+  const hudTop = els.hud?.getBoundingClientRect().top ?? Math.round(window.innerHeight * 0.52);
+  const available = Math.max(190, window.innerHeight - hudTop - 92);
+  els.panel.style.maxHeight = `${available}px`;
 }
 
 function nextDownFloor(floor) {
@@ -81,6 +90,7 @@ function floorName(floor) {
 function updatePhoneButton(state) {
   if (!els.button) return;
   els.panel.style.display = open ? 'block' : 'none';
+  if (open) fitPhonePanel();
   els.button.textContent = open ? 'Close Cell Phone' : `Cell Phone${state.requests?.some(r => !r.done) ? ' • Request' : ''}`;
 }
 
@@ -93,7 +103,7 @@ function renderPhone(state) {
   els.panel.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;position:sticky;top:0;background:#10141d;padding-bottom:8px;z-index:2;">
     ${phoneTab('home','Home')}${phoneTab('shop','Shop')}${phoneTab('contacts','Contacts')}${phoneTab('music','Music')}${phoneTab('activities','Acts')}${phoneTab('travel','Travel')}${phoneTab('requests','Requests')}${phoneTab('saves','Saves')}
   </div><div id="phone-screen"></div>`;
-  els.panel.querySelectorAll('[data-tab]').forEach(b => b.onclick = event => { event.stopPropagation(); tab = b.dataset.tab; pendingTrip = null; dirty = true; renderPhone(state); });
+  els.panel.querySelectorAll('[data-tab]').forEach(b => b.onclick = event => { event.stopPropagation(); tab = b.dataset.tab; pendingTrip = null; dirty = true; renderPhone(state); els.panel.scrollTop = 0; });
   const screen = els.panel.querySelector('#phone-screen');
   if (tab === 'home') renderHome(screen, state);
   if (tab === 'shop') renderShop(screen, state);
@@ -103,6 +113,7 @@ function renderPhone(state) {
   if (tab === 'travel') renderTravel(screen, state);
   if (tab === 'requests') renderRequests(screen, state);
   if (tab === 'saves') renderSaves(screen, state);
+  fitPhonePanel();
 }
 
 function phoneTab(id, label) {
