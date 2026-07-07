@@ -5,6 +5,7 @@ export function drawDynamicProps(ctx, state) {
   drawPulledBook(ctx, state);
   drawCourier(ctx, state);
   drawVehicleDeparture(ctx, state);
+  drawVehicleReturn(ctx, state);
   drawBuildPrompt(ctx, state);
 }
 
@@ -37,17 +38,36 @@ function drawCourier(ctx, state) {
   ctx.save(); ctx.translate(d.x, d.y); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0, 18, 22, 12, 0, 0, Math.PI * 2); ctx.fill(); roundRect(ctx, -15, -10, 30, 38, 8, '#1e2937'); ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 2; ctx.strokeRect(-12, -6, 24, 18); ctx.fillStyle = '#f1c66a'; ctx.fillRect(-24, 3, 16, 14); ctx.fillStyle = '#11151c'; ctx.font = '900 8px system-ui'; ctx.fillText('BAG', -23, 13); ctx.fillStyle = '#f8fbff'; ctx.beginPath(); ctx.arc(0, -20, 11, 0, Math.PI * 2); ctx.fill(); const text = d.phase === 'arriving' ? '...' : d.bubble || 'ORDER'; const w = Math.max(76, text.length * 10 + 22); roundRect(ctx, -w / 2, -66, w, 26, 10, '#f8fbff'); ctx.fillStyle = '#10141b'; ctx.font = '900 12px system-ui'; ctx.textAlign = 'center'; ctx.fillText(text, 0, -49); ctx.textAlign = 'left'; ctx.restore();
 }
 
+function drawGarageDoor(ctx, state) {
+  ctx.fillStyle = state.objectState.garageDoorOpen ? 'rgba(116,230,255,.35)' : '#2a3140';
+  ctx.fillRect(118, 38, 548, 30);
+  ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(118, 38, 548, 30);
+}
+
+function drawAnimatedCar(ctx, x, y, label) {
+  roundRect(ctx, x, y, 116, 230, 24, '#202838');
+  roundRect(ctx, x + 22, y + 52, 72, 126, 16, '#0d1118');
+  ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(x + 32, y + 78, 52, 72);
+  ctx.fillStyle = '#f1c66a'; ctx.fillRect(x + 20, y + 8, 20, 10); ctx.fillRect(x + 76, y + 8, 20, 10);
+  ctx.fillStyle = '#d84b4b'; ctx.fillRect(x + 20, y + 212, 20, 8); ctx.fillRect(x + 76, y + 212, 20, 8);
+  ctx.fillStyle = '#f1c66a'; ctx.font = '900 11px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, x + 58, y + 120); ctx.textAlign = 'left';
+}
+
 function drawVehicleDeparture(ctx, state) {
   const v = state.vehicleDeparture;
   if (!v || state.floor !== 3) return;
   ctx.save();
-  ctx.fillStyle = state.objectState.garageDoorOpen ? 'rgba(116,230,255,.35)' : '#2a3140';
-  ctx.fillRect(118, 38, 548, 30);
-  ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(118, 38, 548, 30);
-  ctx.fillStyle = '#202838'; roundRect(ctx, v.x, v.y, 230, 116, 26, '#202838');
-  ctx.fillStyle = '#0d1118'; roundRect(ctx, v.x + 46, v.y + 20, 138, 76, 16, '#0d1118');
-  ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(v.x + 60, v.y + 30, 110, 56);
-  ctx.fillStyle = '#f1c66a'; ctx.font = '900 12px system-ui'; ctx.fillText('LEAVING', v.x + 78, v.y + 62);
+  drawGarageDoor(ctx, state);
+  drawAnimatedCar(ctx, v.x, v.y, 'LEAVING');
+  ctx.restore();
+}
+
+function drawVehicleReturn(ctx, state) {
+  const v = state.vehicleReturn;
+  if (!v || state.floor !== 3) return;
+  ctx.save();
+  drawGarageDoor(ctx, state);
+  drawAnimatedCar(ctx, v.x, v.y, v.phase === 'arriving' ? 'RETURN' : 'PARKED');
   ctx.restore();
 }
 
