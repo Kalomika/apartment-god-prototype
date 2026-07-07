@@ -2,129 +2,117 @@ import Phaser from 'phaser';
 import { RingRenderer } from '../render/RingRenderer.js';
 import { WrestlerProxy } from '../render/WrestlerProxy.js';
 import { ChoicePanel } from '../ui/ChoicePanel.js';
-
-const CHOICES = [
-  { id: 'lockup', label: 'Lock Up' },
-  { id: 'strike', label: 'Strike' },
-  { id: 'work_leg', label: 'Work Leg' },
-  { id: 'recover', label: 'Recover' },
-  { id: 'taunt', label: 'Taunt' },
-  { id: 'auto', label: 'Let Him Decide' }
-];
+import { initialMatch, roster } from '../data/roster.js';
+import { MatchEngine } from '../sim/matchEngine.js';
 
 export class ArenaScene extends Phaser.Scene {
   constructor() {
     super('ArenaScene');
     this.layout = null;
-    this.pendingChoice = null;
-    this.nextBeatAt = 0;
-    this.beatIndex = 0;
+    this.snapshot = null;
   }
 
   create() {
+    const red = roster.find((wrestler) => wrestler.id === initialMatch.redCornerId);
+    const blue = roster.find((wrestler) => wrestler.id === initialMatch.blueCornerId);
+
+    this.engine = new MatchEngine({ red, blue, ruleSet: initialMatch.ruleSet });
     this.ring = new RingRenderer(this);
     this.choicePanel = new ChoicePanel(this);
-    this.wrestlerA = new WrestlerProxy(this, 'ATLAS', 0xffffff);
-    this.wrestlerB = new WrestlerProxy(this, 'SAINT', 0xf7f7f7);
+    this.wrestlerA = new WrestlerProxy(this, red);
+    this.wrestlerB = new WrestlerProxy(this, blue);
+    this.referee = this.createReferee();
+    this.hudText = this.add.text(0, 0, '', {
+      fontFamily: 'Arial',
+      fontSize: '12px',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5, 0);
 
-    this.choicePanel.setChoices(CHOICES, (choice) => {
-      this.pendingChoice = choice.id;
-      this.choicePanel.setLog(`Coach call queued: ${choice.label}`);
+    this.choicePanel.setMode('match');
+    this.choicePanel.setChoices(this.engine.getChoiceList(), (choice) => {
+      this.engine.queueSuggestion(choice.id);
+      this.choicePanel.setDialogue('GM', `Suggest ${choice.label}. ${red.name} may accept it, ignore it, or delay it based on the match.`);
     });
 
     this.scale.on('resize', this.handleResize, this);
     this.handleResize({ width: this.scale.width, height: this.scale.height });
-    this.choicePanel.setLog('Tap a manager choice or let the wrestlers run the sim.');
+    this.choicePanel.setDialogue('GM OFFICE', `${red.name} versus ${blue.name} is booked. Default rules: ${initialMatch.ruleSet.countOut} count, pinfall, submission, rope break.`);
+  }
+
+  createReferee() {
+    const container = this.add.container(0, 0);
+    const g = this.add.graphics();
+    const label = this.add.text(0, 20, 'REF', {
+      fontFamily: 'Arial',
+      fontSize: '10px',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5, 0);
+
+    g.fillStyle(0xffffff, 1);
+    g.lineStyle(2, 0x000000, 1);
+    g.fillEllipse(0, 0, 20, 28);
+    g.strokeEllipse(0, 0, 20, 28);
+    g.fillStyle(0x000000, 1);
+    g.fillRect(-8, -8, 4, 17);
+    g.fillRect(1, -8, 4, 17);
+    g.fillEllipse(0, -20, 13, 15);
+    container.add([g, label]);
+    return container;
   }
 
   handleResize(gameSize) {
     const width = gameSize.width;
     const height = gameSize.height;
-    const arenaHeight = Math.max(height * 0.52, Math.min(height * 0.62, width * 0.9));
+    const arenaHeight = Math.floor(height * 0.5);
 
     this.layout = { width, height, arenaHeight };
     this.ring.draw(this.layout);
     this.choicePanel.layout(this.layout);
-    this.positionWrestlers();
+    this.positionFromSnapshot();
   }
 
   update(time, delta) {
-    if (!this.layout || !this.ring.bounds) {
+    if (!this.layout || !this.ring.bounds || !this.engine) {
       return;
     }
 
-    if (time >= this.nextBeatAt) {
-      this.advanceSimBeat();
-      this.nextBeatAt = time + 900;
-    }
-
-    this.animateWrestlers(time, delta);
+    this.snapshot = this.engine.update(delta);
+    this.positionFromSnapshot(time);
+    this.choicePanel.setLog(this.snapshot.log);
   }
 
-  positionWrestlers() {
-    if (!this.ring.bounds) {
-      return;
+  positionFromSnapshot(time = 0) {
+    if (!this.snapshot || !this.ring.bounds) {
+      const first = this.engine?.getSnapshot();
+      if (!first) {
+        return;
+      }
+      this.snapshot = first;
     }
 
-    const a = this.ring.ringToScreen(-0.25, 0.05);
-    const b = this.ring.ringToScreen(0.25, -0.05);
-    const sizeScale = Phaser.Math.Clamp(this.ring.bounds.size / 650, 0.42, 0.78);
+    const redScreen = this.ring.ringToScreen(this.snapshot.red.position.x, this.snapshot.red.position.y);
+    const blueScreen = this.ring.ringToScreen(this.snapshot.blue.position.x, this.snapshot.blue.position.y);
+    const refScreen = this.ring.ringToScreen(this.snapshot.referee.position.x, this.snapshot.referee.position.y);
+    const sizeScale = Phaser.Math.Clamp(this.ring.bounds.size / 680, 0.40, 0.72);
+    const pulse = Math.sin(time / 260) * 0.012;
 
-    this.wrestlerA.setSpriteScale(sizeScale);
-    this.wrestlerB.setSpriteScale(sizeScale);
-    this.wrestlerA.setPosition(a.x, a.y);
-    this.wrestlerB.setPosition(b.x, b.y);
-    this.wrestlerA.setFacingRadians(0.15);
-    this.wrestlerB.setFacingRadians(Math.PI + 0.15);
-  }
+    this.wrestlerA.setSpriteScale(sizeScale + pulse);
+    this.wrestlerB.setSpriteScale(sizeScale - pulse * 0.7);
+    this.wrestlerA.setPosition(redScreen.x, redScreen.y);
+    this.wrestlerB.setPosition(blueScreen.x, blueScreen.y);
+    this.wrestlerA.setFacingRadians(this.snapshot.red.facing);
+    this.wrestlerB.setFacingRadians(this.snapshot.blue.facing);
+    this.wrestlerA.setState(this.snapshot.red.state);
+    this.wrestlerB.setState(this.snapshot.blue.state);
 
-  animateWrestlers(time) {
-    if (!this.ring.bounds) {
-      return;
-    }
+    this.referee.setPosition(refScreen.x, refScreen.y);
+    this.referee.setScale(sizeScale * 0.75);
 
-    const pulse = Math.sin(time / 280) * 0.018;
-    this.wrestlerA.container.setScale(this.wrestlerA.scale + pulse);
-    this.wrestlerB.container.setScale(this.wrestlerB.scale - pulse * 0.7);
-  }
-
-  advanceSimBeat() {
-    const scripted = [
-      ['circling', 'idle', 'They circle from the center, looking for contact.'],
-      ['lockup', 'lockup', 'They meet in a collar and elbow lockup.'],
-      ['advantage', 'selling', 'Atlas wins the first exchange and moves Saint backward.'],
-      ['idle', 'recovering', 'Saint resets while Atlas holds the center.'],
-      ['striking', 'selling', 'Atlas throws a short strike to test the guard.'],
-      ['recovering', 'idle', 'Both men reset, the sim is waiting for the next call.']
-    ];
-
-    let event = scripted[this.beatIndex % scripted.length];
-
-    if (this.pendingChoice && this.pendingChoice !== 'auto') {
-      event = this.resolveManagerChoice(this.pendingChoice);
-      this.pendingChoice = null;
-    }
-
-    this.wrestlerA.setState(event[0]);
-    this.wrestlerB.setState(event[1]);
-    this.choicePanel.setLog(event[2]);
-    this.beatIndex += 1;
-  }
-
-  resolveManagerChoice(choice) {
-    switch (choice) {
-      case 'lockup':
-        return ['lockup', 'lockup', 'Coach calls for a lockup. Atlas steps in and ties up.'];
-      case 'strike':
-        return ['striking', 'selling', 'Coach calls strike. Atlas clips Saint and creates a small opening.'];
-      case 'work_leg':
-        return ['advantage', 'selling', 'Coach calls leg work. Atlas shifts lower and starts targeting the base.'];
-      case 'recover':
-        return ['recovering', 'idle', 'Coach calls recovery. Atlas creates space instead of forcing contact.'];
-      case 'taunt':
-        return ['taunting', 'idle', 'Coach calls for a taunt. Atlas plays to the crowd from center ring.'];
-      default:
-        return ['idle', 'idle', 'The wrestler ignores the call and lets instinct take over.'];
-    }
+    this.hudText.setPosition(this.layout.width * 0.5, 8);
+    this.hudText.setText(`${this.snapshot.red.profile.shortName} STA ${Math.round(this.snapshot.red.stamina)} DMG ${Math.round(this.snapshot.red.damage)}   ${this.snapshot.blue.profile.shortName} STA ${Math.round(this.snapshot.blue.stamina)} DMG ${Math.round(this.snapshot.blue.damage)}`);
   }
 }
