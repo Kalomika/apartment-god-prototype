@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "aesthetic_id": "grapple_gods_top_down_wrestling_line_art",
+  "camera": {
+    "type": "orthographic_top_down",
+    "notes": "Strict overhead read for gameplay. Do not drift into side view unless a grounded move requires a controlled tilt reference."
+  },
+  "style_target": "Realistic adult wrestler proportions in clean top down vector line art, rig friendly, readable at Phaser game scale.",
+  "first_test_pair": [
+    {
+      "id": "rex-sterling",
+      "name": "Rex Sterling",
+      "hair": "blonde",
+      "gear": "light gear",
+      "role": "blonde powerhouse ace"
+    },
+    {
+      "id": "dante-crowe",
+      "name": "Dante Crowe",
+      "hair": "dark",
+      "gear": "dark gear",
+      "role": "dark haired brawler"
+    }
+  ],
+  "forbidden_looks": [
+    "chibi",
+    "cute mascot",
+    "oversized head",
+    "toy figure",
+    "stick figure",
+    "thick comic ink",
+    "side view pose sheet",
+    "generic programmer art",
+    "visible disconnected body cuts",
+    "rubbery scale pulse animation"
+  ],
+  "body_parts": [
+    { "id": "head", "pivot": "neck_center", "visible_read": "hair crown and top plane of head" },
+    { "id": "hair_mass", "pivot": "head_top", "visible_read": "primary identity read from top down" },
+    { "id": "torso_hips_core", "pivot": "sternum_or_belly_center", "visible_read": "broad shoulders, chest mass, trunks and hips as one core" },
+    { "id": "left_upper_arm", "pivot": "left_shoulder" },
+    { "id": "left_forearm_hand", "pivot": "left_elbow" },
+    { "id": "right_upper_arm", "pivot": "right_shoulder" },
+    { "id": "right_forearm_hand", "pivot": "right_elbow" },
+    { "id": "left_upper_leg", "pivot": "left_hip" },
+    { "id": "left_lower_leg_boot", "pivot": "left_knee" },
+    { "id": "right_upper_leg", "pivot": "right_hip" },
+    { "id": "right_lower_leg_boot", "pivot": "right_knee" }
+  ],
+  "draw_order": [
+    "rear_lower_legs_and_boots",
+    "upper_legs_and_hips",
+    "torso_hips_core",
+    "upper_arms",
+    "forearms_and_hands",
+    "neck_and_head",
+    "hair_and_gear_details"
+  ],
+  "required_first_poses": [
+    { "id": "idle_standing", "notes": "Neutral top down standing read." },
+    { "id": "walk_step", "notes": "One boot forward, subtle knee and lower leg reveal." },
+    { "id": "run_step", "notes": "More dynamic stride, arms pump but stay readable from above." },
+    { "id": "crouched_ready", "notes": "Lower center of gravity, arms down and forward, shoulders wide." },
+    { "id": "grapple_ready", "notes": "Arms raised and open, hands readable for lock up." },
+    { "id": "supine_grounded", "notes": "Lying on back, face and chest plane slightly more visible." },
+    { "id": "seated_cross_legged", "notes": "Gimmick pose for yoga or taunt style behavior." }
+  ],
+  "repo_paths": {
+    "aesthetic_folder": "wrestling_sim/assets/aesthetics/top_down_wrestling",
+    "svg_folder": "wrestling_sim/assets/aesthetics/top_down_wrestling/svg",
+    "runtime_renderer": "wrestling_sim/web_phaser/src/render/WrestlerProxy.js"
+  }
+}
