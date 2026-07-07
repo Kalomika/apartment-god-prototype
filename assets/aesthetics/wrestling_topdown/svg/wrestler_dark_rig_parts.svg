@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-labelledby="title desc">
+  <title id="title">Top down wrestler rig parts, dark hair and dark gear</title>
+  <desc id="desc">Separated vector body pieces for a Phaser friendly top down wrestler rig reference.</desc>
+  <defs>
+    <style>
+      .label{font:700 18px Arial,sans-serif;fill:#071018;text-anchor:middle}
+      .small{font:700 12px Arial,sans-serif;fill:#071018;text-anchor:middle}
+      .ink{stroke:#071018;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+      .detail{stroke:#071018;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+      .skin{fill:#f1c7a0}
+      .gear{fill:#15171c}
+      .hair{fill:#211914}
+      .boot{fill:#111318}
+      .pivot{fill:#f8fbff;stroke:#071018;stroke-width:2}
+    </style>
+  </defs>
+
+  <text x="450" y="34" class="label">DARK WRESTLER, TOP DOWN RIG PARTS</text>
+
+  <g id="head_piece" transform="translate(95 130)">
+    <text x="0" y="-62" class="small">HEAD</text>
+    <ellipse class="skin ink" cx="0" cy="0" rx="30" ry="34"/>
+    <path class="hair ink" d="M-30 -7 C-27 -35 -7 -47 15 -41 C35 -36 39 -16 29 9 C13 0 -12 0 -30 -7 Z"/>
+    <circle class="pivot" cx="0" cy="28" r="5"/>
+  </g>
+
+  <g id="torso_core_piece" transform="translate(265 137)">
+    <text x="0" y="-70" class="small">TORSO AND HIPS CORE</text>
+    <path class="skin ink" d="M-65 -34 C-45 -62 45 -62 65 -34 C84 -6 71 47 43 72 C20 91 -20 91 -43 72 C-71 47 -84 -6 -65 -34 Z"/>
+    <path class="gear ink" d="M-42 48 C-20 61 20 61 42 48 L50 74 C25 91 -25 91 -50 74 Z"/>
+    <path class="detail" d="M-37 -17 C-18 -2 18 -2 37 -17 M0 1 L0 46 M-29 24 C-11 32 11 32 29 24"/>
+    <circle class="pivot" cx="-65" cy="-27" r="5"/>
+    <circle class="pivot" cx="65" cy="-27" r="5"/>
+    <circle class="pivot" cx="-30" cy="70" r="5"/>
+    <circle class="pivot" cx="30" cy="70" r="5"/>
+    <circle class="pivot" cx="0" cy="15" r="5"/>
+  </g>
+
+  <g id="upper_arm_left" transform="translate(455 130)">
+    <text x="0" y="-62" class="small">UPPER ARM L</text>
+    <path class="skin ink" d="M-16 -33 C12 -31 23 -8 16 27 C11 50 -19 47 -24 24 C-31 -8 -33 -29 -16 -33 Z"/>
+    <circle class="pivot" cx="0" cy="-25" r="5"/>
+    <circle class="pivot" cx="0" cy="39" r="5"/>
+  </g>
+
+  <g id="forearm_left" transform="translate(610 130)">
+    <text x="0" y="-62" class="small">FOREARM AND HAND L</text>
+    <path class="skin ink" d="M-12 -32 C13 -34 20 -15 15 19 C13 38 -10 45 -22 25 C-29 10 -27 -27 -12 -32 Z"/>
+    <path class="gear ink" d="M-17 8 C-6 13 5 13 17 8 L15 21 C5 28 -9 28 -20 21 Z"/>
+    <path class="skin ink" d="M-18 30 C-32 41 -25 60 -7 58 C12 56 21 38 7 27 Z"/>
+    <circle class="pivot" cx="0" cy="-27" r="5"/>
+  </g>
+
+  <g id="upper_arm_right" transform="translate(455 330)">
+    <text x="0" y="-62" class="small">UPPER ARM R</text>
+    <path class="skin ink" d="M16 -33 C-12 -31 -23 -8 -16 27 C-11 50 19 47 24 24 C31 -8 33 -29 16 -33 Z"/>
+    <circle class="pivot" cx="0" cy="-25" r="5"/>
+    <circle class="pivot" cx="0" cy="39" r="5"/>
+  </g>
+
+  <g id="forearm_right" transform="translate(610 330)">
+    <text x="0" y="-62" class="small">FOREARM AND HAND R</text>
+    <path class="skin ink" d="M12 -32 C-13 -34 -20 -15 -15 19 C-13 38 10 45 22 25 C29 10 27 -27 12 -32 Z"/>
+    <path class="gear ink" d="M17 8 C6 13 -5 13 -17 8 L-15 21 C-5 28 9 28 20 21 Z"/>
+    <path class="skin ink" d="M18 30 C32 41 25 60 7 58 C-12 56 -21 38 -7 27 Z"/>
+    <circle class="pivot" cx="0" cy="-27" r="5"/>
+  </g>
+
+  <g id="upper_leg_left" transform="translate(110 355)">
+    <text x="0" y="-68" class="small">UPPER LEG L</text>
+    <path class="skin ink" d="M-31 -44 C-7 -54 22 -42 31 -18 C41 11 20 68 -2 77 C-23 65 -40 11 -31 -44 Z"/>
+    <path class="gear ink" d="M-30 -43 C-8 -57 20 -53 32 -32 L28 -12 C8 -22 -10 -22 -30 -12 Z"/>
+    <circle class="pivot" cx="0" cy="-39" r="5"/>
+    <circle class="pivot" cx="0" cy="66" r="5"/>
+  </g>
+
+  <g id="lower_leg_left" transform="translate(265 355)">
+    <text x="0" y="-68" class="small">LOWER LEG AND BOOT L</text>
+    <path class="skin ink" d="M-22 -44 C8 -55 31 -36 25 1 C23 22 17 45 8 59 C-13 59 -27 34 -28 0 C-29 -21 -31 -37 -22 -44 Z"/>
+    <path class="boot ink" d="M-21 48 C-28 71 -16 94 6 94 C30 93 36 68 15 50 C4 55 -9 54 -21 48 Z"/>
+    <path class="detail" d="M-8 63 L12 82 M8 63 L-11 82"/>
+    <circle class="pivot" cx="0" cy="-38" r="5"/>
+  </g>
+
+  <g id="assembled_reference" transform="translate(780 245) scale(.72)">
+    <text x="0" y="-144" class="small">ASSEMBLED READ</text>
+    <use href="#torso_core_piece" transform="translate(-265 -137)"/>
+  </g>
+</svg>
