@@ -4,6 +4,7 @@ import { drawWorld } from './renderWorld.js';
 import { drawObjects } from './renderObjects.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
+import { drawOffsiteScene } from './offsiteScenes.js';
 import { syncPhoneUi } from './phoneUI.js';
 import { formatTime } from './renderHelpers.js';
 
@@ -59,44 +60,42 @@ function drawActivityCloneFx(ctx, state) {
 
 function drawStatus(ctx, state) {
   ctx.fillStyle = 'rgba(10,12,18,.72)';
-  ctx.fillRect(12, 10, 360, 34);
+  ctx.fillRect(12, 10, 390, 34);
   ctx.fillStyle = COLORS.text;
   ctx.font = '900 16px system-ui';
   const trash = state.garbage ? ` trash ${Math.round(state.garbage.kitchen || 0)}%` : '';
-  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode || 'guided'}${trash}`, 24, 32);
+  const invested = state.investments?.lifetime ? ` inv $${Math.round(state.investments.lifetime)}` : '';
+  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode || 'guided'}${trash}${invested}`, 24, 32);
 }
 
 function drawOverlay(ctx, state) {
   if (!state.offsite) return;
   const allPeopleAway = state.entities.filter(e => e.type === 'person').every(e => e.hidden);
-  const label = state.offsite.actionId.replaceAll('_', ' ');
+  const label = state.offsite.label || state.offsite.actionId.replaceAll('_', ' ');
   if (allPeopleAway) {
-    ctx.fillStyle = 'rgba(8,10,15,.72)';
-    ctx.fillRect(0, 0, PLAY_W, PLAY_H);
+    drawOffsiteScene(ctx, state);
     ctx.fillStyle = COLORS.text;
-    ctx.font = '900 36px system-ui';
+    ctx.font = '700 18px system-ui';
     ctx.textAlign = 'center';
-    ctx.fillText(`Time: ${label}`, PLAY_W / 2, 320);
-    ctx.font = '700 20px system-ui';
-    ctx.fillText(`Clock ${formatTime(state.time)}`, PLAY_W / 2, 358);
+    ctx.fillText(`Clock ${formatTime(state.time)}`, PLAY_W / 2, PLAY_H - 42);
     ctx.textAlign = 'left';
     return;
   }
   ctx.save();
-  const x = PLAY_W - 254;
+  const x = PLAY_W - 278;
   const y = 12;
   ctx.fillStyle = 'rgba(8,10,15,.82)';
-  ctx.fillRect(x, y, 242, 54);
+  ctx.fillRect(x, y, 266, 58);
   ctx.strokeStyle = 'rgba(241,198,106,.7)';
-  ctx.strokeRect(x, y, 242, 54);
+  ctx.strokeRect(x, y, 266, 58);
   ctx.fillStyle = '#f1c66a';
   ctx.beginPath();
-  ctx.arc(x + 28, y + 27, 11, 0, Math.PI * 2);
+  ctx.arc(x + 28, y + 28, 11, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = COLORS.text;
   ctx.font = '900 13px system-ui';
-  ctx.fillText(`Off site: ${label}`, x + 54, y + 23);
+  ctx.fillText(`Off site: ${label}`, x + 54, y + 24);
   ctx.font = '700 11px system-ui';
-  ctx.fillText(`${Math.ceil(state.offsite.t || 0)}s left`, x + 54, y + 42);
+  ctx.fillText(`${state.offsite.stage === 'plane' ? 'Plane travel' : 'Activity'} • ${Math.ceil((state.offsite.stage === 'plane' ? state.offsite.planeT : state.offsite.t) || 0)}s left`, x + 54, y + 44);
   ctx.restore();
 }
