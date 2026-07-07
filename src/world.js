@@ -89,13 +89,14 @@ export const objects = [
   { id: 'light_basement_game', label: 'Game Room Light', kind: 'light', floor: 2, room: 'basement_game', x: 494, y: 52, w: 22, h: 22, solid: false },
   { id: 'garage_entry_door', label: 'House Door', kind: 'stairs', floor: 3, room: 'garage_entry', x: 628, y: 506, w: 68, h: 34, solid: false, toFloor: 0, exitId: 'garage_door' },
   { id: 'garage_overhead_door', label: 'Overhead Garage Door', kind: 'garage_door', floor: 3, room: 'garage_bay', x: 118, y: 38, w: 548, h: 28, solid: false },
-  { id: 'car_1', label: 'Car', kind: 'car', floor: 3, room: 'garage_bay', x: 126, y: 138, w: 116, h: 230, solid: true },
-  { id: 'car_2', label: 'Second Car Slot', kind: 'car', floor: 3, room: 'garage_bay', x: 426, y: 138, w: 116, h: 230, solid: true },
-  { id: 'bike', label: 'Bicycle', kind: 'bike', floor: 3, room: 'garage_storage', x: 94, y: 520, w: 96, h: 34, solid: true },
-  { id: 'motorbike', label: 'Motorbike', kind: 'motorbike', floor: 3, room: 'garage_storage', x: 236, y: 510, w: 122, h: 48, solid: true },
+  { id: 'car_1', label: 'Family Car', kind: 'car', floor: 3, room: 'garage_bay', x: 126, y: 138, w: 116, h: 230, solid: true },
+  { id: 'car_2', label: 'Sports Car', kind: 'car', floor: 3, room: 'garage_bay', x: 426, y: 138, w: 116, h: 230, solid: true },
+  { id: 'bike', label: 'Bicycle', kind: 'bike', floor: 3, room: 'garage_storage', x: 126, y: 510, w: 34, h: 96, solid: true },
+  { id: 'motorbike', label: 'Motorbike', kind: 'motorbike', floor: 3, room: 'garage_storage', x: 260, y: 500, w: 48, h: 122, solid: true },
   { id: 'trash_outdoor', label: 'Outdoor Trash Bin', kind: 'outdoor_trash', floor: 4, room: 'yard', x: 70, y: 92, w: 54, h: 66, solid: false },
   { id: 'yard_back_door', label: 'House Door', kind: 'stairs', floor: 4, room: 'yard', x: 148, y: 560, w: 80, h: 34, solid: false, toFloor: 0, exitId: 'backyard_door' },
   { id: 'pet_flap_yard', label: 'Pet Flap', kind: 'stairs', floor: 4, room: 'yard', x: 240, y: 562, w: 50, h: 24, solid: false, toFloor: 0, exitId: 'pet_flap_front' },
+  { id: 'soccer_field', label: 'Backyard Soccer Field', kind: 'soccer_field', floor: 4, room: 'yard', x: 82, y: 190, w: 420, h: 300, solid: false, enterable: true },
   { id: 'swim_pool', label: 'Backyard Pool', kind: 'swim_pool', floor: 4, room: 'pool_area', x: 650, y: 92, w: 236, h: 190, solid: false, enterable: true },
   { id: 'kennel', label: 'Dog Kennel', kind: 'kennel', floor: 4, room: 'kennel_area', x: 688, y: 430, w: 112, h: 82, solid: true }
 ];
@@ -103,10 +104,20 @@ export const objects = [
 export function objectAt(x, y, floor) { return [...objects].reverse().find(o => o.floor === floor && x >= o.x && x <= o.x + o.w && y >= o.y && y <= o.y + o.h) || null; }
 export function roomAt(x, y, floor) { return floors[floor]?.rooms.find(r => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) || null; }
 export function getObject(id) { return objects.find(o => o.id === id) || null; }
-export function getStairExit(stairs) { if (!stairs || stairs.kind !== 'stairs') return null; if (stairs.exitId) return getObject(stairs.exitId); return objects.find(o => o.kind === 'stairs' && o.floor === stairs.toFloor && o.toFloor === stairs.floor) || null; }
-export function getTravelStair(currentFloor, targetFloor) { const direct = objects.find(o => o.kind === 'stairs' && o.floor === currentFloor && o.toFloor === targetFloor); if (direct) return direct; if (currentFloor !== 0) return objects.find(o => o.kind === 'stairs' && o.floor === currentFloor && o.toFloor === 0) || null; return objects.find(o => o.kind === 'stairs' && o.floor === currentFloor && o.toFloor === targetFloor) || null; }
+export function getStairExit(stairs) { if (!stairs || stairs.kind !== 'stairs') return null; return getObject(stairs.exitId); }
+export function getTravelStair(fromFloor, toFloor) {
+  if (fromFloor === toFloor) return null;
+  const direct = objects.find(o => o.kind === 'stairs' && o.floor === fromFloor && o.toFloor === toFloor);
+  if (direct) return direct;
+  if (fromFloor !== 0) return objects.find(o => o.kind === 'stairs' && o.floor === fromFloor && o.toFloor === 0) || null;
+  if (toFloor === 1) return getObject('stairs_down');
+  if (toFloor === 2) return getObject('basement_door');
+  if (toFloor === 3) return getObject('garage_door');
+  if (toFloor === 4) return getObject('backyard_door') || getObject('pet_flap_front');
+  return null;
+}
 export function clampToPlay(x, y) { return { x: Math.max(30, Math.min(PLAY_W - 30, x)), y: Math.max(30, Math.min(PLAY_H - 30, y)) }; }
-export function approachPoint(obj, action = '') { const cx = obj.x + obj.w / 2; const cy = obj.y + obj.h / 2; if (obj.enterable || ['sleep', 'nap', 'shower', 'toilet', 'swim', 'swim_together'].includes(action)) return clampToPlay(cx, cy); if (obj.kind === 'fridge') return clampToPlay(obj.x + obj.w + 44, cy); if (['stove', 'sink', 'desk'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36); if (obj.kind === 'pool_table') return clampToPlay(cx + 18, obj.y + obj.h + 48); if (obj.kind === 'arcade') return clampToPlay(cx, obj.y + obj.h + 34); if (obj.kind === 'game_console') return clampToPlay(cx, obj.y + obj.h + 54); if (obj.kind === 'dartboard') return clampToPlay(obj.x + obj.w + 80, cy + 12); if (obj.kind === 'treadmill') return clampToPlay(cx, cy); if (obj.kind === 'weight_bench') return clampToPlay(cx, cy + 4); if (obj.kind === 'heavy_bag') return clampToPlay(obj.x + obj.w / 2, obj.y + obj.h + 42); if (obj.kind === 'kennel') return clampToPlay(cx, obj.y + obj.h + 30); if (['trash_can', 'outdoor_trash'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 30); if (obj.kind === 'car') return clampToPlay(cx, obj.y + obj.h + 34); if (['bike', 'motorbike'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 40); if (obj.kind === 'tv') return clampToPlay(160, 214); if (obj.kind === 'couch') return clampToPlay(obj.x + obj.w / 2, obj.y + 34); if (obj.kind === 'door') return clampToPlay(obj.x + obj.w / 2, obj.y - 28); if (obj.kind === 'stairs') return clampToPlay(cx, obj.y + obj.h + 28); if (obj.kind === 'dog_bowl') return clampToPlay(obj.x + obj.w / 2, obj.y + obj.h + 30); if (obj.kind === 'light') return clampToPlay(obj.x - 26, obj.y + 10); return clampToPlay(cx, obj.y + obj.h + 32); }
+export function approachPoint(obj, action = '') { const cx = obj.x + obj.w / 2; const cy = obj.y + obj.h / 2; if (obj.enterable || ['sleep', 'nap', 'shower', 'toilet', 'swim', 'swim_together', 'soccer_practice', 'soccer_match'].includes(action)) return clampToPlay(cx, cy); if (obj.kind === 'fridge') return clampToPlay(obj.x + obj.w + 44, cy); if (['stove', 'sink', 'desk'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36); if (obj.kind === 'pool_table') return clampToPlay(cx + 18, obj.y + obj.h + 48); if (obj.kind === 'arcade') return clampToPlay(cx, obj.y + obj.h + 34); if (obj.kind === 'game_console') return clampToPlay(cx, obj.y + obj.h + 54); if (obj.kind === 'dartboard') return clampToPlay(obj.x + obj.w + 80, cy + 12); if (obj.kind === 'treadmill') return clampToPlay(cx, cy); if (obj.kind === 'weight_bench') return clampToPlay(cx, cy + 4); if (obj.kind === 'heavy_bag') return clampToPlay(obj.x + obj.w / 2, obj.y + obj.h + 42); if (obj.kind === 'kennel') return clampToPlay(cx, obj.y + obj.h + 30); if (['trash_can', 'outdoor_trash'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 30); if (obj.kind === 'car') return clampToPlay(obj.x + obj.w + 28, obj.y + obj.h * 0.62); if (['bike', 'motorbike'].includes(obj.kind)) return clampToPlay(cx + 28, cy); if (obj.kind === 'tv') return clampToPlay(160, 214); if (obj.kind === 'couch') return clampToPlay(obj.x + obj.w / 2, obj.y + 34); if (obj.kind === 'door') return clampToPlay(obj.x + obj.w / 2, obj.y - 28); if (obj.kind === 'stairs') return clampToPlay(cx, obj.y + obj.h + 28); if (obj.kind === 'dog_bowl') return clampToPlay(obj.x + obj.w / 2, obj.y + obj.h + 30); if (obj.kind === 'light') return clampToPlay(obj.x - 26, obj.y + 10); return clampToPlay(cx, obj.y + obj.h + 32); }
 export function solidObjects(floor, allowId = '') { return objects.filter(o => o.floor === floor && o.solid && !o.enterable && o.id !== allowId); }
 export function expandedRect(o, pad = 18) { return { x: o.x - pad, y: o.y - pad, w: o.w + pad * 2, h: o.h + pad * 2 }; }
 export function pointInRect(x, y, r) { return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h; }
