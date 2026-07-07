@@ -89,7 +89,15 @@ function canInviteeJoin(state, actor, invitee) {
 }
 
 export function throwFetchBall(state, x, y) { if (!state.fetch || state.fetch.phase !== 'ready') return false; const dog = byId(state, state.fetch.dogId); const actor = byId(state, state.fetch.actorId); if (!dog || !actor) return false; return startFetchThrow(state, actor, dog, x, y); }
-export function updateActions(state, dt) { for (const e of state.entities) { if (e.hidden) continue; if (e.bubbleT > 0) e.bubbleT -= dt; if (e.actionT > 0) { e.actionT -= dt; if (e.actionT <= 0) finishAction(state, e); } } if (state.offsite) { state.offsite.t -= dt; state.time += dt * 22; if (state.offsite.t <= 0) finishOffsite(state); } state.tv.pulse += dt; }
+export function updateActions(state, dt) {
+  for (const e of state.entities) {
+    if (e.hidden) continue;
+    if (e.bubbleT > 0) e.bubbleT -= dt;
+    if (e.actionT > 0) { e.actionT -= dt; if (e.actionT <= 0) finishAction(state, e); }
+  }
+  if (state.offsite) updateOffsite(state, dt);
+  state.tv.pulse += dt;
+}
 
 function finishAction(state, e) {
   const text = String(e.action || '').toLowerCase(); const continued = continueTrashRun(state, e, text); if (continued && text.includes('take trash out')) return;
@@ -121,12 +129,54 @@ function toggleRoomLight(state, entity) { const room = roomAt(entity.x, entity.y
 
 export function startOffsite(state, actor, actionId, invitedIds = []) {
   const party = buildParty(state, actor, invitedIds, actionId);
-  state.offsite = { actionId, t: ACTION_TIMES[actionId] ?? 10, actors: party.map(e => e.id) };
+  const activityT = ACTION_TIMES[actionId] ?? 10;
+  const travelT = ['work', 'errand'].includes(actionId) ? 3 : 5;
+  state.offsite = {
+    actionId,
+    stage: 'travel',
+    scene: sceneForOffsite(actionId),
+    t: travelT + activityT,
+    travelT,
+    travelTotal: travelT,
+    activityT,
+    activityTotal: activityT,
+    actors: party.map(e => e.id)
+  };
   for (const e of party) { e.hidden = true; e.action = actionId; e.path = []; say(e, 'GO'); }
   state.objectState.doorOpen = true;
   beginVehicleDeparture(state, actionId, party.map(e => e.id));
   log(state, `${actor.name} left for ${actionId.replaceAll('_', ' ')} with ${party.length - 1} guest(s).`);
 }
+
 function buildParty(state, actor, invitedIds, actionId) { const party = [actor]; for (const id of invitedIds || []) { const e = byId(state, id); if (!e || e.id === actor.id || e.hidden) continue; if (e.type === 'dog' && !['errand', 'mall', 'date', 'movies', 'dog_park'].includes(actionId)) continue; const current = String(e.action || '').toLowerCase(); const urgent = e.actionT > 0 || e.path?.length || current.includes('toilet') || current.includes('shower') || (e.needs?.bladder ?? 100) < 25 || (e.needs?.hunger ?? 100) < 20; if (urgent) { say(e, 'not rn'); log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}.`); continue; } say(e, 'yeah'); party.push(e); } return party; }
+
+function sceneForOffsite(actionId) {
+  const scenes = {
+    movies: { id: 'movie_theater', title: 'Movie Theater', activity: 'watching the movie' },
+    date: { id: 'date_night', title: 'Date Night', activity: 'date night' },
+    mall: { id: 'mall', title: 'Mall', activity: 'shopping' },
+    work: { id: 'work', title: 'Work', activity: 'working' },
+    errand: { id: 'errand', title: 'Errand', activity: 'running errands' }
+  };
+  return scenes[actionId] || { id: 'away', title: actionId.replaceAll('_', ' '), activity: actionId.replaceAll('_', ' ') };
+}
+
+function updateOffsite(state, dt) {
+  const job = state.offsite;
+  job.t = Math.max(0, (job.travelT || 0) + (job.activityT || 0));
+  state.time += dt * 22;
+  if (job.stage === 'travel') {
+    job.travelT -= dt;
+    if (job.travelT <= 0) {
+      job.travelT = 0;
+      job.stage = 'activity';
+      log(state, `${job.scene?.title || job.actionId} loaded. Activity started.`);
+    }
+    return;
+  }
+  job.activityT -= dt;
+  if (job.activityT <= 0) finishOffsite(state);
+}
+
 function finishOffsite(state) { const action = state.offsite.actionId; for (const id of state.offsite.actors) { const e = byId(state, id); if (e) { e.hidden = false; e.floor = 0; e.x = 250; e.y = 586; e.action = 'Returned'; e.pose = 'stand'; changeNeed(e, 'fun', action === 'work' ? -5 : 22); changeNeed(e, 'hunger', -12); changeNeed(e, 'energy', -12); changeNeed(e, 'freshness', -3); if (action === 'movies') addGarbageFromAction(state, 'popcorn', e); } } log(state, `Returned from ${action.replaceAll('_', ' ')}.`); state.offsite = null; state.objectState.doorOpen = false; }
 function speechFor(actionId) { const map = { shower: '🚿', toilet: '🚽', snack: '🍎', meal: '🍳', bring_food: '🍽️', comedy: '😂', horror: '😱', sports: '🏆', phone: '📱', play_game: '🎮', sleep: '😴', nap: '😴', kiss: '😘', cuddle: '🤗', tickle: '😂', hands: '🤝', watch_together: '📺', bed_together: '🛏️', intimacy: '❤️', pet: '🐾', train: '🎾', feed_dog: '🍖', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'KENNEL', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
