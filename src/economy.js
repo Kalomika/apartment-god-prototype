@@ -60,16 +60,33 @@ export function updateDelivery(state, dt) {
   }
 
   if (job.phase === 'exchange' && job.t <= 0) {
+    job.phase = 'eating';
+    job.t = 6;
+    job.bubble = 'ENJOY';
+    job.x = 220;
+    job.y = 646;
+    state.objectState.doorOpen = false;
+    actor.action = 'Eating delivered food';
+    actor.actionT = 6;
+    actor.actionTotal = 6;
+    actor.pose = 'sit';
+    actor.carrying = 'food bag';
+    say(actor, 'EAT');
+    log(state, `${actor.name} collected the delivery and is eating now.`);
+    return;
+  }
+
+  if (job.phase === 'eating' && job.t <= 0) {
     changeNeed(actor, 'hunger', 30);
     changeNeed(actor, 'fun', 3);
     addGarbage(state, 'delivery', 14, actor);
     setMood(actor, 'happy');
-    say(actor, 'EAT');
-    actor.action = 'Ate delivered food';
+    say(actor, 'DONE');
+    actor.action = 'Finished delivery meal';
     actor.actionT = 0;
     actor.actionTotal = 0;
-    state.objectState.doorOpen = false;
-    log(state, `${actor.name} picked up and ate the delivered food.`);
+    actor.carrying = null;
+    log(state, `${actor.name} finished the delivered food.`);
     state.delivery = null;
   }
 }
@@ -83,6 +100,7 @@ export function buyWorkoutGear(state, actor) {
   }
   actor.action = 'Ordering workout gear';
   actor.actionT = 5;
+  actor.actionTotal = 5;
   actor.pose = 'sit';
   setMood(actor, 'phone');
   say(actor, 'GYM');
