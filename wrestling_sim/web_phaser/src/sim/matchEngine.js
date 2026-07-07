@@ -80,6 +80,7 @@ export class MatchEngine {
     this.beatTimer = 0;
     this.matchClock = 0;
     this.pendingSuggestion = null;
+    this.pendingSuggestionLabel = null;
     this.lastLog = 'The bell rings. Grapple Gods is live.';
     this.countOut = 0;
   }
@@ -97,12 +98,15 @@ export class MatchEngine {
       facing: 0,
       downTimer: 0,
       ropeRunTimer: 0,
+      pinTimer: 0,
       lastMove: null
     };
   }
 
   queueSuggestion(moveId) {
+    const move = getMoveById(moveId);
     this.pendingSuggestion = moveId;
+    this.pendingSuggestionLabel = move?.label ?? moveId;
   }
 
   getChoiceList() {
@@ -127,6 +131,15 @@ export class MatchEngine {
   }
 
   updateContinuousMotion(actor, opponent, dt) {
+    if (actor.state === 'pinned') {
+      actor.pinTimer -= dt;
+      if (actor.pinTimer <= 0) {
+        actor.state = 'downed';
+        actor.downTimer = 0.9;
+      }
+      return;
+    }
+
     if (actor.state === 'downed' || actor.state === 'selling') {
       actor.downTimer -= dt;
       if (actor.downTimer <= 0) {
@@ -183,11 +196,16 @@ export class MatchEngine {
   pickMoveFor(actor, opponent, isPlayerSide) {
     if (isPlayerSide && this.pendingSuggestion) {
       const suggested = getMoveById(this.pendingSuggestion);
+      const label = this.pendingSuggestionLabel;
       this.pendingSuggestion = null;
+      this.pendingSuggestionLabel = null;
+
       if (wantsToAcceptSuggestion(actor, suggested)) {
+        this.lastLog = `${actor.profile.name} accepts the GM suggestion: ${label}.`;
         return suggested;
       }
-      this.lastLog = `${actor.profile.name} heard the call for ${suggested?.label ?? 'something'}, but ignored it and followed instinct.`;
+
+      this.lastLog = `${actor.profile.name} heard the call for ${label}, but ignored it and followed instinct.`;
     }
 
     return chooseAutonomousMove(actor, opponent);
@@ -276,7 +294,8 @@ export class MatchEngine {
     if (move.id === 'pin_attempt') {
       actor.state = 'pinning';
       opponent.state = 'pinned';
-      const kickoutChance = clamp(78 - opponent.damage + opponent.grit * 0.1, 5, 92);
+      opponent.pinTimer = 1.2;
+      const kickoutChance = clamp(78 - opponent.damage + opponent.profile.grit * 0.1, 5, 92);
       this.lastLog = `${actor.profile.name} ${move.log}. Kickout chance is roughly ${Math.round(kickoutChance)} percent in this prototype.`;
     }
   }
