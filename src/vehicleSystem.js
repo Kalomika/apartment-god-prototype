@@ -1,15 +1,33 @@
 import { addGarbageFromAction } from './garbage.js';
 import { byId, changeNeed, log, say } from './state.js';
+import { getObject } from './world.js';
+
+function chosenCar() {
+  return getObject('car_1') || getObject('car_2') || { id: 'car_1', x: 126, y: 138, w: 116, h: 230 };
+}
+
+function driveVector(car, leaving = true) {
+  const vertical = car.h >= car.w;
+  if (vertical) return { x: 0, y: leaving ? -1 : 1 };
+  return { x: leaving ? 1 : -1, y: 0 };
+}
 
 export function beginVehicleDeparture(state, actionId, partyIds = []) {
+  const car = chosenCar();
+  const dir = driveVector(car, true);
+  state.objectState.vehicleInUse = car.id;
   state.vehicleDeparture = {
     actionId,
     partyIds,
+    vehicleId: car.id,
     t: 0,
     phase: 'opening',
     floor: 3,
-    x: 188,
-    y: 166,
+    x: car.x,
+    y: car.y,
+    w: car.w,
+    h: car.h,
+    dir,
     open: false
   };
   state.objectState.garageDoorOpen = true;
@@ -18,16 +36,24 @@ export function beginVehicleDeparture(state, actionId, partyIds = []) {
   log(state, `Garage door opening for ${actionId.replaceAll('_', ' ')}.`);
 }
 
-export function beginVehicleReturn(state, actionId, partyIds = []) {
+export function beginVehicleReturn(state, actionId, partyIds = [], vehicleId = state.objectState.vehicleInUse || 'car_1') {
+  const car = getObject(vehicleId) || chosenCar();
+  const vertical = car.h >= car.w;
+  state.objectState.vehicleInUse = car.id;
   state.vehicleReturn = {
     actionId,
     partyIds,
+    vehicleId: car.id,
     t: 0,
     phase: 'arriving',
     floor: 3,
-    x: 126,
-    y: -190,
-    parkY: 138,
+    x: vertical ? car.x : -car.w - 40,
+    y: vertical ? -car.h - 40 : car.y,
+    parkX: car.x,
+    parkY: car.y,
+    w: car.w,
+    h: car.h,
+    dir: driveVector(car, false),
     open: true
   };
   state.objectState.garageDoorOpen = true;
@@ -46,8 +72,12 @@ function updateVehicleLeaving(state, dt) {
   if (!v) return;
   v.t += dt;
   if (v.t > 0.8) { v.phase = 'leaving'; v.open = true; }
-  if (v.phase === 'leaving') v.y -= dt * 110;
-  if (v.t > 4) {
+  if (v.phase === 'leaving') {
+    v.x += v.dir.x * dt * 135;
+    v.y += v.dir.y * dt * 135;
+  }
+  const gone = v.y + v.h < -30 || v.y > 760 || v.x + v.w < -30 || v.x > 990;
+  if (gone || v.t > 5) {
     state.objectState.garageDoorOpen = false;
     state.vehicleDeparture = null;
   }
@@ -58,8 +88,10 @@ function updateVehicleReturning(state, dt) {
   if (!v) return;
   v.t += dt;
   if (v.phase === 'arriving') {
-    v.y = Math.min(v.parkY, v.y + dt * 135);
-    if (v.y >= v.parkY) {
+    v.x = approach(v.x, v.parkX, dt * 135);
+    v.y = approach(v.y, v.parkY, dt * 135);
+    if (Math.abs(v.x - v.parkX) < 1 && Math.abs(v.y - v.parkY) < 1) {
+      v.x = v.parkX;
       v.y = v.parkY;
       v.phase = 'parking';
       v.t = 0;
@@ -92,6 +124,12 @@ function updateVehicleReturning(state, dt) {
   }
 }
 
+function approach(value, target, step) {
+  if (value < target) return Math.min(target, value + step);
+  if (value > target) return Math.max(target, value - step);
+  return value;
+}
+
 function finishVehicleReturn(state, v) {
   const action = v.actionId;
   for (const id of v.partyIds || []) {
@@ -113,6 +151,7 @@ function finishVehicleReturn(state, v) {
     if (action === 'movies') addGarbageFromAction(state, 'popcorn', e);
   }
   state.objectState.garageDoorOpen = false;
+  state.objectState.vehicleInUse = null;
   state.vehicleReturn = null;
   log(state, `Returned from ${action.replaceAll('_', ' ')}.`);
 }
