@@ -53,6 +53,7 @@ export function createState() {
     investments: { holdings: {}, tick: 0, lifetime: 0 },
     rewards: { freeTickets: {}, messages: [] },
     secretLog: { used: {}, lastRewardAt: 0 },
+    careers: { workHours: 0, movieTheaterHours: 0, airlineHours: 0 },
     garbage: { kitchen: 0, bagsOutside: 0, looseItems: [] },
     roomLights: {
       living: true, kitchen: true, bath: true, entry: true, stairs: true,
