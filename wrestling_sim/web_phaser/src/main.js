@@ -2,10 +2,13 @@ import Phaser from 'phaser';
 import './styles.css';
 import { ArenaScene } from './scenes/ArenaScene.js';
 
+const deviceResolution = Math.min(window.devicePixelRatio || 1, 2.5);
+
 const config = {
   type: Phaser.AUTO,
   parent: 'game-root',
   backgroundColor: '#080808',
+  resolution: deviceResolution,
   scale: {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -18,7 +21,8 @@ const config = {
   },
   render: {
     antialias: true,
-    roundPixels: false
+    antialiasGL: true,
+    roundPixels: true
   },
   input: {
     activePointers: 4
