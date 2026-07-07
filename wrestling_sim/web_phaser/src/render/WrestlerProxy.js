@@ -3,17 +3,14 @@ export class WrestlerProxy {
     this.scene = scene;
     this.profile = profile;
     this.container = scene.add.container(0, 0);
-    this.shadow = scene.add.graphics();
     this.graphics = scene.add.graphics();
     this.nameText = scene.add.text(0, 0, profile.shortName, {
       fontFamily: 'Arial',
-      fontSize: '11px',
-      color: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 3
+      fontSize: '10px',
+      color: '#2f2f2f'
     }).setOrigin(0.5, 0);
 
-    this.container.add([this.shadow, this.graphics, this.nameText]);
+    this.container.add([this.graphics, this.nameText]);
     this.state = 'idle';
     this.scale = 1;
     this.draw();
@@ -41,110 +38,211 @@ export class WrestlerProxy {
 
   draw() {
     const g = this.graphics;
-    const s = this.shadow;
     g.clear();
-    s.clear();
 
-    const line = this.profile.outlineColor ?? 0x050505;
-    const skin = 0xf2f2f2;
-    const gear = this.profile.gearColor ?? 0xdedede;
+    const ink = 0x3d3d3d;
+    const softInk = 0x7a7a7a;
+    const skin = 0xffffff;
+    const gear = this.profile.gearColor ?? 0xf1f1f1;
     const hair = this.profile.hairColor ?? 0x111111;
-    const sellingSquash = this.state === 'downed' || this.state === 'pinned';
-    const strikeReach = this.state === 'striking' ? 14 : 0;
-    const lockRaise = this.state === 'lockup' || this.state === 'grappleAdvantage' ? -12 : 0;
-    const runLean = this.state === 'ropeRun' || this.state === 'closingDistance' ? 6 : 0;
 
-    s.fillStyle(0x000000, 0.24);
-    s.fillEllipse(0, 18, 78, 112);
+    const isLocking = this.state === 'lockup' || this.state === 'grappleAdvantage';
+    const isStriking = this.state === 'striking';
+    const isRunning = this.state === 'ropeRun' || this.state === 'closingDistance';
+    const isDown = this.state === 'downed' || this.state === 'pinned';
+    const isSelling = this.state === 'selling' || this.state === 'recovering';
 
-    // Legs, visible from strict overhead with staggered stance.
-    const leftLegForward = 48 + runLean;
-    const rightLegForward = 34 - runLean * 0.35;
-    this.drawCapsule(g, -15, 17, -25, leftLegForward, 7.5, skin, line);
-    this.drawCapsule(g, 15, 17, 23, rightLegForward, 7.5, skin, line);
-    this.drawCapsule(g, -25, leftLegForward - 2, -30, leftLegForward + 20, 8.5, gear, line);
-    this.drawCapsule(g, 23, rightLegForward - 2, 29, rightLegForward + 21, 8.5, gear, line);
+    if (isDown) {
+      this.drawDownedFigure(g, ink, softInk, skin, gear, hair);
+      this.nameText.setY(45);
+      return;
+    }
+
+    const armReach = isLocking ? -24 : 0;
+    const strikeReach = isStriking ? -34 : 0;
+    const step = isRunning ? 11 : isSelling ? 5 : 0;
+    const shoulderTilt = isSelling ? 5 : 0;
+
+    // Thin architectural sketch silhouette, not chunky capsule art.
+    // Legs first, staggered from direct overhead.
+    this.drawLimb(g, [-13, 18], [-18, 43 + step], [-15, 62 + step * 0.2], 5.2, ink, skin);
+    this.drawLimb(g, [13, 18], [20, 35 - step * 0.45], [22, 54 - step * 0.35], 5.2, ink, skin);
+
+    // Boots as small directional ovals.
+    this.drawShoe(g, -16, 64 + step * 0.2, -0.25, ink, gear);
+    this.drawShoe(g, 23, 56 - step * 0.35, 0.25, ink, gear);
 
     // Knee pads.
-    g.fillStyle(gear, 1);
-    g.lineStyle(2, line, 1);
-    g.fillEllipse(-21, 34, 19, 13);
-    g.strokeEllipse(-21, 34, 19, 13);
-    g.fillEllipse(19, 30, 19, 13);
-    g.strokeEllipse(19, 30, 19, 13);
+    this.strokeEllipse(g, -18, 42 + step, 14, 9, ink, gear, 1.4);
+    this.strokeEllipse(g, 20, 35 - step * 0.45, 14, 9, ink, gear, 1.4);
 
-    // Torso shoulders and trunks. This is direct overhead, no camera angle.
+    // Torso, shoulder line, trunks.
+    g.lineStyle(1.7, ink, 1);
     g.fillStyle(skin, 1);
-    g.lineStyle(3, line, 1);
-    g.fillEllipse(0, -5, 70, 49);
-    g.strokeEllipse(0, -5, 70, 49);
-    g.fillEllipse(-29, -9, 19, 26);
-    g.strokeEllipse(-29, -9, 19, 26);
-    g.fillEllipse(29, -9, 19, 26);
-    g.strokeEllipse(29, -9, 19, 26);
+    g.beginPath();
+    g.moveTo(-33, -18 + shoulderTilt);
+    g.quadraticCurveTo(-22, -34, -5, -35);
+    g.quadraticCurveTo(17, -36, 34, -18 - shoulderTilt);
+    g.quadraticCurveTo(35, 0, 24, 15);
+    g.quadraticCurveTo(12, 27, 0, 27);
+    g.quadraticCurveTo(-14, 27, -25, 15);
+    g.quadraticCurveTo(-36, 0, -33, -18 + shoulderTilt);
+    g.closePath();
+    g.fillPath();
+    g.strokePath();
 
+    // Trunks and waist.
     g.fillStyle(gear, 1);
-    g.fillEllipse(0, 22, 45, 27);
-    g.strokeEllipse(0, 22, 45, 27);
-    g.lineStyle(2, line, 1);
-    g.lineBetween(-22, 10, 22, 10);
+    g.beginPath();
+    g.moveTo(-23, 12);
+    g.quadraticCurveTo(-11, 25, 0, 27);
+    g.quadraticCurveTo(12, 25, 23, 12);
+    g.quadraticCurveTo(14, 35, 0, 35);
+    g.quadraticCurveTo(-14, 35, -23, 12);
+    g.closePath();
+    g.fillPath();
+    g.strokePath();
 
-    // Arms, separated into upper arm and forearm so they can later become rig bones.
-    this.drawCapsule(g, -33, -5, -48, 18 + lockRaise, 8, skin, line);
-    this.drawCapsule(g, -48, 18 + lockRaise, -38, 42 + lockRaise, 7, skin, line);
-    this.drawCapsule(g, 33, -5, 48 + strikeReach, 18 + lockRaise, 8, skin, line);
-    this.drawCapsule(g, 48 + strikeReach, 18 + lockRaise, 38 + strikeReach, 42 + lockRaise, 7, skin, line);
+    // Simple internal anatomy and gear lines like the references.
+    g.lineStyle(1, softInk, 0.55);
+    g.beginPath();
+    g.moveTo(0, -28);
+    g.lineTo(0, 4);
+    g.moveTo(-18, -14);
+    g.quadraticCurveTo(-8, -7, -2, -6);
+    g.moveTo(18, -14);
+    g.quadraticCurveTo(8, -7, 2, -6);
+    g.moveTo(-20, 15);
+    g.quadraticCurveTo(0, 21, 20, 15);
+    g.strokePath();
+
+    // Arms with proper overhead shoulder, elbow, wrist construction.
+    this.drawLimb(g, [-31, -15 + shoulderTilt], [-44, 4 + armReach], [-38, 27 + armReach], 4.8, ink, skin);
+    this.drawLimb(g, [31, -15 - shoulderTilt], [45, 4 + armReach + strikeReach * 0.45], [39, 27 + armReach + strikeReach], 4.8, ink, skin);
 
     // Wrist tape and hands.
-    g.fillStyle(gear, 1);
-    g.fillCircle(-41, 35 + lockRaise, 6);
-    g.strokeCircle(-41, 35 + lockRaise, 6);
-    g.fillCircle(41 + strikeReach, 35 + lockRaise, 6);
-    g.strokeCircle(41 + strikeReach, 35 + lockRaise, 6);
-    g.fillStyle(skin, 1);
-    g.fillEllipse(-38, 48 + lockRaise, 14, 11);
-    g.strokeEllipse(-38, 48 + lockRaise, 14, 11);
-    g.fillEllipse(38 + strikeReach, 48 + lockRaise, 14, 11);
-    g.strokeEllipse(38 + strikeReach, 48 + lockRaise, 14, 11);
+    this.strokeEllipse(g, -38, 27 + armReach, 9, 7, ink, gear, 1.2);
+    this.strokeEllipse(g, 39, 27 + armReach + strikeReach, 9, 7, ink, gear, 1.2);
+    this.drawHand(g, -38, 38 + armReach, ink, skin, -0.2);
+    this.drawHand(g, 39, 38 + armReach + strikeReach, ink, skin, 0.2);
 
-    // Head and hair mass, direct top of head with no facial angle.
-    g.fillStyle(skin, 1);
-    g.fillEllipse(0, -43, 28, 36);
-    g.strokeEllipse(0, -43, 28, 36);
-    g.fillStyle(hair, 1);
+    // Head and hair, faceless top of head.
+    this.strokeEllipse(g, 0, -49, 23, 30, ink, skin, 1.7);
     if (this.profile.hair === 'bald') {
-      g.fillEllipse(0, -51, 14, 7);
+      g.lineStyle(1, softInk, 0.45);
+      g.beginPath();
+      g.moveTo(-7, -58);
+      g.quadraticCurveTo(0, -63, 7, -58);
+      g.strokePath();
     } else {
-      g.fillEllipse(0, -56, 29, 13);
-      g.fillEllipse(-9, -51, 10, 8);
-      g.fillEllipse(9, -51, 10, 8);
+      g.fillStyle(hair, 1);
+      g.lineStyle(1.2, ink, 1);
+      g.beginPath();
+      g.moveTo(-13, -60);
+      g.quadraticCurveTo(-7, -72, 4, -68);
+      g.quadraticCurveTo(17, -64, 12, -53);
+      g.quadraticCurveTo(4, -57, -3, -55);
+      g.quadraticCurveTo(-9, -53, -13, -60);
+      g.closePath();
+      g.fillPath();
+      g.strokePath();
     }
 
-    // State readability markers.
-    if (this.state === 'grappleAdvantage' || this.state === 'advantage') {
-      g.lineStyle(2, 0x000000, 0.8);
-      g.strokeCircle(0, -3, 41);
+    // Lockup hint, arms actually raised forward instead of wobbling in place.
+    if (isLocking) {
+      g.lineStyle(1.2, softInk, 0.75);
+      g.strokeCircle(0, -2, 36);
     }
 
-    if (sellingSquash) {
-      this.container.setAngle(90);
-    } else if (this.container.angle === 90) {
-      this.container.setAngle(0);
-    }
-
-    this.nameText.setY(68);
+    this.nameText.setY(70);
   }
 
-  drawCapsule(g, x1, y1, x2, y2, radius, fill, line) {
-    g.lineStyle(radius * 2 + 2, line, 1);
-    g.lineBetween(x1, y1, x2, y2);
-    g.lineStyle(radius * 2, fill, 1);
-    g.lineBetween(x1, y1, x2, y2);
+  drawDownedFigure(g, ink, softInk, skin, gear, hair) {
+    // Side lying top down silhouette for selling and pin states.
+    g.lineStyle(1.7, ink, 1);
+    g.fillStyle(skin, 1);
+
+    g.beginPath();
+    g.moveTo(-36, -11);
+    g.quadraticCurveTo(-15, -35, 18, -24);
+    g.quadraticCurveTo(40, -14, 36, 8);
+    g.quadraticCurveTo(16, 25, -18, 18);
+    g.quadraticCurveTo(-40, 11, -36, -11);
+    g.closePath();
+    g.fillPath();
+    g.strokePath();
+
+    this.strokeEllipse(g, 47, -12, 25, 22, ink, skin, 1.6);
+    g.fillStyle(hair, 1);
+    g.fillEllipse(55, -18, 15, 8);
+
+    this.drawLimb(g, [-11, 15], [-26, 36], [-48, 46], 4.5, ink, skin);
+    this.drawLimb(g, [8, 17], [18, 39], [41, 45], 4.5, ink, skin);
+    this.drawShoe(g, -51, 47, -0.9, ink, gear);
+    this.drawShoe(g, 44, 46, 0.7, ink, gear);
+    this.drawLimb(g, [-20, -14], [-43, -21], [-55, -2], 4.2, ink, skin);
+    this.drawLimb(g, [18, -20], [33, -38], [51, -34], 4.2, ink, skin);
+    this.drawHand(g, -58, 1, ink, skin, -0.7);
+    this.drawHand(g, 54, -34, ink, skin, 0.4);
+
+    g.lineStyle(1, softInk, 0.45);
+    g.beginPath();
+    g.moveTo(-22, -15);
+    g.quadraticCurveTo(0, -6, 24, -14);
+    g.moveTo(-16, 6);
+    g.quadraticCurveTo(5, 14, 28, 5);
+    g.strokePath();
+  }
+
+  drawLimb(g, shoulder, elbow, wrist, width, ink, fill) {
+    const [sx, sy] = shoulder;
+    const [ex, ey] = elbow;
+    const [wx, wy] = wrist;
+
+    g.lineStyle(width + 2.0, ink, 1);
+    g.beginPath();
+    g.moveTo(sx, sy);
+    g.quadraticCurveTo(ex, ey, wx, wy);
+    g.strokePath();
+
+    g.lineStyle(width, fill, 1);
+    g.beginPath();
+    g.moveTo(sx, sy);
+    g.quadraticCurveTo(ex, ey, wx, wy);
+    g.strokePath();
+
+    g.lineStyle(1.1, ink, 1);
+    g.beginPath();
+    g.moveTo(sx, sy);
+    g.quadraticCurveTo(ex, ey, wx, wy);
+    g.strokePath();
+  }
+
+  drawHand(g, x, y, ink, fill, lean) {
     g.fillStyle(fill, 1);
-    g.fillCircle(x1, y1, radius);
-    g.fillCircle(x2, y2, radius);
-    g.lineStyle(2, line, 1);
-    g.strokeCircle(x1, y1, radius);
-    g.strokeCircle(x2, y2, radius);
+    g.lineStyle(1.2, ink, 1);
+    g.beginPath();
+    g.moveTo(x - 4 + lean * 4, y - 4);
+    g.quadraticCurveTo(x, y - 8, x + 5 + lean * 4, y - 4);
+    g.quadraticCurveTo(x + 6, y + 3, x + 1, y + 7);
+    g.quadraticCurveTo(x - 5, y + 4, x - 4 + lean * 4, y - 4);
+    g.closePath();
+    g.fillPath();
+    g.strokePath();
+  }
+
+  drawShoe(g, x, y, lean, ink, fill) {
+    g.save();
+    g.translateCanvas(x, y);
+    g.rotateCanvas(lean);
+    this.strokeEllipse(g, 0, 0, 10, 18, ink, fill, 1.2);
+    g.restore();
+  }
+
+  strokeEllipse(g, x, y, w, h, ink, fill, lineWidth = 1.5) {
+    g.fillStyle(fill, 1);
+    g.lineStyle(lineWidth, ink, 1);
+    g.fillEllipse(x, y, w, h);
+    g.strokeEllipse(x, y, w, h);
   }
 }
