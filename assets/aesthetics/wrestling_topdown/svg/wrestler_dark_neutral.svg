@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Top down wrestler, dark hair and dark gear, neutral pose</title>
+  <desc id="desc">Clean vector line art reference for a top down rig friendly adult wrestler.</desc>
+  <defs>
+    <style>
+      .ink{stroke:#071018;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+      .detail{stroke:#071018;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+      .skin{fill:#f1c7a0}
+      .skin2{fill:#e4ad82}
+      .gear{fill:#15171c}
+      .hair{fill:#211914}
+      .boot{fill:#111318}
+      .tape{fill:#f3efe5}
+    </style>
+  </defs>
+
+  <ellipse cx="128" cy="140" rx="62" ry="86" fill="rgba(0,0,0,0.14)"/>
+
+  <g id="rear_legs">
+    <path class="skin ink" d="M99 151 C91 166 86 185 89 204 C91 216 100 221 109 213 C117 203 121 179 118 157 Z"/>
+    <path class="skin ink" d="M157 151 C165 166 170 185 167 204 C165 216 156 221 147 213 C139 203 135 179 138 157 Z"/>
+    <path class="boot ink" d="M88 205 C85 218 88 231 100 235 C113 237 119 227 113 214 C106 214 97 211 88 205 Z"/>
+    <path class="boot ink" d="M168 205 C171 218 168 231 156 235 C143 237 137 227 143 214 C150 214 159 211 168 205 Z"/>
+  </g>
+
+  <g id="torso_core">
+    <path class="skin ink" d="M75 88 C83 73 101 67 128 68 C155 67 173 73 181 88 C190 107 184 137 170 154 C159 166 145 172 128 172 C111 172 97 166 86 154 C72 137 66 107 75 88 Z"/>
+    <path class="gear ink" d="M90 143 C104 151 115 154 128 154 C141 154 152 151 166 143 L170 162 C157 172 141 177 128 177 C115 177 99 172 86 162 Z"/>
+    <path class="detail" d="M98 94 C107 104 116 109 128 109 C140 109 149 104 158 94"/>
+    <path class="detail" d="M128 111 L128 145"/>
+    <path class="detail" d="M105 126 C116 131 140 131 151 126"/>
+  </g>
+
+  <g id="arms">
+    <path class="skin ink" d="M79 91 C62 99 54 118 56 139 C57 150 66 158 76 152 C83 147 81 136 79 126 C77 113 79 101 84 93 Z"/>
+    <path class="skin ink" d="M177 91 C194 99 202 118 200 139 C199 150 190 158 180 152 C173 147 175 136 177 126 C179 113 177 101 172 93 Z"/>
+    <path class="skin ink" d="M60 141 C54 151 53 164 61 171 C69 177 80 170 79 159 C76 150 69 145 60 141 Z"/>
+    <path class="skin ink" d="M196 141 C202 151 203 164 195 171 C187 177 176 170 177 159 C180 150 187 145 196 141 Z"/>
+    <rect x="56" y="139" width="19" height="11" rx="4" class="tape ink"/>
+    <rect x="181" y="139" width="19" height="11" rx="4" class="tape ink"/>
+  </g>
+
+  <g id="head">
+    <ellipse class="skin ink" cx="128" cy="72" rx="24" ry="28"/>
+    <path class="hair ink" d="M104 67 C105 42 121 34 137 38 C152 42 158 55 153 76 C139 69 119 69 104 67 Z"/>
+    <path class="detail" d="M114 83 C123 90 133 90 142 83"/>
+    <path class="detail" d="M113 55 C120 50 136 49 144 56"/>
+  </g>
+</svg>
