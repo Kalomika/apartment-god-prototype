@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">Grapple Gods first top down pose sheet reference</title>
+  <desc id="desc">Editable vector pose sheet showing the first readable top down wrestler poses for Rex and Dante.</desc>
+  <defs>
+    <style>
+      .label{font:700 20px Arial,sans-serif;fill:#071018;text-anchor:middle}
+      .small{font:700 12px Arial,sans-serif;fill:#071018;text-anchor:middle}
+      .ink{stroke:#071018;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+      .detail{stroke:#071018;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;fill:none}
+      .rexHair{fill:#d8b449}.rexGear{fill:#f4f4f4}.danteHair{fill:#1b1410}.danteGear{fill:#17191f}.skin{fill:#f8efe3}.boot{fill:#f4f4f4}.darkBoot{fill:#101217}
+    </style>
+    <g id="idle">
+      <path class="skin ink" d="M-22 -25 C-12 -40 12 -40 22 -25 C34 -5 24 28 0 33 C-24 28 -34 -5 -22 -25 Z"/>
+      <path class="skin ink" d="M-23 -19 C-42 -8 -46 16 -33 32"/>
+      <path class="skin ink" d="M23 -19 C42 -8 46 16 33 32"/>
+      <path class="skin ink" d="M-9 30 C-16 50 -16 72 -11 88"/>
+      <path class="skin ink" d="M9 30 C16 50 16 72 11 88"/>
+      <ellipse class="skin ink" cx="0" cy="-55" rx="17" ry="22"/>
+      <path class="gear ink gearSlot" d="M-16 22 C-5 31 5 31 16 22 L20 39 C8 45 -8 45 -20 39 Z"/>
+      <ellipse class="boot ink bootSlot" cx="-12" cy="94" rx="8" ry="13"/>
+      <ellipse class="boot ink bootSlot" cx="12" cy="94" rx="8" ry="13"/>
+      <path class="hair ink hairSlot" d="M-16 -62 C-13 -78 3 -85 16 -73 C22 -64 13 -56 0 -59 C-8 -57 -12 -58 -16 -62 Z"/>
+    </g>
+    <g id="walk">
+      <use href="#idle"/>
+      <path class="detail" d="M-17 55 C-29 67 -28 82 -17 94 M15 50 C22 60 20 76 12 90"/>
+    </g>
+    <g id="run">
+      <path class="skin ink" d="M-23 -28 C-12 -43 14 -42 25 -24 C34 -4 23 27 0 33 C-25 27 -35 -6 -23 -28 Z"/>
+      <path class="skin ink" d="M-24 -18 C-49 -18 -59 -1 -53 17"/>
+      <path class="skin ink" d="M24 -19 C48 -9 54 11 43 31"/>
+      <path class="skin ink" d="M-8 30 C-26 44 -36 67 -30 86"/>
+      <path class="skin ink" d="M10 30 C28 45 36 60 33 79"/>
+      <ellipse class="skin ink" cx="0" cy="-56" rx="17" ry="22"/>
+      <path class="gear ink gearSlot" d="M-16 22 C-5 31 5 31 16 22 L20 39 C8 45 -8 45 -20 39 Z"/>
+      <ellipse class="boot ink bootSlot" cx="-32" cy="93" rx="8" ry="13" transform="rotate(-24 -32 93)"/>
+      <ellipse class="boot ink bootSlot" cx="34" cy="87" rx="8" ry="13" transform="rotate(20 34 87)"/>
+      <path class="hair ink hairSlot" d="M-16 -63 C-13 -79 3 -86 16 -74 C22 -65 13 -57 0 -60 C-8 -58 -12 -59 -16 -63 Z"/>
+    </g>
+    <g id="crouch">
+      <path class="skin ink" d="M-28 -10 C-15 -28 16 -27 29 -8 C38 13 23 38 0 43 C-23 38 -38 13 -28 -10 Z"/>
+      <ellipse class="skin ink" cx="0" cy="-37" rx="18" ry="21"/>
+      <path class="skin ink" d="M-28 -4 C-50 8 -50 33 -31 44 M28 -4 C50 8 50 33 31 44"/>
+      <path class="skin ink" d="M-14 38 C-32 54 -42 68 -47 84 M14 38 C32 54 42 68 47 84"/>
+      <ellipse class="boot ink bootSlot" cx="-51" cy="91" rx="8" ry="13" transform="rotate(-50 -51 91)"/>
+      <ellipse class="boot ink bootSlot" cx="51" cy="91" rx="8" ry="13" transform="rotate(50 51 91)"/>
+      <path class="gear ink gearSlot" d="M-19 30 C-7 38 7 38 19 30 L23 46 C8 54 -8 54 -23 46 Z"/>
+      <path class="hair ink hairSlot" d="M-16 -44 C-13 -60 3 -67 16 -55 C22 -46 13 -38 0 -41 C-8 -39 -12 -40 -16 -44 Z"/>
+    </g>
+    <g id="grapple">
+      <path class="skin ink" d="M-24 -23 C-13 -39 13 -39 24 -23 C34 -3 24 29 0 34 C-24 29 -34 -3 -24 -23 Z"/>
+      <ellipse class="skin ink" cx="0" cy="-56" rx="17" ry="22"/>
+      <path class="skin ink" d="M-24 -18 C-46 -33 -58 -54 -52 -72 M24 -18 C46 -33 58 -54 52 -72"/>
+      <ellipse class="skin ink" cx="-55" cy="-78" rx="8" ry="10"/>
+      <ellipse class="skin ink" cx="55" cy="-78" rx="8" ry="10"/>
+      <path class="skin ink" d="M-9 30 C-19 49 -22 70 -17 88 M9 30 C19 49 22 70 17 88"/>
+      <ellipse class="boot ink bootSlot" cx="-18" cy="94" rx="8" ry="13"/>
+      <ellipse class="boot ink bootSlot" cx="18" cy="94" rx="8" ry="13"/>
+      <path class="gear ink gearSlot" d="M-16 22 C-5 31 5 31 16 22 L20 39 C8 45 -8 45 -20 39 Z"/>
+      <path class="hair ink hairSlot" d="M-16 -63 C-13 -79 3 -86 16 -74 C22 -65 13 -57 0 -60 C-8 -58 -12 -59 -16 -63 Z"/>
+    </g>
+    <g id="supine">
+      <path class="skin ink" d="M-34 -10 C-15 -32 18 -31 35 -7 C42 20 24 53 0 58 C-24 53 -42 20 -34 -10 Z"/>
+      <ellipse class="skin ink" cx="0" cy="-48" rx="22" ry="24"/>
+      <path class="skin ink" d="M-31 0 C-55 12 -68 33 -62 52 M31 0 C55 12 68 33 62 52"/>
+      <path class="skin ink" d="M-12 52 C-20 76 -20 94 -16 112 M12 52 C20 76 20 94 16 112"/>
+      <ellipse class="boot ink bootSlot" cx="-17" cy="119" rx="8" ry="13"/>
+      <ellipse class="boot ink bootSlot" cx="17" cy="119" rx="8" ry="13"/>
+      <path class="gear ink gearSlot" d="M-21 43 C-7 53 7 53 21 43 L24 63 C8 70 -8 70 -24 63 Z"/>
+      <path class="hair ink hairSlot" d="M-19 -56 C-15 -73 3 -82 19 -69 C25 -58 14 -50 0 -53 C-9 -51 -14 -52 -19 -56 Z"/>
+    </g>
+    <g id="seated">
+      <path class="skin ink" d="M-24 -14 C-12 -33 12 -33 24 -14 C33 5 22 33 0 38 C-22 33 -33 5 -24 -14 Z"/>
+      <ellipse class="skin ink" cx="0" cy="-48" rx="18" ry="22"/>
+      <path class="skin ink" d="M-20 8 C-39 17 -44 42 -25 52 M20 8 C39 17 44 42 25 52"/>
+      <path class="skin ink" d="M-8 34 C-34 57 -43 82 -22 88 M8 34 C34 57 43 82 22 88"/>
+      <ellipse class="boot ink bootSlot" cx="-22" cy="90" rx="8" ry="13" transform="rotate(70 -22 90)"/>
+      <ellipse class="boot ink bootSlot" cx="22" cy="90" rx="8" ry="13" transform="rotate(-70 22 90)"/>
+      <path class="gear ink gearSlot" d="M-16 26 C-5 34 5 34 16 26 L20 43 C8 49 -8 49 -20 43 Z"/>
+      <path class="hair ink hairSlot" d="M-16 -55 C-13 -71 3 -78 16 -66 C22 -57 13 -49 0 -52 C-8 -50 -12 -51 -16 -55 Z"/>
+    </g>
+  </defs>
+
+  <text x="600" y="36" class="label">GRAPPLE GODS, FIRST TOP DOWN WRESTLER POSE SET</text>
+  <text x="75" y="92" class="label">REX</text>
+  <text x="75" y="382" class="label">DANTE</text>
+
+  <g transform="translate(165 160)"><text y="-115" class="small">IDLE</text><use href="#idle"/></g>
+  <g transform="translate(325 160)"><text y="-115" class="small">WALK</text><use href="#walk"/></g>
+  <g transform="translate(485 160)"><text y="-115" class="small">RUN</text><use href="#run"/></g>
+  <g transform="translate(645 160)"><text y="-115" class="small">CROUCH</text><use href="#crouch"/></g>
+  <g transform="translate(805 160)"><text y="-115" class="small">GRAPPLE</text><use href="#grapple"/></g>
+  <g transform="translate(965 145) scale(.8)"><text y="-125" class="small">SUPINE</text><use href="#supine"/></g>
+  <g transform="translate(1110 165) scale(.82)"><text y="-120" class="small">SEATED</text><use href="#seated"/></g>
+
+  <g transform="translate(165 450)"><style>.hairSlot{fill:#1b1410}.gearSlot{fill:#17191f}.bootSlot{fill:#101217}</style><text y="-115" class="small">IDLE</text><use href="#idle"/></g>
+  <g transform="translate(325 450)"><style>.hairSlot{fill:#1b1410}.gearSlot{fill:#17191f}.bootSlot{fill:#101217}</style><text y="-115" class="small">WALK</text><use href="#walk"/></g>
+  <g transform="translate(485 450)"><style>.hairSlot{fill:#1b1410}.gearSlot{fill:#17191f}.bootSlot{fill:#101217}</style><text y="-115" class="small">RUN</text><use href="#run"/></g>
+  <g transform="translate(645 450)"><style>.hairSlot{fill:#1b1410}.gearSlot{fill:#17191f}.bootSlot{fill:#101217}</style><text y="-115" class="small">CROUCH</text><use href="#crouch"/></g>
+  <g transform="translate(805 450)"><style>.hairSlot{fill:#1b1410}.gearSlot{fill:#17191f}.bootSlot{fill:#101217}</style><text y="-115" class="small">GRAPPLE</text><use href="#grapple"/></g>
+  <g transform="translate(965 435) scale(.8)"><style>.hairSlot{fill:#1b1410}.gearSlot{fill:#17191f}.bootSlot{fill:#101217}</style><text y="-125" class="small">SUPINE</text><use href="#supine"/></g>
+  <g transform="translate(1110 455) scale(.82)"><style>.hairSlot{fill:#1b1410}.gearSlot{fill:#17191f}.bootSlot{fill:#101217}</style><text y="-120" class="small">SEATED</text><use href="#seated"/></g>
+</svg>
