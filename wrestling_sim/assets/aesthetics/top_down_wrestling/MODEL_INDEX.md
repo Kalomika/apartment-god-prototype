@@ -2,10 +2,18 @@
 
 These are the current pushed visual design models for the Grapple Gods first playable wrestling style.
 
-## Editable vector models
+## Primary source character models
 
-- `svg/rex_sterling_neutral.svg`, Rex Sterling neutral top down wrestler model, blonde hair, light gear.
-- `svg/dante_crowe_neutral.svg`, Dante Crowe neutral top down wrestler model, dark hair, dark gear.
+- `character_models/rex_sterling_neutral.svg`, Rex Sterling source model, blonde hair, light gear.
+- `character_models/dante_crowe_neutral.svg`, Dante Crowe source model, dark hair, dark gear.
+
+## Runtime playable copies
+
+- `wrestling_sim/web_phaser/public/assets/wrestlers/rex_sterling_neutral.svg`, Phaser runtime copy loaded by `ArenaScene.js`.
+- `wrestling_sim/web_phaser/public/assets/wrestlers/dante_crowe_neutral.svg`, Phaser runtime copy loaded by `ArenaScene.js`.
+
+## Supporting vector references
+
 - `svg/first_pose_sheet_reference.svg`, first pose sheet for idle, walk, run, crouch, grapple, supine, and seated gimmick poses.
 - `svg/rig_parts_reference.svg`, separated body part rig reference with pivots for head, torso, arms, forearms, hands, legs, knees, and boots.
 - `svg/topdown_ring_reference.svg`, strict top down ring reference matching the black and white line art target.
@@ -18,6 +26,6 @@ These are the current pushed visual design models for the Grapple Gods first pla
 
 ## Integration notes
 
-The SVG models are source references, not the runtime renderer yet. The next visual implementation pass should either convert these models into Phaser friendly PNG assets or update `wrestling_sim/web_phaser/src/render/WrestlerProxy.js` to match this style more closely through procedural vector drawing.
+The character model SVGs are now promoted into runtime playable copies. `ArenaScene.js` preloads the runtime SVGs from `public/assets/wrestlers/`, and `WrestlerProxy.js` uses those authored sprites first.
 
-Runtime should keep the visible body connected even when the internal implementation uses separate rig parts.
+Procedural line drawing remains only as an emergency fallback if the authored SVG texture is missing.
