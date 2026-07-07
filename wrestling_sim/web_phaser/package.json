@@ -1,0 +1,19 @@
+{
+  "name": "kalomika-wrestling-sim-phaser",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mobile browser Phaser prototype for the Kalomika wrestling sim.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@vitejs/plugin-basic-ssl": "latest",
+    "phaser": "latest",
+    "vite": "latest",
+    "xstate": "latest"
+  },
+  "devDependencies": {}
+}
