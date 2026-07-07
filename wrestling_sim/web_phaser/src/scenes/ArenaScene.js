@@ -15,8 +15,8 @@ export class ArenaScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.svg(wrestlerTextureKey('rex-sterling'), 'assets/wrestlers/rex_sterling_topdown.svg', { width: 220, height: 260 });
-    this.load.svg(wrestlerTextureKey('dante-crowe'), 'assets/wrestlers/dante_crowe_topdown.svg', { width: 220, height: 260 });
+    this.load.svg(wrestlerTextureKey('rex-sterling'), 'assets/wrestlers/rex_sterling_neutral.svg', { width: 256, height: 256 });
+    this.load.svg(wrestlerTextureKey('dante-crowe'), 'assets/wrestlers/dante_crowe_neutral.svg', { width: 256, height: 256 });
   }
 
   create() {
