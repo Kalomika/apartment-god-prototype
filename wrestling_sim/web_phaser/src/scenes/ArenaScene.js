@@ -5,11 +5,18 @@ import { ChoicePanel } from '../ui/ChoicePanel.js';
 import { initialMatch, roster } from '../data/roster.js';
 import { MatchEngine } from '../sim/matchEngine.js';
 
+const wrestlerTextureKey = (id) => `wrestler-${id}`;
+
 export class ArenaScene extends Phaser.Scene {
   constructor() {
     super('ArenaScene');
     this.layout = null;
     this.snapshot = null;
+  }
+
+  preload() {
+    this.load.svg(wrestlerTextureKey('rex-sterling'), 'assets/wrestlers/rex_sterling_topdown.svg', { width: 220, height: 260 });
+    this.load.svg(wrestlerTextureKey('dante-crowe'), 'assets/wrestlers/dante_crowe_topdown.svg', { width: 220, height: 260 });
   }
 
   create() {
@@ -19,8 +26,8 @@ export class ArenaScene extends Phaser.Scene {
     this.engine = new MatchEngine({ red, blue, ruleSet: initialMatch.ruleSet });
     this.ring = new RingRenderer(this);
     this.choicePanel = new ChoicePanel(this);
-    this.wrestlerA = new WrestlerProxy(this, red);
-    this.wrestlerB = new WrestlerProxy(this, blue);
+    this.wrestlerA = new WrestlerProxy(this, red, wrestlerTextureKey(red.id));
+    this.wrestlerB = new WrestlerProxy(this, blue, wrestlerTextureKey(blue.id));
     this.referee = this.createReferee();
     this.hudText = this.add.text(0, 0, '', {
       fontFamily: 'Arial Black, Arial, sans-serif',
@@ -33,12 +40,12 @@ export class ArenaScene extends Phaser.Scene {
     this.choicePanel.setMode('match');
     this.choicePanel.setChoices(this.engine.getChoiceList(), (choice) => {
       this.engine.queueSuggestion(choice.id);
-      this.choicePanel.setDialogue('GM', `Suggest ${choice.label}. ${red.name} may accept it, ignore it, or delay it based on the match.`);
+      this.choicePanel.setDialogue('GM', `Suggest ${choice.label}.`);
     });
 
     this.scale.on('resize', this.handleResize, this);
     this.handleResize({ width: this.scale.width, height: this.scale.height });
-    this.choicePanel.setDialogue('GM OFFICE', `${red.name} versus ${blue.name} is booked. Default rules: ${initialMatch.ruleSet.countOut} count, pinfall, submission, rope break.`);
+    this.choicePanel.setDialogue('GM OFFICE', `${red.name} versus ${blue.name} is booked.`);
   }
 
   createReferee() {
@@ -68,7 +75,6 @@ export class ArenaScene extends Phaser.Scene {
     const width = gameSize.width;
     const height = gameSize.height;
     const arenaHeight = Math.floor(height * 0.50);
-
     this.layout = { width, height, arenaHeight };
     this.ring.draw(this.layout);
     this.choicePanel.layout(this.layout);
@@ -76,10 +82,7 @@ export class ArenaScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    if (!this.layout || !this.ring.bounds || !this.engine) {
-      return;
-    }
-
+    if (!this.layout || !this.ring.bounds || !this.engine) return;
     this.snapshot = this.engine.update(delta);
     this.positionFromSnapshot();
     this.choicePanel.setLog(this.snapshot.log);
@@ -88,9 +91,7 @@ export class ArenaScene extends Phaser.Scene {
   positionFromSnapshot() {
     if (!this.snapshot || !this.ring.bounds) {
       const first = this.engine?.getSnapshot();
-      if (!first) {
-        return;
-      }
+      if (!first) return;
       this.snapshot = first;
     }
 
@@ -107,10 +108,8 @@ export class ArenaScene extends Phaser.Scene {
     this.wrestlerB.setFacingRadians(this.snapshot.blue.facing);
     this.wrestlerA.setState(this.snapshot.red.state);
     this.wrestlerB.setState(this.snapshot.blue.state);
-
     this.referee.setPosition(Math.round(refScreen.x), Math.round(refScreen.y));
     this.referee.setScale(sizeScale * 0.72);
-
     this.hudText.setPosition(Math.round(this.layout.width * 0.5), 8);
     this.hudText.setFontSize(this.layout.width < 430 ? 13 : 16);
     this.hudText.setText(`${this.snapshot.red.profile.shortName} STA ${Math.round(this.snapshot.red.stamina)} DMG ${Math.round(this.snapshot.red.damage)}   ${this.snapshot.blue.profile.shortName} STA ${Math.round(this.snapshot.blue.stamina)} DMG ${Math.round(this.snapshot.blue.damage)}`);
