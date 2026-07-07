@@ -1,5 +1,6 @@
 import { objects, roomAt } from './world.js';
 import { roundRect } from './renderHelpers.js';
+import { drawStyledObject } from './renderHouseStyle.js';
 
 export function drawObjects(ctx, state) {
   for (const obj of objects.filter(o => o.floor === state.floor)) {
@@ -14,6 +15,7 @@ export function drawObjects(ctx, state) {
 }
 
 function drawObject(ctx, o, state, active) {
+  if (drawStyledObject(ctx, o, state, active)) return;
   if (o.kind === 'couch') return couch(ctx, o);
   if (o.kind === 'tv') return tv(ctx, o, state);
   if (o.kind === 'fridge') return fridge(ctx, o, state);
