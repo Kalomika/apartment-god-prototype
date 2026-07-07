@@ -1,28 +1,52 @@
 import { changeNeed, log, say, setMood } from './state.js';
+import { commandObject } from './movement.js';
+import { getObject } from './world.js';
 
 const FIELD = { floor: 4, x: 82, y: 190, w: 420, h: 300, goalTop: { x: 230, y: 190, w: 120, h: 18 }, goalBottom: { x: 230, y: 472, w: 120, h: 18 } };
 
 export function startSoccerPractice(state, actor) {
+  const field = getObject('soccer_field');
+  if (field && actor?.floor !== FIELD.floor) {
+    commandObject(actor, field, 'soccer_practice');
+    say(actor, 'FIELD');
+    log(state, `${actor.name} is walking to the backyard soccer field.`);
+    return true;
+  }
+  return startSoccerPracticeAtField(state, actor);
+}
+
+export function startMiniSoccer(state, actor) {
+  const field = getObject('soccer_field');
+  if (field && actor?.floor !== FIELD.floor) {
+    commandObject(actor, field, 'soccer_match');
+    say(actor, 'FIELD');
+    log(state, `${actor.name} is walking to the backyard soccer field for a match.`);
+    return true;
+  }
+  return startMiniSoccerAtField(state, actor);
+}
+
+export function startSoccerPracticeAtField(state, actor) {
   if (!actor) return false;
   state.floor = FIELD.floor;
   state.viewHoldT = 18;
   actor.floor = FIELD.floor;
   actor.hidden = false;
-  actor.x = FIELD.x + FIELD.w * 0.5;
-  actor.y = FIELD.y + FIELD.h * 0.68;
+  actor.x = clamp(actor.x || FIELD.x + FIELD.w * 0.5, FIELD.x + 40, FIELD.x + FIELD.w - 40);
+  actor.y = clamp(actor.y || FIELD.y + FIELD.h * 0.68, FIELD.y + 46, FIELD.y + FIELD.h - 46);
   actor.path = [];
   actor.target = null;
-  actor.pose = 'soccer';
+  actor.pose = 'soccer_kicking';
   actor.action = 'Soccer practice';
   actor.actionT = 16;
   actor.actionTotal = 16;
-  state.soccerGame = createSoccerGame(state, [actor], 'practice');
+  state.soccerGame = createSoccerGame([actor], 'practice');
   say(actor, 'KICK');
   log(state, `${actor.name} started backyard soccer practice.`);
   return true;
 }
 
-export function startMiniSoccer(state, actor) {
+export function startMiniSoccerAtField(state, actor) {
   if (!actor) return false;
   state.floor = FIELD.floor;
   state.viewHoldT = 18;
@@ -35,18 +59,18 @@ export function startMiniSoccer(state, actor) {
     p.y = FIELD.y + FIELD.h * (i ? 0.62 : 0.38);
     p.path = [];
     p.target = null;
-    p.pose = 'soccer';
+    p.pose = 'soccer_kicking';
     p.action = players.length > 1 ? 'Mini soccer match' : 'Soccer practice';
-    p.actionT = 20;
-    p.actionTotal = 20;
+    p.actionT = players.length > 1 ? 20 : 16;
+    p.actionTotal = p.actionT;
     say(p, i ? 'DEFEND' : 'KICK');
   });
-  state.soccerGame = createSoccerGame(state, players, players.length > 1 ? 'match' : 'practice');
+  state.soccerGame = createSoccerGame(players, players.length > 1 ? 'match' : 'practice');
   log(state, players.length > 1 ? `${players.map(p => p.name).join(' and ')} started mini soccer.` : `${actor.name} started soccer practice.`);
   return true;
 }
 
-function createSoccerGame(state, players, mode) {
+function createSoccerGame(players, mode) {
   return {
     mode,
     floor: FIELD.floor,
@@ -69,7 +93,7 @@ export function updateSoccerGame(state, dt) {
   const game = state.soccerGame;
   if (!game) return;
   const players = game.playerIds.map(id => state.entities.find(e => e.id === id)).filter(Boolean);
-  if (!players.length) { state.soccerGame = null; return; }
+  if (!players.length || players.every(p => !String(p.action || '').toLowerCase().includes('soccer'))) { state.soccerGame = null; return; }
   game.t += dt;
   game.kickT -= dt;
   game.messageT = Math.max(0, (game.messageT || 0) - dt);
@@ -77,6 +101,7 @@ export function updateSoccerGame(state, dt) {
   players.forEach((p, i) => updateSoccerPlayerPosition(p, game, i, players.length));
   if (!game.winner && game.kickT <= 0) takeSoccerTurn(state, game, players);
   if (!game.winner && (game.t > (game.mode === 'match' ? 22 : 16) || totalShots(game) >= (game.mode === 'match' ? 10 : 8))) finishSoccer(state, game, players);
+  if (game.winner && game.t > 28) state.soccerGame = null;
 }
 
 function updateSoccerBall(game, dt) {
@@ -98,7 +123,7 @@ function updateSoccerPlayerPosition(player, game, i, count) {
   const radius = count > 1 ? 54 : 38;
   player.x = clamp(FIELD.x + FIELD.w * 0.5 + Math.cos(angle) * radius, FIELD.x + 26, FIELD.x + FIELD.w - 26);
   player.y = clamp(FIELD.y + FIELD.h * 0.5 + Math.sin(angle) * radius, FIELD.y + 32, FIELD.y + FIELD.h - 32);
-  player.pose = 'soccer';
+  player.pose = 'soccer_kicking';
 }
 
 function takeSoccerTurn(state, game, players) {
