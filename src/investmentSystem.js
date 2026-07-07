@@ -28,14 +28,15 @@ export function updateInvestments(state, dt) {
   for (const item of INVESTMENTS) {
     const shares = state.investments.holdings[item.id] || 0;
     if (!shares) continue;
-    const swing = Math.sin((state.time + shares * 17 + item.buyIn) / 97) * item.volatility;
-    const dividend = Math.round(shares * item.dividend * (1 + swing));
+    const market = Math.sin((state.time + shares * 17 + item.buyIn) / 47);
+    const shock = Math.sin((state.time + item.buyIn * 3) / 131) < -0.92 ? -1 : 0;
+    const dividend = Math.round(shares * item.dividend * (1 + market * item.volatility) + shock * shares * Math.ceil(item.buyIn * 0.035));
     net += dividend;
   }
   if (!net) return;
   state.money += net;
   state.investments.lifetime = (state.investments.lifetime || 0) + net;
-  log(state, `Investments paid ${net >= 0 ? '$' + net : '-$' + Math.abs(net)}.`);
+  log(state, net >= 0 ? `Investments paid $${net}.` : `A business slump cost investments $${Math.abs(net)}.`);
 }
 
 export function investmentSummary(state) {
