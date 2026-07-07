@@ -1,5 +1,5 @@
 import { addGarbageFromAction } from './garbage.js';
-import { byId, changeNeed, log, say } from './state.js';
+import { byId, log, say } from './state.js';
 import { getObject, approachPoint } from './world.js';
 import { commandObject } from './movement.js';
 import { createOffsiteJob } from './travelLocations.js';
@@ -263,10 +263,6 @@ function finishVehicleReturn(state, v) {
     e.moveAllowId = '';
     e.action = 'Returned';
     e.pose = 'stand';
-    changeNeed(e, 'fun', action === 'work' ? -5 : 22);
-    changeNeed(e, 'hunger', -12);
-    changeNeed(e, 'energy', -12);
-    changeNeed(e, 'freshness', -3);
     if (action === 'movies') addGarbageFromAction(state, 'popcorn', e);
   }
   state.objectState.garageDoorOpen = false;
