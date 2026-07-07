@@ -44,13 +44,31 @@ function drawGarageDoor(ctx, state) {
   ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(118, 38, 548, 30);
 }
 
-function drawAnimatedCar(ctx, x, y, label) {
-  roundRect(ctx, x, y, 116, 230, 24, '#202838');
-  roundRect(ctx, x + 22, y + 52, 72, 126, 16, '#0d1118');
-  ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(x + 32, y + 78, 52, 72);
-  ctx.fillStyle = '#f1c66a'; ctx.fillRect(x + 20, y + 8, 20, 10); ctx.fillRect(x + 76, y + 8, 20, 10);
-  ctx.fillStyle = '#d84b4b'; ctx.fillRect(x + 20, y + 212, 20, 8); ctx.fillRect(x + 76, y + 212, 20, 8);
-  ctx.fillStyle = '#f1c66a'; ctx.font = '900 11px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, x + 58, y + 120); ctx.textAlign = 'left';
+function drawAnimatedCar(ctx, v, label) {
+  const x = v.x;
+  const y = v.y;
+  const w = v.w || 116;
+  const h = v.h || 230;
+  const vertical = h >= w;
+  roundRect(ctx, x, y, w, h, 24, '#202838');
+  roundRect(ctx, x + w * 0.18, y + h * 0.22, w * 0.64, h * 0.55, 16, '#0d1118');
+  ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3;
+  ctx.strokeRect(x + w * 0.28, y + h * 0.34, w * 0.44, h * 0.28);
+  ctx.fillStyle = '#f1c66a';
+  if (vertical) {
+    ctx.fillRect(x + w * 0.18, y + 8, Math.max(12, w * 0.18), 10);
+    ctx.fillRect(x + w * 0.64, y + 8, Math.max(12, w * 0.18), 10);
+    ctx.fillStyle = '#d84b4b';
+    ctx.fillRect(x + w * 0.18, y + h - 18, Math.max(12, w * 0.18), 8);
+    ctx.fillRect(x + w * 0.64, y + h - 18, Math.max(12, w * 0.18), 8);
+  } else {
+    ctx.fillRect(x + w - 22, y + h * 0.18, 10, Math.max(12, h * 0.18));
+    ctx.fillRect(x + w - 22, y + h * 0.64, 10, Math.max(12, h * 0.18));
+    ctx.fillStyle = '#d84b4b';
+    ctx.fillRect(x + 10, y + h * 0.18, 8, Math.max(12, h * 0.18));
+    ctx.fillRect(x + 10, y + h * 0.64, 8, Math.max(12, h * 0.18));
+  }
+  ctx.fillStyle = '#f1c66a'; ctx.font = '900 11px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, x + w / 2, y + h / 2); ctx.textAlign = 'left';
 }
 
 function drawVehicleDeparture(ctx, state) {
@@ -58,7 +76,7 @@ function drawVehicleDeparture(ctx, state) {
   if (!v || state.floor !== 3) return;
   ctx.save();
   drawGarageDoor(ctx, state);
-  drawAnimatedCar(ctx, v.x, v.y, 'LEAVING');
+  drawAnimatedCar(ctx, v, 'LEAVING');
   ctx.restore();
 }
 
@@ -67,7 +85,7 @@ function drawVehicleReturn(ctx, state) {
   if (!v || state.floor !== 3) return;
   ctx.save();
   drawGarageDoor(ctx, state);
-  drawAnimatedCar(ctx, v.x, v.y, v.phase === 'arriving' ? 'RETURN' : 'PARKED');
+  drawAnimatedCar(ctx, v, v.phase === 'arriving' ? 'RETURN' : 'PARKED');
   ctx.restore();
 }
 
