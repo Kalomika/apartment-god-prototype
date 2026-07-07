@@ -3,11 +3,13 @@ import { startCookingFlow } from './cooking.js';
 import { startOffsite } from './actions.js';
 import { buyWorkoutGear, orderFood } from './economy.js';
 import { callDogToYard } from './garbage.js';
+import { buyInvestment, INVESTMENTS, investmentSummary } from './investmentSystem.js';
 import { genreList, startMusic } from './music.js';
 import { addRequest, updateRequests } from './requests.js';
 import { loadGame, saveGame, slotSummary } from './saveSystem.js';
 import { startSharedObjectAction } from './sharedActions.js';
 import { log, selected } from './state.js';
+import { DAILY_DESTINATIONS, isDestinationOpen, VACATION_DESTINATIONS } from './travelLocations.js';
 
 let built = false;
 let open = false;
@@ -102,7 +104,7 @@ function renderPhone(state) {
   if (!open) return;
   dirty = false;
   els.panel.innerHTML = `<button id="phone-close" style="width:100%;font-size:18px;padding:12px;border-radius:16px;margin-bottom:12px;">Close Cell Phone</button><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;position:sticky;top:0;background:#10141d;padding-bottom:8px;z-index:2;">
-    ${phoneTab('home','Home')}${phoneTab('shop','Shop')}${phoneTab('contacts','Contacts')}${phoneTab('music','Music')}${phoneTab('activities','Acts')}${phoneTab('travel','Travel')}${phoneTab('requests','Requests')}${phoneTab('saves','Saves')}
+    ${phoneTab('home','Home')}${phoneTab('shop','Shop')}${phoneTab('contacts','Contacts')}${phoneTab('music','Music')}${phoneTab('activities','Acts')}${phoneTab('travel','Travel')}${phoneTab('invest','Invest')}${phoneTab('requests','Requests')}${phoneTab('saves','Saves')}
   </div><div id="phone-screen" style="overflow:visible;padding-bottom:18px;"></div>`;
   els.panel.querySelector('#phone-close').onclick = event => { event.stopPropagation(); open = false; updatePhoneButton(state); };
   els.panel.querySelectorAll('[data-tab]').forEach(b => b.onclick = event => { event.stopPropagation(); tab = b.dataset.tab; pendingTrip = null; dirty = true; renderPhone(state); els.panel.scrollTop = 0; });
@@ -113,6 +115,7 @@ function renderPhone(state) {
   if (tab === 'music') renderMusic(screen, state);
   if (tab === 'activities') renderActivities(screen, state);
   if (tab === 'travel') renderTravel(screen, state);
+  if (tab === 'invest') renderInvest(screen, state);
   if (tab === 'requests') renderRequests(screen, state);
   if (tab === 'saves') renderSaves(screen, state);
   fitPhonePanel();
@@ -133,7 +136,7 @@ function actionButton(label, fn) {
 
 function renderHome(screen, state) {
   const actor = selected(state);
-  screen.innerHTML = `<h3 style="margin:0 0 8px;">${actor.name}'s phone</h3><p style="color:#b6c1d2;margin:0 0 10px;">Money: $${Math.round(state.money || 0)}<br>Autonomy: ${state.autonomyMode}<br>Open requests: ${(state.requests || []).filter(r => !r.done).length}<br>${state.garbage ? `Trash: ${Math.round(state.garbage.kitchen || 0)}%` : ''}</p>`;
+  screen.innerHTML = `<h3 style="margin:0 0 8px;">${actor.name}'s phone</h3><p style="color:#b6c1d2;margin:0 0 10px;">Money: $${Math.round(state.money || 0)}<br>Autonomy: ${state.autonomyMode}<br>Open requests: ${(state.requests || []).filter(r => !r.done).length}<br>Free vacation tickets: ${state.rewards?.freeTickets?.vacation_any || 0}<br>${state.garbage ? `Trash: ${Math.round(state.garbage.kitchen || 0)}%` : ''}</p>`;
 }
 
 function renderShop(screen, state) {
@@ -174,8 +177,18 @@ function renderActivities(screen, state) {
 function renderTravel(screen, state) {
   const actor = selected(state);
   if (pendingTrip) return renderPartyPicker(screen, state, actor, pendingTrip);
-  screen.innerHTML = '<h3>Travel / Go out</h3><p style="color:#b6c1d2;">Pick an outing, then choose who goes.</p>';
-  for (const [label, id] of [['Work','work'], ['Quick errand','errand'], ['Mall trip','mall'], ['Movie theater','movies'], ['Date night','date']]) screen.appendChild(actionButton(label, () => { pendingTrip = { id, chosen: [] }; }));
+  screen.innerHTML = '<h3>Travel / Go out</h3><p style="color:#b6c1d2;">Pick an outing, then choose who goes. Daily locations care about time. Vacations use the plane scene first.</p><h4>Daily</h4>';
+  for (const item of DAILY_DESTINATIONS) screen.appendChild(destinationButton(state, item));
+  screen.insertAdjacentHTML('beforeend', '<h4>Vacations</h4>');
+  for (const item of VACATION_DESTINATIONS) screen.appendChild(destinationButton(state, item));
+}
+
+function destinationButton(state, item) {
+  const openNow = isDestinationOpen(state, item);
+  const pass = item.id.startsWith('vacation_') && state.rewards?.freeTickets?.vacation_any;
+  const cost = pass ? 'free ticket' : `$${item.cost || 0}`;
+  const closed = openNow ? '' : ' CLOSED NOW';
+  return actionButton(`${item.label} • ${cost}${closed}`, () => { pendingTrip = { id: item.id, chosen: [] }; });
 }
 
 function renderPartyPicker(screen, state, actor, trip) {
@@ -187,6 +200,11 @@ function renderPartyPicker(screen, state, actor, trip) {
   screen.appendChild(actionButton('Invite all household', () => { trip.chosen = state.entities.filter(e => e.id !== actor.id && !e.hidden).map(e => e.id); }));
   screen.appendChild(actionButton('Done, start outing', () => { startOffsite(state, actor, trip.id, trip.chosen || []); pendingTrip = null; tab = 'home'; }));
   screen.appendChild(actionButton('Cancel', () => { pendingTrip = null; }));
+}
+
+function renderInvest(screen, state) {
+  screen.innerHTML = `<h3>Investments</h3><p style="color:#b6c1d2;">Invest in businesses from the game. They can pay small returns over time.</p><p style="color:#b6c1d2;">${investmentSummary(state)}</p>`;
+  for (const item of INVESTMENTS) screen.appendChild(actionButton(`Buy ${item.label} • $${item.buyIn}`, () => buyInvestment(state, item.id)));
 }
 
 function renderRequests(screen, state) { const actor = selected(state); screen.innerHTML = '<h3>Requests</h3>'; screen.appendChild(actionButton('Ask selected character what they want', () => addRequest(state, actor, `${actor.name} wants attention or a new activity.`, 'manual'))); const requests = state.requests || []; if (!requests.length) screen.insertAdjacentHTML('beforeend', '<p style="color:#b6c1d2;">No requests yet.</p>'); for (const r of requests) { const p = document.createElement('p'); p.style.cssText = 'padding:8px;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#f4f7fb;'; p.textContent = `${r.done ? 'Done' : 'Open'} • ${r.actorName}: ${r.text}`; screen.appendChild(p); } }
