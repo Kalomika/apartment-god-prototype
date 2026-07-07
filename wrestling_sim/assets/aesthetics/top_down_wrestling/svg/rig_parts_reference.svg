@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Grapple Gods top down wrestler rig parts reference</title>
+  <desc id="desc">Editable vector model showing separated rig parts and pivot points for the top down wrestler renderer.</desc>
+  <defs>
+    <style>
+      .label{font:700 22px Arial,sans-serif;fill:#071018;text-anchor:middle}
+      .small{font:700 13px Arial,sans-serif;fill:#071018;text-anchor:middle}
+      .ink{stroke:#071018;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+      .detail{stroke:#071018;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+      .skin{fill:#f8efe3}.gearLight{fill:#f4f4f4}.gearDark{fill:#17191f}.hairLight{fill:#d8b449}.hairDark{fill:#1b1410}.pivot{fill:#fffbeb;stroke:#071018;stroke-width:2}
+    </style>
+    <g id="headLight">
+      <ellipse class="skin ink" cx="0" cy="0" rx="28" ry="34"/>
+      <path class="hairLight ink" d="M-27 -8 C-22 -36 -4 -45 16 -38 C36 -31 36 -8 24 11 C8 2 -11 2 -27 -8 Z"/>
+      <circle class="pivot" cx="0" cy="28" r="5"/>
+    </g>
+    <g id="headDark">
+      <ellipse class="skin ink" cx="0" cy="0" rx="28" ry="34"/>
+      <path class="hairDark ink" d="M-27 -8 C-22 -36 -4 -45 16 -38 C36 -31 36 -8 24 11 C8 2 -11 2 -27 -8 Z"/>
+      <circle class="pivot" cx="0" cy="28" r="5"/>
+    </g>
+    <g id="torsoLight">
+      <path class="skin ink" d="M-68 -36 C-45 -65 45 -65 68 -36 C84 -4 70 48 40 74 C18 92 -18 92 -40 74 C-70 48 -84 -4 -68 -36 Z"/>
+      <path class="gearLight ink" d="M-42 47 C-18 62 18 62 42 47 L50 75 C25 91 -25 91 -50 75 Z"/>
+      <path class="detail" d="M-38 -18 C-16 -2 16 -2 38 -18 M0 0 L0 45 M-28 24 C-9 32 9 32 28 24"/>
+      <circle class="pivot" cx="-67" cy="-28" r="5"/><circle class="pivot" cx="67" cy="-28" r="5"/>
+      <circle class="pivot" cx="-30" cy="70" r="5"/><circle class="pivot" cx="30" cy="70" r="5"/>
+      <circle class="pivot" cx="0" cy="12" r="5"/>
+    </g>
+    <g id="torsoDark">
+      <path class="skin ink" d="M-68 -36 C-45 -65 45 -65 68 -36 C84 -4 70 48 40 74 C18 92 -18 92 -40 74 C-70 48 -84 -4 -68 -36 Z"/>
+      <path class="gearDark ink" d="M-42 47 C-18 62 18 62 42 47 L50 75 C25 91 -25 91 -50 75 Z"/>
+      <path class="detail" d="M-38 -18 C-16 -2 16 -2 38 -18 M0 0 L0 45 M-28 24 C-9 32 9 32 28 24"/>
+      <circle class="pivot" cx="-67" cy="-28" r="5"/><circle class="pivot" cx="67" cy="-28" r="5"/>
+      <circle class="pivot" cx="-30" cy="70" r="5"/><circle class="pivot" cx="30" cy="70" r="5"/>
+      <circle class="pivot" cx="0" cy="12" r="5"/>
+    </g>
+    <g id="upperArm"><path class="skin ink" d="M-15 -33 C11 -30 23 -8 16 27 C11 51 -19 48 -24 23 C-31 -8 -31 -29 -15 -33 Z"/><circle class="pivot" cx="0" cy="-25" r="5"/><circle class="pivot" cx="0" cy="40" r="5"/></g>
+    <g id="forearm"><path class="skin ink" d="M-12 -34 C13 -33 21 -13 15 19 C12 39 -11 45 -22 25 C-29 8 -27 -28 -12 -34 Z"/><path class="skin ink" d="M-18 30 C-32 43 -25 62 -7 59 C12 56 21 38 7 27 Z"/><circle class="pivot" cx="0" cy="-28" r="5"/></g>
+    <g id="upperLeg"><path class="skin ink" d="M-31 -44 C-7 -55 22 -42 31 -18 C41 11 20 68 -2 77 C-23 65 -40 11 -31 -44 Z"/><circle class="pivot" cx="0" cy="-39" r="5"/><circle class="pivot" cx="0" cy="66" r="5"/></g>
+    <g id="lowerLegLight"><path class="skin ink" d="M-22 -44 C8 -55 31 -36 25 1 C23 22 17 45 8 59 C-13 59 -27 34 -28 0 C-29 -21 -31 -37 -22 -44 Z"/><path class="gearLight ink" d="M-21 48 C-28 71 -16 94 6 94 C30 93 36 68 15 50 C4 55 -9 54 -21 48 Z"/><circle class="pivot" cx="0" cy="-38" r="5"/></g>
+    <g id="lowerLegDark"><path class="skin ink" d="M-22 -44 C8 -55 31 -36 25 1 C23 22 17 45 8 59 C-13 59 -27 34 -28 0 C-29 -21 -31 -37 -22 -44 Z"/><path class="gearDark ink" d="M-21 48 C-28 71 -16 94 6 94 C30 93 36 68 15 50 C4 55 -9 54 -21 48 Z"/><circle class="pivot" cx="0" cy="-38" r="5"/></g>
+  </defs>
+
+  <text x="600" y="40" class="label">GRAPPLE GODS, EDITABLE TOP DOWN RIG PARTS</text>
+  <text x="300" y="88" class="label">REX PARTS</text>
+  <text x="900" y="88" class="label">DANTE PARTS</text>
+
+  <g transform="translate(100 170)"><text y="-64" class="small">HEAD</text><use href="#headLight"/></g>
+  <g transform="translate(265 175)"><text y="-84" class="small">TORSO CORE</text><use href="#torsoLight"/></g>
+  <g transform="translate(455 170)"><text y="-64" class="small">UPPER ARM</text><use href="#upperArm"/></g>
+  <g transform="translate(560 170)"><text y="-64" class="small">FOREARM HAND</text><use href="#forearm"/></g>
+  <g transform="translate(170 450)"><text y="-74" class="small">UPPER LEG</text><use href="#upperLeg"/></g>
+  <g transform="translate(330 445)"><text y="-74" class="small">LOWER LEG BOOT</text><use href="#lowerLegLight"/></g>
+
+  <g transform="translate(700 170)"><text y="-64" class="small">HEAD</text><use href="#headDark"/></g>
+  <g transform="translate(865 175)"><text y="-84" class="small">TORSO CORE</text><use href="#torsoDark"/></g>
+  <g transform="translate(1055 170)"><text y="-64" class="small">UPPER ARM</text><use href="#upperArm"/></g>
+  <g transform="translate(1160 170)"><text y="-64" class="small">FOREARM HAND</text><use href="#forearm"/></g>
+  <g transform="translate(770 450)"><text y="-74" class="small">UPPER LEG</text><use href="#upperLeg"/></g>
+  <g transform="translate(930 445)"><text y="-74" class="small">LOWER LEG BOOT</text><use href="#lowerLegDark"/></g>
+
+  <text x="600" y="646" class="small">Pivot dots mark neck, shoulders, elbows, hips, knees, and torso center. Runtime cuts should be hidden through overlap and draw order.</text>
+</svg>
