@@ -5,6 +5,7 @@ import { drawObjects } from './renderObjects.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
 import { drawOffsiteScene } from './offsiteScenes.js';
+import { drawSoccer } from './soccerSystem.js';
 import { syncPhoneUi } from './phoneUI.js';
 import { formatTime } from './renderHelpers.js';
 
@@ -14,6 +15,7 @@ export function draw(ctx, state) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   syncPhoneUi(state);
   drawWorld(ctx, state);
+  drawSoccer(ctx, state);
   drawObjects(ctx, state);
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
@@ -112,7 +114,8 @@ function drawStatus(ctx, state) {
 
 function drawOverlay(ctx, state) {
   if (!state.offsite) return;
-  const allPeopleAway = state.entities.filter(e => e.type === 'person').every(e => e.hidden);
+  const people = state.entities.filter(e => e.type === 'person');
+  const allPeopleAway = people.length > 0 && people.every(e => e.hidden);
   const label = state.offsite.label || state.offsite.actionId.replaceAll('_', ' ');
   if (allPeopleAway) {
     drawOffsiteScene(ctx, state);
@@ -124,20 +127,22 @@ function drawOverlay(ctx, state) {
     return;
   }
   ctx.save();
-  const x = PLAY_W - 278;
+  const x = PLAY_W - 292;
   const y = 12;
   ctx.fillStyle = 'rgba(8,10,15,.82)';
-  ctx.fillRect(x, y, 266, 58);
+  ctx.fillRect(x, y, 280, 64);
   ctx.strokeStyle = 'rgba(241,198,106,.7)';
-  ctx.strokeRect(x, y, 266, 58);
+  ctx.strokeRect(x, y, 280, 64);
   ctx.fillStyle = '#f1c66a';
   ctx.beginPath();
-  ctx.arc(x + 28, y + 28, 11, 0, Math.PI * 2);
+  ctx.arc(x + 28, y + 31, 11, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = COLORS.text;
   ctx.font = '900 13px system-ui';
-  ctx.fillText(`Off site: ${label}`, x + 54, y + 24);
+  ctx.fillText(`Off site: ${label}`, x + 54, y + 25);
   ctx.font = '700 11px system-ui';
-  ctx.fillText(`${state.offsite.stage === 'plane' ? 'Plane travel' : 'Activity'} • ${Math.ceil((state.offsite.stage === 'plane' ? state.offsite.planeT : state.offsite.t) || 0)}s left`, x + 54, y + 44);
+  const stage = state.offsite.stage === 'plane' ? 'Outbound flight' : state.offsite.stage === 'return_plane' ? 'Return flight' : 'Activity';
+  const time = Math.ceil((state.offsite.stage?.includes('plane') ? state.offsite.planeT : state.offsite.t) || 0);
+  ctx.fillText(`${stage} • ${time}s left`, x + 54, y + 45);
   ctx.restore();
 }
