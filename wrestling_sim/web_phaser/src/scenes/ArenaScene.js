@@ -23,11 +23,11 @@ export class ArenaScene extends Phaser.Scene {
     this.wrestlerB = new WrestlerProxy(this, blue);
     this.referee = this.createReferee();
     this.hudText = this.add.text(0, 0, '', {
-      fontFamily: 'Arial',
-      fontSize: '12px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      fontSize: '16px',
       color: '#ffffff',
       stroke: '#000000',
-      strokeThickness: 3
+      strokeThickness: 4
     }).setOrigin(0.5, 0);
 
     this.choicePanel.setMode('match');
@@ -44,22 +44,22 @@ export class ArenaScene extends Phaser.Scene {
   createReferee() {
     const container = this.add.container(0, 0);
     const g = this.add.graphics();
-    const label = this.add.text(0, 20, 'REF', {
-      fontFamily: 'Arial',
-      fontSize: '10px',
+    const label = this.add.text(0, 22, 'REF', {
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      fontSize: '11px',
       color: '#ffffff',
       stroke: '#000000',
-      strokeThickness: 3
+      strokeThickness: 4
     }).setOrigin(0.5, 0);
 
     g.fillStyle(0xffffff, 1);
-    g.lineStyle(1.6, 0x333333, 1);
-    g.fillEllipse(0, 0, 20, 28);
-    g.strokeEllipse(0, 0, 20, 28);
-    g.fillStyle(0x333333, 1);
-    g.fillRect(-8, -8, 3, 17);
-    g.fillRect(2, -8, 3, 17);
-    g.fillEllipse(0, -20, 13, 15);
+    g.lineStyle(2.2, 0x111111, 1);
+    g.fillEllipse(0, 0, 22, 30);
+    g.strokeEllipse(0, 0, 22, 30);
+    g.fillStyle(0x111111, 1);
+    g.fillRect(-8, -9, 4, 18);
+    g.fillRect(2, -9, 4, 18);
+    g.fillEllipse(0, -21, 14, 16);
     container.add([g, label]);
     return container;
   }
@@ -67,7 +67,7 @@ export class ArenaScene extends Phaser.Scene {
   handleResize(gameSize) {
     const width = gameSize.width;
     const height = gameSize.height;
-    const arenaHeight = Math.floor(height * 0.5);
+    const arenaHeight = Math.floor(height * 0.50);
 
     this.layout = { width, height, arenaHeight };
     this.ring.draw(this.layout);
@@ -97,21 +97,22 @@ export class ArenaScene extends Phaser.Scene {
     const redScreen = this.ring.ringToScreen(this.snapshot.red.position.x, this.snapshot.red.position.y);
     const blueScreen = this.ring.ringToScreen(this.snapshot.blue.position.x, this.snapshot.blue.position.y);
     const refScreen = this.ring.ringToScreen(this.snapshot.referee.position.x, this.snapshot.referee.position.y);
-    const sizeScale = Phaser.Math.Clamp(this.ring.bounds.size / 680, 0.40, 0.72);
+    const sizeScale = Phaser.Math.Clamp(this.ring.bounds.size / 420, 0.72, 1.15);
 
     this.wrestlerA.setSpriteScale(sizeScale);
     this.wrestlerB.setSpriteScale(sizeScale);
-    this.wrestlerA.setPosition(redScreen.x, redScreen.y);
-    this.wrestlerB.setPosition(blueScreen.x, blueScreen.y);
+    this.wrestlerA.setPosition(Math.round(redScreen.x), Math.round(redScreen.y));
+    this.wrestlerB.setPosition(Math.round(blueScreen.x), Math.round(blueScreen.y));
     this.wrestlerA.setFacingRadians(this.snapshot.red.facing);
     this.wrestlerB.setFacingRadians(this.snapshot.blue.facing);
     this.wrestlerA.setState(this.snapshot.red.state);
     this.wrestlerB.setState(this.snapshot.blue.state);
 
-    this.referee.setPosition(refScreen.x, refScreen.y);
-    this.referee.setScale(sizeScale * 0.75);
+    this.referee.setPosition(Math.round(refScreen.x), Math.round(refScreen.y));
+    this.referee.setScale(sizeScale * 0.72);
 
-    this.hudText.setPosition(this.layout.width * 0.5, 8);
+    this.hudText.setPosition(Math.round(this.layout.width * 0.5), 8);
+    this.hudText.setFontSize(this.layout.width < 430 ? 13 : 16);
     this.hudText.setText(`${this.snapshot.red.profile.shortName} STA ${Math.round(this.snapshot.red.stamina)} DMG ${Math.round(this.snapshot.red.damage)}   ${this.snapshot.blue.profile.shortName} STA ${Math.round(this.snapshot.blue.stamina)} DMG ${Math.round(this.snapshot.blue.damage)}`);
   }
 }
