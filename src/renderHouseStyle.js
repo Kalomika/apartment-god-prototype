@@ -125,6 +125,7 @@ export function drawStyledObject(ctx, o, state) {
   if (o.kind === 'car') return car(ctx, o, state), true;
   if (o.kind === 'bike') return bike(ctx, o), true;
   if (o.kind === 'motorbike') return motorbike(ctx, o), true;
+  if (o.kind === 'atv') return atv(ctx, o), true;
   if (o.kind === 'workout') return workout(ctx, o), true;
   return false;
 }
@@ -156,9 +157,93 @@ function heavyBag(ctx, o) { line(ctx, o.x + o.w / 2, o.y, o.x + o.w / 2, o.y + 1
 function swimPool(ctx, o) { rr(ctx, o.x, o.y, o.w, o.h, 28, true, false, '#d3c6ad'); rr(ctx, o.x + 12, o.y + 12, o.w - 24, o.h - 24, 22, true, false, '#74bac4'); ctx.strokeStyle = 'rgba(255,255,255,.55)'; for (let y = o.y + 40; y < o.y + o.h; y += 36) { ctx.beginPath(); ctx.moveTo(o.x + 24, y); ctx.quadraticCurveTo(o.x + o.w / 2, y - 20, o.x + o.w - 24, y); ctx.stroke(); } }
 function kennel(ctx, o) { rr(ctx, o.x, o.y, o.w, o.h, 14, true, false, '#8b654c'); ctx.fillStyle = '#3a332d'; ctx.beginPath(); ctx.arc(o.x + o.w / 2, o.y + o.h - 16, 20, Math.PI, 0); ctx.fill(); }
 function workout(ctx, o) { rr(ctx, o.x, o.y, o.w, o.h, 8, true, false, '#78766d'); line(ctx, o.x + 12, o.y + 22, o.x + o.w - 12, o.y + 22, STYLE.cream, 4); }
-function car(ctx, o, state) { const night = (state.time % 1440) >= 18 * 60 || (state.time % 1440) < 6 * 60; rr(ctx, o.x, o.y, o.w, o.h, 28, true, true, '#6f7c83', '#4d565b', 2); rr(ctx, o.x + o.w * .18, o.y + o.h * .18, o.w * .64, o.h * .64, 18, true, false, '#d7e2e1'); rr(ctx, o.x + o.w * .25, o.y + o.h * .28, o.w * .5, o.h * .23, 8, false, true, '#4d565b', '#4d565b', 2); rr(ctx, o.x + o.w * .28, o.y + o.h * .72, o.w * .44, o.h * .16, 7, false, true, '#4d565b', '#4d565b', 2); ctx.fillStyle = night ? '#e8c35a' : STYLE.cream; ctx.fillRect(o.x + o.w * .2, o.y + 10, 18, 10); ctx.fillRect(o.x + o.w * .66, o.y + 10, 18, 10); ctx.fillStyle = STYLE.clay; ctx.fillRect(o.x + o.w * .2, o.y + o.h - 20, 18, 8); ctx.fillRect(o.x + o.w * .66, o.y + o.h - 20, 18, 8); }
-function bike(ctx, o) { circle(ctx, o.x + 18, o.y + 18, 14, false, '#6a625c'); circle(ctx, o.x + o.w - 18, o.y + 18, 14, false, '#6a625c'); line(ctx, o.x + 18, o.y + 18, o.x + 46, o.y + 8, '#6a625c', 4); line(ctx, o.x + 46, o.y + 8, o.x + o.w - 18, o.y + 18, '#6a625c', 4); }
-function motorbike(ctx, o) { rr(ctx, o.x + 20, o.y + 8, o.w - 40, o.h - 16, 16, true, false, '#5d5a54'); rr(ctx, o.x + 44, o.y + 16, 34, 8, 4, true, false, STYLE.blue); circle(ctx, o.x + 18, o.y + o.h - 12, 12, false, '#6a625c'); circle(ctx, o.x + o.w - 18, o.y + o.h - 12, 12, false, '#6a625c'); }
+function car(ctx, o, state) {
+  const night = (state.time % 1440) >= 18 * 60 || (state.time % 1440) < 6 * 60;
+  const sports = o.id === 'car_2';
+  const body = sports ? '#954334' : '#d9d7ce';
+  const bodyEdge = sports ? '#5d2a25' : '#756d63';
+  const glass = '#263a3d';
+  const cx = o.x + o.w / 2;
+  ctx.save();
+  ctx.strokeStyle = STYLE.ink;
+  ctx.lineWidth = 2.2;
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  if (sports) {
+    ctx.moveTo(cx, o.y + 3);
+    ctx.bezierCurveTo(o.x + o.w - 12, o.y + 18, o.x + o.w - 4, o.y + 58, o.x + o.w - 8, o.y + o.h - 28);
+    ctx.quadraticCurveTo(cx, o.y + o.h + 1, o.x + 8, o.y + o.h - 28);
+    ctx.bezierCurveTo(o.x + 4, o.y + 58, o.x + 12, o.y + 18, cx, o.y + 3);
+  } else {
+    ctx.moveTo(cx, o.y + 4);
+    ctx.bezierCurveTo(o.x + o.w - 8, o.y + 18, o.x + o.w - 4, o.y + 64, o.x + o.w - 13, o.y + o.h - 18);
+    ctx.quadraticCurveTo(cx, o.y + o.h + 4, o.x + 13, o.y + o.h - 18);
+    ctx.bezierCurveTo(o.x + 4, o.y + 64, o.x + 8, o.y + 18, cx, o.y + 4);
+  }
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  rr(ctx, o.x + o.w * .22, o.y + o.h * .15, o.w * .56, o.h * .16, 8, true, true, glass, bodyEdge, 1.5);
+  rr(ctx, o.x + o.w * .20, o.y + o.h * .60, o.w * .60, o.h * .18, 8, true, true, glass, bodyEdge, 1.5);
+  rr(ctx, o.x + o.w * .18, o.y + o.h * .34, o.w * .12, o.h * .30, 7, true, true, '#ecdfce', bodyEdge, 1);
+  rr(ctx, o.x + o.w * .70, o.y + o.h * .34, o.w * .12, o.h * .30, 7, true, true, '#ecdfce', bodyEdge, 1);
+  line(ctx, o.x + 14, o.y + o.h * .39, o.x + o.w - 14, o.y + o.h * .39, 'rgba(53,47,42,.32)', 1.3);
+  line(ctx, o.x + 16, o.y + o.h * .69, o.x + o.w - 16, o.y + o.h * .69, 'rgba(53,47,42,.32)', 1.3);
+  ctx.fillStyle = night ? '#f2d36c' : '#fff8dc';
+  ellipse(ctx, o.x + 24, o.y + 14, 9, 6, ctx.fillStyle); ellipse(ctx, o.x + o.w - 24, o.y + 14, 9, 6, ctx.fillStyle);
+  ellipse(ctx, o.x + 24, o.y + o.h - 13, 8, 5, STYLE.clay); ellipse(ctx, o.x + o.w - 24, o.y + o.h - 13, 8, 5, STYLE.clay);
+  line(ctx, o.x - 6, o.y + o.h * .38, o.x + 4, o.y + o.h * .42, STYLE.ink, 2);
+  line(ctx, o.x + o.w + 6, o.y + o.h * .38, o.x + o.w - 4, o.y + o.h * .42, STYLE.ink, 2);
+  if (sports) {
+    for (const side of [-1, 1]) {
+      line(ctx, cx + side * 24, o.y + 45, cx + side * 12, o.y + 82, '#52251f', 3);
+      line(ctx, cx + side * 32, o.y + 58, cx + side * 19, o.y + 94, '#52251f', 2);
+    }
+  }
+  ctx.restore();
+}
+function bike(ctx, o) {
+  const cx = o.x + o.w / 2;
+  ctx.save();
+  ctx.strokeStyle = STYLE.ink;
+  ctx.lineWidth = 2;
+  circle(ctx, cx, o.y + 14, Math.min(13, o.w * .42), false, STYLE.ink);
+  circle(ctx, cx, o.y + o.h - 14, Math.min(13, o.w * .42), false, STYLE.ink);
+  line(ctx, cx, o.y + 14, o.x + 6, o.y + o.h * .50, '#3f5f67', 3);
+  line(ctx, o.x + 6, o.y + o.h * .50, cx, o.y + o.h - 14, '#3f5f67', 3);
+  line(ctx, cx, o.y + 14, o.x + o.w - 6, o.y + o.h * .50, '#3f5f67', 3);
+  line(ctx, o.x + o.w - 6, o.y + o.h * .50, cx, o.y + o.h - 14, '#3f5f67', 3);
+  line(ctx, o.x + 4, o.y + 8, o.x + o.w - 4, o.y + 8, STYLE.ink, 2);
+  rr(ctx, cx - 7, o.y + o.h * .47, 14, 9, 4, true, false, '#5a4a3e');
+  line(ctx, cx, o.y + o.h * .52, cx + 12, o.y + o.h * .60, STYLE.ink, 2);
+  line(ctx, cx, o.y + o.h * .52, cx - 12, o.y + o.h * .60, STYLE.ink, 2);
+  ctx.restore();
+}
+function motorbike(ctx, o) {
+  const cx = o.x + o.w / 2;
+  ctx.save();
+  circle(ctx, cx, o.y + 14, 12, false, STYLE.ink);
+  circle(ctx, cx, o.y + o.h - 14, 13, false, STYLE.ink);
+  rr(ctx, cx - 13, o.y + 28, 26, o.h - 56, 13, true, true, '#504b47', STYLE.ink, 2);
+  rr(ctx, cx - 10, o.y + 39, 20, 24, 8, true, false, '#cfd8d6');
+  rr(ctx, cx - 12, o.y + 72, 24, 28, 11, true, false, '#2c2a28');
+  line(ctx, o.x + 4, o.y + 17, o.x + o.w - 4, o.y + 17, STYLE.ink, 2.5);
+  line(ctx, o.x + 9, o.y + o.h - 36, o.x - 2, o.y + o.h - 21, '#5a524a', 2);
+  line(ctx, o.x + o.w - 9, o.y + o.h - 36, o.x + o.w + 2, o.y + o.h - 21, '#5a524a', 2);
+  ctx.restore();
+}
+function atv(ctx, o) {
+  const cx = o.x + o.w / 2;
+  ctx.save();
+  for (const [dx, dy] of [[7, 10], [o.w - 7, 10], [7, o.h - 14], [o.w - 7, o.h - 14]]) {
+    rr(ctx, o.x + dx - 9, o.y + dy - 14, 18, 28, 8, true, true, '#2c2a25', STYLE.ink, 1.5);
+  }
+  rr(ctx, o.x + 13, o.y + 15, o.w - 26, o.h - 34, 12, true, true, '#66764c', STYLE.ink, 2);
+  rr(ctx, cx - 13, o.y + 34, 26, 34, 11, true, false, '#8ca064');
+  rr(ctx, cx - 13, o.y + o.h - 52, 26, 36, 11, true, false, '#3d3a33');
+  line(ctx, o.x + 10, o.y + 20, o.x + o.w - 10, o.y + 20, STYLE.ink, 2.5);
+  line(ctx, o.x + 10, o.y + 20, o.x - 3, o.y + 12, STYLE.ink, 2);
+  line(ctx, o.x + o.w - 10, o.y + 20, o.x + o.w + 3, o.y + 12, STYLE.ink, 2);
+  ctx.restore();
+}
 
 function rr(ctx, x, y, w, h, r, fill = true, stroke = false, fillColor = null, strokeColor = null, lineWidth = null) {
   if (fillColor) ctx.fillStyle = fillColor;
@@ -166,7 +251,7 @@ function rr(ctx, x, y, w, h, r, fill = true, stroke = false, fillColor = null, s
   if (lineWidth) ctx.lineWidth = lineWidth;
   ctx.beginPath();
   if (ctx.roundRect) ctx.roundRect(x, y, Math.max(1, w), Math.max(1, h), Math.max(0, r));
-  else { ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); }
+  else { ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); }
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
 }
