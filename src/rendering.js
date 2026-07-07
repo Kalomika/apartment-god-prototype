@@ -43,9 +43,21 @@ function drawFetchBall(ctx, state) {
 }
 
 function drawActivityCloneFx(ctx, state) {
-  if (!state.poolGame?.balls || state.floor !== 2) return;
+  const game = state.poolGame;
+  if (!game?.balls || state.floor !== 2) return;
   ctx.save();
-  for (const ball of state.poolGame.balls) {
+  if (game.cueLine?.t > 0) {
+    game.cueLine.t -= 0.03;
+    ctx.strokeStyle = 'rgba(241,198,106,.75)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath();
+    ctx.moveTo(game.cueLine.x1, game.cueLine.y1);
+    ctx.lineTo(game.cueLine.x2, game.cueLine.y2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  for (const ball of game.balls) {
     if (ball.pocketed) continue;
     ctx.fillStyle = ball.fill || '#f8fbff';
     ctx.beginPath();
@@ -54,8 +66,38 @@ function drawActivityCloneFx(ctx, state) {
     ctx.strokeStyle = '#11151c';
     ctx.lineWidth = 1.5;
     ctx.stroke();
+    if (ball.value) {
+      ctx.fillStyle = '#11151c';
+      ctx.font = '900 7px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText(ball.value, ball.x, ball.y + 3);
+      ctx.textAlign = 'left';
+    }
   }
+  drawPoolScoreboard(ctx, game);
   ctx.restore();
+}
+
+function drawPoolScoreboard(ctx, game) {
+  const x = 86;
+  const y = 238;
+  ctx.fillStyle = 'rgba(8,10,15,.78)';
+  ctx.fillRect(x, y, 310, 74);
+  ctx.strokeStyle = 'rgba(116,230,255,.7)';
+  ctx.strokeRect(x, y, 310, 74);
+  ctx.fillStyle = COLORS.text;
+  ctx.font = '900 13px system-ui';
+  const names = game.names || game.playerIds || [];
+  const rows = names.map((name, index) => {
+    const id = game.playerIds?.[index] || name;
+    return `${index === game.turn % Math.max(1, names.length) && !game.winner ? '▶ ' : ''}${name}: ${game.score?.[id] || 0}`;
+  }).join('   ');
+  ctx.fillText(rows || 'Pool mini game', x + 12, y + 24);
+  ctx.font = '800 12px system-ui';
+  ctx.fillStyle = '#f1c66a';
+  ctx.fillText(game.winner ? `Winner: ${game.winner}` : game.message || 'Taking shots', x + 12, y + 48);
+  ctx.fillStyle = '#b6c1d2';
+  ctx.fillText(`Shots ${Object.values(game.shots || {}).reduce((sum, n) => sum + n, 0)}`, x + 12, y + 66);
 }
 
 function drawStatus(ctx, state) {
