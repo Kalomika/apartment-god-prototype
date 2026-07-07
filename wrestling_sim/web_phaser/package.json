@@ -1,9 +1,9 @@
 {
-  "name": "kalomika-wrestling-sim-phaser",
+  "name": "grapple-gods-phaser",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Mobile browser Phaser prototype for the Kalomika wrestling sim.",
+  "description": "Mobile browser Phaser prototype for Grapple Gods.",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
