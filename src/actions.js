@@ -2,7 +2,7 @@ import { ACTION_TIMES } from './config.js';
 import { startFetchThrow } from './fetchSystem.js';
 import { addGarbageFromAction, callDogToYard, continueTrashRun, startTakeTrashOut } from './garbage.js';
 import { byId, changeNeed, log, say, setMood } from './state.js';
-import { beginVehicleDeparture } from './vehicleSystem.js';
+import { beginVehicleDeparture, beginVehicleReturn } from './vehicleSystem.js';
 import { getObject, getStairExit, roomAt } from './world.js';
 import { commandObject, commandSocial } from './movement.js';
 
@@ -121,12 +121,13 @@ function toggleRoomLight(state, entity) { const room = roomAt(entity.x, entity.y
 
 export function startOffsite(state, actor, actionId, invitedIds = []) {
   const party = buildParty(state, actor, invitedIds, actionId);
-  state.offsite = { actionId, t: ACTION_TIMES[actionId] ?? 10, actors: party.map(e => e.id) };
+  const partyIds = party.map(e => e.id);
+  state.offsite = { actionId, t: ACTION_TIMES[actionId] ?? 10, actors: partyIds, vehicleId: 'car_1' };
   for (const e of party) { e.hidden = true; e.action = actionId; e.path = []; say(e, 'GO'); }
   state.objectState.doorOpen = true;
-  beginVehicleDeparture(state, actionId, party.map(e => e.id));
+  beginVehicleDeparture(state, actionId, partyIds);
   log(state, `${actor.name} left for ${actionId.replaceAll('_', ' ')} with ${party.length - 1} guest(s).`);
 }
 function buildParty(state, actor, invitedIds, actionId) { const party = [actor]; for (const id of invitedIds || []) { const e = byId(state, id); if (!e || e.id === actor.id || e.hidden) continue; if (e.type === 'dog' && !['errand', 'mall', 'date', 'movies', 'dog_park'].includes(actionId)) continue; const current = String(e.action || '').toLowerCase(); const urgent = e.actionT > 0 || e.path?.length || current.includes('toilet') || current.includes('shower') || (e.needs?.bladder ?? 100) < 25 || (e.needs?.hunger ?? 100) < 20; if (urgent) { say(e, 'not rn'); log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}.`); continue; } say(e, 'yeah'); party.push(e); } return party; }
-function finishOffsite(state) { const action = state.offsite.actionId; for (const id of state.offsite.actors) { const e = byId(state, id); if (e) { e.hidden = false; e.floor = 0; e.x = 250; e.y = 586; e.action = 'Returned'; e.pose = 'stand'; changeNeed(e, 'fun', action === 'work' ? -5 : 22); changeNeed(e, 'hunger', -12); changeNeed(e, 'energy', -12); changeNeed(e, 'freshness', -3); if (action === 'movies') addGarbageFromAction(state, 'popcorn', e); } } log(state, `Returned from ${action.replaceAll('_', ' ')}.`); state.offsite = null; state.objectState.doorOpen = false; }
+function finishOffsite(state) { const job = state.offsite; if (!job) return; beginVehicleReturn(state, job.actionId, job.actors || [], job.vehicleId || state.objectState.vehicleInUse || 'car_1'); state.offsite = null; state.objectState.doorOpen = false; }
 function speechFor(actionId) { const map = { shower: '🚿', toilet: '🚽', snack: '🍎', meal: '🍳', bring_food: '🍽️', comedy: '😂', horror: '😱', sports: '🏆', phone: '📱', play_game: '🎮', sleep: '😴', nap: '😴', kiss: '😘', cuddle: '🤗', tickle: '😂', hands: '🤝', watch_together: '📺', bed_together: '🛏️', intimacy: '❤️', pet: '🐾', train: '🎾', feed_dog: '🍖', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'KENNEL', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
