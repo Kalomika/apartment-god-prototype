@@ -102,7 +102,9 @@ export function createUi(state, surface, options = {}) {
 
   function useObject(actor, obj, actionId) {
     if (actionId === 'meal') return startCookingFlow(state, actor);
-    if (obj.kind === 'door' && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId);
+    if ((obj.kind === 'door' || obj.kind === 'car') && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId, [], obj.kind === 'car' ? obj.id : 'auto');
+    if (obj.kind === 'bike' && actionId === 'bike_trip') return startOffsite(state, actor, actionId, [], 'bike');
+    if (obj.kind === 'motorbike' && actionId === 'motorbike_trip') return startOffsite(state, actor, actionId, [], 'motorbike');
     startObjectAction(state, actor, obj, actionId);
   }
   function setFloor(floor) { state.floor = floor; state.viewHoldT = floor === 0 ? 0 : 18; closeMenu(); log(state, `Viewing ${floors[floor]?.name || 'floor'}.`); }
