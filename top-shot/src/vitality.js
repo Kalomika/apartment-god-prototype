@@ -26,14 +26,16 @@ export function recoverVitality(fighter, amount) {
 }
 
 export function canSuddenIncapacitate(attacker, defender, type, damage) {
-  if (type === 'grenade' || type === 'blast') return true;
+  if (type === 'grenade' || type === 'blast') return damage > 22;
   if (type === 'shot') {
     const aim = attacker?.stats?.aim || 50;
     const toughness = defender?.stats?.toughness || 60;
-    return damage > 10 && Math.random() < Math.max(0.015, (aim - toughness + 35) / 900);
+    const disciplined = (defender?.stats?.discipline || 60) / 100;
+    const chance = Math.max(0.002, (aim - toughness + 18) / 1900) * (1 - disciplined * 0.42);
+    return damage > 14 && defender.hp < 18 && Math.random() < chance;
   }
   if (type === 'sword' || type === 'counter') {
-    return damage > 14 && Math.random() < 0.035;
+    return damage > 18 && defender.hp < 14 && Math.random() < 0.015;
   }
   return false;
 }
