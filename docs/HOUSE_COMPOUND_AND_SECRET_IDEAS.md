@@ -31,23 +31,26 @@ All three buttons should be slightly translucent so they do not fully hide reada
 
 ## Blueprint behavior
 
-The blueprint button should behave like the phone button:
+The blueprint button should behave like the phone button but should open into a full game screen blueprint mode.
 
-- Tap the small button.
-- A blueprint styled panel opens.
-- The panel should feel like a tiny house schematic, not just a normal text list.
-- The blueprint is contextual to the current view or compound layer.
-- It should show attached same level areas that the camera can move to.
-- It should not show unrelated stacked floors as if the player is looking through the whole building.
-- If a layer has no meaningful attached areas, the button can be grayed out but should remain visible.
+Expected behavior:
+
+- Tap the small blueprint button.
+- A full screen blueprint overlay covers the game view.
+- An X button closes the blueprint and returns to the normal view.
+- The overlay shows the whole household compound at once.
+- It can show Main House, Upstairs, Basement, Garage, Backyard, and later Front Patio.
+- Each floor or area is shown as a mini schematic.
+- Small household markers show where the characters currently are.
+- This becomes another way to find characters without searching every room manually.
 - Tapping an area moves the camera view only. It does not move characters.
+- The blueprint can stay open as a mode if the player wants to keep observing the whole compound.
 
-For the current main compound layer, the blueprint should include:
+Current practical implementation:
 
-- Main House.
-- Backyard.
-- Garage.
-- Front Patio once the patio is built as its own navigable area.
+- The blueprint overlay shows schematic rooms and character heads.
+- It is not yet a true live shrink of the renderer.
+- Later it can become a live mini simulation view.
 
 ## Character locator behavior
 
@@ -129,6 +132,40 @@ Target behavior:
 - Soft lock to the nearest room or area when the drag stops.
 - Do not make the lock so harsh that it fights the player.
 - Preserve direct tap controls for testing.
+
+## Vehicle and travel camera future
+
+Long term, the camera itself should feel like a character in the game.
+
+Future driving target:
+
+- Once a character enters a car, the camera can lock to the car.
+- The world can move underneath the car in a top down old school Grand Theft Auto style.
+- The house can eventually expand to a neighborhood, then a town, then a city.
+- Destinations like the mall, theater, jobs, and other buildings should become actual spaces over time.
+
+Future plane travel target:
+
+- Vacation should feel like a major event.
+- Start above the plane on the runway.
+- Keep the plane centered while the runway background moves.
+- The plane accelerates and takes off upward.
+- As it rises, it scales closer to the camera, fades, and transitions through the roof into the plane interior.
+- Inside the plane, characters sit in seats, can potentially move to the bathroom, and later return to seats for landing.
+- Seatbelt lights can turn on before landing.
+- Landing reverses the move, transitioning from the interior back to the top view of the plane landing on the runway.
+
+This is future state. House mechanics remain the current priority.
+
+## Developer testing tools
+
+Developer or test mode should include a money refill button so expensive actions can be tested without grinding.
+
+Rules:
+
+- Do not make normal money infinite.
+- Keep a manual developer refill button for testing only.
+- The real game should not expose that button in production.
 
 ## Secret house story ideas
 
