@@ -91,7 +91,7 @@ export function installCameraSwipeNavigation(state, surface) {
     state.cameraGestureActive = true;
     state.suppressNextCanvasClick = true;
     closePanel();
-    navigateView(state, target.floor, target.label, 'swipe');
+    navigateView(state, target.floor, target.label, 'swipe-pull');
     setTimeout(() => {
       state.suppressNextCanvasClick = false;
       state.cameraGestureActive = false;
@@ -137,17 +137,20 @@ function swipeTarget(floor, dx, dy, elapsed) {
   const distance = Math.hypot(dx, dy);
   if (distance < 52 || elapsed > 1400) return null;
   const horizontal = Math.abs(dx) > Math.abs(dy);
+
   if (floor === 0) {
-    if (!horizontal && dy < -42) return { floor: 4, label: 'Backyard North' };
-    if (horizontal && dx < -42) return { floor: 3, label: 'Garage West' };
+    if (!horizontal && dy > 42) return { floor: 4, label: 'Backyard North' };
+    if (horizontal && dx > 42) return { floor: 3, label: 'Garage West' };
   }
+
   if (floor === 4) {
-    if (!horizontal && dy > 42) return { floor: 0, label: 'Main House' };
-    if (horizontal && dx < -42) return { floor: 3, label: 'Garage West' };
+    if (!horizontal && dy < -42) return { floor: 0, label: 'Main House' };
+    if (horizontal && dx > 42) return { floor: 3, label: 'Garage West' };
   }
+
   if (floor === 3) {
-    if (horizontal && dx > 42) return { floor: 0, label: 'Main House' };
-    if (!horizontal && dy < -42) return { floor: 4, label: 'Backyard North' };
+    if (horizontal && dx < -42) return { floor: 0, label: 'Main House' };
+    if (!horizontal && dy > 42) return { floor: 4, label: 'Backyard North' };
   }
   return null;
 }
