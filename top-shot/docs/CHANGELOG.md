@@ -2,6 +2,42 @@
 
 All Top Shot changes must be logged here with date, time, branch, rollback reference, files changed, feature summary, and Render link/cache buster when known.
 
+## 2026-07-08 02:15 PM CT
+
+Branch: `top-shot-v0-1`
+
+Render link: `https://top-shot-prototype.onrender.com/?v=stealth-engine-20260708`
+
+Files changed:
+
+- `top-shot/src/stealth.js`
+- `top-shot/src/perception.js`
+- `top-shot/src/brain.js`
+- `top-shot/src/systems.js`
+- `top-shot/src/state.js`
+- `top-shot/tests/stealthSmoke.js`
+- `top-shot/package.json`
+- `top-shot/asset_inbox/reference_notes/STEALTH_REFERENCE_ENGINE_LOG.md`
+- `top-shot/asset_inbox/ASSET_MANIFEST.md`
+- `top-shot/docs/CHANGELOG.md`
+
+Changes made:
+
+- Added an original Top Shot stealth awareness system based on public stealth design takeaways, not copied proprietary game code.
+- Added global stealth phases: infiltration, suspicious, alert, evasion, and recovery.
+- Added per fighter awareness data: suspicion, stress, phase, role, last known position, last heard position, last evidence position, search radius, current search point, and evidence memory.
+- Replaced static instant vision/hearing checks with visual and sound detection scores that consider line of sight, facing cone, distance, posture, shadows, movement noise, ambient noise, and close range readability.
+- Added environmental evidence scanning for bodies, blood, stuck projectiles, used pickups, explosions, impacts, landing flashes, and combat disturbance effects.
+- Added stealth search planning so fighters move to last known, last heard, evidence, cover, shadow, and widening ring search points instead of magically knowing the target position.
+- Added alert roles by archetype, including flanker, blocker, overwatch, investigator, searcher, and patrol behavior labels.
+- Added stealth smoke testing and included it in `npm run smoke`.
+
+Known risks or not verified:
+
+- Browser runtime was not executed from this connector, so Kam should verify visually on Render after deploy.
+- Stealth UI readout is not yet surfaced in the HUD, though phase changes are logged in fight commentary.
+- This is one-on-one stealth awareness first. Full squad role coordination should come later when more actors exist.
+
 ## 2026-07-08 07:04 AM CT
 
 Branch: `top-shot-v0-1`
