@@ -62,8 +62,8 @@ function drawCourier(ctx, state) {
 
 function drawGarageDoor(ctx, state) {
   ctx.fillStyle = state.objectState.garageDoorOpen ? 'rgba(116,230,255,.35)' : '#2a3140';
-  ctx.fillRect(118, 38, 548, 30);
-  ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(118, 38, 548, 30);
+  ctx.fillRect(186, 636, 548, 30);
+  ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(186, 636, 548, 30);
 }
 
 function drawAnimatedCar(ctx, v, label) {
@@ -79,14 +79,14 @@ function drawAnimatedCar(ctx, v, label) {
   ctx.strokeStyle = '#26313a'; ctx.lineWidth = 3;
   ctx.strokeRect(x + w * 0.28, y + h * 0.34, w * 0.44, h * 0.28);
   if (v.open) drawVehicleDoors(ctx, x, y, w, h);
-  if (v.trunkOpen) drawTrunk(ctx, x, y, w, h, v);
+  if (v.trunkOpen) drawTrunk(ctx, x, y, w, h);
   ctx.fillStyle = flash ? '#fff4a4' : '#f1c66a';
   if (vertical) {
-    ctx.fillRect(x + w * 0.18, y + 8, Math.max(12, w * 0.18), 10);
-    ctx.fillRect(x + w * 0.64, y + 8, Math.max(12, w * 0.18), 10);
+    ctx.fillRect(x + w * 0.18, y + h - 18, Math.max(12, w * 0.18), 10);
+    ctx.fillRect(x + w * 0.64, y + h - 18, Math.max(12, w * 0.18), 10);
     ctx.fillStyle = flash ? '#ff7272' : '#d84b4b';
-    ctx.fillRect(x + w * 0.18, y + h - 18, Math.max(12, w * 0.18), 8);
-    ctx.fillRect(x + w * 0.64, y + h - 18, Math.max(12, w * 0.18), 8);
+    ctx.fillRect(x + w * 0.18, y + 8, Math.max(12, w * 0.18), 8);
+    ctx.fillRect(x + w * 0.64, y + 8, Math.max(12, w * 0.18), 8);
   } else {
     ctx.fillRect(x + w - 22, y + h * 0.18, 10, Math.max(12, h * 0.18));
     ctx.fillRect(x + w - 22, y + h * 0.64, 10, Math.max(12, h * 0.18));
@@ -94,76 +94,16 @@ function drawAnimatedCar(ctx, v, label) {
     ctx.fillRect(x + 10, y + h * 0.18, 8, Math.max(12, h * 0.18));
     ctx.fillRect(x + 10, y + h * 0.64, 8, Math.max(12, h * 0.18));
   }
-  if (flash) {
-    ctx.strokeStyle = 'rgba(255,244,164,.65)';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(x - 8, y - 8, w + 16, h + 16);
-  }
+  if (flash) { ctx.strokeStyle = 'rgba(255,244,164,.65)'; ctx.lineWidth = 3; ctx.strokeRect(x - 8, y - 8, w + 16, h + 16); }
   drawStoredLuggage(ctx, v, x, y, w, h);
   ctx.fillStyle = '#10141b'; ctx.font = '900 10px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, x + w / 2, y + h / 2); ctx.textAlign = 'left';
   if (v.remoteFlashT > 0) drawVehicleBubble(ctx, x + w / 2, y - 18, v.remoteLabel || 'REMOTE');
 }
 
-function drawVehicleDoors(ctx, x, y, w, h) {
-  ctx.strokeStyle = '#2b1715';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(x - 2, y + h * .30); ctx.lineTo(x - 34, y + h * .20);
-  ctx.moveTo(x + w + 2, y + h * .30); ctx.lineTo(x + w + 34, y + h * .20);
-  ctx.moveTo(x - 2, y + h * .62); ctx.lineTo(x - 32, y + h * .72);
-  ctx.moveTo(x + w + 2, y + h * .62); ctx.lineTo(x + w + 32, y + h * .72);
-  ctx.stroke();
-}
-
-function drawTrunk(ctx, x, y, w, h) {
-  ctx.fillStyle = '#202838';
-  ctx.strokeStyle = '#f1c66a';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(x + 8, y + h + 2);
-  ctx.lineTo(x + w - 8, y + h + 2);
-  ctx.lineTo(x + w - 18, y + h + 36);
-  ctx.lineTo(x + 18, y + h + 36);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-}
-
-function drawStoredLuggage(ctx, v, x, y, w, h) {
-  if (!v.vacation || !v.luggage?.length || (!v.trunkOpen && !v.luggageLoaded)) return;
-  const loaded = v.luggage.filter(item => item.loaded || v.phase === 'loading_luggage' || v.phase === 'unloading_luggage');
-  loaded.slice(0, 4).forEach((item, index) => drawLuggage(ctx, x + w * .28 + index * 15, y + h + (v.trunkOpen ? 20 : -30), item.count > 1));
-}
-
-function drawVehicleBubble(ctx, x, y, text) {
-  ctx.fillStyle = 'rgba(8,10,15,.82)';
-  roundRect(ctx, x - 40, y - 12, 80, 24, 10, 'rgba(8,10,15,.82)');
-  ctx.fillStyle = '#f1c66a';
-  ctx.font = '900 10px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText(text, x, y + 4);
-  ctx.textAlign = 'left';
-}
-
-function drawVehicleDeparture(ctx, state) {
-  const v = state.vehicleDeparture;
-  if (!v || state.floor !== 3) return;
-  ctx.save();
-  drawGarageDoor(ctx, state);
-  drawAnimatedCar(ctx, v, v.phase?.replaceAll('_', ' ').toUpperCase() || 'LEAVING');
-  ctx.restore();
-}
-
-function drawVehicleReturn(ctx, state) {
-  const v = state.vehicleReturn;
-  if (!v || state.floor !== 3) return;
-  ctx.save();
-  drawGarageDoor(ctx, state);
-  drawAnimatedCar(ctx, v, v.phase?.replaceAll('_', ' ').toUpperCase() || 'RETURN');
-  ctx.restore();
-}
-
-function drawBuildPrompt(ctx, state) {
-  if (!state.buildPick) return;
-  ctx.save(); ctx.fillStyle = 'rgba(10,12,18,.78)'; ctx.fillRect(282, 10, 380, 34); ctx.fillStyle = '#f8fbff'; ctx.font = '900 15px system-ui'; ctx.fillText(`Tap placement spot for ${state.buildPick.label}`, 294, 32); ctx.restore();
-}
+function drawVehicleDoors(ctx, x, y, w, h) { ctx.strokeStyle = '#2b1715'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x - 2, y + h * .30); ctx.lineTo(x - 34, y + h * .20); ctx.moveTo(x + w + 2, y + h * .30); ctx.lineTo(x + w + 34, y + h * .20); ctx.moveTo(x - 2, y + h * .62); ctx.lineTo(x - 32, y + h * .72); ctx.moveTo(x + w + 2, y + h * .62); ctx.lineTo(x + w + 32, y + h * .72); ctx.stroke(); }
+function drawTrunk(ctx, x, y, w, h) { ctx.fillStyle = '#202838'; ctx.strokeStyle = '#f1c66a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + 8, y - 2); ctx.lineTo(x + w - 8, y - 2); ctx.lineTo(x + w - 18, y - 36); ctx.lineTo(x + 18, y - 36); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+function drawStoredLuggage(ctx, v, x, y, w, h) { if (!v.vacation || !v.luggage?.length || (!v.trunkOpen && !v.luggageLoaded)) return; const loaded = v.luggage.filter(item => item.loaded || v.phase === 'loading_luggage' || v.phase === 'unloading_luggage'); loaded.slice(0, 4).forEach((item, index) => drawLuggage(ctx, x + w * .28 + index * 15, y + (v.trunkOpen ? -20 : 30), item.count > 1)); }
+function drawVehicleBubble(ctx, x, y, text) { ctx.fillStyle = 'rgba(8,10,15,.82)'; roundRect(ctx, x - 40, y - 12, 80, 24, 10, 'rgba(8,10,15,.82)'); ctx.fillStyle = '#f1c66a'; ctx.font = '900 10px system-ui'; ctx.textAlign = 'center'; ctx.fillText(text, x, y + 4); ctx.textAlign = 'left'; }
+function drawVehicleDeparture(ctx, state) { const v = state.vehicleDeparture; if (!v || state.floor !== 3) return; ctx.save(); drawGarageDoor(ctx, state); drawAnimatedCar(ctx, v, v.phase?.replaceAll('_', ' ').toUpperCase() || 'LEAVING'); ctx.restore(); }
+function drawVehicleReturn(ctx, state) { const v = state.vehicleReturn; if (!v || state.floor !== 3) return; ctx.save(); drawGarageDoor(ctx, state); drawAnimatedCar(ctx, v, v.phase?.replaceAll('_', ' ').toUpperCase() || 'RETURN'); ctx.restore(); }
+function drawBuildPrompt(ctx, state) { if (!state.buildPick) return; ctx.save(); ctx.fillStyle = 'rgba(10,12,18,.78)'; ctx.fillRect(282, 10, 380, 34); ctx.fillStyle = '#f8fbff'; ctx.font = '900 15px system-ui'; ctx.fillText(`Tap placement spot for ${state.buildPick.label}`, 294, 32); ctx.restore(); }
