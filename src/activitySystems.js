@@ -7,17 +7,61 @@ export function updateGameActivities(state, dt) {
   updateSoccerGame(state, dt);
 }
 
-function poolPlayers(state) {
-  return state.entities.filter(e => !e.hidden && e.floor === 2 && String(e.action || '').toLowerCase().includes('pool'));
+function poolIntents(state) {
+  return state.entities.filter(e => !e.hidden && String(e.action || '').toLowerCase().includes('pool'));
+}
+
+function tablePositions(table, count = 2) {
+  const positions = [
+    { x: table.x + table.w * .28, y: table.y + table.h + 44 },
+    { x: table.x + table.w * .72, y: table.y - 36 },
+    { x: table.x - 34, y: table.y + table.h * .34 },
+    { x: table.x + table.w + 34, y: table.y + table.h * .66 }
+  ];
+  return positions.slice(0, Math.max(1, Math.min(count, positions.length)));
+}
+
+function isAtPoolPosition(player, point) {
+  return player.floor === 2 && Math.hypot(player.x - point.x, player.y - point.y) <= 38 && !player.path?.length;
+}
+
+function guidePoolPlayers(state, table, players) {
+  const positions = tablePositions(table, players.length);
+  let ready = true;
+  players.forEach((player, index) => {
+    const spot = positions[index % positions.length];
+    player.carrying = player.carrying === 'cue_stick' ? player.carrying : 'cue_stick';
+    player.pose = player.path?.length ? 'walk' : 'pool';
+    if (player.floor !== 2) { ready = false; return; }
+    if (!isAtPoolPosition(player, spot)) {
+      ready = false;
+      if (!player.path?.length || Math.hypot((player.path[player.path.length - 1]?.x ?? player.x) - spot.x, (player.path[player.path.length - 1]?.y ?? player.y) - spot.y) > 8) {
+        player.path = [spot];
+        player.target = null;
+        player.pending = null;
+        player.action = player.action || 'Pool';
+        player.pose = 'walk';
+      }
+    }
+  });
+  return ready;
 }
 
 function updatePoolGame(state, dt) {
   const table = getObject('pool_table');
-  const players = poolPlayers(state);
-  if (!table || !players.length) {
+  const intendedPlayers = poolIntents(state);
+  if (!table || !intendedPlayers.length) {
     if (state.poolGame && !state.poolGame.winner) state.poolGame = null;
     return;
   }
+  const ready = guidePoolPlayers(state, table, intendedPlayers);
+  if (!ready) {
+    if (state.poolGame) state.poolGame.message = 'Waiting for players at table';
+    return;
+  }
+
+  const players = intendedPlayers.filter((p, index) => isAtPoolPosition(p, tablePositions(table, intendedPlayers.length)[index % tablePositions(table, intendedPlayers.length).length]));
+  if (!players.length) return;
   if (!state.poolGame || state.poolGame.tableId !== table.id || !samePlayers(state.poolGame, players)) startPoolGame(state, table, players);
   const game = state.poolGame;
   if (!game) return;
@@ -52,12 +96,12 @@ function startPoolGame(state, table, players) {
     playerIds: players.map(p => p.id),
     names,
     t: 0,
-    shotT: .8,
+    shotT: 1.2,
     turn: 0,
     score: Object.fromEntries(players.map(p => [p.id, 0])),
     shots: Object.fromEntries(players.map(p => [p.id, 0])),
     streak: 0,
-    message: 'Rack broken',
+    message: 'Players at table',
     messageT: 2,
     winner: null,
     winnerT: 0,
@@ -66,7 +110,7 @@ function startPoolGame(state, table, players) {
     cueThrust: null,
     balls: rackBalls(table)
   };
-  log(state, `${names.join(' and ')} grabbed cue sticks and started pool.`);
+  log(state, `${names.join(' and ')} grabbed cue sticks at the pool table.`);
 }
 
 function finishPoolGame(state, players, game) {
@@ -85,15 +129,26 @@ function finishPoolGame(state, players, game) {
 
 function rackBalls(table) {
   const cy = table.y + table.h * .5;
-  return [
-    { id: 'cue', value: 0, x: table.x + table.w * .30, y: cy, vx: 0, vy: 0, fill: '#f8fbff' },
-    { id: 'one', value: 1, x: table.x + table.w * .58, y: cy, vx: 0, vy: 0, fill: '#f1c66a' },
-    { id: 'two', value: 1, x: table.x + table.w * .64, y: cy - 15, vx: 0, vy: 0, fill: '#ff75df' },
-    { id: 'three', value: 1, x: table.x + table.w * .64, y: cy + 15, vx: 0, vy: 0, fill: '#74e6ff' },
-    { id: 'four', value: 2, x: table.x + table.w * .70, y: cy - 30, vx: 0, vy: 0, fill: '#90d68c' },
-    { id: 'five', value: 2, x: table.x + table.w * .70, y: cy, vx: 0, vy: 0, fill: '#f08b57' },
-    { id: 'six', value: 2, x: table.x + table.w * .70, y: cy + 30, vx: 0, vy: 0, fill: '#a98bff' }
-  ];
+  const startX = table.x + table.w * .62;
+  const gap = 15;
+  const balls = [{ id: 'cue', value: 0, x: table.x + table.w * .30, y: cy, vx: 0, vy: 0, fill: '#f8fbff' }];
+  const colors = ['#f1c66a', '#ff75df', '#74e6ff', '#90d68c', '#f08b57', '#a98bff', '#f8fbff', '#e06767', '#74c0a8', '#d2b064'];
+  let index = 0;
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col <= row; col++) {
+      balls.push({
+        id: `ball_${index + 1}`,
+        value: index < 4 ? 1 : 2,
+        x: startX + row * gap,
+        y: cy + (col - row / 2) * gap,
+        vx: 0,
+        vy: 0,
+        fill: colors[index % colors.length]
+      });
+      index += 1;
+    }
+  }
+  return balls;
 }
 
 function updateBalls(game, table, dt) {
@@ -148,6 +203,15 @@ function shootPool(state, table, players) {
   const targets = game.balls.filter(b => !b.pocketed && b.id !== 'cue');
   if (!cue || !targets.length) return checkPoolWinner(state, players);
 
+  const shotSpot = tablePositions(table, players.length)[game.turn % Math.max(1, players.length)];
+  if (!isAtPoolPosition(shooter, shotSpot)) {
+    shooter.path = [shotSpot];
+    shooter.pose = 'walk';
+    game.shotT = .5;
+    game.message = `${shooter.name} is taking position`;
+    return;
+  }
+
   shooter.carrying = 'cue_stick';
   shooter.pose = 'pool';
   const before = targets.filter(b => b.pocketed).length;
@@ -176,7 +240,7 @@ function shootPool(state, table, players) {
     target.pocketed = true;
     game.score[shooter.id] = (game.score[shooter.id] || 0) + target.value;
     game.streak += 1;
-    game.message = `${shooter.name} sank ${target.id}`;
+    game.message = `${shooter.name} sank a ball`;
     say(shooter, 'SINK');
     changeNeed(shooter, 'fun', 2 + game.streak);
     setMood(shooter, 'hyped');
@@ -189,7 +253,7 @@ function shootPool(state, table, players) {
   game.messageT = 2.2;
   game.targetId = target.id;
   game.cueLine = { x1: cue.x, y1: cue.y, x2: aim.x, y2: aim.y, t: 1.1 };
-  game.cueThrust = { x1: cue.x - ux * 54, y1: cue.y - uy * 54, x2: cue.x - ux * 8, y2: cue.y - uy * 8, t: .45 };
+  game.cueThrust = { x1: shooter.x, y1: shooter.y, x2: cue.x, y2: cue.y, t: .45 };
   game.shots[shooter.id] = (game.shots[shooter.id] || 0) + 1;
   if (!madeShot) game.turn = (game.turn + 1) % Math.max(1, players.length);
   game.shotT = madeShot ? 1.15 : 1.55;
