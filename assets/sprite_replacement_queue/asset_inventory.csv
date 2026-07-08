@@ -1,0 +1,198 @@
+number,category,asset_id,label,kind,replacement_path,status,priority
+1,room_and_floor,floor_0,Main House,floor,assets/sprites/rooms/main_house_floor.png,planned,P1
+2,room_and_floor,room_living,Living Room,room,assets/sprites/rooms/living_room_floor.png,planned,P1
+3,room_and_floor,room_kitchen,Kitchen,room,assets/sprites/rooms/kitchen_floor.png,planned,P1
+4,room_and_floor,room_bath,Bathroom,room,assets/sprites/rooms/bathroom_floor.png,planned,P1
+5,room_and_floor,room_entry,Entry / Foyer,room,assets/sprites/rooms/entry_foyer_floor.png,planned,P1
+6,room_and_floor,room_stairs,Stair / Service Hall,room,assets/sprites/rooms/stair_service_hall_floor.png,planned,P1
+7,room_and_floor,room_front_porch,Front Porch,room,assets/sprites/rooms/front_porch_floor.png,planned,P1
+8,room_and_floor,floor_1,Upstairs,floor,assets/sprites/rooms/upstairs_floor.png,planned,P1
+9,room_and_floor,room_bedroom,Bedroom,room,assets/sprites/rooms/bedroom_floor.png,planned,P1
+10,room_and_floor,room_office,Office,room,assets/sprites/rooms/office_floor.png,planned,P1
+11,room_and_floor,room_bath2,Upstairs Bath,room,assets/sprites/rooms/upstairs_bath_floor.png,planned,P1
+12,room_and_floor,room_hall,Hall,room,assets/sprites/rooms/upstairs_hall_floor.png,planned,P1
+13,room_and_floor,room_stairs2,Stairs,room,assets/sprites/rooms/upstairs_stairs_floor.png,planned,P1
+14,room_and_floor,floor_2,Open Basement,floor,assets/sprites/rooms/basement_floor.png,planned,P1
+15,room_and_floor,room_basement,Open Basement,room,assets/sprites/rooms/open_basement_floor.png,planned,P1
+16,room_and_floor,floor_3,Garage Area,floor,assets/sprites/rooms/garage_area_floor.png,planned,P1
+17,room_and_floor,room_garage_bay,Two Car Garage,room,assets/sprites/rooms/two_car_garage_floor.png,planned,P1
+18,room_and_floor,room_garage_storage,Vehicle Storage,room,assets/sprites/rooms/vehicle_storage_floor.png,planned,P1
+19,room_and_floor,room_garage_entry,Garage Entry,room,assets/sprites/rooms/garage_entry_floor.png,planned,P1
+20,room_and_floor,floor_4,Backyard Area,floor,assets/sprites/rooms/backyard_area_floor.png,planned,P1
+21,room_and_floor,room_yard,Backyard,room,assets/sprites/rooms/backyard_floor.png,planned,P1
+22,room_and_floor,room_pool_area,Pool Deck,room,assets/sprites/rooms/pool_deck_floor.png,planned,P1
+23,room_and_floor,room_kennel_area,Kennel Area,room,assets/sprites/rooms/kennel_area_floor.png,planned,P1
+24,static_object,couch,Couch,couch,assets/sprites/objects/couch_main.png,placeholder_svg_exists,P1
+25,static_object,tv,Wall Mounted TV,tv,assets/sprites/objects/tv_main.png,placeholder_svg_exists,P1
+26,static_object,stereo,Media Shelf,stereo,assets/sprites/objects/stereo_main.png,registry_missing,P2
+27,static_object,fridge,Fridge,fridge,assets/sprites/objects/fridge_main.png,placeholder_svg_exists,P1
+28,static_object,stove,Stove,stove,assets/sprites/objects/stove_main.png,placeholder_svg_exists,P1
+29,static_object,sink,Sink,sink,assets/sprites/objects/sink_main.png,placeholder_svg_exists,P1
+30,static_object,trash_kitchen,Kitchen Trash,trash_can,assets/sprites/objects/trash_can.png,placeholder_svg_exists,P1
+31,static_object,shower,Shower,shower,assets/sprites/objects/shower_main.png,placeholder_svg_exists,P1
+32,static_object,toilet,Toilet,toilet,assets/sprites/objects/toilet_main.png,placeholder_svg_exists,P1
+33,static_object,door,Front Door,door,assets/sprites/objects/front_door.png,placeholder_svg_exists,P1
+34,static_object,pet_flap_front,Pet Flap,stairs,assets/sprites/objects/pet_flap_front.png,mapped_to_door,P2
+35,static_object,basement_door,Basement Door,stairs,assets/sprites/objects/basement_door.png,mapped_to_stairs,P1
+36,static_object,garage_door,Garage Interior Door,stairs,assets/sprites/objects/garage_interior_door.png,mapped_to_door,P1
+37,static_object,backyard_door,Back Door to Yard,stairs,assets/sprites/objects/backyard_door.png,mapped_to_door,P1
+38,static_object,dog_bowl,Dog Bowl,dog_bowl,assets/sprites/objects/dog_bowl.png,placeholder_svg_exists,P1
+39,static_object,light_living,Living Light,light,assets/sprites/objects/ceiling_light.png,registry_missing,P2
+40,static_object,stairs_down,Upstairs Stairs,stairs,assets/sprites/objects/stairs_up_main.png,placeholder_svg_exists,P1
+41,static_object,bed,Bed,bed,assets/sprites/objects/bed_main.png,placeholder_svg_exists,P1
+42,static_object,desk,Laptop Desk,desk,assets/sprites/objects/desk_computer.png,placeholder_svg_exists,P1
+43,static_object,shower2,Upstairs Shower,shower,assets/sprites/objects/upstairs_shower.png,uses_shower_asset,P2
+44,static_object,toilet2,Upstairs Toilet,toilet,assets/sprites/objects/upstairs_toilet.png,uses_toilet_asset,P2
+45,static_object,light_bedroom,Bedroom Light,light,assets/sprites/objects/bedroom_light.png,registry_missing,P2
+46,static_object,stairs_up,Downstairs Stairs,stairs,assets/sprites/objects/stairs_down_upstairs.png,placeholder_svg_exists,P1
+47,static_object,basement_stairs_up,Main Floor Stairs,stairs,assets/sprites/objects/basement_stairs_up.png,placeholder_svg_exists,P1
+48,static_object,pool_table,Pool Table,pool_table,assets/sprites/objects/pool_table_main.png,placeholder_svg_exists,P1
+49,static_object,dartboard,Dart Board,dartboard,assets/sprites/objects/dartboard.png,registry_missing,P2
+50,static_object,arcade_machine,Arcade Machine,arcade,assets/sprites/objects/arcade_main.png,placeholder_svg_exists,P1
+51,static_object,game_console,Console Setup,game_console,assets/sprites/objects/console_setup.png,placeholder_svg_exists,P1
+52,static_object,basement_couch,Basement Couch,couch,assets/sprites/objects/basement_couch.png,uses_couch_asset,P2
+53,static_object,treadmill,Treadmill,treadmill,assets/sprites/objects/treadmill.png,placeholder_svg_exists,P1
+54,static_object,weight_bench,Weight Bench,weight_bench,assets/sprites/objects/weight_bench.png,placeholder_svg_exists,P1
+55,static_object,heavy_bag,Heavy Bag,heavy_bag,assets/sprites/objects/heavy_bag.png,placeholder_svg_exists,P1
+56,static_object,light_basement_game,Basement Light,light,assets/sprites/objects/basement_light.png,registry_missing,P2
+57,static_object,garage_entry_door,House Door,stairs,assets/sprites/objects/garage_entry_house_door.png,mapped_to_door,P1
+58,static_object,garage_overhead_door,Overhead Garage Door,garage_door,assets/sprites/objects/garage_overhead_door.png,registry_missing,P1
+59,static_object,car_1,Family Car,car,assets/sprites/vehicles/family_car_top.png,placeholder_svg_exists,P1
+60,static_object,car_2,Sports Car,car,assets/sprites/vehicles/sports_car_top.png,placeholder_svg_exists,P1
+61,static_object,bike,Bicycle,bike,assets/sprites/vehicles/bike_top.png,placeholder_svg_exists,P2
+62,static_object,motorbike,Motorbike,motorbike,assets/sprites/vehicles/motorbike_top.png,placeholder_svg_exists,P2
+63,static_object,atv,ATV,atv,assets/sprites/vehicles/atv_top.png,registry_gap,P2
+64,static_object,trash_outdoor,Outdoor Trash Bin,outdoor_trash,assets/sprites/objects/outdoor_trash_bin.png,mapped_to_trash_can,P1
+65,static_object,yard_back_door,Back Door to House,stairs,assets/sprites/objects/yard_back_door.png,mapped_to_door,P1
+66,static_object,pet_flap_yard,Pet Flap,stairs,assets/sprites/objects/pet_flap_yard.png,mapped_to_door,P2
+67,static_object,soccer_field,Backyard Soccer Field,soccer_field,assets/sprites/objects/soccer_field.png,registry_missing,P1
+68,static_object,swim_pool,Backyard Pool,swim_pool,assets/sprites/objects/swim_pool.png,placeholder_svg_exists,P1
+69,static_object,kennel,Dog Kennel,kennel,assets/sprites/objects/kennel.png,placeholder_svg_exists,P1
+70,buildable_generated_object,build_bookshelf,Bookshelf,bookshelf,assets/sprites/objects/bookshelf_main.png,placeholder_svg_exists,P1
+71,buildable_generated_object,build_workout_gear,Workout Gear,workout,assets/sprites/objects/workout_gear.png,registry_missing,P2
+72,buildable_generated_object,build_extra_couch,Extra Couch,couch,assets/sprites/objects/couch_variant.png,uses_couch_asset,P3
+73,buildable_generated_object,build_extra_desk,Extra Desk,desk,assets/sprites/objects/desk_variant.png,uses_desk_asset,P3
+74,buildable_generated_object,build_extra_tv,Extra TV,tv,assets/sprites/objects/tv_variant.png,uses_tv_asset,P3
+75,buildable_generated_object,build_extra_stereo,Extra Stereo,stereo,assets/sprites/objects/stereo_variant.png,registry_missing,P3
+76,buildable_generated_object,build_extra_pool_table,Extra Pool Table,pool_table,assets/sprites/objects/pool_table_variant.png,uses_pool_table_asset,P3
+77,buildable_generated_object,build_extra_arcade,Extra Arcade Machine,arcade,assets/sprites/objects/arcade_variant.png,uses_arcade_asset,P3
+78,buildable_generated_object,build_extra_console,Extra Console Setup,game_console,assets/sprites/objects/console_setup_variant.png,uses_console_asset,P3
+79,buildable_generated_object,build_extra_dartboard,Extra Dart Board,dartboard,assets/sprites/objects/dartboard_variant.png,registry_missing,P3
+80,buildable_generated_object,build_extra_light,Extra Room Light,light,assets/sprites/objects/ceiling_light_variant.png,registry_missing,P3
+81,buildable_generated_object,build_extra_treadmill,Extra Treadmill,treadmill,assets/sprites/objects/treadmill_variant.png,uses_treadmill_asset,P3
+82,buildable_generated_object,build_extra_weight_bench,Extra Weight Bench,weight_bench,assets/sprites/objects/weight_bench_variant.png,uses_weight_bench_asset,P3
+83,buildable_generated_object,build_extra_heavy_bag,Extra Heavy Bag,heavy_bag,assets/sprites/objects/heavy_bag_variant.png,uses_heavy_bag_asset,P3
+84,buildable_generated_object,build_extra_trash_can,Extra Trash Can,trash_can,assets/sprites/objects/trash_can_variant.png,uses_trash_can_asset,P3
+85,buildable_generated_object,build_extra_kennel,Extra Kennel,kennel,assets/sprites/objects/kennel_variant.png,uses_kennel_asset,P3
+86,window,win_living,Living Window,window,assets/sprites/objects/window_living.png,procedural_only,P2
+87,window,win_kitchen,Kitchen Window,window,assets/sprites/objects/window_kitchen.png,procedural_only,P2
+88,window,win_bedroom,Bedroom Window,window,assets/sprites/objects/window_bedroom.png,procedural_only,P2
+89,window,win_office,Office Window,window,assets/sprites/objects/window_office.png,procedural_only,P2
+90,window,win_garage,Garage Vent,window,assets/sprites/objects/garage_vent.png,procedural_only,P2
+91,doorway_or_gate,doorway_living_kitchen,Living to Kitchen Doorway,doorway,assets/sprites/structures/doorway_living_kitchen.png,procedural_only,P2
+92,doorway_or_gate,doorway_living_entry,Living to Entry Doorway,doorway,assets/sprites/structures/doorway_living_entry.png,procedural_only,P2
+93,doorway_or_gate,doorway_kitchen_entry,Kitchen to Entry Doorway,doorway,assets/sprites/structures/doorway_kitchen_entry.png,procedural_only,P2
+94,doorway_or_gate,doorway_bath_entry,Bathroom to Entry Doorway,doorway,assets/sprites/structures/doorway_bath_entry.png,procedural_only,P2
+95,doorway_or_gate,doorway_entry_front_porch_wide,Entry to Front Porch Wide Doorway,doorway,assets/sprites/structures/doorway_entry_front_porch_wide.png,procedural_only,P2
+96,doorway_or_gate,doorway_entry_front_porch_small,Entry to Front Porch Small Doorway,doorway,assets/sprites/structures/doorway_entry_front_porch_small.png,procedural_only,P2
+97,doorway_or_gate,doorway_entry_stairs_vertical,Entry to Stair Hall Vertical Doorway,doorway,assets/sprites/structures/doorway_entry_stairs_vertical.png,procedural_only,P2
+98,doorway_or_gate,doorway_entry_stairs_large,Entry to Stair Hall Large Doorway,doorway,assets/sprites/structures/doorway_entry_stairs_large.png,procedural_only,P2
+99,doorway_or_gate,doorway_kitchen_stairs,Kitchen to Stair Hall Doorway,doorway,assets/sprites/structures/doorway_kitchen_stairs.png,procedural_only,P2
+100,doorway_or_gate,doorway_bedroom_hall,Bedroom to Hall Doorway,doorway,assets/sprites/structures/doorway_bedroom_hall.png,procedural_only,P2
+101,doorway_or_gate,doorway_office_hall,Office to Hall Doorway,doorway,assets/sprites/structures/doorway_office_hall.png,procedural_only,P2
+102,doorway_or_gate,doorway_bath2_hall,Upstairs Bath to Hall Doorway,doorway,assets/sprites/structures/doorway_bath2_hall.png,procedural_only,P2
+103,doorway_or_gate,doorway_hall_stairs2,Hall to Upstairs Stairs Doorway,doorway,assets/sprites/structures/doorway_hall_stairs2.png,procedural_only,P2
+104,doorway_or_gate,doorway_garage_bay_storage,Garage Bay to Storage Doorway,doorway,assets/sprites/structures/doorway_garage_bay_storage.png,procedural_only,P2
+105,doorway_or_gate,doorway_garage_bay_entry,Garage Bay to Garage Entry Doorway,doorway,assets/sprites/structures/doorway_garage_bay_entry.png,procedural_only,P2
+106,doorway_or_gate,doorway_storage_entry,Garage Storage to Entry Doorway,doorway,assets/sprites/structures/doorway_storage_entry.png,procedural_only,P2
+107,doorway_or_gate,doorway_yard_pool_area,Yard to Pool Deck Gate,doorway,assets/sprites/structures/gate_yard_pool_area.png,procedural_only,P2
+108,doorway_or_gate,doorway_yard_kennel_area,Yard to Kennel Area Gate,doorway,assets/sprites/structures/gate_yard_kennel_area.png,procedural_only,P2
+109,character_or_entity_ui,resident,Resident,person,assets/sprites/characters/resident_idle.png,placeholder_svg_exists,P1
+110,character_or_entity_ui,girlfriend,Girlfriend,person,assets/sprites/characters/girlfriend_idle.png,placeholder_svg_exists,P1
+111,character_or_entity_ui,dog,Dog,dog,assets/sprites/characters/dog_idle.png,placeholder_svg_exists,P1
+112,character_or_entity_ui,selected_ring,Selected Character Ring,ui_fx,assets/sprites/ui/selected_ring.png,procedural_only,P3
+113,character_or_entity_ui,action_bar,Action Progress Bar,ui_fx,assets/sprites/ui/action_bar.png,procedural_only,P3
+114,character_or_entity_ui,speech_bubble,Speech Bubble,ui_fx,assets/sprites/ui/speech_bubble.png,procedural_only,P3
+115,dynamic_prop,carry_cue_stick,Cue Stick,carried_prop,assets/sprites/props/cue_stick.png,procedural_only,P1
+116,dynamic_prop,carry_fetch_ball,Fetch Ball,carried_prop,assets/sprites/props/fetch_ball.png,procedural_only,P1
+117,dynamic_prop,carry_luggage,Luggage,carried_prop,assets/sprites/props/luggage.png,procedural_only,P2
+118,dynamic_prop,carry_large_luggage,Large Luggage,carried_prop,assets/sprites/props/large_luggage.png,procedural_only,P2
+119,dynamic_prop,carry_trash_bag,Trash Bag,carried_prop,assets/sprites/props/trash_bag.png,procedural_only,P1
+120,dynamic_prop,carry_food_bag,Food Bag,carried_prop,assets/sprites/props/food_bag.png,procedural_only,P2
+121,dynamic_prop,carry_dirty_dish,Dirty Dish,carried_prop,assets/sprites/props/dirty_dish.png,procedural_only,P2
+122,dynamic_prop,carry_wrapper,Wrapper,carried_prop,assets/sprites/props/wrapper.png,procedural_only,P2
+123,dynamic_prop,carry_popcorn,Popcorn,carried_prop,assets/sprites/props/popcorn.png,procedural_only,P2
+124,dynamic_prop,carry_snack,Snack,carried_prop,assets/sprites/props/snack.png,procedural_only,P2
+125,dynamic_prop,pulled_book,Pulled Book,dynamic_prop,assets/sprites/props/pulled_book.png,procedural_only,P2
+126,dynamic_prop,courier,Delivery Person,dynamic_character,assets/sprites/characters/courier.png,procedural_only,P2
+127,dynamic_prop,delivery_bag,Delivery Bag,dynamic_prop,assets/sprites/props/delivery_bag.png,procedural_only,P2
+128,dynamic_prop,build_prompt_panel,Build Placement Prompt,ui_fx,assets/sprites/ui/build_prompt_panel.png,procedural_only,P3
+129,pool_minigame_asset,pool_table_pockets,Pool Table Pockets,sub_object,assets/sprites/objects/pool_table_pockets.png,procedural_only,P1
+130,pool_minigame_asset,pool_table_default_cues,Pool Table Resting Cues,sub_object,assets/sprites/props/pool_table_resting_cues.png,procedural_only,P1
+131,pool_minigame_asset,pool_rack_triangle,Pool Rack Triangle,sub_object,assets/sprites/props/pool_rack_triangle.png,procedural_only,P2
+132,pool_minigame_asset,pool_cue_ball_default,Default Cue Ball,sub_object,assets/sprites/props/pool_cue_ball_default.png,procedural_only,P1
+133,pool_minigame_asset,pool_rack_balls_default,Default Rack Balls,sub_object,assets/sprites/props/pool_rack_balls_default.png,procedural_only,P1
+134,pool_minigame_asset,pool_game_cue_line,Pool Aim Line,mini_game_fx,assets/sprites/fx/pool_aim_line.png,procedural_only,P3
+135,pool_minigame_asset,pool_game_cue_thrust,Pool Cue Thrust,mini_game_fx,assets/sprites/fx/pool_cue_thrust.png,procedural_only,P2
+136,pool_minigame_asset,pool_game_cue_ball,Pool Game Cue Ball,mini_game_prop,assets/sprites/props/pool_game_cue_ball.png,procedural_only,P1
+137,pool_minigame_asset,pool_game_numbered_balls,Pool Game Numbered Balls,mini_game_prop,assets/sprites/props/pool_numbered_balls.png,procedural_only,P1
+138,pool_minigame_asset,pool_score_panel,Pool Score Panel,ui_fx,assets/sprites/ui/pool_score_panel.png,procedural_only,P3
+139,soccer_minigame_asset,soccer_field_overlay,Soccer Field Overlay,sub_object,assets/sprites/objects/soccer_field_overlay.png,procedural_only,P1
+140,soccer_minigame_asset,soccer_center_circle,Soccer Center Circle,sub_object,assets/sprites/objects/soccer_center_circle.png,procedural_only,P2
+141,soccer_minigame_asset,soccer_midline,Soccer Midline,sub_object,assets/sprites/objects/soccer_midline.png,procedural_only,P2
+142,soccer_minigame_asset,soccer_goal_top,Top Soccer Goal,sub_object,assets/sprites/objects/soccer_goal_top.png,procedural_only,P1
+143,soccer_minigame_asset,soccer_goal_bottom,Bottom Soccer Goal,sub_object,assets/sprites/objects/soccer_goal_bottom.png,procedural_only,P1
+144,soccer_minigame_asset,soccer_ball,Soccer Ball,mini_game_prop,assets/sprites/props/soccer_ball.png,procedural_only,P1
+145,soccer_minigame_asset,soccer_ball_trail,Soccer Ball Trail,mini_game_fx,assets/sprites/fx/soccer_ball_trail.png,procedural_only,P3
+146,soccer_minigame_asset,soccer_score_panel,Soccer Score Panel,ui_fx,assets/sprites/ui/soccer_score_panel.png,procedural_only,P3
+147,vehicle_runtime_asset,animated_departure_vehicle,Animated Departure Vehicle,vehicle_runtime,assets/sprites/vehicles/animated_departure_vehicle.png,procedural_only,P1
+148,vehicle_runtime_asset,animated_return_vehicle,Animated Return Vehicle,vehicle_runtime,assets/sprites/vehicles/animated_return_vehicle.png,procedural_only,P1
+149,vehicle_runtime_asset,vehicle_doors_open,Vehicle Open Doors,vehicle_part,assets/sprites/vehicles/parts/vehicle_doors_open.png,procedural_only,P1
+150,vehicle_runtime_asset,vehicle_trunk_open,Vehicle Open Trunk,vehicle_part,assets/sprites/vehicles/parts/vehicle_trunk_open.png,procedural_only,P1
+151,vehicle_runtime_asset,vehicle_headlights,Vehicle Headlights,vehicle_part,assets/sprites/vehicles/parts/headlights.png,procedural_only,P2
+152,vehicle_runtime_asset,vehicle_tail_lights,Vehicle Tail Lights,vehicle_part,assets/sprites/vehicles/parts/tail_lights.png,procedural_only,P2
+153,vehicle_runtime_asset,vehicle_remote_flash,Remote Flash FX,vehicle_fx,assets/sprites/fx/remote_flash.png,procedural_only,P3
+154,vehicle_runtime_asset,vehicle_luggage_in_trunk,Stored Luggage In Trunk,vehicle_prop,assets/sprites/vehicles/parts/luggage_in_trunk.png,procedural_only,P2
+155,vehicle_runtime_asset,vehicle_seat_positions,Vehicle Seat Position Markers,logic_anchor,assets/sprites/vehicles/metadata/seat_positions.json,metadata_needed,P2
+156,offsite_scene_asset,offsite_progress_panel,Offsite Progress Panel,ui_fx,assets/sprites/ui/offsite_progress_panel.png,procedural_only,P3
+157,offsite_scene_asset,offsite_small_indicator,Offsite Small Indicator,ui_fx,assets/sprites/ui/offsite_small_indicator.png,procedural_only,P3
+158,offsite_scene_asset,offsite_party_dots,Offsite Party Dots,scene_actor,assets/sprites/ui/offsite_party_dots.png,procedural_only,P3
+159,offsite_scene_asset,plane_cabin,Plane Cabin,offsite_scene,assets/sprites/offsite/plane_cabin.png,procedural_only,P2
+160,offsite_scene_asset,plane_seat,Plane Seat,offsite_sub_object,assets/sprites/offsite/plane_seat.png,procedural_only,P3
+161,offsite_scene_asset,plane_attendant_marker,Plane Attendant Marker,offsite_sub_object,assets/sprites/offsite/plane_attendant_marker.png,procedural_only,P3
+162,offsite_scene_asset,theater_screen,Movie Theater Screen,offsite_sub_object,assets/sprites/offsite/theater_screen.png,procedural_only,P2
+163,offsite_scene_asset,theater_seats,Movie Theater Seats,offsite_sub_object,assets/sprites/offsite/theater_seats.png,procedural_only,P3
+164,offsite_scene_asset,beach_resort_scene,Beach Resort Scene,offsite_scene,assets/sprites/offsite/beach_resort.png,procedural_only,P2
+165,offsite_scene_asset,private_island_scene,Private Island Scene,offsite_scene,assets/sprites/offsite/private_island.png,procedural_only,P2
+166,offsite_scene_asset,alps_scene,Alps Scene,offsite_scene,assets/sprites/offsite/alps.png,procedural_only,P2
+167,offsite_scene_asset,camping_scene,Forest Camping Scene,offsite_scene,assets/sprites/offsite/forest_camping.png,procedural_only,P2
+168,offsite_scene_asset,tokyo_scene,Neon Tokyo Scene,offsite_scene,assets/sprites/offsite/neon_tokyo.png,procedural_only,P2
+169,offsite_scene_asset,paris_scene,Paris Weekend Scene,offsite_scene,assets/sprites/offsite/paris_weekend.png,procedural_only,P2
+170,offsite_scene_asset,safari_scene,Kenya Safari Scene,offsite_scene,assets/sprites/offsite/kenya_safari.png,procedural_only,P2
+171,offsite_scene_asset,vegas_scene,Vegas Lights Scene,offsite_scene,assets/sprites/offsite/vegas_lights.png,procedural_only,P2
+172,offsite_scene_asset,cruise_scene,Cruise Ship Scene,offsite_scene,assets/sprites/offsite/cruise_ship.png,procedural_only,P2
+173,offsite_scene_asset,desert_spa_scene,Desert Spa Scene,offsite_scene,assets/sprites/offsite/desert_spa.png,procedural_only,P2
+174,offsite_scene_asset,mall_city_scene,Mall City Scene,offsite_scene,assets/sprites/offsite/mall_city.png,procedural_only,P2
+175,offsite_scene_asset,date_city_scene,Date Night City Scene,offsite_scene,assets/sprites/offsite/date_city.png,procedural_only,P2
+176,offsite_scene_asset,generic_offsite_scene,Generic Offsite Scene,offsite_scene,assets/sprites/offsite/generic_offsite.png,procedural_only,P3
+177,ui_asset,phone_button,Floating Cell Phone Button,ui,assets/sprites/ui/phone_button.png,dom_ui_only,P1
+178,ui_asset,phone_panel,Cell Phone Panel,ui,assets/sprites/ui/phone_panel.png,dom_ui_only,P2
+179,ui_asset,phone_tab_home,Phone Home Tab,ui,assets/sprites/ui/phone_tab_home.png,dom_ui_only,P3
+180,ui_asset,phone_tab_shop,Phone Shop Tab,ui,assets/sprites/ui/phone_tab_shop.png,dom_ui_only,P3
+181,ui_asset,phone_tab_contacts,Phone Contacts Tab,ui,assets/sprites/ui/phone_tab_contacts.png,dom_ui_only,P3
+182,ui_asset,phone_tab_music,Phone Music Tab,ui,assets/sprites/ui/phone_tab_music.png,dom_ui_only,P3
+183,ui_asset,phone_tab_activities,Phone Activities Tab,ui,assets/sprites/ui/phone_tab_activities.png,dom_ui_only,P3
+184,ui_asset,phone_tab_travel,Phone Travel Tab,ui,assets/sprites/ui/phone_tab_travel.png,dom_ui_only,P3
+185,ui_asset,phone_tab_invest,Phone Invest Tab,ui,assets/sprites/ui/phone_tab_invest.png,dom_ui_only,P3
+186,ui_asset,phone_tab_requests,Phone Requests Tab,ui,assets/sprites/ui/phone_tab_requests.png,dom_ui_only,P3
+187,ui_asset,phone_tab_saves,Phone Saves Tab,ui,assets/sprites/ui/phone_tab_saves.png,dom_ui_only,P3
+188,ui_asset,vertical_up_button,Up Floor Button,ui,assets/sprites/ui/up_floor_button.png,dom_ui_only,P3
+189,ui_asset,vertical_down_button,Down Floor Button,ui,assets/sprites/ui/down_floor_button.png,dom_ui_only,P3
+190,ui_asset,interaction_menu,Interaction Menu,ui,assets/sprites/ui/interaction_menu.png,dom_ui_only,P2
+191,ui_asset,command_panel_buttons,Command Panel Buttons,ui,assets/sprites/ui/command_panel_buttons.png,dom_ui_only,P3
+192,ui_asset,status_hud,Status HUD,ui,assets/sprites/ui/status_hud.png,mixed_ui,P3
+193,registry_or_pipeline_asset,fallback_missing_asset,Missing Asset Fallback,support_asset,assets/sprites/ui/missing_asset.png,placeholder_svg_exists,P1
+194,registry_or_pipeline_asset,floor_wood_tile,Wood Floor Tile,room_material,assets/sprites/rooms/floor_wood_tile.png,placeholder_svg_exists,P1
+195,registry_or_pipeline_asset,floor_tile_neutral,Neutral Floor Tile,room_material,assets/sprites/rooms/floor_tile_neutral.png,placeholder_svg_exists,P1
+196,registry_or_pipeline_asset,sprite_atlas_image,Generated Sprite Atlas Image,pipeline_asset,assets/generated/apartment-god-sprites.png,planned,P1
+197,registry_or_pipeline_asset,sprite_atlas_json,Generated Sprite Atlas JSON,pipeline_asset,assets/generated/apartment-god-sprites.json,planned,P1
