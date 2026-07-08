@@ -4,42 +4,11 @@ import { objects } from './world.js';
 const PREFIX = 'apartment_god_slot_';
 const AUTOSAVE_SLOT = 'autosave';
 const TEST_AUTOSAVE_KEY = 'apartment_god_test_refresh_state_v3';
-const RESET_GUARD_KEY = 'apartment_god_reset_guard_v1';
 const SAVE_VERSION = 2;
 const TEST_SAVE_VERSION = 3;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
-}
-
-function safeLocalGet(key) {
-  try { return localStorage.getItem(key); }
-  catch (error) { console.warn('[Apartment God] localStorage read blocked.', error); return null; }
-}
-
-function safeLocalSet(key, value) {
-  try { localStorage.setItem(key, value); return true; }
-  catch (error) { console.warn('[Apartment God] localStorage write blocked.', error); return false; }
-}
-
-function safeLocalRemove(key) {
-  try { localStorage.removeItem(key); return true; }
-  catch (error) { console.warn('[Apartment God] localStorage remove blocked.', error); return false; }
-}
-
-function safeSessionGet(key) {
-  try { return sessionStorage.getItem(key); }
-  catch (error) { console.warn('[Apartment God] sessionStorage read blocked.', error); return null; }
-}
-
-function safeSessionSet(key, value) {
-  try { sessionStorage.setItem(key, value); return true; }
-  catch (error) { console.warn('[Apartment God] sessionStorage write blocked.', error); return false; }
-}
-
-function safeSessionRemove(key) {
-  try { sessionStorage.removeItem(key); return true; }
-  catch (error) { console.warn('[Apartment God] sessionStorage remove blocked.', error); return false; }
 }
 
 function slotKey(slot = 1) {
@@ -56,9 +25,6 @@ function scrubTransientState(saved) {
   saved.autosaveT = 0;
   saved.testAutosaveT = 0;
   saved.saveStatus = saved.saveStatus || {};
-  saved.cameraGestureActive = false;
-  saved.suppressNextCanvasClick = false;
-  saved.cameraTransition = null;
   return saved;
 }
 
@@ -109,23 +75,15 @@ function mergeRefreshState(target, saved) {
 }
 
 function readSlot(slot = 1) {
-  const raw = safeLocalGet(slotKey(slot));
+  const raw = localStorage.getItem(slotKey(slot));
   if (!raw) return null;
   return JSON.parse(raw);
 }
 
 function readRefreshSave() {
-  const raw = safeLocalGet(TEST_AUTOSAVE_KEY);
+  const raw = localStorage.getItem(TEST_AUTOSAVE_KEY);
   if (!raw) return null;
   return JSON.parse(raw);
-}
-
-function resetGuardActive() {
-  return safeSessionGet(RESET_GUARD_KEY) === '1';
-}
-
-function clearResetGuard() {
-  safeSessionRemove(RESET_GUARD_KEY);
 }
 
 export function saveGame(state, slot = 1) {
@@ -137,7 +95,7 @@ export function saveGame(state, slot = 1) {
       state: cleanStateForSave(state),
       objects: clone(objects)
     };
-    if (!safeLocalSet(slotKey(slot), JSON.stringify(data))) throw new Error('storage write failed');
+    localStorage.setItem(slotKey(slot), JSON.stringify(data));
     state.saveStatus = { message: slot === AUTOSAVE_SLOT ? 'Autosaved' : `Saved slot ${slot}`, slot, savedAt: data.savedAt };
     if (slot !== AUTOSAVE_SLOT) log(state, `Saved game to slot ${slot}.`);
     return true;
@@ -150,14 +108,13 @@ export function saveGame(state, slot = 1) {
 }
 
 export function saveRefreshState(state) {
-  if (state?.resetting || resetGuardActive()) return false;
   try {
     const data = {
       version: TEST_SAVE_VERSION,
       savedAt: new Date().toISOString(),
       state: cleanStateForRefreshSave(state)
     };
-    if (!safeLocalSet(TEST_AUTOSAVE_KEY, JSON.stringify(data))) return false;
+    localStorage.setItem(TEST_AUTOSAVE_KEY, JSON.stringify(data));
     state.saveStatus = { message: 'Refresh state saved', slot: 'refresh', savedAt: data.savedAt };
     return true;
   } catch (error) {
@@ -168,23 +125,15 @@ export function saveRefreshState(state) {
 }
 
 export function loadRefreshState(state) {
-  if (resetGuardActive()) {
-    safeLocalRemove(TEST_AUTOSAVE_KEY);
-    clearResetGuard();
-    state.saveStatus = { message: 'Reset fresh state loaded' };
-    return false;
-  }
-
   let data = null;
   try {
     data = readRefreshSave();
   } catch (error) {
-    safeLocalRemove(TEST_AUTOSAVE_KEY);
+    localStorage.removeItem(TEST_AUTOSAVE_KEY);
     state.saveStatus = { message: 'Refresh state corrupt' };
     console.error(error);
     return false;
   }
-
   if (!data?.state) return false;
   mergeRefreshState(state, data.state);
   state.saveStatus = { message: 'Restored refresh state', slot: 'refresh', savedAt: data.savedAt || null };
@@ -193,17 +142,14 @@ export function loadRefreshState(state) {
 }
 
 export function clearRefreshState(state = null) {
-  safeSessionSet(RESET_GUARD_KEY, '1');
-  safeLocalRemove(TEST_AUTOSAVE_KEY);
+  localStorage.removeItem(TEST_AUTOSAVE_KEY);
   if (state) {
-    state.resetting = true;
     state.saveStatus = { message: 'Refresh state cleared' };
     log(state, 'Refresh state cleared. Reloading fresh state.');
   }
 }
 
 export function updateRefreshAutosave(state, dt) {
-  if (state?.resetting || resetGuardActive()) return;
   state.testAutosaveT = (state.testAutosaveT || 0) + dt;
   if (state.testAutosaveT < 2) return;
   state.testAutosaveT = 0;
@@ -269,7 +215,30 @@ function restoreLegacyState(state, data) {
 }
 
 export function clearSaveSlot(state, slot = 1) {
-  safeLocalRemove(slotKey(slot));
+  localStorage.removeItem(slotKey(slot));
   state.saveStatus = { message: `Cleared slot ${slot}` };
   log(state, `Cleared save slot ${slot}.`);
+}
+
+export function updateAutosave(state, dt) {
+  state.autosaveT = (state.autosaveT || 0) + dt;
+  if (state.autosaveT < 30) return;
+  state.autosaveT = 0;
+  saveGame(state, AUTOSAVE_SLOT);
+}
+
+export function slotSummary(slot = 1) {
+  try {
+    const data = readSlot(slot);
+    if (!data) return 'Empty';
+    if (data.version >= 2) {
+      const time = data.state?.time ?? 0;
+      const money = data.state?.money ?? 0;
+      const savedAt = data.savedAt ? new Date(data.savedAt).toLocaleTimeString() : 'saved';
+      return `${Math.round(time / 60)}h, $${Math.round(money)}, ${savedAt}`;
+    }
+    return `Day time ${Math.round((data.time || 0) / 60)}h, $${Math.round(data.money || 0)}`;
+  } catch {
+    return 'Corrupt';
+  }
 }
