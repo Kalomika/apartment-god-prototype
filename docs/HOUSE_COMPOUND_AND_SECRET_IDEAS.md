@@ -101,18 +101,19 @@ Examples that should not force follow:
 
 Same level attached areas should feel like the camera is moving through one compound.
 
-Swipe or drag controls:
+Pull swipe controls:
 
-- Drag or swipe up from Main House to move the camera toward Backyard.
-- Drag or swipe left from Main House to move the camera toward Garage.
-- Drag or swipe down from Backyard to return to Main House.
-- Drag or swipe right from Garage to return to Main House.
+- This must feel like pulling the world into view, not pushing the camera.
+- Swipe down from Main House to pull Main down and reveal Backyard from the north.
+- Swipe right from Main House to pull Main right and reveal Garage from the west.
+- Swipe up from Backyard to pull Yard up and reveal Main House from the south.
+- Swipe left from Garage to pull Garage left and reveal Main House from the east.
 - The swipe moves only the camera. Characters do not move unless commanded.
 
 When the player uses the blueprint to move between same level areas:
 
-- Main House to Backyard should slide toward the backyard.
-- Main House to Garage should slide sideways toward the garage.
+- Main House to Backyard should slide with Backyard entering from the north.
+- Main House to Garage should slide with Garage entering from the west.
 - Garage to Backyard should eventually route visually through the correct connection, or wait until an exterior pathway is built.
 
 When the selected character uses a connected same level door:
@@ -219,8 +220,8 @@ Implemented on `phaser-migration` so scheduled follow up work should not redo th
 - Garage layout is now one open garage area.
 - Garage is treated as west of the main house in the camera and blueprint model.
 - Backyard is treated as north of the main house in the camera and blueprint model.
+- Pull swipe camera mapping is active: down to yard, right to garage, up from yard to main, left from garage to main.
 - Garage overhead exit and parked vehicles face downward.
-- Same level swipe navigation exists for Main to Yard and Main to Garage.
 - Camera transitions now draw both source and target areas during slides.
 - Full screen blueprint mode exists with schematic floors and character markers.
 - Character locator moves the camera to a character without changing selection.
