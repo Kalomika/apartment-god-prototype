@@ -7,24 +7,20 @@ import { createOffsiteJob } from './travelLocations.js';
 const GARAGE_FLOOR = 3;
 const HOUSE_FLOOR = 0;
 const PACK_FLOOR = 1;
-const GARAGE_EXIT_Y = -40;
+const GARAGE_EXIT_Y = 760;
 
 function parkedVehicle(vehicleId = 'auto', actorId = '', partyIds = []) {
   const forced = vehicleId && vehicleId !== 'auto' ? getObject(vehicleId) : null;
   if (forced) return forced;
   if (partyIds.length === 1 && actorId === 'resident') return getObject('car_2') || getObject('car_1');
-  return getObject('car_1') || getObject('car_2') || { id: 'car_1', kind: 'car', x: 126, y: 138, w: 116, h: 230 };
+  return getObject('car_1') || getObject('car_2') || { id: 'car_1', kind: 'car', x: 196, y: 268, w: 116, h: 230, facing: 'down' };
 }
 
-function driveVector(vehicle, leaving = true) { const vertical = vehicle.h >= vehicle.w; return vertical ? { x: 0, y: leaving ? -1 : 1 } : { x: leaving ? 1 : -1, y: 0 }; }
+function driveVector(vehicle, leaving = true) { const vertical = vehicle.h >= vehicle.w; return vertical ? { x: 0, y: leaving ? 1 : -1 } : { x: leaving ? 1 : -1, y: 0 }; }
 function isVacation(actionId) { return String(actionId || '').startsWith('vacation_'); }
 function vacationBagCount(actionId) { return ['vacation_beach', 'vacation_camping', 'vacation_desert'].includes(actionId) ? 1 : 2; }
 function luggageLabel(count) { return count > 1 ? 'large luggage' : 'luggage'; }
-
-function clearTimedAction(entity) {
-  entity.actionT = 0;
-  entity.actionTotal = 0;
-}
+function clearTimedAction(entity) { entity.actionT = 0; entity.actionTotal = 0; }
 
 function vehicleSeats(vehicle) {
   if (vehicle.kind === 'bike') return [{ id: 'rider', role: 'driver', dogOk: false }];
@@ -35,10 +31,7 @@ function vehicleSeats(vehicle) {
     { id: 'row3_left', role: 'passenger', dogOk: true }, { id: 'row3_right', role: 'passenger', dogOk: true }
   ];
   if (vehicle.id === 'car_2') return [{ id: 'front_left', role: 'driver', dogOk: false }, { id: 'front_right', role: 'passenger', dogOk: false }];
-  return [
-    { id: 'front_left', role: 'driver', dogOk: false }, { id: 'front_right', role: 'passenger', dogOk: false },
-    { id: 'rear_left', role: 'passenger', dogOk: true }, { id: 'rear_middle', role: 'passenger', dogOk: true }, { id: 'rear_right', role: 'passenger', dogOk: true }
-  ];
+  return [{ id: 'front_left', role: 'driver', dogOk: false }, { id: 'front_right', role: 'passenger', dogOk: false }, { id: 'rear_left', role: 'passenger', dogOk: true }];
 }
 
 function assignSeats(state, vehicle, partyIds) {
@@ -55,27 +48,15 @@ function assignSeats(state, vehicle, partyIds) {
 function seatPoint(vehicle, seatId) {
   const x = vehicle.x, y = vehicle.y, w = vehicle.w, h = vehicle.h;
   const side = seatId.includes('right') ? 1 : -1;
-  if (seatId === 'front_left') return { x: x - 28, y: y + h * 0.34 };
-  if (seatId === 'front_right') return { x: x + w + 28, y: y + h * 0.34 };
-  if (seatId.includes('row2') || seatId.includes('rear')) return { x: x + (side > 0 ? w + 28 : -28), y: y + h * 0.62 };
-  if (seatId.includes('row3')) return { x: x + (side > 0 ? w + 28 : -28), y: y + h * 0.80 };
+  if (seatId === 'front_left') return { x: x - 28, y: y + h * 0.64 };
+  if (seatId === 'front_right') return { x: x + w + 28, y: y + h * 0.64 };
+  if (seatId.includes('row2') || seatId.includes('rear')) return { x: x + (side > 0 ? w + 28 : -28), y: y + h * 0.42 };
+  if (seatId.includes('row3')) return { x: x + (side > 0 ? w + 28 : -28), y: y + h * 0.25 };
   return { x: x + w + 28, y: y + h * 0.60 };
 }
 
-function allAtPoint(state, ids, floor, point, radius = 95) {
-  return ids.every(id => { const e = byId(state, id); if (!e || e.hidden) return true; return e.floor === floor && Math.hypot(e.x - point.x, e.y - point.y) <= radius && !e.path?.length; });
-}
-
-function allAtVehicle(state, v) {
-  return (v.partyIds || []).every(id => {
-    const e = byId(state, id);
-    if (!e || e.hidden) return true;
-    const seat = v.seatAssignments?.find(s => s.entityId === id);
-    const p = seat ? seatPoint({ x: v.parkX, y: v.parkY, w: v.w, h: v.h }, seat.seatId) : { x: v.x + v.w / 2, y: v.y + v.h * 0.7 };
-    return e.floor === GARAGE_FLOOR && Math.hypot(e.x - p.x, e.y - p.y) < 80 && !e.path?.length;
-  });
-}
-
+function allAtPoint(state, ids, floor, point, radius = 95) { return ids.every(id => { const e = byId(state, id); if (!e || e.hidden) return true; return e.floor === floor && Math.hypot(e.x - point.x, e.y - point.y) <= radius && !e.path?.length; }); }
+function allAtVehicle(state, v) { return (v.partyIds || []).every(id => { const e = byId(state, id); if (!e || e.hidden) return true; const seat = v.seatAssignments?.find(s => s.entityId === id); const p = seat ? seatPoint({ x: v.parkX, y: v.parkY, w: v.w, h: v.h }, seat.seatId) : { x: v.x + v.w / 2, y: v.y + v.h * .7 }; return e.floor === GARAGE_FLOOR && Math.hypot(e.x - p.x, e.y - p.y) < 80 && !e.path?.length; }); }
 function humansInParty(state, partyIds) { return partyIds.map(id => byId(state, id)).filter(e => e?.type === 'person'); }
 function selectVisiblePerson(state) { const current = byId(state, state.selectedId); if (current && !current.hidden) return; const next = state.entities.find(e => e.type === 'person' && !e.hidden) || state.entities.find(e => !e.hidden); if (next) state.selectedId = next.id; }
 function setPartyAction(state, v, action, pose = 'stand') { for (const id of v.partyIds || []) { const e = byId(state, id); if (!e || e.hidden) continue; clearTimedAction(e); e.action = action; e.pose = pose; } }
@@ -91,37 +72,14 @@ function routePartyToVehicle(state, v) {
     clearTimedAction(e);
     const seat = v.seatAssignments?.find(s => s.entityId === id);
     const p = seat ? seatPoint(vehicle, seat.seatId) : approachPoint(vehicle, `enter_${vehicle.kind || 'vehicle'}`);
-    if (e.floor !== GARAGE_FLOOR) {
-      commandObject(e, vehicle, `enter_${vehicle.kind || 'vehicle'}`);
-    } else if (Math.hypot(e.x - p.x, e.y - p.y) > 14) {
-      const final = e.path?.[e.path.length - 1];
-      if (!final || Math.hypot(final.x - p.x, final.y - p.y) > 8) e.path = [{ x: p.x, y: p.y }];
-      e.target = null;
-      e.pending = null;
-      e.moveAllowId = vehicle.id;
-    }
+    if (e.floor !== GARAGE_FLOOR) commandObject(e, vehicle, `enter_${vehicle.kind || 'vehicle'}`);
+    else if (Math.hypot(e.x - p.x, e.y - p.y) > 14) { const final = e.path?.[e.path.length - 1]; if (!final || Math.hypot(final.x - p.x, final.y - p.y) > 8) e.path = [{ x: p.x, y: p.y }]; e.target = null; e.pending = null; e.moveAllowId = vehicle.id; }
     e.action = 'Walking to vehicle';
     e.pose = 'walk';
   }
 }
-
 function routeHumansToPack(state, v) { const pack = getObject('bed'); if (!pack) return false; for (const e of humansInParty(state, v.partyIds)) { clearTimedAction(e); e.vehicleTrip = { actionId: v.actionId, vehicleId: v.vehicleId }; commandObject(e, pack, 'pack_luggage'); say(e, 'PACK'); } return true; }
-
-function routeDogsToVehicle(state, v) {
-  const vehicle = getObject(v.vehicleId);
-  if (!vehicle) return;
-  for (const id of v.partyIds || []) {
-    const e = byId(state, id);
-    if (!e || e.type !== 'dog') continue;
-    clearTimedAction(e);
-    const seat = v.seatAssignments?.find(s => s.entityId === id);
-    const p = seat ? seatPoint(vehicle, seat.seatId) : approachPoint(vehicle, `enter_${vehicle.kind || 'vehicle'}`);
-    if (e.floor !== GARAGE_FLOOR) commandObject(e, vehicle, `enter_${vehicle.kind || 'vehicle'}`);
-    else if (Math.hypot(e.x - p.x, e.y - p.y) > 14) { const final = e.path?.[e.path.length - 1]; if (!final || Math.hypot(final.x - p.x, final.y - p.y) > 8) e.path = [{ x: p.x, y: p.y }]; e.target = null; e.pending = null; e.moveAllowId = vehicle.id; }
-    e.action = 'Waiting at vehicle';
-    e.pose = 'walk';
-  }
-}
+function routeDogsToVehicle(state, v) { routePartyToVehicle(state, v); }
 
 export function beginVehicleDeparture(state, actionId, partyIds = [], vehicleId = 'auto', actorId = '') {
   const vehicle = parkedVehicle(vehicleId, actorId, partyIds);
@@ -145,7 +103,7 @@ export function beginVehicleReturn(state, actionId, partyIds = [], vehicleId = s
   if (!vehicle) { log(state, 'No return vehicle was found.'); return false; }
   const seats = assignSeats(state, vehicle, partyIds) || [], vacation = isVacation(actionId), vertical = vehicle.h >= vehicle.w;
   state.objectState.vehicleInUse = vehicle.id;
-  state.vehicleReturn = { actionId, partyIds, vehicleId: vehicle.id, vehicleKind: vehicle.kind || 'car', vacation, luggage: vacation ? makeLuggageManifest(state, partyIds, actionId) : [], seatAssignments: seats, t: 0, phase: 'arriving', floor: GARAGE_FLOOR, x: vertical ? vehicle.x : -vehicle.w - 40, y: vertical ? GARAGE_EXIT_Y - vehicle.h : vehicle.y, parkX: vehicle.x, parkY: vehicle.y, w: vehicle.w, h: vehicle.h, dir: driveVector(vehicle, false), open: false, trunkOpen: false, remoteFlashT: 0, remoteLabel: '' };
+  state.vehicleReturn = { actionId, partyIds, vehicleId: vehicle.id, vehicleKind: vehicle.kind || 'car', vacation, luggage: vacation ? makeLuggageManifest(state, partyIds, actionId) : [], seatAssignments: seats, t: 0, phase: 'arriving', floor: GARAGE_FLOOR, x: vertical ? vehicle.x : -vehicle.w - 40, y: vertical ? GARAGE_EXIT_Y : vehicle.y, parkX: vehicle.x, parkY: vehicle.y, w: vehicle.w, h: vehicle.h, dir: driveVector(vehicle, false), open: false, trunkOpen: false, remoteFlashT: 0, remoteLabel: '' };
   state.objectState.garageDoorOpen = true; state.floor = GARAGE_FLOOR; state.viewHoldT = 10;
   log(state, `${vehicle.label || 'Vehicle'} returning from ${actionId.replaceAll('_', ' ')}.`);
   return true;
@@ -166,9 +124,9 @@ function updateVehicleLeaving(state, dt) {
   if (v.phase === 'boarding' && v.t > 0.85) { for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; e.hidden = true; e.action = v.actionId; clearTimedAction(e); e.path = []; e.target = null; e.pending = null; e.carrying = null; } selectVisiblePerson(state); v.phase = 'door_closing'; v.open = false; v.t = 0; log(state, 'All selected travelers are seated. Vehicle doors closed.'); return; }
   if (v.phase === 'door_closing' && v.t > 0.45) { v.phase = 'remote_lock'; v.t = 0; setRemoteFlash(v, 'LOCK'); log(state, 'Remote lock flashed the lights.'); return; }
   if (v.phase === 'remote_lock' && v.t > 0.8) { v.phase = 'garage_opening'; v.t = 0; state.objectState.garageDoorOpen = true; log(state, 'Garage door opening.'); return; }
-  if (v.phase === 'garage_opening' && v.t > 0.75) { v.phase = 'leaving'; v.t = 0; log(state, 'Vehicle leaving upward through the garage exit.'); return; }
+  if (v.phase === 'garage_opening' && v.t > 0.75) { v.phase = 'leaving'; v.t = 0; log(state, 'Vehicle leaving downward through the garage exit.'); return; }
   if (v.phase === 'leaving') { v.x += v.dir.x * dt * 150; v.y += v.dir.y * dt * 150; }
-  const gone = v.y + v.h < -30 || v.y > 760 || v.x + v.w < -30 || v.x > 990;
+  const gone = v.y + v.h < -30 || v.y > 780 || v.x + v.w < -30 || v.x > 990;
   if (gone || (v.phase === 'leaving' && v.t > 6)) { state.objectState.garageDoorOpen = false; state.vehicleDeparture = null; state.offsite = createOffsiteJob(v.actionId, v.partyIds || [], v.vehicleId); log(state, `Offsite travel began: ${state.offsite.label}.`); }
 }
 
@@ -186,6 +144,6 @@ function updateVehicleReturning(state, dt) {
 }
 
 function spawnPartyAtSeats(state, v) { const vehicle = { x: v.parkX, y: v.parkY, w: v.w, h: v.h }; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; const seat = v.seatAssignments?.find(s => s.entityId === id); const p = seat ? seatPoint(vehicle, seat.seatId) : { x: v.parkX + v.w + 24, y: v.parkY + v.h * .62 }; clearTimedAction(e); e.hidden = false; e.floor = GARAGE_FLOOR; e.x = p.x; e.y = p.y; e.path = []; e.target = null; e.pending = null; e.action = 'Exiting vehicle'; e.pose = 'exiting_vehicle'; e.vehicleTrip = null; say(e, 'BACK'); } selectVisiblePerson(state); }
-function routePartyInsideFromGarage(state, v) { const stairs = getObject('garage_entry_door'); const exit = stairs ? approachPoint(stairs, 'use_stairs') : { x: 660, y: 568 }; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; clearTimedAction(e); e.path = [exit]; e.target = null; e.pending = stairs ? { type: 'floorTravel', targetFloor: HOUSE_FLOOR, objectId: stairs.id, actionId: 'use_stairs', stairId: stairs.id } : null; e.moveAllowId = stairs?.id || ''; e.action = 'Walking in from garage'; e.pose = 'walk'; } }
+function routePartyInsideFromGarage(state, v) { const stairs = getObject('garage_entry_door'); const exit = stairs ? approachPoint(stairs, 'use_stairs') : { x: 872, y: 504 }; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; clearTimedAction(e); e.path = [exit]; e.target = null; e.pending = stairs ? { type: 'floorTravel', targetFloor: HOUSE_FLOOR, objectId: stairs.id, actionId: 'use_stairs', stairId: stairs.id } : null; e.moveAllowId = stairs?.id || ''; e.action = 'Walking in from garage'; e.pose = 'walk'; } }
 function approach(value, target, step) { if (value < target) return Math.min(target, value + step); if (value > target) return Math.max(target, value - step); return value; }
 function finishVehicleReturn(state, v) { const action = v.actionId; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; e.hidden = false; e.path = []; e.target = null; e.pending = null; e.moveAllowId = ''; e.action = 'Returned'; e.pose = 'stand'; clearTimedAction(e); if (e.carrying && String(e.carrying).includes('luggage')) e.carrying = null; if (action === 'movies') addGarbageFromAction(state, 'popcorn', e); } state.objectState.garageDoorOpen = false; state.objectState.vehicleInUse = null; state.vehicleReturn = null; selectVisiblePerson(state); log(state, `Returned from ${action.replaceAll('_', ' ')}.`); }
