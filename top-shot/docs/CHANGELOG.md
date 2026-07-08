@@ -2,6 +2,32 @@
 
 All Top Shot changes must be logged here with date, time, branch, rollback reference, files changed, feature summary, and Render link/cache buster when known.
 
+## 2026-07-08 02:32 PM CT
+
+Branch: `top-shot-v0-1`
+
+Render link: `https://top-shot-prototype.onrender.com/?v=94dac79`
+
+Files changed:
+
+- `top-shot/src/three/effects3D.js`
+- `top-shot/docs/GROK_CQC_REVIEW_2026-07-08.md`
+- `top-shot/docs/CHANGELOG.md`
+
+Changes made:
+
+- Adopted the external CQC review diagnosis that the collapse is a 2D state to 3D rig bridge problem, not just a bad camera angle.
+- Added a review note documenting that CQC needs pushboxes, hurtboxes, hitboxes, move timing, and kinematic mount relationships separated over time.
+- Added an interim 3D visual anchor for CQC mounted pairs. The bottom fighter is now visually anchored prone while the top fighter is offset over the hips/chest line instead of sharing the same visual center.
+- Added CQC grounded visual anchoring so thrown/swept/down fighters render as grounded bodies rather than loose standing rigs.
+- Strengthened CQC weapon hiding so rifles/blades do not create weird protrusions during unarmed mount/ground states.
+- Kept this as a stabilization patch, not the final fighting-game hitbox architecture.
+
+Known risks or not verified:
+
+- Browser runtime was not executed from this connector, so Kam should verify visually on Render.
+- The deeper CQC state-machine refactor is still needed in `top-shot/src/cqcLab.js` and `top-shot/src/three/actors3D.js`.
+
 ## 2026-07-08 02:15 PM CT
 
 Branch: `top-shot-v0-1`
