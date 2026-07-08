@@ -10,10 +10,11 @@ export function startSharedObjectAction(state, actor, objectId, actionId) {
     return false;
   }
 
-  startObjectAction(state, actor, obj, actionId);
+  const force = state?.autonomyMode === 'guided';
+  startObjectAction(state, actor, obj, actionId, { force });
   if (actionId.endsWith('_together') || actionId === 'watch_together' || actionId === 'bed_together' || actionId === 'intimacy') {
-    say(actor, 'ASK');
-    log(state, `${actor.name} is asking someone to join ${actionId.replaceAll('_', ' ')}.`);
+    say(actor, force ? 'TOGETHER' : 'ASK');
+    log(state, force ? `${actor.name} is forcing ${actionId.replaceAll('_', ' ')} in test mode.` : `${actor.name} is asking someone to join ${actionId.replaceAll('_', ' ')}.`);
   }
   return true;
 }
