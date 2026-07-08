@@ -4,6 +4,7 @@ import { objects } from './world.js';
 const PREFIX = 'apartment_god_slot_';
 const AUTOSAVE_SLOT = 'autosave';
 const TEST_AUTOSAVE_KEY = 'apartment_god_test_refresh_state_v3';
+const RESET_GUARD_KEY = 'apartment_god_reset_guard_v1';
 const SAVE_VERSION = 2;
 const TEST_SAVE_VERSION = 3;
 
@@ -25,6 +26,9 @@ function scrubTransientState(saved) {
   saved.autosaveT = 0;
   saved.testAutosaveT = 0;
   saved.saveStatus = saved.saveStatus || {};
+  saved.cameraGestureActive = false;
+  saved.suppressNextCanvasClick = false;
+  saved.cameraTransition = null;
   return saved;
 }
 
@@ -86,6 +90,14 @@ function readRefreshSave() {
   return JSON.parse(raw);
 }
 
+function resetGuardActive() {
+  return sessionStorage.getItem(RESET_GUARD_KEY) === '1';
+}
+
+function clearResetGuard() {
+  sessionStorage.removeItem(RESET_GUARD_KEY);
+}
+
 export function saveGame(state, slot = 1) {
   try {
     const data = {
@@ -108,6 +120,7 @@ export function saveGame(state, slot = 1) {
 }
 
 export function saveRefreshState(state) {
+  if (state?.resetting || resetGuardActive()) return false;
   try {
     const data = {
       version: TEST_SAVE_VERSION,
@@ -125,6 +138,12 @@ export function saveRefreshState(state) {
 }
 
 export function loadRefreshState(state) {
+  if (resetGuardActive()) {
+    localStorage.removeItem(TEST_AUTOSAVE_KEY);
+    clearResetGuard();
+    state.saveStatus = { message: 'Reset fresh state loaded' };
+    return false;
+  }
   let data = null;
   try {
     data = readRefreshSave();
@@ -142,14 +161,17 @@ export function loadRefreshState(state) {
 }
 
 export function clearRefreshState(state = null) {
+  sessionStorage.setItem(RESET_GUARD_KEY, '1');
   localStorage.removeItem(TEST_AUTOSAVE_KEY);
   if (state) {
+    state.resetting = true;
     state.saveStatus = { message: 'Refresh state cleared' };
     log(state, 'Refresh state cleared. Reloading fresh state.');
   }
 }
 
 export function updateRefreshAutosave(state, dt) {
+  if (state?.resetting || resetGuardActive()) return;
   state.testAutosaveT = (state.testAutosaveT || 0) + dt;
   if (state.testAutosaveT < 2) return;
   state.testAutosaveT = 0;
@@ -218,27 +240,4 @@ export function clearSaveSlot(state, slot = 1) {
   localStorage.removeItem(slotKey(slot));
   state.saveStatus = { message: `Cleared slot ${slot}` };
   log(state, `Cleared save slot ${slot}.`);
-}
-
-export function updateAutosave(state, dt) {
-  state.autosaveT = (state.autosaveT || 0) + dt;
-  if (state.autosaveT < 30) return;
-  state.autosaveT = 0;
-  saveGame(state, AUTOSAVE_SLOT);
-}
-
-export function slotSummary(slot = 1) {
-  try {
-    const data = readSlot(slot);
-    if (!data) return 'Empty';
-    if (data.version >= 2) {
-      const time = data.state?.time ?? 0;
-      const money = data.state?.money ?? 0;
-      const savedAt = data.savedAt ? new Date(data.savedAt).toLocaleTimeString() : 'saved';
-      return `${Math.round(time / 60)}h, $${Math.round(money)}, ${savedAt}`;
-    }
-    return `Day time ${Math.round((data.time || 0) / 60)}h, $${Math.round(data.money || 0)}`;
-  } catch {
-    return 'Corrupt';
-  }
 }
