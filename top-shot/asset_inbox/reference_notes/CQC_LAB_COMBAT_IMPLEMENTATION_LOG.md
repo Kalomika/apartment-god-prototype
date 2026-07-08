@@ -24,6 +24,7 @@ The first implementation pass has been committed to the live Top Shot branch. It
 - Limb control and disarm states.
 - Knife attacks and gun butt strikes in CQC.
 - Style based auto move choices for military survival, gun fu, Jeet Kune Do inspired striker, acrobatic blade fighter, and generalist profiles.
+- A CQC smoke test that runs manual actions, Auto CQC, and hitbox generation checks.
 
 ## Priority still open
 
@@ -52,5 +53,7 @@ Research and translate movement logic from:
 
 - `top-shot/src/cqcLab.js`
 - `top-shot/index.html`
+- `top-shot/tests/cqcSmoke.js`
+- `top-shot/package.json`
 - `top-shot/asset_inbox/reference_notes/CQC_LAB_COMBAT_IMPLEMENTATION_LOG.md`
 - `top-shot/asset_inbox/ASSET_MANIFEST.md`
