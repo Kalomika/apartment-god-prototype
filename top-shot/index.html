@@ -16,6 +16,10 @@
     <aside class="panel">
       <h1>Top Shot</h1>
       <p class="tagline">3D tactical infiltration prototype.</p>
+      <div class="row mode-row">
+        <button id="mainMode">Main Match</button>
+        <button id="cqcLabMode">CQC Lab</button>
+      </div>
       <label>Fighter A
         <select id="fighterA"></select>
       </label>
@@ -49,6 +53,22 @@
         <button data-command="grenade">Grenade</button>
         <button data-command="disarm">Disarm</button>
       </div>
+      <section id="labControls" class="lab-controls hidden">
+        <h2>CQC Lab</h2>
+        <p class="hint">Controlled close-quarter combat lab. Approve moves here before they get promoted into the main match.</p>
+        <div class="row lab-grid">
+          <button data-lab-action="guard">Guard</button>
+          <button data-lab-action="jab">Jab</button>
+          <button data-lab-action="cross">Cross</button>
+          <button data-lab-action="block">Block</button>
+          <button data-lab-action="parry">Parry</button>
+          <button data-lab-action="slip_left">Slip Left</button>
+          <button data-lab-action="slip_right">Slip Right</button>
+          <button data-lab-action="step_back">Step Back</button>
+          <button data-lab-action="slowmo">Slow Mo</button>
+          <button data-lab-action="reset">Reset</button>
+        </div>
+      </section>
       <p id="dropHint" class="hint">No direct control. Pick an ethos or leave it on AI Choice. Commands are opportunity calls, not possession. Double tap the site for an urgent run-there call. Extraction forfeits the match but saves the fighter.</p>
       <section id="hud"></section>
       <ol id="log" class="log"></ol>
