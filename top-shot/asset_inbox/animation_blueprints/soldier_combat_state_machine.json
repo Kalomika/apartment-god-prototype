@@ -1,0 +1,136 @@
+{
+  "project": "Top Shot",
+  "purpose": "Combat pose and autonomy blueprint for soldier-style 3D characters. This is a support asset for Codex and should not be wired into live runtime until requested.",
+  "priority": "Animation realism first, graphics second.",
+  "reference_files": [
+    {
+      "file": "1000032113.jpg",
+      "state_targets": ["kneel_idle_aim", "kneel_fire", "low_cover_pop_fire"],
+      "notes": "Kneeling scoped aim, compact posture, braced weapon, forward threat focus."
+    },
+    {
+      "file": "1000032114.jpg",
+      "state_targets": ["stand_idle_low_ready", "walk_low_ready", "scan_idle"],
+      "notes": "Standing rifle carry, patrol or low-ready scan, upright torso with weapon controlled close to body."
+    },
+    {
+      "file": "1000032117.jpg",
+      "state_targets": ["dive_to_prone", "prone_idle", "prone_crawl"],
+      "notes": "Prone movement after dive, elbows and forearms pull body forward, low profile."
+    },
+    {
+      "file": "1000032116.jpg",
+      "state_targets": ["kneel_scan", "kneel_idle_low_ready", "low_cover_idle"],
+      "notes": "Kneeling tactical hold while not firing, useful for cover idle and scan states."
+    },
+    {
+      "file": "1000032115.jpg",
+      "state_targets": ["stand_aim_fire", "stand_aim_idle", "trot_aim_ready"],
+      "notes": "Standing aimed fire, direct threat focus, squared aggressive posture."
+    },
+    {
+      "file": "1000032118.jpg",
+      "state_targets": ["prone_crawl", "wounded_crawl", "suppressed_low_move"],
+      "notes": "Mud crawl reference, strained low movement, good for wounded or exhausted variants."
+    },
+    {
+      "file": "1000032119.jpg",
+      "state_targets": ["wall_cover_enter", "wall_cover_idle", "corner_peek_setup"],
+      "notes": "Wall stack and corner hold, pistol close to body, hidden until peek."
+    },
+    {
+      "file": "1000032120.jpg",
+      "state_targets": ["corner_peek_left_fire", "corner_peek_right_fire", "wall_cover_exit_fire"],
+      "notes": "Lean-out fire from broken wall, partial exposure, weight over lead leg."
+    },
+    {
+      "file": "1000032121.jpg",
+      "state_targets": ["low_cover_idle", "boulder_cover_idle", "seated_cover_scan"],
+      "notes": "Seated or low wall cover, weapon ready while hidden."
+    },
+    {
+      "file": "1000032126.jpg",
+      "state_targets": ["terrain_cover_idle", "trench_cover_scan", "boulder_cover_pop_fire"],
+      "notes": "Uneven terrain cover, boulder or trench concealment, head and weapon peeking above cover."
+    }
+  ],
+  "state_machine": {
+    "idle": {
+      "clips": ["stand_idle_low_ready", "scan_idle"],
+      "transitions": ["walk_low_ready", "trot_aim_ready", "stand_aim_fire", "weapon_search"]
+    },
+    "walk_low_ready": {
+      "clips": ["walk_low_ready"],
+      "transitions": ["idle", "trot_aim_ready", "kneel_enter", "wall_cover_enter", "low_cover_enter", "weapon_pickup_crouch"]
+    },
+    "trot_aim_ready": {
+      "clips": ["trot_aim_ready", "strafe_trot_aim"],
+      "transitions": ["stand_aim_fire", "kneel_enter", "dive_to_prone", "wall_cover_enter", "low_cover_enter"]
+    },
+    "stand_aim_fire": {
+      "clips": ["stand_aim_idle", "stand_aim_fire", "stand_reload", "stand_hit_react"],
+      "transitions": ["trot_aim_ready", "kneel_enter", "dive_to_prone", "wall_cover_enter", "low_cover_enter"]
+    },
+    "kneel_cover": {
+      "clips": ["kneel_enter", "kneel_idle_aim", "kneel_scan", "kneel_fire", "kneel_reload"],
+      "transitions": ["stand_aim_fire", "wall_cover_enter", "low_cover_enter", "prone_idle", "trot_aim_ready"]
+    },
+    "wall_cover": {
+      "clips": ["wall_cover_enter", "wall_cover_idle", "corner_peek_setup", "corner_peek_left_fire", "corner_peek_right_fire"],
+      "transitions": ["wall_cover_idle", "stand_aim_fire", "trot_aim_ready", "dive_to_prone", "weapon_search"]
+    },
+    "prone": {
+      "clips": ["dive_to_prone", "prone_idle", "prone_crawl", "prone_aim_fire", "prone_to_kneel"],
+      "transitions": ["kneel_cover", "low_cover", "prone_crawl", "stand_aim_fire"]
+    },
+    "low_cover": {
+      "clips": ["low_cover_enter", "low_cover_idle", "seated_cover_scan", "low_cover_pop_fire", "terrain_cover_idle", "boulder_cover_pop_fire"],
+      "transitions": ["kneel_cover", "prone", "trot_aim_ready", "weapon_search"]
+    },
+    "weapon_search": {
+      "clips": ["weapon_spot", "weapon_approach_cautious", "weapon_pickup_crouch", "weapon_swap", "weapon_ready_check"],
+      "transitions": ["idle", "stand_aim_fire", "trot_aim_ready", "wall_cover", "low_cover"]
+    }
+  },
+  "clip_requirements": {
+    "blend_time_seconds": {
+      "fast_combat": 0.12,
+      "normal": 0.2,
+      "heavy_recovery": 0.35
+    },
+    "ik_targets": ["left_hand", "right_hand", "head", "spine", "weapon_muzzle", "left_foot", "right_foot"],
+    "cover_alignment": ["cover_anchor_position", "cover_anchor_normal", "peek_side", "cover_height", "exposure_percent"],
+    "avoid": ["foot_slide", "weapon_wall_clip", "instant_pose_snaps", "identical_pose_for_all_characters", "unreadable_randomization"]
+  },
+  "fighter_profiles": {
+    "generic_soldier": {
+      "cover_preference": 0.8,
+      "weapon_scavenge_skill": 0.55,
+      "corner_skill": 0.6,
+      "terrain_skill": 0.65,
+      "aggression": 0.5,
+      "preferred_states": ["kneel_cover", "wall_cover", "stand_aim_fire", "trot_aim_ready"]
+    },
+    "john_wick_style": {
+      "cover_preference": 0.65,
+      "weapon_scavenge_skill": 0.85,
+      "corner_skill": 0.95,
+      "terrain_skill": 0.55,
+      "aggression": 0.8,
+      "preferred_states": ["wall_cover", "corner_peek_left_fire", "corner_peek_right_fire", "trot_aim_ready", "weapon_search"]
+    },
+    "rambo_style": {
+      "cover_preference": 0.75,
+      "weapon_scavenge_skill": 0.95,
+      "corner_skill": 0.55,
+      "terrain_skill": 0.95,
+      "aggression": 0.75,
+      "preferred_states": ["terrain_cover_idle", "prone_crawl", "low_cover", "weapon_search", "boulder_cover_pop_fire"]
+    }
+  },
+  "arena_pickup_behavior": {
+    "concept": "Weapons can be hidden around the map like GoldenEye-style pickups, but fighters choose them autonomously.",
+    "decision_inputs": ["weapon_quality", "distance_to_weapon", "line_of_fire_risk", "current_ammo", "fighter_skill", "fighter_personality", "nearest_cover", "enemy_visibility"],
+    "decision_outputs": ["ignore_weapon", "move_to_weapon", "quick_pickup", "safe_pickup_after_cover", "swap_weapon", "use_current_weapon"]
+  }
+}
