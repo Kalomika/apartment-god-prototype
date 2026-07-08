@@ -4,6 +4,7 @@ import { drawStyledObject } from './renderHouseStyle.js';
 export function drawObjects(ctx, state) {
   for (const obj of objects.filter(o => o.floor === state.floor)) {
     if (obj.kind === 'car' && state.objectState.vehicleInUse === obj.id) continue;
+    if (obj.kind === 'soccer_field') continue;
     const active = state.entities.some(e => e.target?.objectId === obj.id || String(e.action || '').toLowerCase().includes(obj.kind));
     ctx.save();
     ctx.shadowColor = active ? 'rgba(232,198,97,.55)' : 'transparent';
