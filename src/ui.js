@@ -6,7 +6,7 @@ import { startCookingFlow } from './cooking.js';
 import { openDeviceHome } from './appMenu.js';
 import { beginMoveObject, placeMoveObject } from './objectMove.js';
 import { commandMove } from './movement.js';
-import { loadGame, saveGame, slotSummary } from './saveSystem.js';
+import { clearRefreshState, loadGame, saveGame, slotSummary } from './saveSystem.js';
 import { startBook } from './training.js';
 import { log, resumeEntity, selected, stopEntity } from './state.js';
 import { floors, objectAt, objects } from './world.js';
@@ -114,7 +114,7 @@ export function createUi(state, surface, options = {}) {
     document.getElementById('speed-1').onclick = () => { state.speed = 1; };
     document.getElementById('speed-3').onclick = () => { state.speed = 3; };
     document.getElementById('pause').onclick = () => { state.paused = !state.paused; };
-    document.getElementById('reset').onclick = () => location.reload();
+    document.getElementById('reset').onclick = () => { clearRefreshState(state); location.reload(); };
     commandPanel.innerHTML = '';
     const buttons = [['Cell', () => cell(selected(state))], ['Save', () => saveGame(state, 1)], ['Load', () => loadGame(state, 1)], ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))], ['Auto Mode', () => { state.autonomyMode = state.autonomyMode === 'free' ? 'guided' : 'free'; log(state, `Autonomy: ${state.autonomyMode}.`); }]];
     for (const [label, run] of buttons) { const b = document.createElement('button'); b.textContent = label; b.onclick = run; commandPanel.appendChild(b); }
