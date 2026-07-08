@@ -93,7 +93,7 @@ export function installCameraAngleControls(world, overlayEl) {
     const active = actorEntities.filter(f => !f.extracted);
     const points = active.map(f => arenaToWorld(f.x, f.y));
     const target = new THREE.Vector3(0, 0, 0);
-    let span = 8;
+    let span = state?.mode === 'cqc' ? 3.1 : 8;
     let combatFocus = 1;
 
     if (points.length) {
@@ -106,16 +106,20 @@ export function installCameraAngleControls(world, overlayEl) {
       const fighterDistance = points.length > 1 ? Math.hypot(points[0].x - points[1].x, points[0].z - points[1].z) : rawSpan;
       combatFocus = clamp((fighterDistance - 3.2) / 8.8, 0, 1);
       const preset = CAMERA_PRESETS[this.cameraMode] || CAMERA_PRESETS.topdown;
-      const padding = lerp(preset.closePadding, preset.farPadding, combatFocus);
+      const padding = state?.mode === 'cqc' ? 2.15 : lerp(preset.closePadding, preset.farPadding, combatFocus);
       span = Math.max(rawSpan + padding, padding);
     }
 
     const preset = CAMERA_PRESETS[this.cameraMode] || CAMERA_PRESETS.topdown;
-    const height = clamp(span * preset.heightScale + preset.heightBase, preset.minHeight, preset.maxHeight);
+    const height = state?.mode === 'cqc'
+      ? clamp(span * 1.18 + 4.4, 6.6, 10.5)
+      : clamp(span * preset.heightScale + preset.heightBase, preset.minHeight, preset.maxHeight);
+    const offsetX = state?.mode === 'cqc' ? 0 : preset.offsetX;
+    const offsetZ = state?.mode === 'cqc' ? 0 : preset.offsetZ;
     const desiredPosition = new THREE.Vector3(
-      target.x + height * preset.offsetX,
+      target.x + height * offsetX,
       height,
-      target.z + height * preset.offsetZ
+      target.z + height * offsetZ
     );
     const alpha = 1 - Math.pow(0.001, dt);
 
