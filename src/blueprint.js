@@ -66,12 +66,19 @@ function roomsConnectedByDoorway(roomA, roomB, doorway) {
   return (doorway.a === roomA.id && doorway.b === roomB.id) || (doorway.b === roomA.id && doorway.a === roomB.id);
 }
 
+function doorwayTouchesRoom(doorway, room) {
+  if (!doorway || !room) return false;
+  return doorway.a === room.id || doorway.b === room.id;
+}
+
 function boundaryCrossingAllowed(prevPoint, nextPoint, floor, prevRoom, nextRoom) {
-  const prevDoor = doorwayAtPoint(prevPoint, floor);
-  const nextDoor = doorwayAtPoint(nextPoint, floor);
-  const doorway = prevDoor || nextDoor;
+  const candidates = [doorwayAtPoint(prevPoint, floor), doorwayAtPoint(nextPoint, floor)].filter(Boolean);
+  const doorway = candidates.find(d => {
+    if (prevRoom && nextRoom) return roomsConnectedByDoorway(prevRoom, nextRoom, d);
+    const realRoom = prevRoom || nextRoom;
+    return doorwayTouchesRoom(d, realRoom);
+  });
   if (!doorway) return false;
-  if (prevRoom && nextRoom) return roomsConnectedByDoorway(prevRoom, nextRoom, doorway);
   return segmentIntersectsRect(prevPoint, nextPoint, doorwayPassageRect(doorway));
 }
 
@@ -79,6 +86,8 @@ function stepUsesDoorway(from, to, floor, roomA = null, roomB = null) {
   return doorways.some(d => {
     if (d.floor !== floor) return false;
     if (roomA && roomB && !roomsConnectedByDoorway(roomA, roomB, d)) return false;
+    if (roomA && !roomB && !doorwayTouchesRoom(d, roomA)) return false;
+    if (!roomA && roomB && !doorwayTouchesRoom(d, roomB)) return false;
     return segmentIntersectsRect(from, to, doorwayPassageRect(d));
   });
 }
@@ -118,6 +127,7 @@ export function canStepThroughRooms(from, to, floor) {
   const a = roomAt(from.x, from.y, floor);
   const b = roomAt(to.x, to.y, floor);
   if (a && b && a.id !== b.id) return stepUsesDoorway(from, to, floor, a, b);
+  if ((a && !b) || (!a && b)) return stepUsesDoorway(from, to, floor, a, b);
   return true;
 }
 
