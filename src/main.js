@@ -1,36 +1,8 @@
-import { createState } from './state.js';
-import { draw } from './rendering.js';
-import { createUi } from './ui.js';
-import { updateMovement } from './movement.js';
-import { resolveArrival, updateActions } from './actions.js';
-import { updateAutoHooks } from './autoHooks.js';
-import { updateAutonomy } from './autonomy.js';
+import { startTopShotPhaser } from './engine/topShotGame.js';
 
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const state = createState();
-const ui = createUi(state, canvas);
-
-let last = performance.now();
-function frame(now) {
-  const rawDt = Math.min(0.05, (now - last) / 1000);
-  last = now;
-  const dt = state.paused ? 0 : rawDt * state.speed;
-
-  if (dt > 0) {
-    for (const entity of state.entities) {
-      const arrived = updateMovement(state, entity, dt);
-      if (arrived) resolveArrival(state, entity);
-    }
-    updateActions(state, dt);
-    updateAutoHooks(state, dt);
-    updateAutonomy(state, dt);
-    state.time += dt * 0.6;
-  }
-
-  draw(ctx, state);
-  ui.renderHud();
-  requestAnimationFrame(frame);
+if (globalThis.Phaser) {
+  startTopShotPhaser();
+} else {
+  console.warn('Phaser did not load, using the legacy canvas prototype.');
+  import('./legacyMain.js');
 }
-
-requestAnimationFrame(frame);
