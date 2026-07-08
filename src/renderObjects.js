@@ -10,7 +10,48 @@ export function drawObjects(ctx, state) {
     ctx.shadowBlur = active ? 16 : 0;
     if (!drawStyledObject(ctx, obj, state)) drawFallbackObject(ctx, obj);
     if (obj.kind === 'stove') drawStoveBackPanel(ctx, obj, state);
+    if (obj.kind === 'swim_pool') drawPoolDepthDetail(ctx, obj);
     ctx.restore();
+  }
+}
+
+function drawPoolDepthDetail(ctx, o) {
+  ctx.save();
+  ctx.shadowColor = 'transparent';
+  const inner = { x: o.x + 19, y: o.y + 19, w: o.w - 38, h: o.h - 38 };
+  rounded(ctx, inner.x, inner.y, inner.w, inner.h, 22, true, false, '#70c7d4');
+  const bands = [
+    { inset: 13, color: 'rgba(52,151,179,.30)', label: '3 FT' },
+    { inset: 33, color: 'rgba(32,117,158,.36)', label: '5 FT' },
+    { inset: 56, color: 'rgba(14,73,132,.45)', label: '8 FT' }
+  ];
+  for (const band of bands) {
+    rounded(ctx, inner.x + band.inset, inner.y + band.inset, inner.w - band.inset * 2, inner.h - band.inset * 2, 18, true, false, band.color);
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.55)';
+  ctx.lineWidth = 2;
+  for (let y = inner.y + 24; y < inner.y + inner.h - 12; y += 26) {
+    ctx.beginPath();
+    ctx.moveTo(inner.x + 14, y);
+    ctx.quadraticCurveTo(inner.x + inner.w / 2, y - 13, inner.x + inner.w - 14, y);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(9,36,65,.40)';
+  ctx.lineWidth = 3;
+  rounded(ctx, inner.x, inner.y, inner.w, inner.h, 22, false, true);
+  drawPoolSteps(ctx, inner.x + 16, inner.y + inner.h - 48);
+  ctx.fillStyle = 'rgba(255,255,255,.78)';
+  ctx.font = '900 9px system-ui';
+  ctx.fillText('SHALLOW', inner.x + 18, inner.y + 21);
+  ctx.fillText('DEEP', inner.x + inner.w - 48, inner.y + inner.h - 20);
+  ctx.restore();
+}
+
+function drawPoolSteps(ctx, x, y) {
+  ctx.strokeStyle = 'rgba(255,255,255,.62)';
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 4; i++) {
+    rounded(ctx, x + i * 6, y + i * 8, 48 - i * 10, 6, 3, false, true);
   }
 }
 
@@ -44,7 +85,8 @@ function drawFallbackObject(ctx, o) {
   rounded(ctx, o.x, o.y, o.w, o.h, 8, false, true);
 }
 
-function rounded(ctx, x, y, w, h, r, fill = true, stroke = false) {
+function rounded(ctx, x, y, w, h, r, fill = true, stroke = false, color = '') {
+  if (color) ctx.fillStyle = color;
   ctx.beginPath();
   if (ctx.roundRect) ctx.roundRect(x, y, Math.max(1, w), Math.max(1, h), Math.max(0, r));
   else ctx.rect(x, y, Math.max(1, w), Math.max(1, h));
