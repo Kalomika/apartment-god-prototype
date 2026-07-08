@@ -7,6 +7,7 @@ import { updateAutoHooks } from './autoHooks.js';
 import { updateAutonomy } from './autonomy.js';
 import { updateGameActivities } from './activitySystems.js';
 import { updateVehicleDeparture } from './vehicleSystem.js';
+import { updateCameraTransition } from './cameraNavigation.js';
 import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
 
 export function bootCanvasGame() {
@@ -23,6 +24,8 @@ export function bootCanvasGame() {
     const rawDt = Math.min(0.05, (now - last) / 1000);
     last = now;
     const dt = state.paused ? 0 : rawDt * state.speed;
+
+    updateCameraTransition(state, rawDt);
 
     if (dt > 0) {
       for (const entity of state.entities) {
