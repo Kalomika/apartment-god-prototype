@@ -94,6 +94,14 @@ export function clearMoveAllowance(entity) {
   entity.moveAllowId = '';
 }
 
+function travelStairFor(entity, targetFloor) {
+  if (entity.type === 'dog') {
+    if (entity.floor === 0 && targetFloor === 4) return getObject('pet_flap_front') || getTravelStair(entity.floor, targetFloor);
+    if (entity.floor === 4 && targetFloor === 0) return getObject('pet_flap_yard') || getTravelStair(entity.floor, targetFloor);
+  }
+  return getTravelStair(entity.floor, targetFloor);
+}
+
 export function commandObject(entity, obj, actionId) {
   const target = approachPoint(obj, actionId);
   entity.target = { type: 'object', objectId: obj.id, actionId };
@@ -106,7 +114,7 @@ export function commandObject(entity, obj, actionId) {
   entity.stopped = false;
 
   if (entity.floor !== obj.floor) {
-    const stairs = getTravelStair(entity.floor, obj.floor);
+    const stairs = travelStairFor(entity, obj.floor);
     if (stairs && stairs.floor === entity.floor) {
       entity.pending = { type: 'floorTravel', targetFloor: obj.floor, objectId: obj.id, actionId, stairId: stairs.id };
       entity.path = routeAround({ x: entity.x, y: entity.y }, approachPoint(stairs), entity.floor, stairs.id);
