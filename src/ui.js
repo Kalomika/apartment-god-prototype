@@ -6,6 +6,7 @@ import { startCookingFlow } from './cooking.js';
 import { openDeviceHome } from './appMenu.js';
 import { beginMoveObject, placeMoveObject } from './objectMove.js';
 import { commandMove } from './movement.js';
+import { navigateView } from './cameraNavigation.js';
 import { clearRefreshState, loadGame, saveGame, slotSummary } from './saveSystem.js';
 import { startBook } from './training.js';
 import { log, resumeEntity, selected, stopEntity } from './state.js';
@@ -80,10 +81,8 @@ export function createUi(state, surface, options = {}) {
   }
 
   function jumpArea(floor, label = floors[floor]?.name || 'area') {
-    state.floor = floor;
-    state.viewHoldT = floor === 0 ? 0 : 14;
+    navigateView(state, floor, label, 'hud-control');
     closeMenu();
-    log(state, `Viewing ${label}.`);
   }
 
   function openCompoundMap() {
@@ -100,11 +99,11 @@ export function createUi(state, surface, options = {}) {
   function changeVertical(delta) {
     if (delta > 0) {
       if (state.floor === 2) return jumpArea(0, 'Main House');
-      if (state.floor === 0) return jumpArea(1, 'Upstairs');
+      if (state.floor === 0 || state.floor === 3 || state.floor === 4) return jumpArea(1, 'Upstairs');
       return jumpArea(1, 'Upstairs');
     }
     if (state.floor === 1) return jumpArea(0, 'Main House');
-    if (state.floor === 0) return jumpArea(2, 'Basement');
+    if (state.floor === 0 || state.floor === 3 || state.floor === 4) return jumpArea(2, 'Basement');
     return jumpArea(2, 'Basement');
   }
 
