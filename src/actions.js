@@ -66,7 +66,9 @@ function beginTimedAction(entity, label, actionId) {
     say(entity, 'CUE');
     return;
   }
-  entity.action = label; entity.actionT = actionDuration(actionId); entity.actionTotal = entity.actionT;
+  entity.action = label;
+  entity.actionT = actionDuration(actionId);
+  entity.actionTotal = entity.actionT;
   entity.pose = ['sleep', 'nap', 'bed_together', 'intimacy', 'dog_rest'].includes(actionId) ? 'sleep' :
     ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together'].includes(actionId) ? 'sit' :
     ['treadmill', 'lift_weights', 'heavy_bag', 'swim', 'swim_together', 'pool_solo', 'pool_together', 'soccer_practice', 'soccer_match'].includes(actionId) ? actionId : 'stand';
@@ -74,15 +76,16 @@ function beginTimedAction(entity, label, actionId) {
 
 function actionDuration(actionId) {
   return destinationFor(actionId)?.duration ?? {
-    watch_tv: 7, watch_together: 9, comedy: 7, horror: 7, sports: 7, relax: 5, nap: 8, snack: 4, meal: 7,
-    bring_food: 6, clean: 6, wash_dishes: 5, brush_teeth: 4, groom: 5, shower: 7, toilet: 4, sleep: 12,
-    bed_together: 12, intimacy: 14, desk_work: 8, play_game: 7, phone: 5, shop: 5, feed_dog: 3, toggle_light: 1,
-    talk: 4, kiss: 3, cuddle: 6, tickle: 3, hands: 4, pet: 3, train: 5, fetch: 0,
-    work: 14, errand: 9, mall: 12, movies: 13, date: 14,
-    pool_solo: 0, pool_together: 0, arcade: 8, arcade_together: 10, console_game: 10, console_together: 12, darts: 7, darts_together: 9,
-    throw_trash: 3, take_trash_out: 9, dump_trash: 3, treadmill: 10, lift_weights: 10, heavy_bag: 8, swim: 10, swim_together: 12,
-    dog_rest: 6, call_dog_yard: 3, drive: 5, maintain_vehicle: 8, bike_trip: 10, motorbike_trip: 8,
-    soccer_practice: 16, soccer_match: 20, enter_car: 2, enter_bike: 2, enter_motorbike: 2
+    watch_tv: 55, watch_together: 75, comedy: 32, horror: 38, sports: 45, relax: 10, nap: 24, snack: 5, meal: 12,
+    bring_food: 7, clean: 8, wash_dishes: 8, brush_teeth: 4, groom: 6, shower: 9, toilet: 5, sleep: 90,
+    bed_together: 90, intimacy: 18, desk_work: 28, play_game: 24, phone: 8, shop: 8, feed_dog: 4, toggle_light: 1,
+    talk: 8, kiss: 3, cuddle: 18, tickle: 4, hands: 7, pet: 5, train: 10, fetch: 0,
+    work: 14, errand: 9, mall: 12, movies: 90, date: 14,
+    pool_solo: 0, pool_together: 0, arcade: 18, arcade_together: 22, console_game: 30, console_together: 36, darts: 12, darts_together: 16,
+    throw_trash: 3, take_trash_out: 9, dump_trash: 3, treadmill: 18, lift_weights: 18, heavy_bag: 14, swim: 20, swim_together: 24,
+    dog_rest: 12, call_dog_yard: 3, drive: 5, maintain_vehicle: 8, bike_trip: 10, motorbike_trip: 8,
+    soccer_practice: 24, soccer_match: 32, enter_car: 2, enter_bike: 2, enter_motorbike: 2,
+    music_song: 4, music_album: 24, read: 30, study: 35, coffee: 5, eat_meal: 12, sit_table: 10
   }[actionId] ?? 4;
 }
 
@@ -180,7 +183,16 @@ function finishAction(state, e) {
   if (text.includes('dog rest')) { changeNeed(e, 'energy', 12); setMood(e, 'dog'); }
   if (text.includes('feed dog')) { const dog = byId(state, 'dog'); if (dog) changeNeed(dog, 'hunger', 40); }
   if (text.includes('light')) toggleRoomLight(state, e);
-  state.objectState.fridgeOpen = false; state.objectState.fridgeActivity = null; state.objectState.doorOpen = false; e.action = 'Idle'; e.actionT = 0; e.pose = 'stand'; e.idleT = 0;
+  const wasWatching = text.includes('tv') || text.includes('comedy') || text.includes('horror') || text.includes('sports');
+  state.objectState.fridgeOpen = false; state.objectState.fridgeActivity = null; state.objectState.doorOpen = false;
+  e.action = 'Idle'; e.actionT = 0; e.actionTotal = 0; e.pose = 'stand'; e.idleT = 0;
+  if (wasWatching) {
+    e.carrying = null;
+    if (!state.entities.some(other => other !== e && other.actionT > 0 && /tv|comedy|horror|sports/i.test(String(other.action || '')))) {
+      state.tv.on = false;
+      state.tv.channel = 'off';
+    }
+  }
   if (e.queuedTask) runQueuedTask(state, e);
 }
 
@@ -194,7 +206,7 @@ function runQueuedTask(state, actor) {
   return false;
 }
 
-function toggleRoomLight(state, entity) { const room = roomAt(entity.x, entity.y, entity.floor)?.id || (entity.floor === 0 ? 'living' : entity.floor === 1 ? 'bedroom' : entity.floor === 2 ? 'basement' : entity.floor === 3 ? 'garage_bay' : 'yard'); state.roomLights[room] = !state.roomLights[room]; state.bill += state.roomLights[room] ? 1 : -1; }
+function toggleRoomLight(state, entity) { const room = roomAt(entity.x, entity.y, entity.floor)?.id || (entity.floor === 0 ? 'living' : entity.floor === 1 ? 'bedroom' : entity.floor === 2 ? 'basement' : entity.floor === 3 ? 'garage' : 'yard'); state.roomLights[room] = !state.roomLights[room]; state.bill += state.roomLights[room] ? 1 : -1; }
 
 export function startOffsite(state, actor, actionId, invitedIds = [], vehicleId = 'auto', options = {}) {
   if (!actor) return false;
@@ -226,4 +238,4 @@ function buildParty(state, actor, invitedIds, actionId) {
 }
 
 function finishOffsite(state) { const job = state.offsite; if (!job) return; applyOffsiteRewards(state, job); beginVehicleReturn(state, job.actionId, job.actors || [], job.vehicleId || state.objectState.vehicleInUse || 'car_1'); state.offsite = null; state.objectState.doorOpen = false; }
-function speechFor(actionId) { const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'SNACK', meal: 'COOK', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', chess: 'CHESS', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'KENNEL', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
+function speechFor(actionId) { const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'SNACK', meal: 'COOK', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', chess: 'CHESS', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'KENNEL', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH', read: 'READ', study: 'STUDY', coffee: 'COFFEE', eat_meal: 'EAT', sit_table: 'SIT', music_song: 'SONG', music_album: 'ALBUM' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
