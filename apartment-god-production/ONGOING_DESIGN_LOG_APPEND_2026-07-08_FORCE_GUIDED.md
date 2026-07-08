@@ -6,7 +6,7 @@ This appendix records a runtime patch that should be merged into `apartment-god-
 
 Status: NEEDS_TESTING
 Branch: phaser-migration
-Commit: test helper 43abeffeb03bd9111dbd8db8c30326ae3acb4ed0, actions 6da8dd3475fa47cce3a31b5830fe141506b62384, ui 9cc95cfa7102ff5c4ff1d279c1bdab1b94ba786f, sharedActions ddf03d3a5cdb0db7a507ca167721ae55c5fbef66
+Commit: test helper 43abeffeb03bd9111dbd8db8c30326ae3acb4ed0, actions 6da8dd3475fa47cce3a31b5830fe141506b62384, ui 9cc95cfa7102ff5c4ff1d279c1bdab1b94ba786f, sharedActions ddf03d3a5cdb0db7a507ca167721ae55c5fbef66, appendix cleanup note after 0a75e6674a3a2b651617196b72f6246c9412433c
 Files changed: src/testModeActions.js, src/actions.js, src/ui.js, src/sharedActions.js, this appendix file
 Runtime files changed: yes
 Render playable branch updated: pending mirror in same chat
@@ -26,6 +26,7 @@ Implementation details:
 - Guided mode bypasses normal invite refusal checks in `canInviteeJoin`.
 - `src/ui.js` menu commands now pass `{ force: true }` in guided mode for object, social, and offsite actions.
 - `src/sharedActions.js` now passes `{ force: true }` when `state.autonomyMode === 'guided'`, so phone activity buttons like Watch TV Together and Go To Bed Together use test mode authority.
+- Several accidental temporary files under `tmp/ignore*.txt` were created and removed during connector tool misuse. No temporary files are intended to remain.
 
 Testing performed:
 Code inspection only. No local or Render browser test performed in this chat.
