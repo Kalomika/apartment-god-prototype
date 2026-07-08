@@ -1,3 +1,1 @@
-import { bootCanvasGame } from './canvasRuntime.js';
-
-bootCanvasGame('clone-first mode');
+import('./phaserRuntime.js').then(module => module.bootPhaserGame());
