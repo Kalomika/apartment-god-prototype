@@ -5,7 +5,7 @@ export const doorways = [
   { floor: 0, a: 'living', b: 'kitchen', x: 448, y: 206, w: 20, h: 68 },
   { floor: 0, a: 'living', b: 'entry', x: 226, y: 336, w: 86, h: 18 },
   { floor: 0, a: 'kitchen', b: 'entry', x: 586, y: 336, w: 92, h: 18 },
-  { floor: 0, a: 'bath', b: 'entry', x: 840, y: 336, w: 58, h: 18 },
+  { floor: 0, a: 'bath', b: 'stairs', x: 840, y: 336, w: 58, h: 18 },
   { floor: 0, a: 'entry', b: 'front_porch', x: 218, y: 556, w: 118, h: 24 },
   { floor: 0, a: 'entry', b: 'front_porch', x: 348, y: 556, w: 58, h: 24 },
   { floor: 0, a: 'entry', b: 'stairs', x: 704, y: 410, w: 18, h: 62 },
