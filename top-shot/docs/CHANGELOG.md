@@ -2,6 +2,30 @@
 
 All Top Shot changes must be logged here with date, time, branch, rollback reference, files changed, feature summary, and Render link/cache buster when known.
 
+## 2026-07-08 07:04 AM CT
+
+Branch: `top-shot-v0-1`
+
+Render link: `https://top-shot-prototype.onrender.com/?v=9e9add4`
+
+Files changed:
+
+- `top-shot/src/three/effects3D.js`
+- `top-shot/docs/BUG_NOTES_2026-07-08_CQC_RUNNING_CROTCH_ARTIFACT.md`
+- `top-shot/docs/CHANGELOG.md`
+
+Changes made:
+
+- Investigated CQC Lab running-in-place and crotch artifact report.
+- Confirmed the likely visual artifact was the survival commando rifle mesh being held across the body during unarmed CQC idle, not an invisible hitbox marker.
+- Hid/holstered weapons in CQC Lab unless the current action is a weapon-specific action.
+- Hid the survival commando tie/gear strip in CQC Lab because it could read as a strange protrusion from the top-down angle.
+- Forced neutral CQC idle guard to use a static idle pose after actor sync, preventing the lab face-off from looking like jogging in place.
+
+Known risks or not verified:
+
+- Browser runtime was not executed from this connector, so Kam should verify visually on Render.
+
 ## 2026-07-08 06:55 AM CT
 
 Branch: `top-shot-v0-1`
