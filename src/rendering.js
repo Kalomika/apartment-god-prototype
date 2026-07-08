@@ -16,6 +16,16 @@ export function draw(ctx, state) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   syncPhoneUi(state);
   syncCameraNavigationUi(state);
+
+  if (state.cameraTransition?.t > 0) drawTransitioningScene(ctx, state);
+  else drawScene(ctx, state);
+
+  drawStatus(ctx, state);
+  drawOverlay(ctx, state);
+  drawCameraTransition(ctx, state, PLAY_W, PLAY_H);
+}
+
+function drawScene(ctx, state) {
   drawWorld(ctx, state);
   drawSoccer(ctx, state);
   drawObjects(ctx, state);
@@ -24,9 +34,62 @@ export function draw(ctx, state) {
   drawEntities(ctx, state);
   drawPoolFx(ctx, state);
   drawCarriedItems(ctx, state);
-  drawStatus(ctx, state);
-  drawOverlay(ctx, state);
-  drawCameraTransition(ctx, state, PLAY_W, PLAY_H);
+}
+
+function drawTransitioningScene(ctx, state) {
+  const tr = state.cameraTransition;
+  if (!Number.isInteger(tr.from) || !Number.isInteger(tr.to)) return drawScene(ctx, state);
+  if (tr.type === 'slide') return drawSlidingScene(ctx, state, tr);
+  return drawVerticalScene(ctx, state, tr);
+}
+
+function drawSlidingScene(ctx, state, tr) {
+  const progress = 1 - Math.max(0, Math.min(1, tr.t / tr.total));
+  const dirX = tr.direction?.x || 0;
+  const dirY = tr.direction?.y || 0;
+  const targetX = dirX * PLAY_W * (1 - progress);
+  const targetY = dirY * PLAY_H * (1 - progress);
+  const fromX = -dirX * PLAY_W * progress;
+  const fromY = -dirY * PLAY_H * progress;
+
+  ctx.save();
+  clipPlay(ctx);
+  drawSceneForFloor(ctx, state, tr.to, targetX, targetY);
+  drawSceneForFloor(ctx, state, tr.from, fromX, fromY);
+  ctx.restore();
+}
+
+function drawVerticalScene(ctx, state, tr) {
+  const progress = 1 - Math.max(0, Math.min(1, tr.t / tr.total));
+  const goingUp = tr.direction === 'up';
+  const targetScale = goingUp ? 1.12 - progress * .12 : .92 + progress * .08;
+  const targetY = goingUp ? (1 - progress) * 26 : -(1 - progress) * 26;
+
+  ctx.save();
+  clipPlay(ctx);
+  drawSceneForFloor(ctx, state, tr.from, 0, 0);
+  ctx.globalAlpha = Math.max(.12, progress);
+  ctx.translate(PLAY_W / 2, PLAY_H / 2 + targetY);
+  ctx.scale(targetScale, targetScale);
+  ctx.translate(-PLAY_W / 2, -PLAY_H / 2);
+  drawSceneForFloor(ctx, state, tr.to, 0, 0);
+  ctx.restore();
+}
+
+function drawSceneForFloor(ctx, state, floor, x, y) {
+  const currentFloor = state.floor;
+  state.floor = floor;
+  ctx.save();
+  ctx.translate(x, y);
+  drawScene(ctx, state);
+  ctx.restore();
+  state.floor = currentFloor;
+}
+
+function clipPlay(ctx) {
+  ctx.beginPath();
+  ctx.rect(0, 0, PLAY_W, PLAY_H);
+  ctx.clip();
 }
 
 function drawFetchBall(ctx, state) {
