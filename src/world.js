@@ -30,6 +30,7 @@ export const floors = [
     rooms: [
       { id: 'basement_game', name: 'Game Room', x: 24, y: 36, w: 912, h: 456 },
       { id: 'basement_gym', name: 'Cyber Gym', x: 24, y: 508, w: 500, h: 176 },
+      { id: 'basement_hall', name: 'Basement Hall', x: 524, y: 508, w: 196, h: 176 },
       { id: 'basement_stairs', name: 'Basement Stairs', x: 720, y: 508, w: 216, h: 176 }
     ]
   },
@@ -83,9 +84,9 @@ export const objects = [
   { id: 'arcade_machine', label: 'Arcade Machine', kind: 'arcade', floor: 2, room: 'basement_game', x: 420, y: 74, w: 54, h: 78, solid: true },
   { id: 'game_console', label: 'Console Setup', kind: 'game_console', floor: 2, room: 'basement_game', x: 620, y: 96, w: 172, h: 58, solid: true },
   { id: 'basement_couch', label: 'Basement Couch', kind: 'couch', floor: 2, room: 'basement_game', x: 614, y: 176, w: 168, h: 62, solid: true },
-  { id: 'treadmill', label: 'Treadmill', kind: 'treadmill', floor: 2, room: 'basement_gym', x: 74, y: 552, w: 118, h: 58, solid: true },
-  { id: 'weight_bench', label: 'Weight Bench', kind: 'weight_bench', floor: 2, room: 'basement_gym', x: 238, y: 562, w: 122, h: 54, solid: true },
-  { id: 'heavy_bag', label: 'Heavy Bag', kind: 'heavy_bag', floor: 2, room: 'basement_gym', x: 430, y: 544, w: 42, h: 84, solid: true },
+  { id: 'treadmill', label: 'Treadmill', kind: 'treadmill', floor: 2, room: 'basement_gym', x: 62, y: 548, w: 116, h: 56, solid: false, enterable: true },
+  { id: 'weight_bench', label: 'Weight Bench', kind: 'weight_bench', floor: 2, room: 'basement_gym', x: 216, y: 602, w: 128, h: 46, solid: false, enterable: true },
+  { id: 'heavy_bag', label: 'Heavy Bag', kind: 'heavy_bag', floor: 2, room: 'basement_gym', x: 436, y: 548, w: 44, h: 80, solid: false, enterable: true },
   { id: 'light_basement_game', label: 'Game Room Light', kind: 'light', floor: 2, room: 'basement_game', x: 494, y: 52, w: 22, h: 22, solid: false },
   { id: 'garage_entry_door', label: 'House Door', kind: 'stairs', floor: 3, room: 'garage_entry', x: 628, y: 506, w: 68, h: 34, solid: false, toFloor: 0, exitId: 'garage_door' },
   { id: 'garage_overhead_door', label: 'Overhead Garage Door', kind: 'garage_door', floor: 3, room: 'garage_bay', x: 118, y: 38, w: 548, h: 28, solid: false },
