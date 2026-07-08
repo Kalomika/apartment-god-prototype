@@ -10,8 +10,28 @@ export function drawObjects(ctx, state) {
     ctx.shadowBlur = active ? 16 : 0;
     if (!drawStyledObject(ctx, obj, state)) drawFallbackObject(ctx, obj);
     if (obj.kind === 'stove') drawStoveBackPanel(ctx, obj, state);
+    if (obj.styleAs === 'door') drawSameLevelDoorFace(ctx, obj);
     ctx.restore();
   }
+}
+
+function drawSameLevelDoorFace(ctx, o) {
+  ctx.save();
+  ctx.shadowColor = 'transparent';
+  const vertical = o.h >= o.w;
+  ctx.fillStyle = '#9f704a';
+  rounded(ctx, o.x, o.y, o.w, o.h, 5, true, false);
+  ctx.strokeStyle = '#403832';
+  ctx.lineWidth = 2;
+  rounded(ctx, o.x, o.y, o.w, o.h, 5, false, true);
+  ctx.fillStyle = '#f1c66a';
+  ctx.beginPath();
+  ctx.arc(vertical ? o.x + o.w * .64 : o.x + o.w - 14, vertical ? o.y + o.h * .5 : o.y + o.h * .58, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(116,230,255,.28)';
+  if (vertical) ctx.fillRect(o.x + 6, o.y + 8, Math.max(4, o.w - 12), Math.max(10, o.h - 16));
+  else ctx.fillRect(o.x + 10, o.y + 6, Math.max(10, o.w - 20), Math.max(4, o.h - 12));
+  ctx.restore();
 }
 
 function drawStoveBackPanel(ctx, o, state) {
