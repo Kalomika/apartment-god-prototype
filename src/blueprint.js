@@ -37,7 +37,7 @@ function pointInRect(point, rect) {
 }
 
 function segmentIntersectsRect(from, to, rect) {
-  const steps = Math.max(3, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / 6));
+  const steps = Math.max(3, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / 4));
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const p = { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
@@ -57,13 +57,28 @@ export function doorwayPassageRect(d) {
   return { x: d.x + d.w / 2 - w / 2, y: d.y - alongPad, w, h: d.h + alongPad * 2 };
 }
 
+function doorwayAtPoint(point, floor) {
+  return doorways.find(d => d.floor === floor && pointInRect(point, doorwayPassageRect(d))) || null;
+}
+
+function roomsConnectedByDoorway(roomA, roomB, doorway) {
+  if (!roomA || !roomB || !doorway) return false;
+  return (doorway.a === roomA.id && doorway.b === roomB.id) || (doorway.b === roomA.id && doorway.a === roomB.id);
+}
+
+function boundaryCrossingAllowed(prevPoint, nextPoint, floor, prevRoom, nextRoom) {
+  const prevDoor = doorwayAtPoint(prevPoint, floor);
+  const nextDoor = doorwayAtPoint(nextPoint, floor);
+  const doorway = prevDoor || nextDoor;
+  if (!doorway) return false;
+  if (prevRoom && nextRoom) return roomsConnectedByDoorway(prevRoom, nextRoom, doorway);
+  return segmentIntersectsRect(prevPoint, nextPoint, doorwayPassageRect(doorway));
+}
+
 function stepUsesDoorway(from, to, floor, roomA = null, roomB = null) {
   return doorways.some(d => {
     if (d.floor !== floor) return false;
-    if (roomA && roomB) {
-      const connectsRooms = (d.a === roomA.id && d.b === roomB.id) || (d.b === roomA.id && d.a === roomB.id);
-      if (!connectsRooms) return false;
-    }
+    if (roomA && roomB && !roomsConnectedByDoorway(roomA, roomB, d)) return false;
     return segmentIntersectsRect(from, to, doorwayPassageRect(d));
   });
 }
@@ -87,11 +102,23 @@ export function routeThroughDoors(from, to, floor) {
 }
 
 export function canStepThroughRooms(from, to, floor) {
+  const steps = Math.max(2, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / 4));
+  let prevPoint = from;
+  let prevRoom = roomAt(prevPoint.x, prevPoint.y, floor);
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    const nextPoint = { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
+    const nextRoom = roomAt(nextPoint.x, nextPoint.y, floor);
+    const sameRoom = prevRoom && nextRoom && prevRoom.id === nextRoom.id;
+    const sameOutside = !prevRoom && !nextRoom;
+    if (!sameRoom && !sameOutside && !boundaryCrossingAllowed(prevPoint, nextPoint, floor, prevRoom, nextRoom)) return false;
+    prevPoint = nextPoint;
+    prevRoom = nextRoom;
+  }
   const a = roomAt(from.x, from.y, floor);
   const b = roomAt(to.x, to.y, floor);
-  if (a && b && a.id === b.id) return true;
-  if (a && b) return stepUsesDoorway(from, to, floor, a, b);
-  return stepUsesDoorway(from, to, floor);
+  if (a && b && a.id !== b.id) return stepUsesDoorway(from, to, floor, a, b);
+  return true;
 }
 
 export function windowAt(x, y, floor) { return windows.find(w => w.floor === floor && x >= w.x - 12 && x <= w.x + w.w + 12 && y >= w.y - 14 && y <= w.y + w.h + 22) || null; }
