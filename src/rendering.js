@@ -7,6 +7,7 @@ import { drawEntities } from './renderEntities.js';
 import { drawOffsiteScene } from './offsiteScenes.js';
 import { drawSoccer } from './soccerSystem.js';
 import { syncPhoneUi } from './phoneUI.js';
+import { drawCameraTransition, syncCameraNavigationUi } from './cameraNavigation.js';
 import { formatTime } from './renderHelpers.js';
 
 export { formatTime };
@@ -14,6 +15,7 @@ export { formatTime };
 export function draw(ctx, state) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   syncPhoneUi(state);
+  syncCameraNavigationUi(state);
   drawWorld(ctx, state);
   drawSoccer(ctx, state);
   drawObjects(ctx, state);
@@ -24,6 +26,7 @@ export function draw(ctx, state) {
   drawCarriedItems(ctx, state);
   drawStatus(ctx, state);
   drawOverlay(ctx, state);
+  drawCameraTransition(ctx, state, PLAY_W, PLAY_H);
 }
 
 function drawFetchBall(ctx, state) {
