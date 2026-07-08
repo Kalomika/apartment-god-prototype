@@ -10,6 +10,7 @@ import { loadGame, saveGame, slotSummary } from './saveSystem.js';
 import { startSharedObjectAction } from './sharedActions.js';
 import { log, selected } from './state.js';
 import { DAILY_DESTINATIONS, isDestinationOpen, VACATION_DESTINATIONS } from './travelLocations.js';
+import { navigateView } from './cameraNavigation.js';
 
 let built = false;
 let open = false;
@@ -37,15 +38,15 @@ function buildPhoneUi(state) {
   const wrap = document.getElementById('game-wrap');
 
   const up = document.createElement('button');
-  up.textContent = '↑ Floor';
-  up.style.cssText = 'position:absolute;right:12px;top:12px;z-index:6;opacity:.82;padding:8px 10px;border-radius:999px;';
-  up.onclick = event => { event.stopPropagation(); state.floor = state.floor === 0 ? 1 : 0; state.viewHoldT = state.buildPick ? 30 : 18; log(state, `Viewing ${floorName(state.floor)}.`); dirty = true; };
+  up.textContent = '↑ Up';
+  up.style.cssText = 'position:absolute;right:12px;top:12px;z-index:6;opacity:.72;padding:8px 10px;border-radius:999px;backdrop-filter:blur(8px);';
+  up.onclick = event => { event.stopPropagation(); navigateView(state, upTarget(state.floor), floorName(upTarget(state.floor)), 'vertical-button'); dirty = true; };
   wrap.appendChild(up);
 
   const down = document.createElement('button');
-  down.textContent = '↓ Floor';
-  down.style.cssText = 'position:absolute;right:12px;bottom:12px;z-index:6;opacity:.82;padding:8px 10px;border-radius:999px;';
-  down.onclick = event => { event.stopPropagation(); state.floor = nextDownFloor(state.floor); state.viewHoldT = state.buildPick ? 30 : 18; log(state, `Viewing ${floorName(state.floor)}.`); dirty = true; };
+  down.textContent = '↓ Down';
+  down.style.cssText = 'position:absolute;right:12px;bottom:12px;z-index:6;opacity:.72;padding:8px 10px;border-radius:999px;backdrop-filter:blur(8px);';
+  down.onclick = event => { event.stopPropagation(); navigateView(state, downTarget(state.floor), floorName(downTarget(state.floor)), 'vertical-button'); dirty = true; };
   wrap.appendChild(down);
 
   const dock = document.createElement('section');
@@ -54,7 +55,7 @@ function buildPhoneUi(state) {
 
   const button = document.createElement('button');
   button.setAttribute('aria-label', 'Cell Phone');
-  button.style.cssText = 'pointer-events:auto;width:58px;height:58px;border-radius:18px;font-size:30px;display:grid;place-items:center;padding:0;background:#202637;border:2px solid rgba(241,198,106,.75);box-shadow:0 12px 32px rgba(0,0,0,.45);';
+  button.style.cssText = 'pointer-events:auto;width:58px;height:58px;border-radius:18px;font-size:30px;display:grid;place-items:center;padding:0;background:rgba(32,38,55,.72);border:2px solid rgba(241,198,106,.68);box-shadow:0 12px 32px rgba(0,0,0,.36);backdrop-filter:blur(8px);opacity:.78;';
   button.onclick = event => { event.stopPropagation(); open = !open; dirty = true; fitPhonePanel(); renderPhone(state); };
 
   const panel = document.createElement('div');
@@ -65,7 +66,7 @@ function buildPhoneUi(state) {
   dock.appendChild(panel);
   dock.appendChild(button);
   document.body.appendChild(dock);
-  els = { button, panel };
+  els = { button, panel, up, down };
   window.addEventListener('resize', fitPhonePanel);
   updatePhoneButton(state);
 }
@@ -76,16 +77,20 @@ function fitPhonePanel() {
   els.panel.style.maxHeight = `${Math.min(max, Math.round(window.innerHeight * 0.74))}px`;
 }
 
-function nextDownFloor(floor) {
+function upTarget(floor) {
+  if (floor === 2) return 0;
+  if (floor === 0 || floor === 3 || floor === 4) return 1;
+  return 1;
+}
+
+function downTarget(floor) {
   if (floor === 1) return 0;
-  if (floor === 0) return 2;
-  if (floor === 2) return 3;
-  if (floor === 3) return 4;
-  return 0;
+  if (floor === 0 || floor === 3 || floor === 4) return 2;
+  return 2;
 }
 
 function floorName(floor) {
-  return ['main floor', 'upstairs', 'basement', 'garage', 'backyard'][floor] || 'house';
+  return ['Main House', 'Upstairs', 'Basement', 'Garage Area', 'Backyard Area'][floor] || 'House';
 }
 
 function updatePhoneButton(state) {
