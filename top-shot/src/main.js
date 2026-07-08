@@ -1,4 +1,5 @@
 import { archetypeList } from './archetypes.js';
+import { installCameraAngleControls } from './cameraAngles.js';
 import { COACH_COMMANDS, COACH_DROPS, ARENA_H, ARENA_W } from './config.js';
 import { fighterRequest } from './requests.js';
 import { beginBattle, createBattle, stageFor } from './state.js';
@@ -27,12 +28,14 @@ ui.fighterB.value = 'survival_commando';
 ui.ethos.value = 'ai';
 ui.start.textContent = 'Begin Sortie';
 
+const cameraHelp = 'Camera: 1 Top Down, 2 High, 3 Oblique, 4 Isometric, V cycles.';
 let world3D = null;
 let fallbackCtx = null;
 ui.overlay.textContent = 'Desert industrial site loading.';
 try {
   world3D = await createTopShot3D(canvas);
-  ui.overlay.textContent = 'Desert industrial site loaded.';
+  installCameraAngleControls(world3D, ui.overlay);
+  ui.overlay.textContent = `Desert industrial site loaded. ${cameraHelp}`;
 } catch (error) {
   console.error('3D terrain failed to load, falling back to tactical map.', error);
   fallbackCtx = canvas.getContext('2d');
@@ -49,7 +52,7 @@ ui.start.addEventListener('click', () => {
   beginBattle(state, ui.fighterA.value, ui.fighterB.value);
   setCommanderEthos(state, ui.ethos.value);
   overlayMode = 'system';
-  ui.overlay.textContent = 'Sortie started. Fighters entering the site.';
+  ui.overlay.textContent = `Sortie started. ${cameraHelp}`;
   ui.start.textContent = 'Restart Sortie';
   ui.pause.textContent = 'Pause';
 });
@@ -160,7 +163,7 @@ function frame(now) {
 function renderMatchOverlay() {
   if (state.matchState === 'ready') {
     overlayMode = 'system';
-    ui.overlay.textContent = 'Desert industrial site loaded. Choose fighters, then Begin Sortie.';
+    ui.overlay.textContent = `Desert industrial site loaded. Choose fighters, then Begin Sortie. ${cameraHelp}`;
     ui.start.textContent = 'Begin Sortie';
     return;
   }
@@ -186,7 +189,7 @@ function renderDomHud() {
     return `<article class="fighter-card"><h3><span>${escapeHtml(f.name)}</span><small>${escapeHtml(stage.label)}</small></h3>${requestHtml(request)}${bar('HP', f.hp)}${bar('Stamina', f.stamina)}${bar('Dodge', f.dodge)}${bar('Block', f.block)}<small>${escapeHtml(status)}</small></article>`;
   }).join('');
   const drops = Object.entries(state.dropsLeft).map(([id, left]) => `<small>${escapeHtml(COACH_DROPS[id].label)}: ${left}</small>`).join('<br>');
-  ui.hud.innerHTML = `${cards}<article class="fighter-card"><h3>Commander</h3>${bar('Trust', state.trust)}<small>Ethos: ${escapeHtml(state.commanderEthos)}</small><br><small>${escapeHtml(state.result || state.matchState)}</small><br><small>Map: desert industrial test site</small><br>${drops}</article><article class="fighter-card"><h3>Terrain</h3><small>Cover, shadows, pipes, tanks, raised catwalk, and separated collision volumes are live.</small></article>`;
+  ui.hud.innerHTML = `${cards}<article class="fighter-card"><h3>Commander</h3>${bar('Trust', state.trust)}<small>Ethos: ${escapeHtml(state.commanderEthos)}</small><br><small>${escapeHtml(state.result || state.matchState)}</small><br><small>Map: desert industrial test site</small><br><small>${cameraHelp}</small><br>${drops}</article><article class="fighter-card"><h3>Terrain</h3><small>Cover, shadows, pipes, tanks, raised catwalk, and separated collision volumes are live.</small></article>`;
   ui.log.innerHTML = state.log.map(item => `<li>${escapeHtml(item)}</li>`).join('');
 }
 
