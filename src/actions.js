@@ -19,9 +19,25 @@ function queueTask(state, actor, task, label) {
   return true;
 }
 
+function hardStop(actor) {
+  if (!actor) return;
+  actor.path = [];
+  actor.target = null;
+  actor.pending = null;
+  actor.queuedTask = null;
+  actor.actionT = 0;
+  actor.actionTotal = 0;
+  actor.blockedT = 0;
+  actor.recoveryCount = 0;
+  actor.stopped = false;
+  actor.pose = 'stand';
+  if (!actor.carrying || !String(actor.carrying).includes('luggage')) actor.carrying = null;
+}
+
 export function startObjectAction(state, actor, obj, actionId, options = {}) {
   if (!obj || !actor) return false;
-  if (!options.fromQueue && isTimedBusy(actor)) return queueTask(state, actor, { type: 'object', objectId: obj.id, actionId }, `${obj.label}: ${actionId.replaceAll('_', ' ')}`);
+  if (options.force) hardStop(actor);
+  if (!options.force && !options.fromQueue && isTimedBusy(actor)) return queueTask(state, actor, { type: 'object', objectId: obj.id, actionId }, `${obj.label}: ${actionId.replaceAll('_', ' ')}`);
   if (obj.kind === 'trash_can' && actionId === 'take_trash_out') return startTakeTrashOut(state, actor);
   if (obj.kind === 'kennel' && actionId === 'call_dog_yard') return callDogToYard(state, actor);
   if (actor.type === 'dog' && !['dog_bowl', 'kennel', 'stairs'].includes(obj.kind)) {
@@ -40,13 +56,15 @@ export function startObjectAction(state, actor, obj, actionId, options = {}) {
     return true;
   }
   commandObject(actor, obj, actionId);
+  if (actor.target && options.force) actor.target.force = true;
   log(state, `${actor.name} is heading to ${obj.label}.`);
   return true;
 }
 
 export function startSocialAction(state, actor, target, socialId, options = {}) {
   if (!actor || !target) return false;
-  if (!options.fromQueue && isTimedBusy(actor)) return queueTask(state, actor, { type: 'social', targetId: target.id, socialId }, `${socialId.replaceAll('_', ' ')} with ${target.name}`);
+  if (options.force) hardStop(actor);
+  if (!options.force && !options.fromQueue && isTimedBusy(actor)) return queueTask(state, actor, { type: 'social', targetId: target.id, socialId }, `${socialId.replaceAll('_', ' ')} with ${target.name}`);
   if (actor.floor !== target.floor) { log(state, `${actor.name} needs to be on the same floor as ${target.name}.`); return false; }
   if (socialId === 'fetch') {
     state.fetch = { phase: 'call_dog', actorId: actor.id, dogId: target.id, ball: null };
@@ -89,7 +107,7 @@ function actionDuration(actionId) {
   }[actionId] ?? 4;
 }
 
-function isTogetherAction(actionId) { return actionId === 'watch_together' || actionId === 'bed_together' || actionId === 'intimacy' || actionId.endsWith('_together'); }
+function isTogetherAction(actionId) { return actionId === 'watch_together' || actionId === 'bed_together' || actionId === 'intimacy' || actionId.endsWith('_together') || actionId === 'soccer_match'; }
 
 export function resolveArrival(state, entity) {
   if (!entity.target) return;
@@ -101,7 +119,14 @@ export function resolveArrival(state, entity) {
       else startSoccerPracticeAtField(state, entity);
       return;
     }
-    if (isTogetherAction(target.actionId)) { if (queuePartnerForSharedAction(state, entity, target.actionId, obj)) return; entity.action = 'Idle'; entity.actionT = 0; entity.pose = 'stand'; return; }
+    if (isTogetherAction(target.actionId)) {
+      if (target.force) {
+        beginForcedTogetherAction(state, entity, obj, target.actionId);
+        return;
+      }
+      if (queuePartnerForSharedAction(state, entity, target.actionId, obj)) return;
+      entity.action = 'Idle'; entity.actionT = 0; entity.pose = 'stand'; return;
+    }
     const label = `${obj.label}: ${target.actionId.replaceAll('_', ' ')}`;
     beginTimedAction(entity, label, target.actionId); say(entity, speechFor(target.actionId));
     if (obj.kind === 'fridge') { state.objectState.fridgeOpen = true; state.objectState.fridgeActivity = target.actionId; if (target.actionId === 'snack') entity.carrying = 'snack'; }
@@ -120,6 +145,33 @@ export function resolveArrival(state, entity) {
   }
 }
 
+function beginForcedTogetherAction(state, entity, obj, actionId) {
+  const partner = state.entities.find(e => e.id !== entity.id && e.type === 'person' && !e.hidden);
+  const label = `${obj.label}: ${actionId.replaceAll('_', ' ')}`;
+  beginTimedAction(entity, label, actionId);
+  say(entity, speechFor(actionId));
+  if (obj.kind === 'tv' || actionId === 'watch_together') { state.tv.on = true; state.tv.channel = actionId; entity.carrying = 'popcorn'; }
+  if (!partner) { log(state, `${entity.name} started ${actionId.replaceAll('_', ' ')} without a partner available.`); return; }
+  if (partner.floor !== obj.floor || Math.hypot(partner.x - entity.x, partner.y - entity.y) > 90) {
+    startObjectAction(state, partner, obj, actionId, { force: true, fromSharedForce: true });
+    say(partner, 'COMING');
+    log(state, `${partner.name} is being pulled into ${actionId.replaceAll('_', ' ')}.`);
+    return;
+  }
+  hardStop(partner);
+  partner.x = entity.x + 32;
+  partner.y = entity.y + 10;
+  partner.floor = entity.floor;
+  partner.action = label;
+  partner.actionT = entity.actionT;
+  partner.actionTotal = entity.actionTotal;
+  partner.pose = entity.pose;
+  if (actionId === 'pool_together') { partner.carrying = 'cue_stick'; entity.carrying = 'cue_stick'; }
+  if (actionId === 'watch_together') partner.carrying = 'popcorn';
+  say(partner, speechFor(actionId));
+  log(state, `${entity.name} and ${partner.name} started ${actionId.replaceAll('_', ' ')} together.`);
+}
+
 function queuePartnerForSharedAction(state, entity, actionId, obj) {
   const partner = state.entities.find(e => e.id !== entity.id && e.type === 'person' && !e.hidden && e.floor === entity.floor);
   if (!partner) { say(entity, 'rn?'); log(state, `${entity.name} needs someone nearby for ${actionId.replaceAll('_', ' ')}.`); return false; }
@@ -129,6 +181,7 @@ function queuePartnerForSharedAction(state, entity, actionId, obj) {
 }
 
 function canInviteeJoin(state, actor, invitee) {
+  if (state.autonomyMode === 'guided') return { ok: true, heard: true, reason: 'test mode override' };
   if (invitee.floor !== actor.floor) return { ok: false, heard: false, reason: 'too far away' };
   const distance = Math.hypot(invitee.x - actor.x, invitee.y - actor.y);
   const actorRoom = roomAt(actor.x, actor.y, actor.floor)?.id || ''; const inviteeRoom = roomAt(invitee.x, invitee.y, invitee.floor)?.id || '';
@@ -210,7 +263,8 @@ function toggleRoomLight(state, entity) { const room = roomAt(entity.x, entity.y
 
 export function startOffsite(state, actor, actionId, invitedIds = [], vehicleId = 'auto', options = {}) {
   if (!actor) return false;
-  if (!options.fromQueue && isTimedBusy(actor)) return queueTask(state, actor, { type: 'offsite', actionId, invitedIds, vehicleId }, actionId.replaceAll('_', ' '));
+  if (options.force) hardStop(actor);
+  if (!options.force && !options.fromQueue && isTimedBusy(actor)) return queueTask(state, actor, { type: 'offsite', actionId, invitedIds, vehicleId }, actionId.replaceAll('_', ' '));
   const destination = destinationFor(actionId);
   if (destination && !isDestinationOpen(state, destination)) { log(state, `${destination.label} is closed right now.`); say(actor, 'CLOSED'); return false; }
   if (destination && !canAffordTravel(state, destination)) { log(state, `Insufficient money for ${destination.label}. Need $${destination.cost}.`); say(actor, 'BROKE'); return false; }
