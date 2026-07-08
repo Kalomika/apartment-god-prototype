@@ -45,6 +45,24 @@ function sanitizeRuntimeState(state) {
     entity.floor = Number.isInteger(entity.floor) ? entity.floor : 0;
     entity.x = Number.isFinite(entity.x) ? entity.x : 120;
     entity.y = Number.isFinite(entity.y) ? entity.y : 120;
+    cleanupStaleActorState(entity);
+  }
+}
+
+function cleanupStaleActorState(entity) {
+  const hasPath = Array.isArray(entity.path) && entity.path.length > 0;
+  const hasTarget = Boolean(entity.target || entity.pending);
+  const hasTimer = Number(entity.actionT || 0) > 0;
+  if (hasPath || hasTarget || hasTimer || entity.hidden) return;
+  const action = String(entity.action || '').toLowerCase();
+  if (action === 'walking' || action === 'running' || action.startsWith('going to ')) {
+    entity.action = 'Idle';
+    entity.pose = 'stand';
+    entity.blockedT = 0;
+    entity.recoveryCount = 0;
+  }
+  if (['walk', 'sit'].includes(entity.pose) && (action === 'idle' || action === 'walking' || action === 'running')) {
+    entity.pose = 'stand';
   }
 }
 
