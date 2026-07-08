@@ -1,5 +1,5 @@
 import { canStepThroughRooms, routeThroughDoors } from './blueprint.js';
-import { approachPoint, clampToPlay, expandedRect, getObject, getStairExit, getTravelStair, pointInRect, segmentHitsRect, solidObjects } from './world.js';
+import { approachPoint, clampToPlay, expandedRect, getObject, getStairExit, getTravelStair, pointInRect, roomAt, segmentHitsRect, solidObjects } from './world.js';
 
 const ROUTE_BLOCK_PAD = 8;
 const ROUTE_CLEAR_PAD = 5;
@@ -37,22 +37,31 @@ function routeLeg(a, b, floor, allowId = '') {
 }
 
 function routeCandidates(a, b, floor, allowId = '') {
-  const blockers = solidObjects(floor, allowId).filter(o => segmentHitsRect(a, b, expandedRect(o, ROUTE_BLOCK_PAD + 34)));
+  const blockers = solidObjects(floor, allowId).filter(o => segmentHitsRect(a, b, expandedRect(o, ROUTE_BLOCK_PAD + 44)));
+  const allSolids = solidObjects(floor, allowId);
   const points = [];
   for (const o of blockers) {
     const r = expandedRect(o, ROUTE_CORNER_PAD);
     points.push(
-      clampToPlay(r.x - 24, r.y - 24),
-      clampToPlay(r.x + r.w + 24, r.y - 24),
-      clampToPlay(r.x - 24, r.y + r.h + 24),
-      clampToPlay(r.x + r.w + 24, r.y + r.h + 24),
-      clampToPlay(r.x - 22, r.y + r.h / 2),
-      clampToPlay(r.x + r.w + 22, r.y + r.h / 2),
-      clampToPlay(r.x + r.w / 2, r.y - 24),
-      clampToPlay(r.x + r.w / 2, r.y + r.h + 24)
+      clampToPlay(r.x - 30, r.y - 30),
+      clampToPlay(r.x + r.w + 30, r.y - 30),
+      clampToPlay(r.x - 30, r.y + r.h + 30),
+      clampToPlay(r.x + r.w + 30, r.y + r.h + 30),
+      clampToPlay(r.x - 28, r.y + r.h / 2),
+      clampToPlay(r.x + r.w + 28, r.y + r.h / 2),
+      clampToPlay(r.x + r.w / 2, r.y - 30),
+      clampToPlay(r.x + r.w / 2, r.y + r.h + 30),
+      clampToPlay(r.x - 42, r.y - 8),
+      clampToPlay(r.x + r.w + 42, r.y - 8),
+      clampToPlay(r.x - 42, r.y + r.h + 8),
+      clampToPlay(r.x + r.w + 42, r.y + r.h + 8)
     );
   }
-  return uniquePoints(points).filter(p => legClear(a, p, floor, allowId) || legClear(p, b, floor, allowId));
+  return uniquePoints(points).filter(p => {
+    if (!roomAt(p.x, p.y, floor)) return false;
+    if (allSolids.some(o => pointInRect(p.x, p.y, expandedRect(o, ROUTE_CLEAR_PAD + 2)))) return false;
+    return true;
+  });
 }
 
 function findClearPath(points, floor, allowId = '') {
@@ -217,18 +226,31 @@ function finishFloorTravel(state, entity) {
   return true;
 }
 
-function recoverBlocked(_state, entity, _next, dt) {
+function recoverBlocked(state, entity, _next, dt) {
   entity.blockedT = (entity.blockedT || 0) + dt;
   if (entity.blockedT < 0.25) return false;
   entity.blockedT = 0;
   entity.recoveryCount = (entity.recoveryCount || 0) + 1;
 
   const final = entity.path[entity.path.length - 1];
-  if (final && entity.recoveryCount <= 4) {
+  if (final && entity.recoveryCount <= 8) {
     const reroute = routeAround({ x: entity.x, y: entity.y }, final, entity.floor, entity.moveAllowId || '');
     if (reroute.length) {
       entity.path = reroute;
       return false;
+    }
+  }
+
+  if (final && entity.recoveryCount > 8) {
+    entity.x = final.x;
+    entity.y = final.y;
+    entity.path = [];
+    entity.blockedT = 0;
+    entity.recoveryCount = 0;
+    if (entity.pending && finishFloorTravel(state, entity)) return false;
+    if (entity.target) {
+      clearMoveAllowance(entity);
+      return true;
     }
   }
 
