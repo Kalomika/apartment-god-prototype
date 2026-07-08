@@ -26,9 +26,40 @@ The first implementation pass has been committed to the live Top Shot branch. It
 - Style based auto move choices for military survival, gun fu, Jeet Kune Do inspired striker, acrobatic blade fighter, and generalist profiles.
 - A CQC smoke test that runs manual actions, Auto CQC, and hitbox generation checks.
 
+## Animation study pass
+
+The actor rig pass was guided by core animation principles used across 2D, 3D, and game animation:
+
+- Staging, the pose must clearly tell what is happening even with rough placeholder characters.
+- Anticipation, attacks need readable preparation before contact.
+- Arcs, limbs should travel in curved, believable motion instead of robotic straight lines.
+- Slow in and slow out, motion should accelerate into impact and recover with readable ease.
+- Follow through and overlapping action, accessories and upper body parts should lag slightly after the main move.
+- Squash and stretch, not cartoon mush, but controlled compression and extension that sells mass and impact.
+- Timing, different attacks need different beats, jabs, elbows, sweeps, throws, and ground strikes should not all feel the same.
+- Pose clarity, every CQC state should have a silhouette that reads from the camera.
+
+## Animation rig pass committed
+
+A second implementation pass has now been committed to `top-shot/src/three/actors3D.js`.
+
+It adds or improves:
+
+- Body shot poses with torso fold and lower hand placement.
+- Head hit snap, side fold, gut fold, and leg stumble poses.
+- Sweep and trip leg placement so the attacking foot reaches low across the opponent's base.
+- Mount top and mounted bottom poses with the top fighter visually raised over the downed body.
+- Ground punch and ground knife poses.
+- Limb control, grab, disarm, judo throw, gun butt, knife stab, knee, kick, elbow, jab, and cross pose support.
+- Follow through on tie, lapel, bandana, and hair pieces.
+- Expanded actor hurt zones and limb volumes for head, neck, chest, ribs, solar plexus, gut, pelvis, thighs, calves, elbows, knees, fists, feet, and mount anchor.
+- Rifle staging so rifles sling to the back during fist fighting instead of protruding awkwardly from the body.
+- Pistol staging so pistols holster during bare hand moves and return to hand for gun butt or shooting moves.
+- Blade staging so knives and blades only come forward during knife actions and otherwise read as carried or sheathed.
+
 ## Priority still open
 
-This pass gives the lab playable combat logic and button coverage, but visual animation depth still needs more work. The next pass should improve the 3D actor rig poses so body shots visibly fold the torso, sweeps show leg contact, mounted fighters sit higher on the grounded fighter, and rifles sling cleanly to the back during fist fighting.
+The lab now has playable CQC logic and stronger rig poses. The next pass should add better interpolation curves, attack anticipation frames, impact freeze frames, actual reaction timing offsets, cleaner throw arcs, and sharper camera emphasis during close exchanges.
 
 ## Requested combat design target
 
@@ -52,6 +83,7 @@ Research and translate movement logic from:
 ## Files changed in this pass
 
 - `top-shot/src/cqcLab.js`
+- `top-shot/src/three/actors3D.js`
 - `top-shot/index.html`
 - `top-shot/tests/cqcSmoke.js`
 - `top-shot/package.json`
