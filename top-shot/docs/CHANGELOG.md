@@ -6,7 +6,7 @@ All Top Shot changes must be logged here with date, time, branch, rollback refer
 
 Branch: `top-shot-v0-1`
 
-Render link: `https://top-shot-prototype.onrender.com/?v=e2c77a4`
+Render link: `https://top-shot-prototype.onrender.com/?v=4e2e26d`
 
 Rollback slots created before this update:
 
