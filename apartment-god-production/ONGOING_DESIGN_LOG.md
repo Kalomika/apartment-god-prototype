@@ -197,3 +197,39 @@ Render may take time to pick up the latest main branch state. The autonomy code 
 
 Follow ups:
 If Render behavior is broken, restore from backup/main-before-autonomy-render-update-2026-07-08 or compare against backup/phaser-migration-before-autonomy-upgrade-2026-07-08.
+
+---
+
+## 2026-07-08 05:35 AM CT, Upstairs Visual Renderer Upgrade
+
+Status: NEEDS_TESTING
+Branch: phaser-migration
+Commit: f75981c4d7de9c678effab48d4495a802e4d2c91
+Files changed: src/renderHouseStyle.js, apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: pending main mirror
+Backup branch: backup/phaser-migration-before-upstairs-visual-upgrade-2026-07-08
+
+Summary:
+Upgraded the upstairs visual renderer while preserving the existing upstairs room layout, object IDs, click targets, collision boxes, doorways, windows, and pathfinding behavior.
+
+Implementation details:
+
+- Added a darker cyberpunk upstairs room treatment for the bedroom, office, upstairs bathroom, hall, and upstairs stair room.
+- Added charcoal and blue-grey floor palettes with room-specific texture treatment.
+- Added cyan and magenta neon strip accents, darker wall masses, stronger room edges, window glow treatment, and doorway threshold lighting for upstairs only.
+- Upgraded the upstairs bed, laptop desk, shower, toilet, stairs, and bedroom light rendering with more mature top-down line-art style shapes.
+- Kept the older procedural style for other floors to limit risk.
+- Did not alter `src/world.js`, `src/blueprint.js`, movement, pathfinding, object IDs, actions, or room coordinates.
+
+Testing performed:
+Code inspection only through GitHub file review. No local or Render runtime test performed in this chat.
+
+Testing requested:
+Mirror to main for Render testing if needed, then test the upstairs view at https://apartment-god-phaser.onrender.com. Use the floor navigation or stairs to inspect Bedroom, Office, Upstairs Bath, Hall, and Stairs. Confirm the game still renders, upstairs objects remain clickable, windows still toggle, stairs still transfer floors, and the look feels like a stronger adult cyberpunk top-down apartment instead of a cozy placeholder.
+
+Known risks:
+This is a Canvas renderer-only visual upgrade. If the new drawing code has a browser rendering issue, restore from the backup branch or revert the renderer commit.
+
+Follow ups:
+If Kam likes the upstairs direction, continue with a similar guarded pass for main floor objects or move toward approved PNG replacement assets through the sprite pipeline.
