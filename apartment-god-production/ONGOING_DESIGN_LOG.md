@@ -132,8 +132,6 @@ Implemented the first active intelligence upgrade for the current Canvas engine.
 
 Implementation details:
 
-Autonomy changes:
-
 - Replaced simple resident/girlfriend/dog random idle behavior with a shared human decision driver and dog decision driver.
 - Added lightweight per actor brain memory with recent actions and recent objects.
 - Actors now rotate activity choices to avoid repeating the same object/action too often.
@@ -148,12 +146,7 @@ Autonomy changes:
 - Bedtime logic starts a simple sleep routine when night hours and energy/stamina suggest it.
 - Dog logic now prioritizes bowl, kennel, nearby people, limited yard/house travel, and avoids random pointless front porch behavior.
 - Smart wander now stays inside useful rooms on the current floor instead of picking arbitrary coordinates across the whole playfield.
-
-Movement changes:
-
 - Route candidate generation now allows multi step obstacle routing instead of only candidates with a direct start or end connection.
-- Added more candidate points around blockers.
-- Filters route candidates to actual rooms and out of solid object padding.
 - Block recovery now retries longer and can snap to the final waypoint after repeated recovery attempts so the actor can complete an action instead of staying blocked forever.
 
 Testing performed:
@@ -308,3 +301,40 @@ This is a quick path unblock fix. Full dining room design still needs a future l
 
 Follow ups:
 If any actor still sticks near the table, make the table non blocking or move it fully into the kitchen wall/counter zone.
+
+---
+
+## 2026-07-08 06:48 AM CT, Guided Override and Stale Activity Cleanup
+
+Status: NEEDS_TESTING
+Branch: phaser-migration
+Commit: guided helper 1ab2ba604a10f62e1ef1131e55d5f5c89df333a6, phone 45984caec9f5d59125de09b1c8e06871160bc4b6, movement c5c74d5ede243ab276fb896239a2be8ed2276f12, actions 1cf0866a1a7561bccb55af471c68f09b2db853c8, runtime 47461f1aae1563c29260021e268df94679d6783f
+Files changed: src/guidedControl.js, src/phoneUI.js, src/movement.js, src/actions.js, src/canvasRuntime.js, apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: pending mirror in same chat
+Backup branch: backup/phaser-migration-before-guided-state-cleanup-2026-07-08
+
+Summary:
+Kam reported that actors were not immediately doing what he commanded, the soccer field could leave a character walking in place, and a TV/movie activity bar could end while the actor still visually appeared to be watching. This pass focuses on command authority and stale state cleanup.
+
+Implementation details:
+
+- Added a shared guidedInterrupt helper that clears path, target, pending task, queued task, action timer, recovery counters, stopped state, and pose when the game is in guided mode.
+- Updated phone activities so phone commands interrupt the current actor immediately instead of queueing behind the current action.
+- Fixed plain movement arrival so a character who simply walks somewhere ends as Idle/stand instead of staying labeled Walking and animating in place.
+- Added runtime sanitation for stale Walking, Running, Going to, and idle sitting states when no path, target, pending action, or timer exists.
+- Lengthened indoor activity timers so TV, shared TV, horror, sports, sleep, console, reading, music album, soccer, swimming, and similar actions last closer to real activity time instead of ending almost instantly.
+- Added TV cleanup when the TV activity ends, including clearing popcorn carrying and turning off the TV if no other actor is still watching.
+- Fixed the old garage_bay fallback room label in light toggling to garage.
+
+Testing performed:
+Code inspection only. No local or Render browser test performed in this chat.
+
+Testing requested:
+After Render mirror, refresh the test link and test guided command override during TV, phone activities, soccer field movement, normal walking, and movie/TV activity duration.
+
+Known risks:
+This touches core action timing and movement cleanup. If any action ends too late or gets interrupted too aggressively, tune durations or guidedInterrupt rules instead of reverting the whole pass.
+
+Follow ups:
+If override still fails from any UI path, patch that exact path to call guidedInterrupt before starting its action. Then add true thought bubbles versus speech bubbles.
