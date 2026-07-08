@@ -44,7 +44,7 @@ export function beginBattle(state, aId = state.selectedFighters?.A || 'suit_oper
     makeFighter('A', ARCHETYPES[aId], arena.spawnA, 0),
     makeFighter('B', ARCHETYPES[bId], arena.spawnB, 1)
   ];
-  state.log = ['Begin sortie. Fighters are deploying into the desert industrial site.'];
+  state.log = ['Begin sortie. Fighters are parachuting into the desert industrial site one after another.'];
   return state;
 }
 
@@ -53,13 +53,15 @@ function freshDropsLeft() {
 }
 
 function makeFighter(team, archetype, spawn, index = 0) {
-  const dropDuration = 1.15 + index * 0.22;
+  const dropDuration = 1.55 + index * 0.2;
+  const dropDelay = index * 0.48;
   return {
     id: `${team}-${archetype.id}`, team, archetypeId: archetype.id, name: `${team}: ${archetype.name}`,
     color: archetype.color, accent: archetype.accent, weapon: archetype.weapon, melee: archetype.melee, special: archetype.special,
-    x: spawn.x, y: spawn.dropY ?? -140, vx: 0, vy: 0, facing: spawn.facing, target: null, intent: 'deploy', pose: 'parachute', anim: 0,
+    x: spawn.dropX ?? spawn.x, y: spawn.dropY ?? -140, vx: 0, vy: 0, facing: spawn.facing, target: null, intent: 'deploy', pose: 'parachute', anim: 0,
     spawn: { x: spawn.x, y: spawn.y, facing: spawn.facing },
-    deploy: { t: 0, duration: dropDuration, fromY: spawn.dropY ?? -140, toY: spawn.y },
+    deploy: { t: 0, delay: dropDelay, duration: dropDuration, fromX: spawn.dropX ?? spawn.x, fromY: spawn.dropY ?? -140, toX: spawn.x, toY: spawn.y, altitude: 12 + index * 1.8 },
+    deployAltitude: 12 + index * 1.8,
     deploying: true,
     hp: 100, vitalityCap: 100, painStage: 'green', stamina: 100, fight: 100, dodge: 100, block: 100, morale: 75, heat: 0, noise: 0,
     prestige: archetype.stats.prestige, ruthless: archetype.stats.ruthlessness, defeated: false, finishT: 0,
