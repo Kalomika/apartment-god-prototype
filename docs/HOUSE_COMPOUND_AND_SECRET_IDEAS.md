@@ -17,17 +17,22 @@ Same level attached areas:
 - Garage is attached to the main floor, reached through the foyer or entry side door.
 - Front patio is attached to the main floor, reached through the front door.
 
-These attached areas should eventually use slide or pan transitions rather than feeling like arbitrary floors.
+These attached areas should use slide or pan transitions rather than feeling like arbitrary floors.
 
 ## Floating controls
 
-The game should have three small persistent floating controls:
+The game should have three small persistent utility controls:
 
-1. Cell phone button on the right.
-2. Blueprint button on the left.
-3. Character locator button on the left.
+1. Cell phone.
+2. Blueprint.
+3. Character locator.
 
-All three buttons should be slightly translucent so they do not fully hide readable gameplay information behind them.
+Current design direction:
+
+- Place these in the black utility strip beside the play space, near the Up and Down controls.
+- Keep them in a row with enough spacing that a thumb does not accidentally tap the wrong one.
+- Keep them slightly translucent.
+- Do not place them over the main swipeable play area unless there is no alternative.
 
 ## Blueprint behavior
 
@@ -40,11 +45,12 @@ Expected behavior:
 - An X button closes the blueprint and returns to the normal view.
 - The overlay shows the whole household compound at once.
 - It can show Main House, Upstairs, Basement, Garage, Backyard, and later Front Patio.
-- Each floor or area is shown as a mini schematic.
+- Each floor or area is shown as a mini real estate style schematic.
 - Small household markers show where the characters currently are.
 - This becomes another way to find characters without searching every room manually.
-- Tapping an area moves the camera view only. It does not move characters.
-- The blueprint can stay open as a mode if the player wants to keep observing the whole compound.
+- Tapping a room or region closes the blueprint and moves the camera view there.
+- Tapping a person marker closes the blueprint and moves the camera to that person without selecting them.
+- The blueprint can later become a true live shrink of the whole renderer.
 
 Current practical implementation:
 
@@ -88,6 +94,14 @@ Examples that should not force follow:
 
 Same level attached areas should feel like the camera is moving through one compound.
 
+Swipe or drag controls:
+
+- Drag or swipe up from Main House to move the camera toward Backyard.
+- Drag or swipe left from Main House to move the camera toward Garage.
+- Drag or swipe down from Backyard to return to Main House.
+- Drag or swipe right from Garage to return to Main House.
+- The swipe moves only the camera. Characters do not move unless commanded.
+
 When the player uses the blueprint to move between same level areas:
 
 - Main House to Backyard should slide toward the backyard.
@@ -104,6 +118,27 @@ When the selected character uses a connected same level door:
 6. Door closes.
 
 Same level connected areas should feel like one large compound camera, not separate teleport floors.
+
+## Garage layout target
+
+The garage is a single open space, not a set of rooms.
+
+Rules:
+
+- All vehicles should be in one open garage area.
+- The garage overhead exit faces downward toward the front of the house.
+- Cars, bikes, motorbikes, and ATVs should be able to route around each other and leave through the same downward garage opening.
+- Do not create side rooms that trap vehicles or make their exit path visually impossible.
+
+## Doorway visual target
+
+For now, doorways should be open gaps only.
+
+Backlog target for better doors:
+
+- A top down door can be a simple thin line with a knob.
+- Door visuals should never imply a blocked doorway.
+- Do not draw swing arcs or unclear doorway symbols until the top down door language is solved.
 
 ## Vertical camera transition target
 
