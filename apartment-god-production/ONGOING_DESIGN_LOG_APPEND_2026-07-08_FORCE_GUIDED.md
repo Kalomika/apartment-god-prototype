@@ -6,7 +6,7 @@ This appendix records a runtime patch that should be merged into `apartment-god-
 
 Status: NEEDS_TESTING
 Branch: phaser-migration
-Commit: test helper 43abeffeb03bd9111dbd8db8c30326ae3acb4ed0, actions 6da8dd3475fa47cce3a31b5830fe141506b62384, ui 9cc95cfa7102ff5c4ff1d279c1bdab1b94ba786f, sharedActions ddf03d3a5cdb0db7a507ca167721ae55c5fbef66, appendix cleanup note after 0a75e6674a3a2b651617196b72f6246c9412433c
+Commit: test helper 43abeffeb03bd9111dbd8db8c30326ae3acb4ed0, actions 6da8dd3475fa47cce3a31b5830fe141506b62384, ui 9cc95cfa7102ff5c4ff1d279c1bdab1b94ba786f, sharedActions ddf03d3a5cdb0db7a507ca167721ae55c5fbef66, appendix cleanup note after 0a75e6674a3a2b651617196b72f6246c9412433c, latest temp cleanup 52ece529c44f2bd2413881e3cf30fbb434eb9e88
 Files changed: src/testModeActions.js, src/actions.js, src/ui.js, src/sharedActions.js, this appendix file
 Runtime files changed: yes
 Render playable branch updated: pending mirror in same chat
