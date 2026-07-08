@@ -20,7 +20,7 @@ export function draw(ctx, state) {
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
-  drawActivityCloneFx(ctx, state);
+  drawPoolFx(ctx, state);
   drawCarriedItems(ctx, state);
   drawStatus(ctx, state);
   drawOverlay(ctx, state);
@@ -44,12 +44,11 @@ function drawFetchBall(ctx, state) {
   ctx.restore();
 }
 
-function drawActivityCloneFx(ctx, state) {
+function drawPoolFx(ctx, state) {
   const game = state.poolGame;
   if (!game?.balls || state.floor !== 2) return;
   ctx.save();
   if (game.cueLine?.t > 0) {
-    game.cueLine.t -= 0.03;
     ctx.strokeStyle = 'rgba(241,198,106,.75)';
     ctx.lineWidth = 2;
     ctx.setLineDash([8, 6]);
