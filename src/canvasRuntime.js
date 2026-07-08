@@ -7,7 +7,7 @@ import { updateAutoHooks } from './autoHooks.js';
 import { updateAutonomy } from './autonomy.js';
 import { updateGameActivities } from './activitySystems.js';
 import { updateVehicleDeparture } from './vehicleSystem.js';
-import { updateCameraTransition } from './cameraNavigation.js';
+import { installCameraSwipeNavigation, updateCameraTransition } from './cameraNavigation.js';
 import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
 
 export function bootCanvasGame() {
@@ -15,6 +15,7 @@ export function bootCanvasGame() {
   const ctx = canvas.getContext('2d');
   const state = createState();
   loadRefreshState(state);
+  installCameraSwipeNavigation(state, canvas);
   const ui = createUi(state, canvas);
 
   window.addEventListener('beforeunload', () => saveRefreshState(state));
