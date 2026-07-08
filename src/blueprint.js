@@ -1,5 +1,5 @@
 import { changeNeed, log, say } from './state.js';
-import { roomAt } from './world.js';
+import { floors, roomAt } from './world.js';
 
 export const doorways = [
   { floor: 0, a: 'living', b: 'kitchen', x: 448, y: 206, w: 20, h: 68 },
@@ -15,6 +15,9 @@ export const doorways = [
   { floor: 1, a: 'office', b: 'hall', x: 574, y: 382, w: 82, h: 18 },
   { floor: 1, a: 'bath2', b: 'hall', x: 826, y: 382, w: 64, h: 18 },
   { floor: 1, a: 'hall', b: 'stairs2', x: 802, y: 516, w: 58, h: 22 },
+  { floor: 3, a: 'garage_bay', b: 'garage_storage', x: 180, y: 456, w: 100, h: 18 },
+  { floor: 3, a: 'garage_bay', b: 'garage_entry', x: 640, y: 456, w: 110, h: 18 },
+  { floor: 3, a: 'garage_storage', b: 'garage_entry', x: 486, y: 540, w: 18, h: 60 },
   { floor: 4, a: 'yard', b: 'pool_area', x: 596, y: 150, w: 18, h: 100 },
   { floor: 4, a: 'yard', b: 'kennel_area', x: 596, y: 470, w: 18, h: 92 }
 ];
@@ -24,7 +27,7 @@ export const windows = [
   { id: 'win_kitchen', label: 'Kitchen Window', floor: 0, room: 'kitchen', x: 618, y: 34, w: 82, h: 8 },
   { id: 'win_bedroom', label: 'Bedroom Window', floor: 1, room: 'bedroom', x: 142, y: 34, w: 96, h: 8 },
   { id: 'win_office', label: 'Office Window', floor: 1, room: 'office', x: 564, y: 34, w: 88, h: 8 },
-  { id: 'win_garage', label: 'Garage Vent', floor: 3, room: 'garage', x: 420, y: 34, w: 110, h: 8 }
+  { id: 'win_garage', label: 'Garage Vent', floor: 3, room: 'garage_bay', x: 420, y: 34, w: 110, h: 8 }
 ];
 
 export function doorwayCenter(d) { return { x: d.x + d.w / 2, y: d.y + d.h / 2 }; }
@@ -99,12 +102,49 @@ export function routeThroughDoors(from, to, floor) {
     const [room, path] = queue.shift();
     for (const d of doorways.filter(x => x.floor === floor && (x.a === room || x.b === room))) {
       const next = d.a === room ? d.b : d.a;
-      const nextPath = [...path, doorwayCenter(d)];
-      if (next === end.id) return nextPath;
+      const nextPath = [...path, d];
+      if (next === end.id) return doorwayPathPoints(nextPath, start.id);
       if (!seen.has(next)) { seen.add(next); queue.push([next, nextPath]); }
     }
   }
   return [];
+}
+
+function doorwayPathPoints(path, startRoomId) {
+  const points = [];
+  let roomId = startRoomId;
+  for (const d of path) {
+    const nextRoomId = d.a === roomId ? d.b : d.a;
+    points.push(doorwaySidePoint(d, roomId));
+    points.push(doorwayCenter(d));
+    points.push(doorwaySidePoint(d, nextRoomId));
+    roomId = nextRoomId;
+  }
+  return uniquePoints(points);
+}
+
+function doorwaySidePoint(d, roomId) {
+  const room = floors[d.floor]?.rooms.find(r => r.id === roomId);
+  const center = doorwayCenter(d);
+  if (!room) return center;
+  const roomCenter = { x: room.x + room.w / 2, y: room.y + room.h / 2 };
+  const inset = 18;
+  if (d.w >= d.h) {
+    const y = roomCenter.y < center.y ? d.y - inset : d.y + d.h + inset;
+    return { x: center.x, y };
+  }
+  const x = roomCenter.x < center.x ? d.x - inset : d.x + d.w + inset;
+  return { x, y: center.y };
+}
+
+function uniquePoints(points) {
+  const seen = new Set();
+  return points.filter(p => {
+    const key = `${Math.round(p.x)},${Math.round(p.y)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export function canStepThroughRooms(from, to, floor) {
