@@ -3,7 +3,9 @@ import { objects } from './world.js';
 
 const PREFIX = 'apartment_god_slot_';
 const AUTOSAVE_SLOT = 'autosave';
+const TEST_AUTOSAVE_KEY = 'apartment_god_test_refresh_state_v3';
 const SAVE_VERSION = 2;
+const TEST_SAVE_VERSION = 3;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -13,15 +15,26 @@ function slotKey(slot = 1) {
   return `${PREFIX}${slot}`;
 }
 
-function cleanStateForSave(state) {
-  const saved = clone(state);
+function scrubTransientState(saved) {
   saved.menu = null;
   saved.assign = null;
   saved.movePick = null;
   saved.buildPick = null;
+  saved.partyPick = null;
   saved.paused = false;
   saved.autosaveT = 0;
+  saved.testAutosaveT = 0;
   saved.saveStatus = saved.saveStatus || {};
+  return saved;
+}
+
+function cleanStateForSave(state) {
+  return scrubTransientState(clone(state));
+}
+
+function cleanStateForRefreshSave(state) {
+  const saved = scrubTransientState(clone(state));
+  saved.saveStatus = null;
   return saved;
 }
 
@@ -34,17 +47,41 @@ function restoreObjects(savedObjects) {
 function restoreWholeState(target, saved) {
   for (const key of Object.keys(target)) delete target[key];
   Object.assign(target, saved);
-  target.menu = null;
-  target.assign = null;
-  target.movePick = null;
-  target.buildPick = null;
-  target.paused = false;
-  target.autosaveT = 0;
+  scrubTransientState(target);
   target.saveStatus ??= {};
+}
+
+function mergeRefreshState(target, saved) {
+  const baseEntities = new Map((target.entities || []).map(entity => [entity.id, entity]));
+  const restoredEntities = Array.isArray(saved.entities)
+    ? saved.entities.map(entity => ({ ...(baseEntities.get(entity.id) || {}), ...entity }))
+    : target.entities;
+
+  Object.assign(target, {
+    ...target,
+    ...saved,
+    roomLights: { ...(target.roomLights || {}), ...(saved.roomLights || {}) },
+    objectState: { ...(target.objectState || {}), ...(saved.objectState || {}) },
+    investments: { ...(target.investments || {}), ...(saved.investments || {}) },
+    rewards: { ...(target.rewards || {}), ...(saved.rewards || {}) },
+    secretLog: { ...(target.secretLog || {}), ...(saved.secretLog || {}) },
+    careers: { ...(target.careers || {}), ...(saved.careers || {}) },
+    garbage: { ...(target.garbage || {}), ...(saved.garbage || {}) },
+    entities: restoredEntities
+  });
+
+  scrubTransientState(target);
+  target.saveStatus = { message: 'Restored refresh state', slot: 'refresh', savedAt: null };
 }
 
 function readSlot(slot = 1) {
   const raw = localStorage.getItem(slotKey(slot));
+  if (!raw) return null;
+  return JSON.parse(raw);
+}
+
+function readRefreshSave() {
+  const raw = localStorage.getItem(TEST_AUTOSAVE_KEY);
   if (!raw) return null;
   return JSON.parse(raw);
 }
@@ -68,6 +105,55 @@ export function saveGame(state, slot = 1) {
     console.error(error);
     return false;
   }
+}
+
+export function saveRefreshState(state) {
+  try {
+    const data = {
+      version: TEST_SAVE_VERSION,
+      savedAt: new Date().toISOString(),
+      state: cleanStateForRefreshSave(state)
+    };
+    localStorage.setItem(TEST_AUTOSAVE_KEY, JSON.stringify(data));
+    state.saveStatus = { message: 'Refresh state saved', slot: 'refresh', savedAt: data.savedAt };
+    return true;
+  } catch (error) {
+    state.saveStatus = { message: 'Refresh save failed' };
+    console.error(error);
+    return false;
+  }
+}
+
+export function loadRefreshState(state) {
+  let data = null;
+  try {
+    data = readRefreshSave();
+  } catch (error) {
+    localStorage.removeItem(TEST_AUTOSAVE_KEY);
+    state.saveStatus = { message: 'Refresh state corrupt' };
+    console.error(error);
+    return false;
+  }
+  if (!data?.state) return false;
+  mergeRefreshState(state, data.state);
+  state.saveStatus = { message: 'Restored refresh state', slot: 'refresh', savedAt: data.savedAt || null };
+  log(state, 'Restored last refresh test state. Reset clears it and starts fresh.');
+  return true;
+}
+
+export function clearRefreshState(state = null) {
+  localStorage.removeItem(TEST_AUTOSAVE_KEY);
+  if (state) {
+    state.saveStatus = { message: 'Refresh state cleared' };
+    log(state, 'Refresh state cleared. Reloading fresh state.');
+  }
+}
+
+export function updateRefreshAutosave(state, dt) {
+  state.testAutosaveT = (state.testAutosaveT || 0) + dt;
+  if (state.testAutosaveT < 2) return;
+  state.testAutosaveT = 0;
+  saveRefreshState(state);
 }
 
 export function loadGame(state, slot = 1) {
