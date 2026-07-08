@@ -18,6 +18,7 @@ export function installTopShotEffects3D(world) {
       const altitude = entity.deployAltitude || 0;
       actor.group.position.y = altitude;
       actor.group.scale.setScalar((entity.preview ? 1.14 : 1.2) * (altitude > 0 ? 0.94 : 1));
+      if (state?.mode === 'cqc') stabilizeCqcActor(actor, entity);
       syncParachute(this, entity, actor.group.position, altitude);
     }
     for (const [id, chute] of this.parachutes) {
@@ -37,6 +38,21 @@ export function installTopShotEffects3D(world) {
   };
 
   return world;
+}
+
+function stabilizeCqcActor(actor, entity) {
+  const action = entity.currentMove?.id || entity.pose || '';
+  const activeStrike = ['left_jab', 'right_cross', 'left_elbow', 'right_elbow', 'left_knee', 'right_knee', 'left_kick', 'right_kick', 'roundhouse', 'headbutt'].some(move => action.includes(move));
+  const weaponAction = ['pistol', 'burst', 'slash', 'knife', 'sword', 'blade'].some(move => action.includes(move));
+
+  if (!activeStrike && ['idle_guard', 'guard', 'cqc_lab'].includes(action || entity.intent)) {
+    actor.rig.rotation.set(0, 0, 0);
+    actor.rig.position.y = 0;
+    actor.applyPose?.('idle', 0, { ...entity, pose: 'idle_guard', currentMove: null, lastMove: 0 });
+  }
+
+  if (actor.weapon) actor.weapon.visible = weaponAction;
+  if (actor.parts?.tie && entity.archetypeId === 'survival_commando') actor.parts.tie.visible = false;
 }
 
 function syncParachute(world, entity, actorPos, altitude) {
