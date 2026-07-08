@@ -17,6 +17,7 @@ const BLUEPRINT_FLOORS = [
 ];
 
 let built = false;
+let gestureBuilt = false;
 let openPanel = '';
 let els = {};
 
@@ -55,6 +56,56 @@ export function updateCameraTransition(state, dt) {
   }
 }
 
+export function installCameraSwipeNavigation(state, surface) {
+  if (gestureBuilt || !surface) return;
+  gestureBuilt = true;
+  let start = null;
+  let tracking = false;
+
+  surface.addEventListener('pointerdown', event => {
+    if (event.button != null && event.button !== 0) return;
+    if (openPanel || state.buildPick || state.movePick || state.assign) return;
+    start = { x: event.clientX, y: event.clientY, t: performance.now(), floor: state.floor };
+    tracking = true;
+  }, { passive: true });
+
+  surface.addEventListener('pointermove', event => {
+    if (!tracking || !start) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (Math.hypot(dx, dy) > 14) state.cameraGestureActive = true;
+  }, { passive: true });
+
+  surface.addEventListener('pointerup', event => {
+    if (!tracking || !start) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    const elapsed = performance.now() - start.t;
+    tracking = false;
+    const target = swipeTarget(start.floor, dx, dy, elapsed);
+    start = null;
+    if (!target) {
+      setTimeout(() => { state.cameraGestureActive = false; }, 0);
+      return;
+    }
+    state.cameraGestureActive = true;
+    state.suppressNextCanvasClick = true;
+    closePanel();
+    navigateView(state, target.floor, target.label, 'swipe');
+    setTimeout(() => {
+      state.suppressNextCanvasClick = false;
+      state.cameraGestureActive = false;
+    }, 180);
+  }, { passive: true });
+
+  surface.addEventListener('click', event => {
+    if (!state.suppressNextCanvasClick) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    state.suppressNextCanvasClick = false;
+  }, true);
+}
+
 export function syncCameraNavigationUi(state) {
   if (!built) buildCameraNavigationUi();
   updateButtons(state);
@@ -64,7 +115,7 @@ export function syncCameraNavigationUi(state) {
 
 function createTransition(from, to, label, reason) {
   const sameMainLevel = MAIN_LEVEL_AREAS.has(from) && MAIN_LEVEL_AREAS.has(to);
-  const total = sameMainLevel ? 0.42 : 0.48;
+  const total = sameMainLevel ? 0.46 : 0.48;
   return {
     from,
     to,
@@ -91,6 +142,25 @@ function verticalDirection(from, to) {
   return to > from ? 'up' : 'down';
 }
 
+function swipeTarget(floor, dx, dy, elapsed) {
+  const distance = Math.hypot(dx, dy);
+  if (distance < 52 || elapsed > 1400) return null;
+  const horizontal = Math.abs(dx) > Math.abs(dy);
+  if (floor === 0) {
+    if (!horizontal && dy < -42) return { floor: 4, label: 'Backyard' };
+    if (horizontal && dx < -42) return { floor: 3, label: 'Garage' };
+  }
+  if (floor === 4) {
+    if (!horizontal && dy > 42) return { floor: 0, label: 'Main House' };
+    if (horizontal && dx < -42) return { floor: 3, label: 'Garage' };
+  }
+  if (floor === 3) {
+    if (horizontal && dx > 42) return { floor: 0, label: 'Main House' };
+    if (!horizontal && dy < -42) return { floor: 4, label: 'Backyard' };
+  }
+  return null;
+}
+
 function buildCameraNavigationUi() {
   built = true;
   const wrap = document.getElementById('game-wrap');
@@ -102,8 +172,8 @@ function buildCameraNavigationUi() {
   blueprint.className = 'camera-float-button';
   blueprint.type = 'button';
   blueprint.textContent = '▦';
-  blueprint.title = 'Blueprint view';
-  blueprint.setAttribute('aria-label', 'Open blueprint navigation');
+  blueprint.title = 'Whole house blueprint';
+  blueprint.setAttribute('aria-label', 'Open whole house blueprint');
   blueprint.onclick = event => { event.stopPropagation(); togglePanel('blueprint'); };
 
   const locator = document.createElement('button');
@@ -154,14 +224,21 @@ function renderBlueprintPanel(state) {
   panel.classList.remove('hidden');
   panel.classList.add('blueprint-fullscreen');
   const cards = BLUEPRINT_FLOORS.map(item => floorCard(state, item)).join('');
-  panel.innerHTML = `<div class="blueprint-mode"><div class="blueprint-mode-header"><div><div class="blueprint-title">Whole House Blueprint</div><p class="blueprint-note">Tap any room or area to move the camera view. Characters stay where they are.</p></div><button class="blueprint-close" type="button">×</button></div><div class="blueprint-whole-house">${cards}</div></div>`;
+  panel.innerHTML = `<div class="blueprint-mode"><div class="blueprint-mode-header"><div><div class="blueprint-title">Whole House Blueprint</div><p class="blueprint-note">Tap any room, area, or person marker. The blueprint closes and the camera moves there. Characters stay where they are.</p></div><button class="blueprint-close" type="button">×</button></div><div class="blueprint-compound-map">${cards}</div></div>`;
   panel.querySelector('.blueprint-close').onclick = event => { event.stopPropagation(); closePanel(); };
   panel.querySelectorAll('[data-blueprint-floor]').forEach(button => {
     button.onclick = event => {
       event.stopPropagation();
       const target = Number(button.dataset.blueprintFloor);
       navigateView(state, target, button.dataset.label || floors[target]?.name || 'Area', 'blueprint');
-      renderBlueprintPanel(state);
+      closePanel();
+    };
+  });
+  panel.querySelectorAll('[data-entity]').forEach(button => {
+    button.onclick = event => {
+      event.stopPropagation();
+      jumpToEntity(state, button.dataset.entity);
+      closePanel();
     };
   });
 }
@@ -173,7 +250,7 @@ function floorCard(state, item) {
   const roomButtons = floor.rooms.map(room => roomButton(state, item, room)).join('');
   const people = state.entities.filter(e => !e.hidden && e.floor === item.id);
   const markers = people.map(entity => entityMarker(state, entity)).join('');
-  return `<section class="blueprint-floor-card ${item.className}${active}" data-blueprint-floor="${item.id}" data-label="${item.label}"><header><strong>${item.label}</strong><small>${people.length} here</small></header><div class="blueprint-mini-floor" style="--floor-w:${miniFloorWidth(floor)};--floor-h:${miniFloorHeight(floor)};">${roomButtons}${markers}</div></section>`;
+  return `<section class="blueprint-floor-card ${item.className}${active}" data-blueprint-floor="${item.id}" data-label="${item.label}"><header><strong>${item.label}</strong><small>${people.length} here</small></header><div class="blueprint-mini-floor">${roomButtons}${markers}</div></section>`;
 }
 
 function roomButton(state, item, room) {
@@ -239,7 +316,7 @@ export function drawCameraTransition(ctx, state, playW, playH) {
 function drawSlideTransition(ctx, tr, progress, playW, playH) {
   const dx = (tr.direction?.x || 0) * (1 - progress) * 90;
   const dy = (tr.direction?.y || 0) * (1 - progress) * 90;
-  ctx.fillStyle = `rgba(9,12,18,${0.22 * (1 - progress)})`;
+  ctx.fillStyle = `rgba(9,12,18,${0.18 * (1 - progress)})`;
   ctx.fillRect(0, 0, playW, playH);
   ctx.strokeStyle = `rgba(116,230,255,${0.55 * (1 - progress)})`;
   ctx.lineWidth = 5;
