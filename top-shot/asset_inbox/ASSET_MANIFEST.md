@@ -4,8 +4,8 @@ This support folder is for Top Shot research, implementation notes, asset notes,
 
 ## Reference notes
 
-- `reference_notes/CQC_LAB_COMBAT_IMPLEMENTATION_LOG.md`, CQC Lab combat direction and implementation status covering close distance, collision cores, body part hitboxes, body shots, sweeps, knockdowns, mounting, ground fighting, knife fighting, gun handling, auto combat, style profiles, and Main Match close camera goals.
+- `reference_notes/CQC_LAB_COMBAT_IMPLEMENTATION_LOG.md`, CQC Lab combat direction and implementation status covering close distance, collision cores, body part hitboxes, body shots, sweeps, knockdowns, mounting, ground fighting, knife fighting, gun handling, auto combat, style profiles, Main Match close camera goals, and the first CQC animation rig pass.
 
 ## Runtime note
 
-The CQC Lab implementation pass was also committed directly to `top-shot/src/cqcLab.js`, `top-shot/index.html`, `top-shot/tests/cqcSmoke.js`, and `top-shot/package.json` on `top-shot-v0-1` because the user explicitly requested implementation, not only a handoff note.
+The CQC Lab implementation pass was also committed directly to `top-shot/src/cqcLab.js`, `top-shot/src/three/actors3D.js`, `top-shot/index.html`, `top-shot/tests/cqcSmoke.js`, and `top-shot/package.json` on `top-shot-v0-1` because the user explicitly requested implementation, not only a handoff note.
