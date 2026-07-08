@@ -164,12 +164,14 @@ function swipeTarget(floor, dx, dy, elapsed) {
 function buildCameraNavigationUi() {
   built = true;
   const wrap = document.getElementById('game-wrap');
+  const controlBar = document.getElementById('game-control-bar') || wrap;
   const dock = document.createElement('section');
   dock.id = 'camera-nav-dock';
+  dock.className = 'control-bar-group camera-control-group';
 
   const blueprint = document.createElement('button');
   blueprint.id = 'blueprint-float-button';
-  blueprint.className = 'camera-float-button';
+  blueprint.className = 'camera-float-button control-bar-button icon-control-button';
   blueprint.type = 'button';
   blueprint.textContent = '▦';
   blueprint.title = 'Whole house blueprint';
@@ -178,7 +180,7 @@ function buildCameraNavigationUi() {
 
   const locator = document.createElement('button');
   locator.id = 'locator-float-button';
-  locator.className = 'camera-float-button';
+  locator.className = 'camera-float-button control-bar-button icon-control-button';
   locator.type = 'button';
   locator.textContent = '◎';
   locator.title = 'Find household member';
@@ -193,7 +195,7 @@ function buildCameraNavigationUi() {
 
   dock.appendChild(blueprint);
   dock.appendChild(locator);
-  wrap.appendChild(dock);
+  controlBar.appendChild(dock);
   wrap.appendChild(panel);
   els = { dock, blueprint, locator, panel };
   document.addEventListener('click', event => {
@@ -337,13 +339,14 @@ function drawVerticalTransition(ctx, tr, progress, playW, playH) {
   ctx.save();
   ctx.translate(playW / 2, playH / 2 + entering * (1 - progress) * 28);
   ctx.scale(scale, scale);
+  ctx.translate(-playW / 2, -playH / 2);
   ctx.strokeStyle = `rgba(241,198,106,${0.75 * alpha})`;
   ctx.lineWidth = 5;
-  ctx.strokeRect(-playW * .36, -playH * .28, playW * .72, playH * .56);
+  ctx.strokeRect(24, 24, playW - 48, playH - 48);
   ctx.restore();
-  ctx.fillStyle = `rgba(248,251,255,${0.92 * alpha})`;
+  ctx.fillStyle = `rgba(241,198,106,${0.90 * alpha})`;
   ctx.font = '900 24px system-ui';
   ctx.textAlign = 'center';
-  ctx.fillText(`Moving ${tr.direction} to ${tr.label}`, playW / 2, 68);
+  ctx.fillText(`${tr.direction === 'up' ? 'Going up to' : 'Going down to'} ${tr.label}`, playW / 2, 66);
   ctx.textAlign = 'left';
 }
