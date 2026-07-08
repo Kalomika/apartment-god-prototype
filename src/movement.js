@@ -46,7 +46,7 @@ function routeLeg(a, b, floor, allowId = '') {
   candidates.sort((p, q) => Math.hypot(p.x - a.x, p.y - a.y) + Math.hypot(b.x - p.x, b.y - p.y) - Math.hypot(q.x - a.x, q.y - a.y) - Math.hypot(b.x - q.x, b.y - q.y));
   for (const p of candidates) if (legClear(a, p, floor, allowId) && legClear(p, b, floor, allowId)) return [p, b];
   for (const p of candidates) if (legClear(a, p, floor, allowId)) return [p, b];
-  return [b];
+  return [];
 }
 
 function uniquePoints(points) {
@@ -63,6 +63,7 @@ export function commandMove(entity, x, y, run = false, allowId = '') {
   const to = clampToPlay(x, y);
   entity.moveAllowId = allowId || '';
   entity.path = routeAround({ x: entity.x, y: entity.y }, to, entity.floor, entity.moveAllowId);
+  if (!entity.path.length && legClear({ x: entity.x, y: entity.y }, to, entity.floor, entity.moveAllowId)) entity.path = [to];
   entity.target = null;
   entity.pending = null;
   entity.blockedT = 0;
@@ -105,11 +106,13 @@ export function commandObject(entity, obj, actionId) {
     }
   }
   entity.path = routeAround({ x: entity.x, y: entity.y }, target, obj.floor, obj.id);
+  if (!entity.path.length) entity.path = [target];
 }
 
 export function commandSocial(actor, target, socialId) {
   const near = clampToPlay(target.x + (actor.x < target.x ? -38 : 38), target.y + 6);
   actor.path = routeAround({ x: actor.x, y: actor.y }, near, target.floor);
+  if (!actor.path.length) actor.path = [near];
   actor.target = { type: 'social', targetId: target.id, socialId };
   actor.blockedT = 0;
   actor.recoveryCount = 0;
@@ -148,6 +151,7 @@ function finishFloorTravel(state, entity) {
       const target = approachPoint(obj, pending.actionId);
       entity.moveAllowId = obj.id;
       entity.path = routeAround({ x: entity.x, y: entity.y }, target, entity.floor, obj.id);
+      if (!entity.path.length) entity.path = [target];
       entity.target = { type: 'object', objectId: obj.id, actionId: pending.actionId };
     }
   }
@@ -156,37 +160,34 @@ function finishFloorTravel(state, entity) {
   return true;
 }
 
-function recoverBlocked(state, entity, _next, dt) {
+function recoverBlocked(_state, entity, _next, dt) {
   entity.blockedT = (entity.blockedT || 0) + dt;
   if (entity.blockedT < 0.25) return false;
   entity.blockedT = 0;
   entity.recoveryCount = (entity.recoveryCount || 0) + 1;
-  if (entity.path.length > 1) {
-    entity.path.shift();
-    return false;
-  }
-  const final = entity.path[0];
-  if (final && entity.recoveryCount <= 3) {
+
+  const final = entity.path[entity.path.length - 1];
+  if (final && entity.recoveryCount <= 4) {
     const reroute = routeAround({ x: entity.x, y: entity.y }, final, entity.floor, entity.moveAllowId || '');
     if (reroute.length) {
       entity.path = reroute;
       return false;
     }
   }
-  if (final) return acceptWaypoint(state, entity, final);
+
   entity.path = [];
   entity.target = null;
+  entity.pending = null;
   clearMoveAllowance(entity);
-  entity.action = 'Idle';
+  entity.action = 'Blocked';
   entity.pose = 'stand';
+  entity.stopped = false;
   return false;
 }
 
-function closeEnoughToFinish(entity, next, dist) {
+function closeEnoughToFinish(entity, _next, dist) {
   if (entity.target && dist < 38) return true;
   if (entity.pending && dist < 42) return true;
-  const remaining = entity.path?.length || 0;
-  if (remaining <= 1 && Math.hypot(next.x - entity.x, next.y - entity.y) < 28) return true;
   return false;
 }
 
@@ -218,17 +219,10 @@ export function updateMovement(state, entity, dt) {
     if (!blockedStep(entity, from, next) || closeEnoughToFinish(entity, next, dist)) return acceptWaypoint(state, entity, next);
     return recoverBlocked(state, entity, next, dt);
   }
-  const from = { x: entity.x, y: entity.y };
-  const to = { x: entity.x + (dx / dist) * step, y: entity.y + (dy / dist) * step };
-  if (!blockedStep(entity, from, to)) {
-    entity.blockedT = 0;
-    entity.recoveryCount = 0;
-    entity.x = to.x;
-    entity.y = to.y;
-  } else if (closeEnoughToFinish(entity, next, dist)) {
-    return acceptWaypoint(state, entity, next);
-  } else {
-    return recoverBlocked(state, entity, next, dt);
-  }
+  const to = { x: entity.x + dx / dist * step, y: entity.y + dy / dist * step };
+  if (blockedStep(entity, { x: entity.x, y: entity.y }, to)) return recoverBlocked(state, entity, next, dt);
+  entity.x = to.x;
+  entity.y = to.y;
+  entity.pose = 'walk';
   return false;
 }
