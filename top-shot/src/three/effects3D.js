@@ -12,11 +12,12 @@ export function installTopShotEffects3D(world) {
   const baseSyncActors = world.syncActors.bind(world);
   world.syncActors = function syncActorsWithDeployment(state, dt) {
     const entities = baseSyncActors(state, dt);
+    if (state?.mode === 'cqc') anchorCqcPairs(this, state, entities);
     for (const entity of entities) {
       const actor = this.actors.get(entity.id);
       if (!actor) continue;
       const altitude = entity.deployAltitude || 0;
-      actor.group.position.y = altitude;
+      actor.group.position.y = actor.group.position.y || altitude;
       actor.group.scale.setScalar((entity.preview ? 1.14 : 1.2) * (altitude > 0 ? 0.94 : 1));
       if (state?.mode === 'cqc') stabilizeCqcActor(actor, entity);
       syncParachute(this, entity, actor.group.position, altitude);
@@ -40,17 +41,70 @@ export function installTopShotEffects3D(world) {
   return world;
 }
 
+function anchorCqcPairs(world, state, entities) {
+  const mounted = entities.find(entity => entity.cqc?.mounting);
+  if (mounted) {
+    const bottom = entities.find(entity => entity.id === mounted.cqc.mounting);
+    const topActor = world.actors.get(mounted.id);
+    const bottomActor = world.actors.get(bottom?.id);
+    if (bottom && topActor && bottomActor) {
+      const base = arenaToWorld(bottom.x, bottom.y);
+      const facing = bottom.facing || 0;
+      const forward = { x: Math.cos(facing), z: Math.sin(facing) };
+      const side = { x: -forward.z, z: forward.x };
+      bottomActor.group.position.set(base.x, 0, base.z);
+      bottomActor.group.rotation.y = -facing;
+      bottomActor.rig.rotation.set(-Math.PI / 2, 0, 0);
+      bottomActor.rig.position.y = 0.18;
+      bottomActor.applyPose?.('prone', 0, { ...bottom, pose: 'mounted_bottom', currentMove: null, lastMove: 0, prone: true });
+      hideCqcWeapon(bottomActor, bottom);
+
+      topActor.group.position.set(base.x - forward.x * 0.34 + side.x * 0.18, 0.62, base.z - forward.z * 0.34 + side.z * 0.18);
+      topActor.group.rotation.y = -facing;
+      topActor.rig.rotation.set(0.16, 0, 0);
+      topActor.rig.position.y = 0.08;
+      topActor.applyPose?.('crouch', 0, { ...mounted, pose: 'mount_top', currentMove: null, lastMove: 0, crouch: true });
+      hideCqcWeapon(topActor, mounted);
+    }
+    return;
+  }
+
+  for (const entity of entities) {
+    if (!entity.cqc?.grounded && !['grounded_back', 'grounded_side', 'swept_fall', 'thrown', 'mounted_bottom', 'down'].includes(entity.pose)) continue;
+    const actor = world.actors.get(entity.id);
+    if (!actor) continue;
+    const p = arenaToWorld(entity.x, entity.y);
+    actor.group.position.set(p.x, 0, p.z);
+    actor.group.rotation.y = -(entity.facing || 0);
+    actor.rig.rotation.set(-Math.PI / 2, 0, 0);
+    actor.rig.position.y = 0.18;
+    actor.applyPose?.('prone', 0, { ...entity, pose: 'prone', currentMove: null, lastMove: 0, prone: true });
+    hideCqcWeapon(actor, entity);
+  }
+}
+
 function stabilizeCqcActor(actor, entity) {
   const action = entity.currentMove?.id || entity.pose || '';
-  const activeStrike = ['left_jab', 'right_cross', 'left_elbow', 'right_elbow', 'left_knee', 'right_knee', 'left_kick', 'right_kick', 'roundhouse', 'headbutt'].some(move => action.includes(move));
-  const weaponAction = ['pistol', 'burst', 'slash', 'knife', 'sword', 'blade'].some(move => action.includes(move));
+  const activeStrike = ['left_jab', 'right_cross', 'left_elbow', 'right_elbow', 'left_knee', 'right_knee', 'left_kick', 'right_kick', 'roundhouse', 'headbutt', 'right_body_hook', 'right_sweep', 'inside_trip', 'two_hand_grab', 'judo_throw'].some(move => action.includes(move));
+  const weaponAction = ['pistol', 'burst', 'slash', 'knife', 'sword', 'blade', 'gun_butt'].some(move => action.includes(move));
+  const grounded = entity.cqc?.grounded || entity.cqc?.mountedBy || ['grounded_back', 'grounded_side', 'swept_fall', 'thrown', 'mounted_bottom', 'down'].includes(entity.pose);
+  const mountedTop = Boolean(entity.cqc?.mounting || ['mount_top', 'mount_pressure', 'ground_punch', 'ground_knife_stab'].includes(action));
 
-  if (!activeStrike && ['idle_guard', 'guard', 'cqc_lab'].includes(action || entity.intent)) {
+  if (grounded || mountedTop) {
+    hideCqcWeapon(actor, entity, weaponAction);
+    return;
+  }
+
+  if (!activeStrike && ['idle_guard', 'guard', 'cqc_lab', 'cqc_auto', 'pressure_step'].includes(action || entity.intent)) {
     actor.rig.rotation.set(0, 0, 0);
     actor.rig.position.y = 0;
     actor.applyPose?.('idle', 0, { ...entity, pose: 'idle_guard', currentMove: null, lastMove: 0 });
   }
 
+  hideCqcWeapon(actor, entity, weaponAction);
+}
+
+function hideCqcWeapon(actor, entity, weaponAction = false) {
   if (actor.weapon) actor.weapon.visible = weaponAction;
   if (actor.parts?.tie && entity.archetypeId === 'survival_commando') actor.parts.tie.visible = false;
 }
