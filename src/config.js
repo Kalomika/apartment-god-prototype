@@ -29,9 +29,13 @@ export const COLORS = {
 export const ACTIONS = {
   couch: [['watch_tv', 'Watch TV'], ['watch_together', 'Watch TV Together'], ['relax', 'Relax'], ['nap', 'Nap']],
   tv: [['watch_tv', 'Watch TV'], ['watch_together', 'Watch TV Together'], ['comedy', 'Comedy Channel'], ['horror', 'Horror Channel'], ['sports', 'Sports Channel']],
+  stereo: [['music_song', 'Play Song'], ['music_album', 'Play Album']],
+  bookshelf: [['read', 'Read Book'], ['study', 'Study']],
   fridge: [['snack', 'Get Snack'], ['meal', 'Cook Meal'], ['bring_food', 'Bring Food']],
   stove: [['meal', 'Cook Meal']],
   sink: [['clean', 'Clean'], ['wash_dishes', 'Wash Dishes'], ['brush_teeth', 'Brush Teeth'], ['groom', 'Groom']],
+  coffee_maker: [['coffee', 'Make Coffee']],
+  dining_table: [['eat_meal', 'Eat at Table'], ['sit_table', 'Sit at Table']],
   shower: [['shower', 'Take Shower'], ['groom', 'Groom']],
   toilet: [['toilet', 'Use Toilet']],
   door: [['work', 'Work'], ['errand', 'Quick Errand'], ['mall', 'Mall Trip'], ['movies', 'Movie Theater'], ['date', 'Date Night']],
@@ -72,5 +76,6 @@ export const ACTION_TIMES = {
   pool_solo: 14, pool_together: 18, arcade: 8, arcade_together: 10, console_game: 10, console_together: 12, darts: 7, darts_together: 9,
   throw_trash: 3, take_trash_out: 9, dump_trash: 3, treadmill: 10, lift_weights: 10, heavy_bag: 8, swim: 10, swim_together: 12,
   soccer_practice: 16, soccer_match: 20,
-  dog_rest: 6, call_dog_yard: 3, drive: 5, maintain_vehicle: 8, bike_trip: 10, motorbike_trip: 8
+  dog_rest: 6, call_dog_yard: 3, drive: 5, maintain_vehicle: 8, bike_trip: 10, motorbike_trip: 8,
+  music_song: 4, music_album: 12, read: 10, study: 12, coffee: 4, eat_meal: 7, sit_table: 5
 };
