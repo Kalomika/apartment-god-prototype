@@ -65,9 +65,9 @@ export const objects = [
   { id: 'pet_flap_front', label: 'Pet Flap', kind: 'stairs', styleAs: 'door', floor: 0, room: 'entry', x: 354, y: 548, w: 46, h: 24, solid: false, toFloor: 4, exitId: 'pet_flap_yard' },
   { id: 'basement_door', label: 'Basement Door', kind: 'stairs', floor: 0, room: 'stairs', x: 742, y: 386, w: 82, h: 52, solid: false, toFloor: 2, exitId: 'basement_stairs_up' },
   { id: 'garage_door', label: 'Garage Interior Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'entry', x: 28, y: 418, w: 34, h: 72, solid: false, toFloor: 3, exitId: 'garage_entry_door' },
-  { id: 'backyard_door', label: 'Back Door to Yard', kind: 'stairs', styleAs: 'door', floor: 0, room: 'living', x: 374, y: 38, w: 76, h: 34, solid: false, toFloor: 4, exitId: 'yard_back_door' },
+  { id: 'backyard_door', label: 'Kitchen/Living Back Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'living', x: 416, y: 38, w: 54, h: 34, solid: false, toFloor: 4, exitId: 'yard_back_door' },
   { id: 'dog_bowl', label: 'Dog Bowl', kind: 'dog_bowl', floor: 0, room: 'kitchen', x: 558, y: 256, w: 36, h: 26, solid: false },
-  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'entry', x: 492, y: 386, w: 170, h: 86, solid: true },
+  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'entry', x: 50, y: 446, w: 154, h: 78, solid: true },
   { id: 'light_living', label: 'Living Light', kind: 'light', floor: 0, room: 'living', x: 408, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_down', label: 'Upstairs Stairs', kind: 'stairs', floor: 0, room: 'stairs', x: 780, y: 554, w: 118, h: 84, solid: false, toFloor: 1, exitId: 'stairs_up' },
 
@@ -124,6 +124,8 @@ export function getStairExit(stairs) {
 
 export function getTravelStair(fromFloor, toFloor) {
   if (fromFloor === toFloor) return null;
+  if (fromFloor === 0 && toFloor === 4) return getObject('backyard_door') || getObject('pet_flap_front');
+  if (fromFloor === 4 && toFloor === 0) return getObject('yard_back_door') || getObject('pet_flap_yard');
   const direct = objects.find(o => o.kind === 'stairs' && o.floor === fromFloor && o.toFloor === toFloor);
   if (direct) return direct;
   if (fromFloor !== 0) return objects.find(o => o.kind === 'stairs' && o.floor === fromFloor && o.toFloor === 0) || null;
@@ -145,7 +147,7 @@ export function approachPoint(obj, action = '') {
   if (obj.kind === 'fridge') return clampToPlay(obj.x + obj.w + 44, cy);
   if (['stove', 'sink'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36);
   if (obj.kind === 'coffee_maker') return clampToPlay(cx, obj.y + obj.h + 28);
-  if (obj.kind === 'dining_table') return clampToPlay(cx, obj.y + obj.h + 34);
+  if (obj.kind === 'dining_table') return clampToPlay(obj.x + obj.w + 34, cy);
   if (obj.kind === 'bookshelf') return clampToPlay(obj.x + obj.w + 36, cy);
   if (obj.kind === 'desk') return clampToPlay(cx, obj.y + obj.h + 42);
   if (obj.kind === 'pool_table') return clampToPlay(cx + 18, obj.y + obj.h + 48);
@@ -153,7 +155,7 @@ export function approachPoint(obj, action = '') {
   if (obj.kind === 'game_console') return clampToPlay(cx, obj.y + obj.h + 54);
   if (obj.kind === 'dartboard') return clampToPlay(obj.x + obj.w + 80, cy + 12);
   if (['treadmill', 'weight_bench'].includes(obj.kind)) return clampToPlay(cx, cy + 4);
-  if (obj.kind === 'heavy_bag') return clampToPlay(cx, obj.y + obj.h + 42);
+  if (obj.kind === 'heavy_bag') return clampToPlay(cx + 44, cy + 8);
   if (obj.kind === 'kennel') return clampToPlay(cx, obj.y + obj.h + 30);
   if (['trash_can', 'outdoor_trash'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 30);
   if (obj.kind === 'car') return clampToPlay(obj.x + obj.w + 28, obj.y + obj.h * 0.58);
