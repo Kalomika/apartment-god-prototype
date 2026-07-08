@@ -7,7 +7,7 @@
     "start": "node scripts/dev-server.js",
     "build": "node scripts/build.js",
     "check": "node scripts/check.js",
-    "smoke": "node tests/simSmoke.js && node tests/cqcSmoke.js"
+    "smoke": "node tests/simSmoke.js && node tests/cqcSmoke.js && node tests/stealthSmoke.js"
   },
   "devDependencies": {}
 }
