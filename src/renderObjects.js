@@ -9,8 +9,31 @@ export function drawObjects(ctx, state) {
     ctx.shadowColor = active ? 'rgba(232,198,97,.55)' : 'transparent';
     ctx.shadowBlur = active ? 16 : 0;
     if (!drawStyledObject(ctx, obj, state)) drawFallbackObject(ctx, obj);
+    if (obj.kind === 'stove') drawStoveBackPanel(ctx, obj, state);
     ctx.restore();
   }
+}
+
+function drawStoveBackPanel(ctx, o, state) {
+  ctx.save();
+  ctx.shadowColor = 'transparent';
+  ctx.fillStyle = '#8f897f';
+  rounded(ctx, o.x + 3, o.y - 13, o.w - 6, 20, 6, true, false);
+  ctx.strokeStyle = '#514b46';
+  ctx.lineWidth = 2;
+  rounded(ctx, o.x + 3, o.y - 13, o.w - 6, 20, 6, false, true);
+  ctx.fillStyle = '#393632';
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.arc(o.x + 15 + i * 14, o.y - 3, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (state.objectState.stovePan) {
+    ctx.fillStyle = '#f1c66a';
+    ctx.font = '900 8px system-ui';
+    ctx.fillText('HEAT', o.x + o.w - 28, o.y - 1);
+  }
+  ctx.restore();
 }
 
 function drawFallbackObject(ctx, o) {
