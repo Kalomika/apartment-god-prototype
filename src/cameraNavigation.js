@@ -3,16 +3,16 @@ import { log } from './state.js';
 
 const MAIN_LEVEL_AREAS = new Set([0, 3, 4]);
 const AREA_POSITIONS = {
-  4: { x: 0, y: -1, label: 'Backyard' },
+  3: { x: -1, y: 0, label: 'Garage' },
   0: { x: 0, y: 0, label: 'Main House' },
-  3: { x: 1, y: 0, label: 'Garage' }
+  4: { x: 0, y: -1, label: 'Backyard' }
 };
 
 const BLUEPRINT_FLOORS = [
   { id: 1, label: 'Upstairs', className: 'upstairs' },
-  { id: 4, label: 'Backyard', className: 'yard' },
   { id: 0, label: 'Main House', className: 'main' },
-  { id: 3, label: 'Garage', className: 'garage' },
+  { id: 4, label: 'Backyard North', className: 'yard' },
+  { id: 3, label: 'Garage West', className: 'garage' },
   { id: 2, label: 'Basement', className: 'basement' }
 ];
 
@@ -116,24 +116,13 @@ export function syncCameraNavigationUi(state) {
 function createTransition(from, to, label, reason) {
   const sameMainLevel = MAIN_LEVEL_AREAS.has(from) && MAIN_LEVEL_AREAS.has(to);
   const total = sameMainLevel ? 0.46 : 0.48;
-  return {
-    from,
-    to,
-    label,
-    reason,
-    type: sameMainLevel ? 'slide' : 'vertical',
-    direction: sameMainLevel ? slideDirection(from, to) : verticalDirection(from, to),
-    t: total,
-    total
-  };
+  return { from, to, label, reason, type: sameMainLevel ? 'slide' : 'vertical', direction: sameMainLevel ? slideDirection(from, to) : verticalDirection(from, to), t: total, total };
 }
 
 function slideDirection(from, to) {
   const a = AREA_POSITIONS[from] || AREA_POSITIONS[0];
   const b = AREA_POSITIONS[to] || AREA_POSITIONS[0];
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  return { x: -Math.sign(dx), y: Math.sign(dy) };
+  return { x: Math.sign(b.x - a.x), y: Math.sign(b.y - a.y) };
 }
 
 function verticalDirection(from, to) {
@@ -149,16 +138,16 @@ function swipeTarget(floor, dx, dy, elapsed) {
   if (distance < 52 || elapsed > 1400) return null;
   const horizontal = Math.abs(dx) > Math.abs(dy);
   if (floor === 0) {
-    if (!horizontal && dy < -42) return { floor: 4, label: 'Backyard' };
-    if (horizontal && dx < -42) return { floor: 3, label: 'Garage' };
+    if (!horizontal && dy < -42) return { floor: 4, label: 'Backyard North' };
+    if (horizontal && dx < -42) return { floor: 3, label: 'Garage West' };
   }
   if (floor === 4) {
     if (!horizontal && dy > 42) return { floor: 0, label: 'Main House' };
-    if (horizontal && dx < -42) return { floor: 3, label: 'Garage' };
+    if (horizontal && dx < -42) return { floor: 3, label: 'Garage West' };
   }
   if (floor === 3) {
     if (horizontal && dx > 42) return { floor: 0, label: 'Main House' };
-    if (!horizontal && dy < -42) return { floor: 4, label: 'Backyard' };
+    if (!horizontal && dy < -42) return { floor: 4, label: 'Backyard North' };
   }
   return null;
 }
@@ -228,7 +217,7 @@ function renderBlueprintPanel(state) {
   panel.classList.remove('hidden');
   panel.classList.add('blueprint-fullscreen');
   const cards = BLUEPRINT_FLOORS.map(item => floorCard(state, item)).join('');
-  panel.innerHTML = `<div class="blueprint-mode"><div class="blueprint-mode-header"><div><div class="blueprint-title">Whole House Blueprint</div><p class="blueprint-note">Tap any room, area, or person marker. The blueprint closes and the camera moves there. Characters stay where they are.</p></div><button class="blueprint-close" type="button">×</button></div><div class="blueprint-compound-map">${cards}</div></div>`;
+  panel.innerHTML = `<div class="blueprint-mode"><div class="blueprint-mode-header"><div><div class="blueprint-title">Whole House Blueprint</div><p class="blueprint-note">North is up. West is left. Tap any region or person marker. The blueprint closes and the camera moves there.</p></div><button class="blueprint-close" type="button">×</button></div><div class="blueprint-compound-map">${cards}</div></div>`;
   panel.querySelector('.blueprint-close').onclick = event => { event.stopPropagation(); closePanel(); };
   panel.querySelectorAll('[data-blueprint-floor]').forEach(button => {
     button.onclick = event => {
