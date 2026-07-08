@@ -5,6 +5,7 @@ import { updateMovement } from './movement.js';
 import { resolveArrival, updateActions } from './actions.js';
 import { updateAutoHooks } from './autoHooks.js';
 import { updateAutonomy } from './autonomy.js';
+import { updateGameActivities } from './activitySystems.js';
 
 export function bootCanvasGame() {
   const canvas = document.getElementById('game');
@@ -24,6 +25,7 @@ export function bootCanvasGame() {
         if (arrived) resolveArrival(state, entity);
       }
       updateActions(state, dt);
+      updateGameActivities(state, dt);
       updateAutoHooks(state, dt);
       updateAutonomy(state, dt);
       state.time += dt * 0.6;
