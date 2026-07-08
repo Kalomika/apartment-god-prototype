@@ -2,21 +2,19 @@ import { blocked, coverPoint, inShadow, nearCover, nearWall, slide, solids } fro
 import { angleTo, clamp, dist, normalizeAngle, pointInRect } from './utils.js';
 import { stageFor } from './state.js';
 import { nearestOpen, nextWaypoint } from './navmesh.js';
+import { soundDetectionScore, visualDetectionScore } from './stealth.js';
 
 export function canSee(arena, watcher, target) {
   if (target.extracted || target.incapacitated) return false;
-  const distance = dist(watcher, target);
-  if (distance > watcher.stats.sight * 5.2) return false;
-  const delta = Math.abs(normalizeAngle(angleTo(watcher, target) - watcher.facing));
-  const cone = watcher.prone ? 0.7 : 1.35;
-  if (delta > cone && distance > 95) return false;
-  if (target.shadowHidden && distance > 88) return false;
-  if (target.prone && distance > 170) return false;
-  return clearLine(arena, watcher, target);
+  const score = visualDetectionScore(arena, watcher, target);
+  const aware = watcher.awareness?.suspicion || 0;
+  const threshold = aware > 70 ? 38 : aware > 35 ? 48 : 58;
+  return score >= threshold;
 }
 
 export function canHear(listener, target) {
-  return target.noise > 0 && dist(listener, target) < listener.stats.hearing * target.noise * 0.18;
+  const ambient = listener.awareness?.ambientNoise ?? 18;
+  return soundDetectionScore(listener, target, ambient) > 34;
 }
 
 export function clearLine(arena, a, b) {
@@ -52,6 +50,7 @@ export function chooseDestination(state, f, enemy) {
     const cover = nearCover(state.arena, f);
     if (cover) return safeDest(state.arena, f, coverPoint(state.arena, cover, f, enemy) || center(cover));
   }
+  if (f.awareness?.phase === 'suspicious' && f.awareness.currentSearchPoint) return safeDest(state.arena, f, f.awareness.currentSearchPoint);
   if (f.wallLean && d < 210 && f.hp < 55) return { x: f.x, y: f.y };
   if (['ninja', 'shadow_ninja'].includes(f.archetypeId) && d > 95) return safeDest(state.arena, f, flankPoint(f, enemy, 80));
   if (f.archetypeId === 'martial_artist') return safeDest(state.arena, f, flankPoint(f, enemy, 48));
@@ -80,7 +79,7 @@ export function moveFighter(state, f, dest, dt) {
   const turn = normalizeAngle(moveAngle - f.facing);
   f.facing = normalizeAngle(f.facing + clamp(turn, -dt * 9, dt * 9));
   const stage = stageFor(f);
-  const defensive = isUnderFire(state, f) || f.memory.command?.type === 'roll_cover';
+  const defensive = isUnderFire(state, f) || f.memory.command?.type === 'roll_cover' || ['alert', 'evasion'].includes(f.awareness?.phase);
   const stealthMod = f.crouch || f.prone || f.shadowHidden ? 0.55 : 1;
   const urgency = f.memory.command?.urgent || defensive ? 1.28 : 1;
   const limpMod = stage.id === 'purple' ? 0.72 : stage.id === 'red' ? 0.84 : 1;
@@ -90,11 +89,12 @@ export function moveFighter(state, f, dest, dt) {
   const movedAmount = dist(f, moved);
   updateStuckMemory(f, movedAmount, route);
   f.x = moved.x; f.y = moved.y;
-  f.shadowHidden = !f.hideCooldown && inShadow(state.arena, f) && (f.crouch || f.prone || f.stamina < 45 || f.bleed?.rate > 0 || defensive);
+  f.shadowHidden = !f.hideCooldown && inShadow(state.arena, f) && (f.crouch || f.prone || f.stamina < 45 || f.bleed?.rate > 0 || defensive) && (f.noise || 0) < 58;
   f.wallLean = Boolean(nearWall(state.arena, f, 17) && (f.hp < 70 || f.bleed?.rate > 0 || f.stamina < 35 || defensive));
   f.pose = movedAmount > 0.55 ? movementPose(f, stage, f.stuckT > 0.4) : f.stuckT > 0.4 ? 'reposition' : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : defensive ? 'duck' : 'idle_guard';
   f.stamina = clamp(f.stamina - movedAmount * ((f.memory.command?.urgent || defensive) ? 0.012 : 0.005), 0, 100);
   f.noise = f.prone ? 8 : f.crouch || f.shadowHidden ? 10 : ['ninja', 'shadow_ninja'].includes(f.archetypeId) ? 18 : f.memory.command?.urgent ? 55 : 34;
+  if (f.awareness?.phase === 'alert') f.noise = Math.max(f.noise, 42);
   f.hidden = f.shadowHidden || f.prone || f.crouch || f.wallLean;
 }
 
@@ -137,6 +137,8 @@ function movementPose(f, stage, stuck = false) {
   if (stage.id === 'purple') return 'stagger_limp';
   if (stage.id === 'red') return 'limp_run';
   if (f.memory.command?.urgent) return 'rush';
+  if (f.awareness?.phase === 'alert') return 'rush';
+  if (f.awareness?.phase === 'evasion') return 'careful_walk';
   return 'run';
 }
 
