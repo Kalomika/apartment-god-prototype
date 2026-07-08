@@ -18,7 +18,7 @@ export function createBattle(aId = 'suit_operative', bId = 'survival_commando', 
     commandHistory: [],
     dropsLeft: freshDropsLeft(),
     fighters: [],
-    projectiles: [], effects: [], pickups: [], log: ['Top Shot desert industrial site loaded. Press Begin Sortie to deploy fighters.']
+    projectiles: [], effects: [], pickups: [], debris: [], log: ['Top Shot desert industrial site loaded. Press Begin Sortie to deploy fighters.']
   };
   if (options.autoStart) beginBattle(state, aId, bId);
   return state;
@@ -40,6 +40,7 @@ export function beginBattle(state, aId = state.selectedFighters?.A || 'suit_oper
   state.projectiles = [];
   state.effects = [];
   state.pickups = [];
+  state.debris = [];
   state.fighters = [
     makeFighter('A', ARCHETYPES[aId], arena.spawnA, 0),
     makeFighter('B', ARCHETYPES[bId], arena.spawnB, 1)
@@ -70,7 +71,7 @@ function makeFighter(team, archetype, spawn, index = 0) {
     stats: { ...archetype.stats }, resources: { ...archetype.resources }, injuries: {}, permanent: {},
     limbs: Object.fromEntries(LIMBS.map(id => [id, { guard: 100, injury: 0, active: false, t: 0 }])),
     memory: { lastSeen: null, lastHitBy: null, fear: 0, mercyRoll: 0.15 + (100 - archetype.stats.aggression) / 300, command: null },
-    currentMove: null, downT: 0
+    currentMove: null, downT: 0, collisionT: 0, dizzyT: 0, stepPhase: 0, stepLock: 0
   };
 }
 
