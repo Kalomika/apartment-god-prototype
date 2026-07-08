@@ -197,3 +197,33 @@ Render may take time to pick up the latest main branch state. The autonomy code 
 
 Follow ups:
 If Render behavior is broken, restore from backup/main-before-autonomy-render-update-2026-07-08 or compare against backup/phaser-migration-before-autonomy-upgrade-2026-07-08.
+
+---
+
+## 2026-07-08 05:42 AM CT, Render Branch Updated for Upstairs Visual Testing
+
+Status: NEEDS_TESTING
+Branch: main
+Commit: renderer 1e642c61c7e83f781e78da0a20f3793259ce8bf3, log entry pending this commit
+Files changed: src/renderHouseStyle.js, apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: yes
+Backup branch: backup/phaser-main-before-upstairs-visual-2026-07-08
+
+Summary:
+Updated the Render playable branch with the upstairs visual renderer upgrade so Kam can test it on the existing browser link.
+
+Implementation details:
+Copied the committed upstairs-only visual renderer changes from `phaser-migration` into `main` through normal file updates because the direct branch pointer update was blocked by the connector. No Render settings were changed and no manual deploy was triggered.
+
+Testing performed:
+Code inspection and file update verification only. No browser or Render runtime test performed in this chat.
+
+Testing requested:
+Refresh https://apartment-god-phaser.onrender.com and inspect the upstairs Bedroom, Office, Upstairs Bath, Hall, and Stairs. Confirm the game still renders, upstairs objects remain clickable, windows still toggle, stairs still transfer floors, and the new look feels like a stronger adult cyberpunk top-down apartment.
+
+Known risks:
+Render may take time to pick up the latest `main` commit. If the upstairs renderer causes a browser issue, restore from backup/phaser-main-before-upstairs-visual-2026-07-08 or revert the renderer commit.
+
+Follow ups:
+If Kam likes the visual direction, continue with the activity timing and safe activity-visual pass on `phaser-migration`, then mirror to `main` only after testing approval.
