@@ -7,12 +7,16 @@ import { updateAutoHooks } from './autoHooks.js';
 import { updateAutonomy } from './autonomy.js';
 import { updateGameActivities } from './activitySystems.js';
 import { updateVehicleDeparture } from './vehicleSystem.js';
+import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
 
 export function bootCanvasGame() {
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const state = createState();
+  loadRefreshState(state);
   const ui = createUi(state, canvas);
+
+  window.addEventListener('beforeunload', () => saveRefreshState(state));
 
   let last = performance.now();
   function frame(now) {
@@ -31,6 +35,7 @@ export function bootCanvasGame() {
       updateAutoHooks(state, dt);
       updateAutonomy(state, dt);
       state.time += dt * 0.6;
+      updateRefreshAutosave(state, rawDt);
     }
 
     draw(ctx, state);
