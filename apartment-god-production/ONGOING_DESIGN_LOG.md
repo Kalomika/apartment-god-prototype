@@ -274,3 +274,37 @@ This is still procedural Canvas fallback art, not final animation assets. Activi
 
 Follow ups:
 Implement true lived in time durations for movies, games, albums, reading, coffee effects, eating at the table, and sleep time acceleration in a separate activity systems pass. Add real sprites or sprite sheet animations for all major activities when the pipeline is ready.
+
+---
+
+## 2026-07-08 06:28 AM CT, Dining Table Path Block Fix
+
+Status: NEEDS_TESTING
+Branch: phaser-migration
+Commit: 83096cbb7caf0d0eedecf80aadf181c583bb7407
+Files changed: src/world.js, apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: pending mirror in same chat
+Backup branch: backup/phaser-migration-before-table-unstick-2026-07-08
+
+Summary:
+Kam reported everyone getting stuck again because the new dining table was placed in the middle of the foyer walkway. This fix moves the dining table out of the central traffic lane and against the lower foyer wall.
+
+Implementation details:
+
+- Changed the object label from Dining Table to Wall Dining Table.
+- Moved the dining table from x 492, y 386, w 170, h 86 to x 508, y 494, w 170, h 52.
+- Kept it in the entry room but placed it against the lower wall so it no longer sits between the living/kitchen route and the stair/service hall.
+- Updated the dining table approach point to the open side above the table, so actors approach it from the walkway side instead of trying to path through or below it.
+
+Testing performed:
+Code inspection only. No local or Render browser test performed in this chat.
+
+Testing requested:
+After Render mirror, refresh the test link, reset, watch actor movement from living/kitchen to stairs/bathroom/entry, and confirm the new wall table no longer traps or blocks people.
+
+Known risks:
+This is a quick path unblock fix. Full dining room design still needs a future layout pass.
+
+Follow ups:
+If any actor still sticks near the table, make the table non blocking or move it fully into the kitchen wall/counter zone.
