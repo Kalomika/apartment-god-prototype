@@ -39,329 +39,151 @@ export class WrestlerProxy {
     this.container.setScale(this.scale);
   }
 
+  getPalette() {
+    const gear = this.profile.gearColor ?? 0xf0f0f0;
+    const darkGear = gear < 0x555555;
+
+    return {
+      ink: this.profile.outlineColor ?? 0x050505,
+      softInk: darkGear ? 0xe8e8e8 : 0x555555,
+      skin: this.profile.id === 'dante-crowe' ? 0xe7c3a2 : 0xf2dcc4,
+      gear,
+      gearLine: darkGear ? 0xf7f7f7 : 0x171717,
+      hair: this.profile.hairColor ?? 0x141414,
+      boot: darkGear ? 0x111111 : 0xf2f2f2,
+      tape: 0xffffff
+    };
+  }
+
   draw() {
     const g = this.graphics;
-    g.setVisible(true);
-    g.clear();
-
-    const palette = this.getPalette();
+    const p = this.getPalette();
     const state = this.state;
-    const isDown = state === 'downed' || state === 'pinned';
+    const down = state === 'downed' || state === 'pinned';
 
-    if (isDown) {
-      this.drawDownedFigure(g, palette);
+    g.clear();
+    g.setVisible(true);
+
+    if (down) {
+      this.drawDowned(g, p);
       this.nameText.setY(48);
       return;
     }
 
-    this.drawStandingFigure(g, palette);
+    this.drawStanding(g, p);
     this.nameText.setY(72);
   }
 
-  getPalette() {
-    const darkGear = this.profile.gearColor === 0x303030 || this.profile.gearColor === 0x202020 || this.profile.gearColor === 0x3b3b3b;
+  drawStanding(g, p) {
+    const locking = this.state === 'lockup' || this.state === 'grappleAdvantage';
+    const striking = this.state === 'striking';
+    const running = this.state === 'ropeRun' || this.state === 'closingDistance';
+    const selling = this.state === 'selling' || this.state === 'recovering';
 
-    return {
-      ink: this.profile.outlineColor ?? 0x071018,
-      softInk: darkGear ? 0xd8d8d8 : 0x565656,
-      skin: this.profile.id === 'dante-crowe' ? 0xe8c3a2 : 0xf4dcc4,
-      gear: this.profile.gearColor ?? 0xf4f4f4,
-      gearLine: darkGear ? 0xffffff : 0x151515,
-      hair: this.profile.hairColor ?? 0x111111,
-      boot: darkGear ? 0x121212 : 0xf1f1f1,
-      tape: darkGear ? 0xf7f7f7 : 0xffffff
-    };
-  }
+    const step = running ? 11 : selling ? 5 : 0;
+    const crouch = locking ? 4 : selling ? 2 : 0;
+    const armLift = locking ? -46 : 0;
+    const rightStrike = striking ? -28 : 0;
 
-  drawStandingFigure(g, p) {
-    const state = this.state;
-    const locking = state === 'lockup' || state === 'grappleAdvantage';
-    const striking = state === 'striking';
-    const running = state === 'ropeRun' || state === 'closingDistance';
-    const selling = state === 'selling' || state === 'recovering';
-    const pinning = state === 'pinning';
+    this.shadow(g, 0, 8, 66, 94);
 
-    const step = running ? 12 : selling ? 5 : 0;
-    const crouch = locking ? 3 : selling ? 2 : 0;
-    const shoulderY = -19 + crouch;
-    const hipY = 30 + crouch;
+    // Rear lower body. Feet and boots are clearer than full legs from this angle.
+    this.limb(g, -13, 24 + crouch, -20, 54 + step, 6, p.ink, p.skin);
+    this.limb(g, 13, 24 + crouch, 20, 48 - step * 0.45, 6, p.ink, p.skin);
+    this.ellipse(g, -20, 76 + step * 0.25, 11, 19, p.ink, p.boot, 1.4);
+    this.ellipse(g, 20, 70 - step * 0.35, 11, 19, p.ink, p.boot, 1.4);
+    this.ellipse(g, -20, 54 + step, 15, 8, p.ink, p.gear, 1.2);
+    this.ellipse(g, 20, 48 - step * 0.45, 15, 8, p.ink, p.gear, 1.2);
 
-    this.drawMatShadow(g, 0, 8, 64, 94);
+    // Top down torso mass, shoulders first, hips compact, no front facing face or chest doll read.
+    this.ellipse(g, 0, -9 + crouch, 68, 52, p.ink, p.skin, 2.2);
+    this.ellipse(g, -27, -13 + crouch, 18, 24, p.ink, p.skin, 1.7);
+    this.ellipse(g, 27, -13 + crouch, 18, 24, p.ink, p.skin, 1.7);
+    this.ellipse(g, 0, 24 + crouch, 42, 25, p.ink, p.gear, 1.8);
 
-    this.drawCurvedLimb(g, -13, hipY, -22, 49 + step, -19, 70 + step * 0.25, 5.4, p.ink, p.skin);
-    this.drawCurvedLimb(g, 13, hipY, 21, 43 - step * 0.45, 20, 64 - step * 0.35, 5.4, p.ink, p.skin);
-    this.drawFoot(g, -19, 76 + step * 0.25, 10, 18, p.ink, p.boot);
-    this.drawFoot(g, 20, 70 - step * 0.35, 10, 18, p.ink, p.boot);
-    this.drawPad(g, -20, 51 + step, 15, 8, p.ink, p.gear, p.gearLine);
-    this.drawPad(g, 21, 44 - step * 0.45, 15, 8, p.ink, p.gear, p.gearLine);
+    g.lineStyle(1.3, p.softInk, 0.72);
+    g.lineBetween(0, -31 + crouch, 0, 15 + crouch);
+    g.lineBetween(-23, -17 + crouch, -7, -4 + crouch);
+    g.lineBetween(23, -17 + crouch, 7, -4 + crouch);
+    g.lineBetween(-19, 14 + crouch, 19, 14 + crouch);
+    g.lineStyle(1, p.gearLine, 0.85);
+    g.lineBetween(-18, 31 + crouch, 18, 31 + crouch);
 
-    this.drawTorso(g, p, crouch, selling);
+    // Arms. Lockup reaches forward toward opponent, otherwise hangs naturally from shoulders.
+    this.limb(g, -33, -10 + crouch, -45, 14 + armLift, 6, p.ink, p.skin);
+    this.limb(g, -45, 14 + armLift, -38, 38 + armLift, 5.3, p.ink, p.skin);
+    this.ellipse(g, -38, 38 + armLift, 9, 7, p.ink, p.tape, 1.2);
+    this.hand(g, -38, 47 + armLift, p, locking);
 
-    const leftArm = this.getArmPose('left', { locking, striking, running, selling, pinning, shoulderY });
-    const rightArm = this.getArmPose('right', { locking, striking, running, selling, pinning, shoulderY });
-    this.drawArm(g, leftArm, p);
-    this.drawArm(g, rightArm, p);
+    this.limb(g, 33, -10 + crouch, 45 + rightStrike * 0.28, 14 + armLift, 6, p.ink, p.skin);
+    this.limb(g, 45 + rightStrike * 0.28, 14 + armLift, 38 + rightStrike, 38 + armLift, 5.3, p.ink, p.skin);
+    this.ellipse(g, 38 + rightStrike, 38 + armLift, 9, 7, p.ink, p.tape, 1.2);
+    this.hand(g, 38 + rightStrike, 47 + armLift, p, locking);
 
-    this.drawHead(g, p, crouch);
+    // Head reads as top plane and hair crown. No face features.
+    this.ellipse(g, 0, -49 + crouch, 27, 32, p.ink, p.skin, 2);
+    this.hair(g, p, 0, -62 + crouch);
 
     if (locking) {
       g.lineStyle(2, p.ink, 0.55);
-      g.strokeCircle(0, -24, 42);
+      g.strokeCircle(0, -24, 43);
       g.lineStyle(1.2, p.softInk, 0.65);
-      g.lineBetween(-30, -48, -7, -32);
-      g.lineBetween(30, -48, 7, -32);
+      g.lineBetween(-29, -54, -8, -34);
+      g.lineBetween(29, -54, 8, -34);
     }
   }
 
-  getArmPose(side, flags) {
-    const sx = side === 'left' ? -34 : 34;
-    const mirror = side === 'left' ? -1 : 1;
-    const { locking, striking, running, selling, pinning, shoulderY } = flags;
+  drawDowned(g, p) {
+    this.shadow(g, 0, 5, 88, 42);
 
-    if (locking) {
-      return {
-        shoulder: [sx, shoulderY],
-        elbow: [mirror * 42, -43],
-        wrist: [mirror * 25, -65],
-        hand: [mirror * 20, -73],
-        open: true
-      };
-    }
+    this.ellipse(g, 0, 0, 76, 40, p.ink, p.skin, 2);
+    this.ellipse(g, 48, -13, 25, 23, p.ink, p.skin, 1.8);
+    this.hair(g, p, 51, -23, 0.8);
+    this.ellipse(g, 0, 13, 38, 18, p.ink, p.gear, 1.5);
 
-    if (pinning) {
-      return {
-        shoulder: [sx, shoulderY],
-        elbow: [mirror * 44, 0],
-        wrist: [mirror * 23, 18],
-        hand: [mirror * 18, 25],
-        open: true
-      };
-    }
+    this.limb(g, -14, 15, -50, 44, 5.2, p.ink, p.skin);
+    this.limb(g, 12, 15, 44, 44, 5.2, p.ink, p.skin);
+    this.ellipse(g, -53, 48, 10, 17, p.ink, p.boot, 1.3);
+    this.ellipse(g, 47, 47, 10, 17, p.ink, p.boot, 1.3);
 
-    if (striking && side === 'right') {
-      return {
-        shoulder: [sx, shoulderY],
-        elbow: [mirror * 42, -35],
-        wrist: [mirror * 22, -63],
-        hand: [mirror * 20, -71],
-        open: false
-      };
-    }
-
-    if (running) {
-      return {
-        shoulder: [sx, shoulderY],
-        elbow: [mirror * 48, side === 'left' ? 4 : -34],
-        wrist: [mirror * 40, side === 'left' ? 34 : -50],
-        hand: [mirror * 39, side === 'left' ? 42 : -58],
-        open: false
-      };
-    }
-
-    if (selling) {
-      return {
-        shoulder: [sx, shoulderY],
-        elbow: [mirror * 48, 6],
-        wrist: [mirror * 35, 32],
-        hand: [mirror * 34, 40],
-        open: true
-      };
-    }
-
-    return {
-      shoulder: [sx, shoulderY],
-      elbow: [mirror * 48, 8],
-      wrist: [mirror * 40, 34],
-      hand: [mirror * 39, 43],
-      open: false
-    };
-  }
-
-  drawTorso(g, p, crouch, selling) {
-    const topY = -30 + crouch;
-    const shoulderY = -20 + crouch;
-    const hipY = 31 + crouch;
-    const waistY = 19 + crouch;
-    const shoulderSpread = selling ? 30 : 35;
-
-    g.lineStyle(2.1, p.ink, 1);
-    g.fillStyle(p.skin, 1);
-    g.beginPath();
-    g.moveTo(-shoulderSpread, shoulderY);
-    g.quadraticCurveTo(-27, topY - 10, -8, topY - 12);
-    g.quadraticCurveTo(14, topY - 13, shoulderSpread, shoulderY);
-    g.quadraticCurveTo(39, -1 + crouch, 26, 17 + crouch);
-    g.quadraticCurveTo(17, hipY, 0, hipY + 4);
-    g.quadraticCurveTo(-17, hipY, -26, 17 + crouch);
-    g.quadraticCurveTo(-39, -1 + crouch, -shoulderSpread, shoulderY);
-    g.closePath();
-    g.fillPath();
-    g.strokePath();
-
-    g.fillStyle(p.gear, 1);
-    g.lineStyle(1.7, p.ink, 1);
-    g.beginPath();
-    g.moveTo(-24, waistY);
-    g.quadraticCurveTo(-11, 31 + crouch, 0, 33 + crouch);
-    g.quadraticCurveTo(11, 31 + crouch, 24, waistY);
-    g.quadraticCurveTo(18, 42 + crouch, 0, 45 + crouch);
-    g.quadraticCurveTo(-18, 42 + crouch, -24, waistY);
-    g.closePath();
-    g.fillPath();
-    g.strokePath();
-
-    g.lineStyle(1.35, p.softInk, 0.75);
-    g.beginPath();
-    g.moveTo(0, topY - 4);
-    g.quadraticCurveTo(-2, -7 + crouch, 0, 17 + crouch);
-    g.moveTo(-21, -13 + crouch);
-    g.quadraticCurveTo(-11, -7 + crouch, -7, 3 + crouch);
-    g.moveTo(21, -13 + crouch);
-    g.quadraticCurveTo(11, -7 + crouch, 7, 3 + crouch);
-    g.moveTo(-19, 19 + crouch);
-    g.quadraticCurveTo(0, 26 + crouch, 19, 19 + crouch);
-    g.strokePath();
-
-    g.lineStyle(1.1, p.gearLine, 0.85);
-    g.beginPath();
-    g.moveTo(-20, 35 + crouch);
-    g.quadraticCurveTo(0, 40 + crouch, 20, 35 + crouch);
-    g.strokePath();
-  }
-
-  drawArm(g, pose, p) {
-    const [sx, sy] = pose.shoulder;
-    const [ex, ey] = pose.elbow;
-    const [wx, wy] = pose.wrist;
-    const [hx, hy] = pose.hand;
-
-    this.drawCurvedLimb(g, sx, sy, ex, ey, wx, wy, 5.0, p.ink, p.skin);
-    this.drawPad(g, wx, wy, 9, 7, p.ink, p.tape, p.ink);
-    this.drawHand(g, hx, hy, p.ink, p.skin, pose.open);
-  }
-
-  drawHead(g, p, crouch) {
-    const y = -52 + crouch;
-
-    this.ellipse(g, 0, y, 25, 31, p.ink, p.skin, 1.9);
-
-    g.fillStyle(p.hair, 1);
-    g.lineStyle(1.7, p.ink, 1);
-    g.beginPath();
-    g.moveTo(-14, y - 7);
-    g.quadraticCurveTo(-12, y - 25, 2, y - 30);
-    g.quadraticCurveTo(18, y - 29, 16, y - 8);
-    g.quadraticCurveTo(9, y - 13, 0, y - 12);
-    g.quadraticCurveTo(-8, y - 12, -14, y - 7);
-    g.closePath();
-    g.fillPath();
-    g.strokePath();
-
-    g.lineStyle(1.1, p.softInk, 0.55);
-    g.beginPath();
-    g.moveTo(-6, y + 14);
-    g.quadraticCurveTo(0, y + 19, 6, y + 14);
-    g.strokePath();
-  }
-
-  drawDownedFigure(g, p) {
-    this.drawMatShadow(g, 0, 5, 86, 42);
-
-    g.lineStyle(2, p.ink, 1);
-    g.fillStyle(p.skin, 1);
-    g.beginPath();
-    g.moveTo(-39, -11);
-    g.quadraticCurveTo(-16, -34, 18, -26);
-    g.quadraticCurveTo(43, -17, 38, 8);
-    g.quadraticCurveTo(17, 27, -18, 20);
-    g.quadraticCurveTo(-42, 13, -39, -11);
-    g.closePath();
-    g.fillPath();
-    g.strokePath();
-
-    this.ellipse(g, 49, -14, 25, 23, p.ink, p.skin, 1.8);
-    g.fillStyle(p.hair, 1);
-    g.lineStyle(1.4, p.ink, 1);
-    g.beginPath();
-    g.moveTo(42, -20);
-    g.quadraticCurveTo(50, -34, 64, -25);
-    g.quadraticCurveTo(67, -16, 58, -10);
-    g.quadraticCurveTo(51, -15, 42, -20);
-    g.closePath();
-    g.fillPath();
-    g.strokePath();
-
-    this.drawCurvedLimb(g, -12, 15, -27, 36, -49, 46, 4.5, p.ink, p.skin);
-    this.drawCurvedLimb(g, 8, 17, 18, 40, 42, 45, 4.5, p.ink, p.skin);
-    this.drawFoot(g, -52, 48, 10, 17, p.ink, p.boot);
-    this.drawFoot(g, 45, 47, 10, 17, p.ink, p.boot);
-    this.drawCurvedLimb(g, -21, -14, -44, -20, -57, -2, 4.2, p.ink, p.skin);
-    this.drawCurvedLimb(g, 18, -20, 34, -39, 53, -34, 4.2, p.ink, p.skin);
-    this.drawHand(g, -60, 0, p.ink, p.skin, true);
-    this.drawHand(g, 56, -35, p.ink, p.skin, true);
+    this.limb(g, -24, -12, -57, -3, 5, p.ink, p.skin);
+    this.limb(g, 20, -16, 55, -33, 5, p.ink, p.skin);
+    this.hand(g, -61, -2, p, true);
+    this.hand(g, 59, -35, p, true);
 
     g.lineStyle(1.2, p.softInk, 0.65);
-    g.beginPath();
-    g.moveTo(-24, -12);
-    g.quadraticCurveTo(-1, -4, 24, -13);
-    g.moveTo(-18, 7);
-    g.quadraticCurveTo(5, 15, 29, 5);
-    g.strokePath();
+    g.lineBetween(-25, -12, 22, -12);
+    g.lineBetween(-19, 7, 28, 5);
   }
 
-  drawCurvedLimb(g, sx, sy, ex, ey, wx, wy, width, ink, fill) {
-    g.lineStyle(width + 2.1, ink, 1);
-    g.beginPath();
-    g.moveTo(sx, sy);
-    g.quadraticCurveTo(ex, ey, wx, wy);
-    g.strokePath();
+  hair(g, p, x, y, scale = 1) {
+    g.fillStyle(p.hair, 1);
+    g.lineStyle(1.4, p.ink, 1);
+    g.fillEllipse(x, y, 29 * scale, 13 * scale);
+    g.strokeEllipse(x, y, 29 * scale, 13 * scale);
+    g.fillEllipse(x - 8 * scale, y + 5 * scale, 10 * scale, 8 * scale);
+    g.fillEllipse(x + 8 * scale, y + 5 * scale, 10 * scale, 8 * scale);
+  }
 
+  limb(g, x1, y1, x2, y2, width, ink, fill) {
+    g.lineStyle(width + 2.4, ink, 1);
+    g.lineBetween(x1, y1, x2, y2);
     g.lineStyle(width, fill, 1);
-    g.beginPath();
-    g.moveTo(sx, sy);
-    g.quadraticCurveTo(ex, ey, wx, wy);
-    g.strokePath();
-
-    g.lineStyle(1.05, ink, 0.9);
-    g.beginPath();
-    g.moveTo(sx, sy);
-    g.quadraticCurveTo(ex, ey, wx, wy);
-    g.strokePath();
+    g.lineBetween(x1, y1, x2, y2);
   }
 
-  drawHand(g, x, y, ink, fill, open) {
-    g.fillStyle(fill, 1);
-    g.lineStyle(1.4, ink, 1);
+  hand(g, x, y, p, open) {
+    const w = open ? 12 : 10;
+    const h = open ? 10 : 9;
+    this.ellipse(g, x, y, w, h, p.ink, p.skin, 1.25);
     if (open) {
-      g.beginPath();
-      g.moveTo(x - 6, y - 4);
-      g.quadraticCurveTo(x - 2, y - 10, x + 5, y - 7);
-      g.quadraticCurveTo(x + 9, y - 1, x + 5, y + 6);
-      g.quadraticCurveTo(x - 2, y + 10, x - 7, y + 4);
-      g.quadraticCurveTo(x - 9, y, x - 6, y - 4);
-      g.closePath();
-      g.fillPath();
-      g.strokePath();
-      return;
+      g.lineStyle(0.9, p.ink, 0.7);
+      g.lineBetween(x - 4, y - 2, x + 4, y - 2);
+      g.lineBetween(x - 4, y + 2, x + 4, y + 2);
     }
-
-    g.fillEllipse(x, y, 10, 9);
-    g.strokeEllipse(x, y, 10, 9);
   }
 
-  drawFoot(g, x, y, w, h, ink, fill) {
-    this.ellipse(g, x, y, w, h, ink, fill, 1.4);
-    g.lineStyle(1, ink, 0.55);
-    g.lineBetween(x - w * 0.3, y + h * 0.25, x + w * 0.3, y + h * 0.25);
-  }
-
-  drawPad(g, x, y, w, h, ink, fill, line) {
-    this.ellipse(g, x, y, w, h, ink, fill, 1.25);
-    g.lineStyle(0.9, line, 0.7);
-    g.lineBetween(x - w * 0.3, y, x + w * 0.3, y);
-  }
-
-  drawMatShadow(g, x, y, w, h) {
+  shadow(g, x, y, w, h) {
     g.fillStyle(0x000000, 0.12);
     g.fillEllipse(x, y, w, h);
   }
