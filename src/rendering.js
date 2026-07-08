@@ -47,10 +47,10 @@ function drawSlidingScene(ctx, state, tr) {
   const progress = 1 - Math.max(0, Math.min(1, tr.t / tr.total));
   const dirX = tr.direction?.x || 0;
   const dirY = tr.direction?.y || 0;
-  const targetX = dirX * PLAY_W * (1 - progress);
-  const targetY = dirY * PLAY_H * (1 - progress);
-  const fromX = -dirX * PLAY_W * progress;
-  const fromY = -dirY * PLAY_H * progress;
+  const fromX = dirX * PLAY_W * progress;
+  const fromY = dirY * PLAY_H * progress;
+  const targetX = -dirX * PLAY_W * (1 - progress);
+  const targetY = -dirY * PLAY_H * (1 - progress);
 
   ctx.save();
   clipPlay(ctx);
