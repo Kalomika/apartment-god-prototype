@@ -167,3 +167,33 @@ This is a broad behavior change. It may expose unsupported actions, awkward timi
 
 Follow ups:
 If this pass works, continue with deeper activity duration, sleep time speedup, thought bubbles, job schedules, default bookshelf, coffee maker, movie/show metadata, and clearer visible reasons for actor choices.
+
+---
+
+## 2026-07-08 05:10 AM CT, Render Playable Branch Updated for Autonomy Testing
+
+Status: NEEDS_TESTING
+Branch: main updated from phaser-migration
+Commit: main and phaser-migration matched at ed1bfd182e39d623878320068b724ac2870c30c0 before this log entry was appended
+Files changed: branch pointer update only before this log entry
+Runtime files changed: no additional runtime files beyond autonomy and movement commits
+Render playable branch updated: yes
+Backup branch: backup/main-before-autonomy-render-update-2026-07-08
+
+Summary:
+Updated `main` from `phaser-migration` so Kam can test the first autonomy intelligence upgrade through the Render browser link.
+
+Implementation details:
+A fresh backup of current `main` was created first. Then `main` was fast forwarded to the current `phaser-migration` state. No Render settings were changed and no manual deploy was triggered.
+
+Testing performed:
+GitHub compare verified `main` and `phaser-migration` were identical immediately after the branch update.
+
+Testing requested:
+Refresh the Render link and test Reset, idle autonomy, bathroom fallback, shower fallback, hunger fallback, social actions, dog behavior, activity variety, and garage routing near the ATV.
+
+Known risks:
+Render may take time to pick up the latest main branch state. The autonomy code still needs real browser testing.
+
+Follow ups:
+If Render behavior is broken, restore from backup/main-before-autonomy-render-update-2026-07-08 or compare against backup/phaser-migration-before-autonomy-upgrade-2026-07-08.
