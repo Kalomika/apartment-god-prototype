@@ -85,24 +85,42 @@ function drawFloorGrain(ctx, room) {
 
 function drawStyledDoorways(ctx, state, doorways) {
   for (const d of doorways.filter(x => x.floor === state.floor)) {
+    const gap = doorwayGapRect(d);
     ctx.save();
     ctx.fillStyle = STYLE.floor;
-    ctx.fillRect(d.x - 2, d.y - 2, d.w + 4, d.h + 4);
+    ctx.fillRect(gap.x, gap.y, gap.w, gap.h);
+    ctx.fillStyle = 'rgba(139,111,83,.10)';
+    ctx.fillRect(gap.x, gap.y, gap.w, gap.h);
     ctx.strokeStyle = '#7f756a';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    if (d.w > d.h) {
-      ctx.arc(d.x + 10, d.y + d.h, 30, -Math.PI / 2, 0);
-      ctx.moveTo(d.x + 8, d.y + d.h);
-      ctx.lineTo(d.x + Math.min(42, d.w), d.y + d.h);
+    if (d.w >= d.h) {
+      const y = d.y + d.h / 2;
+      ctx.moveTo(d.x + 8, y);
+      ctx.lineTo(d.x + d.w - 8, y);
+      ctx.moveTo(d.x + 8, y);
+      ctx.arc(d.x + 8, y, Math.min(30, Math.max(18, d.w / 3)), -Math.PI / 2, 0);
     } else {
-      ctx.arc(d.x, d.y + 10, 30, 0, Math.PI / 2);
-      ctx.moveTo(d.x, d.y + 8);
-      ctx.lineTo(d.x, d.y + Math.min(42, d.h));
+      const x = d.x + d.w / 2;
+      ctx.moveTo(x, d.y + 8);
+      ctx.lineTo(x, d.y + d.h - 8);
+      ctx.moveTo(x, d.y + 8);
+      ctx.arc(x, d.y + 8, Math.min(30, Math.max(18, d.h / 3)), 0, Math.PI / 2);
     }
     ctx.stroke();
     ctx.restore();
   }
+}
+
+function doorwayGapRect(d) {
+  const alongPad = 14;
+  const wallCut = 22;
+  if (d.w >= d.h) {
+    const h = Math.max(44, d.h + wallCut * 2);
+    return { x: d.x - alongPad, y: d.y + d.h / 2 - h / 2, w: d.w + alongPad * 2, h };
+  }
+  const w = Math.max(44, d.w + wallCut * 2);
+  return { x: d.x + d.w / 2 - w / 2, y: d.y - alongPad, w, h: d.h + alongPad * 2 };
 }
 
 function drawStyledWindows(ctx, state, windows) {
