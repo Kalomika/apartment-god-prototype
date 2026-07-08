@@ -3,15 +3,15 @@ import { log } from './state.js';
 
 const MAIN_LEVEL_AREAS = new Set([0, 3, 4]);
 const AREA_POSITIONS = {
-  3: { x: -1, y: 0, label: 'Garage' },
+  4: { x: 0, y: -1, label: 'Backyard' },
   0: { x: 0, y: 0, label: 'Main House' },
-  4: { x: 0, y: -1, label: 'Backyard' }
+  3: { x: 1, y: 0, label: 'Garage' }
 };
 
 const BLUEPRINT_FLOORS = [
   { id: 1, label: 'Upstairs', className: 'upstairs' },
-  { id: 0, label: 'Main House', className: 'main' },
   { id: 4, label: 'Backyard', className: 'yard' },
+  { id: 0, label: 'Main House', className: 'main' },
   { id: 3, label: 'Garage', className: 'garage' },
   { id: 2, label: 'Basement', className: 'basement' }
 ];
@@ -131,7 +131,9 @@ function createTransition(from, to, label, reason) {
 function slideDirection(from, to) {
   const a = AREA_POSITIONS[from] || AREA_POSITIONS[0];
   const b = AREA_POSITIONS[to] || AREA_POSITIONS[0];
-  return { x: Math.sign(b.x - a.x), y: Math.sign(b.y - a.y) };
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  return { x: -Math.sign(dx), y: Math.sign(dy) };
 }
 
 function verticalDirection(from, to) {
@@ -339,14 +341,13 @@ function drawVerticalTransition(ctx, tr, progress, playW, playH) {
   ctx.save();
   ctx.translate(playW / 2, playH / 2 + entering * (1 - progress) * 28);
   ctx.scale(scale, scale);
-  ctx.translate(-playW / 2, -playH / 2);
   ctx.strokeStyle = `rgba(241,198,106,${0.75 * alpha})`;
   ctx.lineWidth = 5;
-  ctx.strokeRect(24, 24, playW - 48, playH - 48);
+  ctx.strokeRect(-playW * .36, -playH * .28, playW * .72, playH * .56);
   ctx.restore();
-  ctx.fillStyle = `rgba(241,198,106,${0.90 * alpha})`;
+  ctx.fillStyle = `rgba(248,251,255,${0.92 * alpha})`;
   ctx.font = '900 24px system-ui';
   ctx.textAlign = 'center';
-  ctx.fillText(`${tr.direction === 'up' ? 'Going up to' : 'Going down to'} ${tr.label}`, playW / 2, 66);
+  ctx.fillText(`Moving ${tr.direction} to ${tr.label}`, playW / 2, 68);
   ctx.textAlign = 'left';
 }
