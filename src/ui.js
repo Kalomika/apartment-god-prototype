@@ -58,6 +58,8 @@ export function createUi(state, surface, options = {}) {
     actor.queuedTask = null;
     actor.actionT = 0;
     actor.actionTotal = 0;
+    actor.blockedT = 0;
+    actor.recoveryCount = 0;
     actor.stopped = false;
     actor.pose = 'stand';
     if (!actor.carrying || !String(actor.carrying).includes('luggage')) actor.carrying = null;
@@ -65,12 +67,12 @@ export function createUi(state, surface, options = {}) {
 
   function guidedObject(actor, obj, actionId) {
     guidedInterrupt(actor);
-    return startObjectAction(state, actor, obj, actionId);
+    return startObjectAction(state, actor, obj, actionId, { force: state.autonomyMode === 'guided' });
   }
 
   function guidedSocial(actor, target, socialId) {
     guidedInterrupt(actor);
-    return startSocialAction(state, actor, target, socialId);
+    return startSocialAction(state, actor, target, socialId, { force: state.autonomyMode === 'guided' });
   }
 
   function guidedCooking(actor) {
@@ -81,7 +83,7 @@ export function createUi(state, surface, options = {}) {
 
   function guidedOffsite(actor, actionId, invitedIds = [], vehicleId = 'auto') {
     guidedInterrupt(actor);
-    return startOffsite(state, actor, actionId, invitedIds, vehicleId);
+    return startOffsite(state, actor, actionId, invitedIds, vehicleId, { force: state.autonomyMode === 'guided' });
   }
 
   function handleCanvasPoint(x, y, menuX = null, menuY = null) {
