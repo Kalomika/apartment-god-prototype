@@ -9,12 +9,18 @@ export function createArena() {
     r('east_block', 810, 352, 96, 130),
     r('lower_left_block', 86, 514, 118, 122),
     r('lower_mid_block', 394, 516, 108, 82),
-    r('lower_right_block', 604, 558, 190, 64)
+    r('lower_right_block', 604, 558, 190, 64),
+    r('boulder_north_west', 47, 126, 48, 52, null, { cover: true, boulder: true }),
+    r('boulder_north_mid', 240, 86, 52, 46, null, { cover: true, boulder: true }),
+    r('boulder_center', 494, 306, 58, 62, null, { cover: true, boulder: true }),
+    r('boulder_lower_mid', 276, 628, 58, 48, null, { cover: true, boulder: true }),
+    r('boulder_east_high', 862, 142, 56, 50, null, { cover: true, boulder: true }),
+    r('boulder_east_low', 846, 590, 64, 56, null, { cover: true, boulder: true })
   ];
   return {
     name: 'Diagnostic Terrain Layout', w: ARENA_W, h: ARENA_H,
-    spawnA: { x: 205, y: 618, facing: -0.55, dropY: -120 },
-    spawnB: { x: 784, y: 116, facing: 2.55, dropY: -190 },
+    spawnA: { x: 205, y: 618, facing: -0.55, dropY: 840, dropX: 142 },
+    spawnB: { x: 784, y: 116, facing: 2.55, dropY: -230, dropX: 860 },
     walls: blocks,
     shadows: [
       r('shade_north', 92, 62, 150, 126),
@@ -46,7 +52,7 @@ export function slide(arena, f, next) {
 }
 export function nearCover(arena, f) {
   return coverCandidates(arena)
-    .filter(box => Math.hypot(f.x - (box.x + box.w / 2), f.y - (box.y + box.h / 2)) < 260)
+    .filter(box => Math.hypot(f.x - (box.x + box.w / 2), f.y - (box.y + box.h / 2)) < 320)
     .sort((a, b) => coverScore(f, a) - coverScore(f, b))[0] || null;
 }
 
@@ -75,13 +81,14 @@ function coverScore(f, cover) {
   const c = center(cover);
   const distance = Math.hypot(f.x - c.x, f.y - c.y);
   const sizePenalty = Math.max(0, cover.w * cover.h - 14000) / 900;
-  return distance + sizePenalty;
+  const boulderBonus = cover.boulder ? -48 : 0;
+  return distance + sizePenalty + boulderBonus;
 }
 
 function coverPointScore(arena, f, enemy, p) {
   const travel = Math.hypot(f.x - p.x, f.y - p.y);
-  const exposed = enemy && segmentOpen(arena, p, enemy, 3) ? 90 : 0;
-  const cramped = nearWall(arena, p, 24) ? 35 : 0;
+  const exposed = enemy && segmentOpen(arena, p, enemy, 3) ? 140 : 0;
+  const cramped = nearWall(arena, p, 24) ? 20 : 0;
   return travel + exposed + cramped;
 }
 
