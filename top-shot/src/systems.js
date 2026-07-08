@@ -39,13 +39,26 @@ function updateDeployment(state, dt) {
   let allLanded = true;
   for (const f of state.fighters) {
     if (!f.deploying || !f.deploy) continue;
-    f.deploy.t = Math.min(f.deploy.duration, f.deploy.t + dt);
-    const t = clamp(f.deploy.t / Math.max(0.01, f.deploy.duration), 0, 1);
+    const delay = f.deploy.delay || 0;
+    f.deploy.t += dt;
+    const activeT = Math.max(0, f.deploy.t - delay);
+    const t = clamp(activeT / Math.max(0.01, f.deploy.duration), 0, 1);
+    if (f.deploy.t < delay) {
+      allLanded = false;
+      f.x = f.deploy.fromX;
+      f.y = f.deploy.fromY;
+      f.deployAltitude = f.deploy.altitude;
+      f.pose = 'parachute_wait';
+      f.intent = 'stacking';
+      continue;
+    }
     const eased = 1 - Math.pow(1 - t, 3);
-    f.x = f.spawn.x;
+    const drift = Math.sin(t * Math.PI) * (f.team === 'A' ? 26 : -26);
+    f.x = f.deploy.fromX + (f.deploy.toX - f.deploy.fromX) * eased + drift;
     f.y = f.deploy.fromY + (f.deploy.toY - f.deploy.fromY) * eased;
+    f.deployAltitude = Math.max(0, f.deploy.altitude * (1 - eased));
     f.facing = f.spawn.facing;
-    f.pose = t < 1 ? 'parachute' : 'land';
+    f.pose = t < 0.94 ? 'parachute' : t < 1 ? 'land' : 'idle_guard';
     f.intent = t < 1 ? 'deploy' : 'scan';
     f.noise = 0;
     f.hidden = false;
@@ -54,9 +67,10 @@ function updateDeployment(state, dt) {
     if (t < 1) allLanded = false;
     else if (f.deploying) {
       f.deploying = false;
+      f.deployAltitude = 0;
       f.actionT = 0.22;
       f.noise = 28;
-      state.effects.push({ type: 'command', x: f.x, y: f.y - 30, ttl: 0.45, label: 'ok' });
+      state.effects.push({ type: 'landing_flash', x: f.x, y: f.y, ttl: 0.38, label: 'ok' });
     }
   }
   if (!allLanded) return;
@@ -65,6 +79,7 @@ function updateDeployment(state, dt) {
     f.intent = 'scan';
     f.pose = 'idle_guard';
     f.deploy = null;
+    f.deployAltitude = 0;
     f.deploying = false;
   });
   addLog(state, 'Both fighters landed. Match is live on the desert industrial site.');
@@ -90,7 +105,7 @@ function updateFighter(state, f, dt) {
 
   f.spottedT = Math.max(0, (f.spottedT || 0) - dt);
   updateBrain(state, f, enemy, visible, audible);
-  chooseStance(f, enemy, visible);
+  chooseStance(state, f, enemy, visible);
   if (!f.tacticLock || f.tacticLock <= state.clock) {
     updateTacticalPosture(state, f, enemy, visible, dt);
     f.tacticLock = state.clock + 0.3;
@@ -149,10 +164,12 @@ function stuckEscapePoint(state, f, destination) {
   return options.sort((a, b) => dist(b, destination) - dist(a, destination))[0] || { x: f.x, y: f.y };
 }
 
-function chooseStance(f, enemy, visible) {
+function chooseStance(state, f, enemy, visible) {
   const d = dist(f, enemy);
+  const underFire = f.suppressedUntil && f.suppressedUntil > state.clock;
   f.prone = false; f.crouch = false;
   if (f.hideCooldown > 0) return;
+  if (underFire && !f.wallLean) { f.crouch = true; return; }
   if (['marine', 'survival_commando'].includes(f.archetypeId) && d > 220 && f.hp < 80 && visible) f.prone = true;
   if (['suit_operative', 'field_agent'].includes(f.archetypeId) && d > 110 && (f.hp < 68 || f.shadowHidden || f.archetypeId === 'field_agent')) f.crouch = true;
   if ((['ninja', 'shadow_ninja'].includes(f.archetypeId) || f.archetypeId === 'archer') && (!visible || f.bleed?.rate > 0) && d > 110) f.crouch = true;
