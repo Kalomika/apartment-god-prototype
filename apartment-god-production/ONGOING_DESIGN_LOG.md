@@ -338,3 +338,37 @@ This touches core action timing and movement cleanup. If any action ends too lat
 
 Follow ups:
 If override still fails from any UI path, patch that exact path to call guidedInterrupt before starting its action. Then add true thought bubbles versus speech bubbles.
+
+---
+
+## 2026-07-08 07:05 AM CT, Duplicate Activity Tick Cleanup
+
+Status: NEEDS_TESTING
+Branch: main
+Commit: runtime fed5d20d2a0a90045654d3b6fff561ac1ee3c6da, log pending
+Files changed: src/canvasRuntime.js, apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: main commit only, no Render settings changed and no manual deploy triggered
+Backup branch: not created in this pass
+
+Summary:
+Removed a real runtime anomaly where the same gameplay systems could tick twice per frame.
+
+Implementation details:
+
+- `canvasRuntime` was directly calling `updateVehicleDeparture` and `updateGameActivities`.
+- `updateAutoHooks` was also calling `updateVehicleDeparture` and `updateGameActivities` in the same frame.
+- Removed the direct imports and calls from `canvasRuntime` so `updateAutoHooks` remains the single central place for delivery, cooking, fetch, garbage, appointments, music, training, object moving, vehicles, pool, soccer, and other hook based systems.
+- This should stop vehicles, pool, soccer, and similar persistent activity jobs from moving or timing down twice as fast.
+
+Testing performed:
+Code inspection only through GitHub connector. No local build or Render browser test performed.
+
+Testing requested:
+Refresh the Render link after it picks up the commit, then test vehicle departure/return, pool, soccer, food delivery, cooking, music, training, and object moving to confirm they still update once and no longer feel sped up.
+
+Known risks:
+If any system was accidentally depending on the double tick to feel responsive, its own duration should be tuned directly instead of restoring duplicate frame updates.
+
+Follow ups:
+Next pass should target cooking and snack/fridge staging so eating consequences happen only after visible prep and eating timers, not immediately after food prep.
