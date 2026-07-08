@@ -36,45 +36,55 @@ export function syncPhoneUi(state) {
 function buildPhoneUi(state) {
   built = true;
   const wrap = document.getElementById('game-wrap');
+  const controlBar = document.getElementById('game-control-bar') || wrap;
+
+  const verticalDock = document.createElement('section');
+  verticalDock.id = 'vertical-nav-dock';
+  verticalDock.className = 'control-bar-group vertical-control-group';
 
   const up = document.createElement('button');
   up.textContent = '↑ Up';
-  up.style.cssText = 'position:absolute;right:12px;top:12px;z-index:6;opacity:.72;padding:8px 10px;border-radius:999px;backdrop-filter:blur(8px);';
+  up.className = 'control-bar-button vertical-control-button';
+  up.type = 'button';
   up.onclick = event => { event.stopPropagation(); navigateView(state, upTarget(state.floor), floorName(upTarget(state.floor)), 'vertical-button'); dirty = true; };
-  wrap.appendChild(up);
 
   const down = document.createElement('button');
   down.textContent = '↓ Down';
-  down.style.cssText = 'position:absolute;right:12px;bottom:12px;z-index:6;opacity:.72;padding:8px 10px;border-radius:999px;backdrop-filter:blur(8px);';
+  down.className = 'control-bar-button vertical-control-button';
+  down.type = 'button';
   down.onclick = event => { event.stopPropagation(); navigateView(state, downTarget(state.floor), floorName(downTarget(state.floor)), 'vertical-button'); dirty = true; };
-  wrap.appendChild(down);
+
+  verticalDock.appendChild(up);
+  verticalDock.appendChild(down);
 
   const dock = document.createElement('section');
   dock.id = 'phone-dock';
-  dock.style.cssText = 'position:absolute;right:12px;bottom:72px;z-index:40;display:flex;flex-direction:row;align-items:center;gap:12px;pointer-events:none;';
+  dock.className = 'control-bar-group phone-control-group';
 
   const button = document.createElement('button');
   button.setAttribute('aria-label', 'Cell Phone');
-  button.className = 'phone-float-button';
-  button.style.cssText = 'pointer-events:auto;width:52px;height:52px;border-radius:17px;font-size:27px;display:grid;place-items:center;padding:0;background:rgba(32,38,55,.72);border:2px solid rgba(241,198,106,.68);box-shadow:0 12px 32px rgba(0,0,0,.36);backdrop-filter:blur(8px);opacity:.78;';
+  button.className = 'phone-float-button control-bar-button icon-control-button';
+  button.type = 'button';
   button.onclick = event => { event.stopPropagation(); open = !open; dirty = true; fitPhonePanel(); renderPhone(state); };
 
   const panel = document.createElement('div');
-  panel.style.cssText = 'pointer-events:auto;display:none;position:fixed;right:12px;bottom:12px;width:min(430px,calc(100vw - 24px));max-height:min(74vh,calc(100vh - 96px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;border-radius:22px;background:#10141d;border:2px solid #2d3545;padding:14px;box-shadow:0 22px 70px rgba(0,0,0,.65);';
+  panel.id = 'phone-panel';
+  panel.style.cssText = 'display:none;position:fixed;right:12px;bottom:86px;width:min(430px,calc(100vw - 24px));max-height:min(74vh,calc(100vh - 120px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;border-radius:22px;background:#10141d;border:2px solid #2d3545;padding:14px;box-shadow:0 22px 70px rgba(0,0,0,.65);z-index:60;';
   panel.onclick = event => event.stopPropagation();
   panel.onpointerdown = event => event.stopPropagation();
 
-  dock.appendChild(panel);
   dock.appendChild(button);
-  wrap.appendChild(dock);
-  els = { button, panel, up, down };
+  controlBar.appendChild(verticalDock);
+  controlBar.appendChild(dock);
+  document.body.appendChild(panel);
+  els = { button, panel, up, down, dock, verticalDock };
   window.addEventListener('resize', fitPhonePanel);
   updatePhoneButton(state);
 }
 
 function fitPhonePanel() {
   if (!els.panel) return;
-  const max = Math.max(260, window.innerHeight - 96);
+  const max = Math.max(260, window.innerHeight - 120);
   els.panel.style.maxHeight = `${Math.min(max, Math.round(window.innerHeight * 0.74))}px`;
 }
 
