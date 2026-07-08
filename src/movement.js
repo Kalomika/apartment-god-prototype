@@ -156,32 +156,30 @@ function finishFloorTravel(state, entity) {
   return true;
 }
 
-function recoverBlocked(entity, _next, dt) {
+function recoverBlocked(state, entity, _next, dt) {
   entity.blockedT = (entity.blockedT || 0) + dt;
-  if (entity.blockedT < 0.35) return;
+  if (entity.blockedT < 0.25) return false;
   entity.blockedT = 0;
   entity.recoveryCount = (entity.recoveryCount || 0) + 1;
   if (entity.path.length > 1) {
     entity.path.shift();
-    return;
+    return false;
   }
   const final = entity.path[0];
-  if (final && entity.recoveryCount <= 5) {
+  if (final && entity.recoveryCount <= 3) {
     const reroute = routeAround({ x: entity.x, y: entity.y }, final, entity.floor, entity.moveAllowId || '');
     if (reroute.length) {
       entity.path = reroute;
-      return;
+      return false;
     }
   }
-  if (final && entity.recoveryCount <= 7 && canStepThroughRooms({ x: entity.x, y: entity.y }, final, entity.floor)) {
-    entity.path = [final];
-    return;
-  }
+  if (final) return acceptWaypoint(state, entity, final);
   entity.path = [];
   entity.target = null;
   clearMoveAllowance(entity);
-  entity.action = 'Blocked';
+  entity.action = 'Idle';
   entity.pose = 'stand';
+  return false;
 }
 
 function closeEnoughToFinish(entity, next, dist) {
@@ -218,8 +216,7 @@ export function updateMovement(state, entity, dt) {
   if (dist <= step) {
     const from = { x: entity.x, y: entity.y };
     if (!blockedStep(entity, from, next) || closeEnoughToFinish(entity, next, dist)) return acceptWaypoint(state, entity, next);
-    recoverBlocked(entity, next, dt);
-    return false;
+    return recoverBlocked(state, entity, next, dt);
   }
   const from = { x: entity.x, y: entity.y };
   const to = { x: entity.x + (dx / dist) * step, y: entity.y + (dy / dist) * step };
@@ -231,7 +228,7 @@ export function updateMovement(state, entity, dt) {
   } else if (closeEnoughToFinish(entity, next, dist)) {
     return acceptWaypoint(state, entity, next);
   } else {
-    recoverBlocked(entity, next, dt);
+    return recoverBlocked(state, entity, next, dt);
   }
   return false;
 }
