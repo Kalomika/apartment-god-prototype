@@ -79,6 +79,35 @@ export function createUi(state, surface, options = {}) {
     handleCanvasPoint(p.x, p.y, p.menuX, p.menuY);
   }
 
+  function jumpArea(floor, label = floors[floor]?.name || 'area') {
+    state.floor = floor;
+    state.viewHoldT = floor === 0 ? 0 : 14;
+    closeMenu();
+    log(state, `Viewing ${label}.`);
+  }
+
+  function openCompoundMap() {
+    openMenu(16, 74, 'House Map', [
+      { label: 'Main House', run: () => jumpArea(0, 'Main House') },
+      { label: 'Backyard, same level', run: () => jumpArea(4, 'Backyard') },
+      { label: 'Garage, same level', run: () => jumpArea(3, 'Garage') },
+      { label: 'Front Patio', run: () => jumpArea(0, 'Front Patio / Entry') },
+      { label: 'Upstairs', run: () => jumpArea(1, 'Upstairs') },
+      { label: 'Basement', run: () => jumpArea(2, 'Basement') }
+    ]);
+  }
+
+  function changeVertical(delta) {
+    if (delta > 0) {
+      if (state.floor === 2) return jumpArea(0, 'Main House');
+      if (state.floor === 0) return jumpArea(1, 'Upstairs');
+      return jumpArea(1, 'Upstairs');
+    }
+    if (state.floor === 1) return jumpArea(0, 'Main House');
+    if (state.floor === 0) return jumpArea(2, 'Basement');
+    return jumpArea(2, 'Basement');
+  }
+
   function selfItems(actor) { return [
     { label: 'Cell', run: () => cell(actor) }, { label: 'Stop', run: () => stopEntity(actor) }, { label: 'Resume / Auto', run: () => resumeEntity(actor) },
     { label: 'Get food', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'fridge'), 'snack') }, { label: 'Cook meal', run: () => startCookingFlow(state, actor) },
@@ -107,16 +136,17 @@ export function createUi(state, surface, options = {}) {
     if (obj.kind === 'motorbike' && actionId === 'motorbike_trip') return startOffsite(state, actor, actionId, [], 'motorbike');
     startObjectAction(state, actor, obj, actionId);
   }
-  function setFloor(floor) { state.floor = floor; state.viewHoldT = floor === 0 ? 0 : 18; closeMenu(); log(state, `Viewing ${floors[floor]?.name || 'floor'}.`); }
+  function setFloor(floor) { jumpArea(floor, floors[floor]?.name || 'area'); }
 
   function bindButtons() {
-    for (let i = 0; i <= 4; i++) { const btn = document.getElementById(`floor-${i}`); if (btn) btn.onclick = () => setFloor(i); }
+    const areaButtons = [[0, 'Main'], [1, 'Upstairs'], [2, 'Basement'], [3, 'Garage Area'], [4, 'Backyard']];
+    for (const [i, label] of areaButtons) { const btn = document.getElementById(`floor-${i}`); if (btn) { btn.textContent = label; btn.onclick = () => setFloor(i); } }
     document.getElementById('speed-1').onclick = () => { state.speed = 1; };
     document.getElementById('speed-3').onclick = () => { state.speed = 3; };
     document.getElementById('pause').onclick = () => { state.paused = !state.paused; };
     document.getElementById('reset').onclick = () => { clearRefreshState(state); location.reload(); };
     commandPanel.innerHTML = '';
-    const buttons = [['Cell', () => cell(selected(state))], ['Save', () => saveGame(state, 1)], ['Load', () => loadGame(state, 1)], ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))], ['Auto Mode', () => { state.autonomyMode = state.autonomyMode === 'free' ? 'guided' : 'free'; log(state, `Autonomy: ${state.autonomyMode}.`); }]];
+    const buttons = [['Map', () => openCompoundMap()], ['Up', () => changeVertical(1)], ['Down', () => changeVertical(-1)], ['Cell', () => cell(selected(state))], ['Save', () => saveGame(state, 1)], ['Load', () => loadGame(state, 1)], ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))], ['Auto Mode', () => { state.autonomyMode = state.autonomyMode === 'free' ? 'guided' : 'free'; log(state, `Autonomy: ${state.autonomyMode}.`); }]];
     for (const [label, run] of buttons) { const b = document.createElement('button'); b.textContent = label; b.onclick = run; commandPanel.appendChild(b); }
   }
 
