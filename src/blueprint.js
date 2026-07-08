@@ -6,8 +6,8 @@ export const doorways = [
   { floor: 0, a: 'living', b: 'entry', x: 226, y: 336, w: 86, h: 18 },
   { floor: 0, a: 'kitchen', b: 'entry', x: 586, y: 336, w: 92, h: 18 },
   { floor: 0, a: 'bath', b: 'entry', x: 840, y: 336, w: 58, h: 18 },
-  { floor: 0, a: 'entry', b: 'front_porch', x: 218, y: 632, w: 96, h: 16 },
-  { floor: 0, a: 'entry', b: 'front_porch', x: 326, y: 632, w: 46, h: 16 },
+  { floor: 0, a: 'entry', b: 'front_porch', x: 218, y: 556, w: 118, h: 24 },
+  { floor: 0, a: 'entry', b: 'front_porch', x: 348, y: 556, w: 58, h: 24 },
   { floor: 0, a: 'entry', b: 'stairs', x: 704, y: 410, w: 18, h: 62 },
   { floor: 0, a: 'entry', b: 'stairs', x: 642, y: 538, w: 72, h: 54 },
   { floor: 0, a: 'kitchen', b: 'stairs', x: 770, y: 300, w: 68, h: 22 },
@@ -15,9 +15,6 @@ export const doorways = [
   { floor: 1, a: 'office', b: 'hall', x: 574, y: 382, w: 82, h: 18 },
   { floor: 1, a: 'bath2', b: 'hall', x: 826, y: 382, w: 64, h: 18 },
   { floor: 1, a: 'hall', b: 'stairs2', x: 802, y: 516, w: 58, h: 22 },
-  { floor: 3, a: 'garage_bay', b: 'garage_storage', x: 180, y: 456, w: 100, h: 18 },
-  { floor: 3, a: 'garage_bay', b: 'garage_entry', x: 640, y: 456, w: 110, h: 18 },
-  { floor: 3, a: 'garage_storage', b: 'garage_entry', x: 486, y: 540, w: 18, h: 60 },
   { floor: 4, a: 'yard', b: 'pool_area', x: 596, y: 150, w: 18, h: 100 },
   { floor: 4, a: 'yard', b: 'kennel_area', x: 596, y: 470, w: 18, h: 92 }
 ];
@@ -27,7 +24,7 @@ export const windows = [
   { id: 'win_kitchen', label: 'Kitchen Window', floor: 0, room: 'kitchen', x: 618, y: 34, w: 82, h: 8 },
   { id: 'win_bedroom', label: 'Bedroom Window', floor: 1, room: 'bedroom', x: 142, y: 34, w: 96, h: 8 },
   { id: 'win_office', label: 'Office Window', floor: 1, room: 'office', x: 564, y: 34, w: 88, h: 8 },
-  { id: 'win_garage', label: 'Garage Vent', floor: 3, room: 'garage_bay', x: 420, y: 34, w: 110, h: 8 }
+  { id: 'win_garage', label: 'Garage Vent', floor: 3, room: 'garage', x: 420, y: 34, w: 110, h: 8 }
 ];
 
 export function doorwayCenter(d) { return { x: d.x + d.w / 2, y: d.y + d.h / 2 }; }
@@ -47,13 +44,13 @@ function segmentIntersectsRect(from, to, rect) {
 }
 
 export function doorwayPassageRect(d) {
-  const alongPad = 10;
-  const crossPad = 16;
+  const alongPad = 12;
+  const crossPad = 22;
   if (d.w >= d.h) {
-    const h = Math.max(34, d.h + crossPad * 2);
+    const h = Math.max(46, d.h + crossPad * 2);
     return { x: d.x - alongPad, y: d.y + d.h / 2 - h / 2, w: d.w + alongPad * 2, h };
   }
-  const w = Math.max(34, d.w + crossPad * 2);
+  const w = Math.max(46, d.w + crossPad * 2);
   return { x: d.x + d.w / 2 - w / 2, y: d.y - alongPad, w, h: d.h + alongPad * 2 };
 }
 
