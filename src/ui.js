@@ -50,6 +50,40 @@ export function createUi(state, surface, options = {}) {
   const entityAt = (x, y) => [...state.entities].reverse().find(e => !e.hidden && e.floor === state.floor && Math.hypot(e.x - x, e.y - y) < (e.type === 'dog' ? 34 : 30));
   const cell = actor => openDeviceHome(state, actor, openMenu);
 
+  function guidedInterrupt(actor) {
+    if (!actor || state.autonomyMode !== 'guided') return;
+    actor.path = [];
+    actor.target = null;
+    actor.pending = null;
+    actor.queuedTask = null;
+    actor.actionT = 0;
+    actor.actionTotal = 0;
+    actor.stopped = false;
+    actor.pose = 'stand';
+    if (!actor.carrying || !String(actor.carrying).includes('luggage')) actor.carrying = null;
+  }
+
+  function guidedObject(actor, obj, actionId) {
+    guidedInterrupt(actor);
+    return startObjectAction(state, actor, obj, actionId);
+  }
+
+  function guidedSocial(actor, target, socialId) {
+    guidedInterrupt(actor);
+    return startSocialAction(state, actor, target, socialId);
+  }
+
+  function guidedCooking(actor) {
+    guidedInterrupt(actor);
+    state.cookingJob = null;
+    return startCookingFlow(state, actor);
+  }
+
+  function guidedOffsite(actor, actionId, invitedIds = [], vehicleId = 'auto') {
+    guidedInterrupt(actor);
+    return startOffsite(state, actor, actionId, invitedIds, vehicleId);
+  }
+
   function handleCanvasPoint(x, y, menuX = null, menuY = null) {
     if (state.suppressNextCanvasClick || state.cameraGestureActive) {
       state.suppressNextCanvasClick = false;
@@ -64,7 +98,7 @@ export function createUi(state, surface, options = {}) {
     const ent = entityAt(x, y);
     if (state.assign && ent) {
       const obj = objects.find(o => o.id === state.assign.objectId);
-      if (obj) startObjectAction(state, ent, obj, state.assign.actionId);
+      if (obj) guidedObject(ent, obj, state.assign.actionId);
       state.assign = null;
       return closeMenu();
     }
@@ -76,7 +110,9 @@ export function createUi(state, surface, options = {}) {
     const now = performance.now();
     const run = now - lastTap < DOUBLE_TAP_MS;
     lastTap = now;
-    commandMove(selected(state), x, y, run);
+    const actor = selected(state);
+    guidedInterrupt(actor);
+    commandMove(actor, x, y, run);
   }
 
   function clickCanvas(event) {
@@ -118,19 +154,19 @@ export function createUi(state, surface, options = {}) {
 
   function selfItems(actor) { return [
     { label: 'Cell', run: () => cell(actor) }, { label: 'Stop', run: () => stopEntity(actor) }, { label: 'Resume / Auto', run: () => resumeEntity(actor) },
-    { label: 'Get food', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'fridge'), 'snack') }, { label: 'Cook meal', run: () => startCookingFlow(state, actor) },
-    { label: 'Shower', run: () => startObjectAction(state, actor, objects.find(o => o.kind === 'shower' && o.floor === actor.floor) || objects.find(o => o.id === 'shower'), 'shower') }
+    { label: 'Get food', run: () => guidedObject(actor, objects.find(o => o.id === 'fridge'), 'snack') }, { label: 'Cook meal', run: () => guidedCooking(actor) },
+    { label: 'Shower', run: () => guidedObject(actor, objects.find(o => o.kind === 'shower' && o.floor === actor.floor) || objects.find(o => o.id === 'shower'), 'shower') }
   ]; }
 
   function socialItems(actor, target) {
     const list = target.type === 'dog' ? DOG_SOCIAL_ACTIONS : SOCIAL_ACTIONS;
-    return [...list.map(([id, label]) => ({ label, run: () => startSocialAction(state, actor, target, id) })), { label: `Select ${target.name}`, run: () => { state.selectedId = target.id; log(state, `${target.name} selected.`); } }];
+    return [...list.map(([id, label]) => ({ label, run: () => guidedSocial(actor, target, id) })), { label: `Select ${target.name}`, run: () => { state.selectedId = target.id; log(state, `${target.name} selected.`); } }];
   }
 
   function objectItems(actor, obj) {
     const actions = ACTIONS[obj.kind] || [['use', 'Use']];
     const items = actions.map(([id, label]) => ({ label: `${actor.name}: ${label}`, run: () => useObject(actor, obj, id) }));
-    if (obj.kind === 'bookshelf') items.push({ label: `${actor.name}: Pull Book / Read`, run: () => startBook(state, actor, obj) });
+    if (obj.kind === 'bookshelf') items.push({ label: `${actor.name}: Pull Book / Read`, run: () => { guidedInterrupt(actor); startBook(state, actor, obj); } });
     if (obj.kind === 'desk' || obj.kind === 'stereo') items.push({ label: `${actor.name}: Open Cell`, run: () => cell(actor) });
     items.push({ label: 'Move', run: () => beginMoveObject(state, actor, obj) });
     items.push({ label: 'Assign this object...', run: () => { state.assign = { objectId: obj.id, actionId: actions[0][0] }; log(state, `Tap who should use ${obj.label}.`); } });
@@ -138,11 +174,11 @@ export function createUi(state, surface, options = {}) {
   }
 
   function useObject(actor, obj, actionId) {
-    if (actionId === 'meal') return startCookingFlow(state, actor);
-    if ((obj.kind === 'door' || obj.kind === 'car') && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return startOffsite(state, actor, actionId, [], obj.kind === 'car' ? obj.id : 'auto');
-    if (obj.kind === 'bike' && actionId === 'bike_trip') return startOffsite(state, actor, actionId, [], 'bike');
-    if (obj.kind === 'motorbike' && actionId === 'motorbike_trip') return startOffsite(state, actor, actionId, [], 'motorbike');
-    startObjectAction(state, actor, obj, actionId);
+    if (actionId === 'meal') return guidedCooking(actor);
+    if ((obj.kind === 'door' || obj.kind === 'car') && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return guidedOffsite(actor, actionId, [], obj.kind === 'car' ? obj.id : 'auto');
+    if (obj.kind === 'bike' && actionId === 'bike_trip') return guidedOffsite(actor, actionId, [], 'bike');
+    if (obj.kind === 'motorbike' && actionId === 'motorbike_trip') return guidedOffsite(actor, actionId, [], 'motorbike');
+    guidedObject(actor, obj, actionId);
   }
   function setFloor(floor) { jumpArea(floor, floors[floor]?.name || 'area'); }
 
