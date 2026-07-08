@@ -1,0 +1,93 @@
+{
+  "repo": "Kalomika/apartment-god-prototype",
+  "branch": "phaser-migration",
+  "inventory_date": "2026-07-07",
+  "purpose": "Replacement queue for current built in procedural Apartment God objects and visual pieces.",
+  "runtime_changes_made": false,
+  "game_code_changed": false,
+  "visuals_replaced": false,
+  "primary_inventory_files": {
+    "markdown": "assets/sprite_replacement_queue/OBJECT_ITINERARY.md",
+    "csv": "assets/sprite_replacement_queue/asset_inventory.csv",
+    "readme": "assets/sprite_replacement_queue/README.md"
+  },
+  "total_rows": 197,
+  "counts": {
+    "room_and_floor": 23,
+    "static_object": 46,
+    "buildable_generated_object": 16,
+    "window": 5,
+    "doorway_or_gate": 18,
+    "character_or_entity_ui": 6,
+    "dynamic_prop": 14,
+    "pool_minigame_asset": 10,
+    "soccer_minigame_asset": 8,
+    "vehicle_runtime_asset": 9,
+    "offsite_scene_asset": 21,
+    "ui_asset": 16,
+    "registry_or_pipeline_asset": 5
+  },
+  "reviewed_source_files": [
+    "src/world.js",
+    "src/blueprint.js",
+    "src/config.js",
+    "src/renderHouseStyle.js",
+    "src/renderObjects.js",
+    "src/rendering.js",
+    "src/renderDynamic.js",
+    "src/renderEntities.js",
+    "src/soccerSystem.js",
+    "src/vehicleSystem.js",
+    "src/buildRequests.js",
+    "src/economy.js",
+    "src/offsiteScenes.js",
+    "src/assetRegistry.js",
+    "assets/manifests/sprite-pipeline.json"
+  ],
+  "replacement_rules": [
+    "Do not replace runtime visuals from this inventory pass alone.",
+    "Use the CSV row number as the stable approval reference.",
+    "Create the real PNG or WebP asset at the replacement path first.",
+    "Keep procedural drawing and existing SVG placeholders as fallback until the replacement is approved and tested.",
+    "Wire one object kind or one special object ID at a time.",
+    "Do not modify main directly.",
+    "Do not deploy from this pass."
+  ],
+  "known_registry_gaps": [
+    {
+      "id": "atv",
+      "issue": "ATV is a current object and an atv_top.svg placeholder exists, but assetRegistry.js does not map the atv kind yet."
+    },
+    {
+      "id": "soccer_field",
+      "issue": "Functional object with soccer actions, but no explicit final asset registry mapping yet."
+    },
+    {
+      "id": "dartboard",
+      "issue": "Drawable procedural kind and functional object, but no explicit final asset registry mapping yet."
+    },
+    {
+      "id": "stereo",
+      "issue": "Drawable procedural kind and functional object, but no explicit final asset registry mapping yet."
+    },
+    {
+      "id": "light",
+      "issue": "Drawable procedural kind and functional object, but no explicit final asset registry mapping yet."
+    },
+    {
+      "id": "garage_door",
+      "issue": "Drawable and functional garage object, but no explicit final asset registry mapping yet."
+    },
+    {
+      "id": "workout",
+      "issue": "Buildable workout gear uses runtime generated object, but no explicit final asset registry mapping yet."
+    }
+  ],
+  "next_recommended_passes": [
+    "Open asset_inventory.csv and choose the first P1 object to produce as real art.",
+    "Create the approved PNG or WebP inside the replacement path named in the CSV.",
+    "Add or update assetRegistry.js mapping only for the approved item.",
+    "Test that the game still loads and that fallback art still works when the sprite is missing.",
+    "Repeat one object or one object kind at a time."
+  ]
+}
