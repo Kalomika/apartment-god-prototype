@@ -11,6 +11,7 @@ import { recoverVitality } from './vitality.js';
 import { updateHiding } from './hiding.js';
 import { updateTacticalPosture } from './tactics.js';
 import { updateBrain, brainDestination } from './brain.js';
+import { updateStealthSystem } from './stealth.js';
 import { shouldBandage, startBandage, updateWounds } from './wounds.js';
 
 export function updateBattle(state, dt) {
@@ -28,6 +29,7 @@ export function updateBattle(state, dt) {
   updatePrestige(state, dt);
   updateWounds(state, dt);
   updateCombat(state, dt);
+  updateStealthSystem(state, dt);
   for (const f of state.fighters) updateFighter(state, f, dt);
   updateHiding(state, dt);
   updatePickups(state);
@@ -100,7 +102,7 @@ function updateFighter(state, f, dt) {
   if (visible || audible) {
     if (!enemy.spottedT || enemy.spottedT <= 0) state.effects.push({ type: 'alert', x: enemy.x, y: enemy.y - 42, ttl: 0.8 });
     enemy.spottedT = 0.9;
-    f.memory.lastSeen = { x: enemy.x, y: enemy.y, t: state.clock };
+    if (visible) f.memory.lastSeen = { x: enemy.x, y: enemy.y, t: state.clock };
   }
 
   f.spottedT = Math.max(0, (f.spottedT || 0) - dt);
@@ -170,6 +172,7 @@ function chooseStance(state, f, enemy, visible) {
   f.prone = false; f.crouch = false;
   if (f.hideCooldown > 0) return;
   if (underFire && !f.wallLean) { f.crouch = true; return; }
+  if (['alert', 'evasion', 'suspicious'].includes(f.awareness?.phase) && !visible && d > 120) { f.crouch = true; return; }
   if (['marine', 'survival_commando'].includes(f.archetypeId) && d > 220 && f.hp < 80 && visible) f.prone = true;
   if (['suit_operative', 'field_agent'].includes(f.archetypeId) && d > 110 && (f.hp < 68 || f.shadowHidden || f.archetypeId === 'field_agent')) f.crouch = true;
   if ((['ninja', 'shadow_ninja'].includes(f.archetypeId) || f.archetypeId === 'archer') && (!visible || f.bleed?.rate > 0) && d > 110) f.crouch = true;
