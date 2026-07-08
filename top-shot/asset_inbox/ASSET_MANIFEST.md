@@ -8,4 +8,4 @@ This support folder is for Top Shot research, implementation notes, asset notes,
 
 ## Runtime note
 
-The CQC Lab implementation pass was also committed directly to `top-shot/src/cqcLab.js` and `top-shot/index.html` on `top-shot-v0-1` because the user explicitly requested implementation, not only a handoff note.
+The CQC Lab implementation pass was also committed directly to `top-shot/src/cqcLab.js`, `top-shot/index.html`, `top-shot/tests/cqcSmoke.js`, and `top-shot/package.json` on `top-shot-v0-1` because the user explicitly requested implementation, not only a handoff note.
