@@ -35,10 +35,11 @@ The game should have three small persistent utility controls:
 
 Current design direction:
 
-- Place these in the black utility strip beside the play space, near the Up and Down controls.
-- Keep them in a row with enough spacing that a thumb does not accidentally tap the wrong one.
+- Place phone, blueprint, and character locator in the black utility strip.
+- Keep Up and Down on the right edge of the play screen, not in the black strip.
+- Keep utility buttons in a row with enough spacing that a thumb does not accidentally tap the wrong one.
 - Keep them slightly translucent.
-- Do not place them over the main swipeable play area unless there is no alternative.
+- Do not place utility buttons over the main swipeable play area unless there is no alternative.
 
 ## Blueprint behavior
 
@@ -201,6 +202,26 @@ Future plane travel target:
 
 This is future state. House mechanics remain the current priority.
 
+## Health collapse and ambulance future
+
+Needs at zero should have consequence in the real game.
+
+Future target:
+
+- If a character stays at zero on critical needs for a defined amount of time, they collapse.
+- If the condition persists, an ambulance sequence begins.
+- Two paramedics arrive through the front door.
+- The paramedics pick the character up, put them on a stretcher, and carry them out.
+- The character is removed from the house for a recovery period.
+- In a normal realism mode, recovery can take days or a week.
+- If other household members remain, the player can continue as them.
+- If the entire household is gone, the house becomes unplayable until someone returns, unless the player starts a new household or chooses a less punishing mode.
+
+Current priority:
+
+- Developer Reset must always restore a fresh playable test state immediately.
+- Health collapse and ambulance are not active yet.
+
 ## Developer testing tools
 
 Developer or test mode should include a money refill button so expensive actions can be tested without grinding.
@@ -215,7 +236,8 @@ Rules:
 
 Implemented on `phaser-migration` so scheduled follow up work should not redo these as new work:
 
-- Refresh test autosave keeps character positions across reload and Reset clears that refresh state.
+- Refresh test autosave keeps character positions across refresh.
+- Reset now arms a reset guard so beforeunload cannot re-save the depleted refresh state during reload.
 - Garage and backyard are attached main level areas in the navigation model, not true vertical floors.
 - Garage layout is now one open garage area.
 - Garage is treated as west of the main house in the camera and blueprint model.
@@ -227,6 +249,7 @@ Implemented on `phaser-migration` so scheduled follow up work should not redo th
 - Character locator moves the camera to a character without changing selection.
 - Doorway rendering currently uses open gaps and does not draw swing symbols.
 - Vehicle flow has staged luggage, trunk, remote lock or unlock flashes, seat assignment, and return parking logic.
+- Movement routing no longer accepts unverified detour to final legs, which caused back and forth line oscillation.
 
 ## Current pending checkpoint
 
@@ -238,6 +261,7 @@ Pending or still rough:
 - Add a front patio as its own navigable same level area.
 - Add a developer money refill button for test mode.
 - Finish plane runway, takeoff, plane interior, landing, and seatbelt sequence.
+- Add health collapse, paramedic stretcher, ambulance, and recovery absence systems.
 - Build real city, neighborhood, driving route, and destination spaces.
 - Continue reducing object edge blocking without letting characters pass through walls.
 
