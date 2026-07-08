@@ -21,29 +21,34 @@ function tablePositions(table, count = 2) {
   return positions.slice(0, Math.max(1, Math.min(count, positions.length)));
 }
 
+function assignedPoolSpot(table, players, player) {
+  const positions = tablePositions(table, players.length);
+  const index = Math.max(0, players.findIndex(p => p.id === player.id));
+  return positions[index % positions.length];
+}
+
 function isAtPoolPosition(player, point) {
   return player.floor === 2 && Math.hypot(player.x - point.x, player.y - point.y) <= 38 && !player.path?.length;
 }
 
 function guidePoolPlayers(state, table, players) {
-  const positions = tablePositions(table, players.length);
   let ready = true;
-  players.forEach((player, index) => {
-    const spot = positions[index % positions.length];
+  for (const player of players) {
+    const spot = assignedPoolSpot(table, players, player);
     player.carrying = player.carrying === 'cue_stick' ? player.carrying : 'cue_stick';
     player.pose = player.path?.length ? 'walk' : 'pool';
-    if (player.floor !== 2) { ready = false; return; }
+    if (player.floor !== 2) { ready = false; continue; }
     if (!isAtPoolPosition(player, spot)) {
       ready = false;
-      if (!player.path?.length || Math.hypot((player.path[player.path.length - 1]?.x ?? player.x) - spot.x, (player.path[player.path.length - 1]?.y ?? player.y) - spot.y) > 8) {
+      const final = player.path?.[player.path.length - 1];
+      if (!final || Math.hypot(final.x - spot.x, final.y - spot.y) > 8) {
         player.path = [spot];
         player.target = null;
         player.pending = null;
-        player.action = player.action || 'Pool';
         player.pose = 'walk';
       }
     }
-  });
+  }
   return ready;
 }
 
@@ -54,20 +59,23 @@ function updatePoolGame(state, dt) {
     if (state.poolGame && !state.poolGame.winner) state.poolGame = null;
     return;
   }
+
   const ready = guidePoolPlayers(state, table, intendedPlayers);
   if (!ready) {
     if (state.poolGame) state.poolGame.message = 'Waiting for players at table';
     return;
   }
 
-  const players = intendedPlayers.filter((p, index) => isAtPoolPosition(p, tablePositions(table, intendedPlayers.length)[index % tablePositions(table, intendedPlayers.length).length]));
+  const players = intendedPlayers.filter(p => isAtPoolPosition(p, assignedPoolSpot(table, intendedPlayers, p)));
   if (!players.length) return;
   if (!state.poolGame || state.poolGame.tableId !== table.id || !samePlayers(state.poolGame, players)) startPoolGame(state, table, players);
+
   const game = state.poolGame;
   if (!game) return;
   game.t += dt;
   game.messageT = Math.max(0, (game.messageT || 0) - dt);
-  if (game.cueThrust) game.cueThrust.t = Math.max(0, game.cueThrust.t - dt);
+  if (game.cueLine) game.cueLine.t = Math.max(0, (game.cueLine.t || 0) - dt);
+  if (game.cueThrust) game.cueThrust.t = Math.max(0, (game.cueThrust.t || 0) - dt);
 
   updateBalls(game, table, dt);
   if (!game.winner) {
@@ -136,15 +144,7 @@ function rackBalls(table) {
   let index = 0;
   for (let row = 0; row < 4; row++) {
     for (let col = 0; col <= row; col++) {
-      balls.push({
-        id: `ball_${index + 1}`,
-        value: index < 4 ? 1 : 2,
-        x: startX + row * gap,
-        y: cy + (col - row / 2) * gap,
-        vx: 0,
-        vy: 0,
-        fill: colors[index % colors.length]
-      });
+      balls.push({ id: `ball_${index + 1}`, value: index < 4 ? 1 : 2, x: startX + row * gap, y: cy + (col - row / 2) * gap, vx: 0, vy: 0, fill: colors[index % colors.length] });
       index += 1;
     }
   }
@@ -203,7 +203,7 @@ function shootPool(state, table, players) {
   const targets = game.balls.filter(b => !b.pocketed && b.id !== 'cue');
   if (!cue || !targets.length) return checkPoolWinner(state, players);
 
-  const shotSpot = tablePositions(table, players.length)[game.turn % Math.max(1, players.length)];
+  const shotSpot = assignedPoolSpot(table, players, shooter);
   if (!isAtPoolPosition(shooter, shotSpot)) {
     shooter.path = [shotSpot];
     shooter.pose = 'walk';
