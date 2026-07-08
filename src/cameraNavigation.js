@@ -1,4 +1,4 @@
-import { floors } from './world.js';
+import { floors, roomAt } from './world.js';
 import { log } from './state.js';
 
 const MAIN_LEVEL_AREAS = new Set([0, 3, 4]);
@@ -7,6 +7,14 @@ const AREA_POSITIONS = {
   0: { x: 0, y: 0, label: 'Main House' },
   4: { x: 0, y: -1, label: 'Backyard' }
 };
+
+const BLUEPRINT_FLOORS = [
+  { id: 1, label: 'Upstairs', className: 'upstairs' },
+  { id: 0, label: 'Main House', className: 'main' },
+  { id: 4, label: 'Backyard', className: 'yard' },
+  { id: 3, label: 'Garage', className: 'garage' },
+  { id: 2, label: 'Basement', className: 'basement' }
+];
 
 let built = false;
 let openPanel = '';
@@ -135,9 +143,8 @@ function closePanel() {
 
 function updateButtons(state) {
   if (!els.blueprint || !els.locator) return;
-  const hasBlueprint = MAIN_LEVEL_AREAS.has(state.floor);
-  els.blueprint.classList.toggle('disabled', !hasBlueprint);
-  els.blueprint.title = hasBlueprint ? 'Blueprint view' : 'No attached same level areas here yet';
+  els.blueprint.classList.toggle('disabled', false);
+  els.blueprint.title = 'Whole house blueprint view';
   els.locator.classList.toggle('disabled', !state.entities.some(e => !e.hidden));
 }
 
@@ -145,38 +152,60 @@ function renderBlueprintPanel(state) {
   const panel = els.panel;
   if (!panel) return;
   panel.classList.remove('hidden');
-  const hasBlueprint = MAIN_LEVEL_AREAS.has(state.floor);
-  if (!hasBlueprint) {
-    panel.innerHTML = `<div class="blueprint-card"><div class="blueprint-title">Blueprint unavailable</div><p class="blueprint-note">This level has no attached same level areas yet. Use Up or Down for vertical floors.</p></div>`;
-    return;
-  }
-  const current = state.floor;
-  panel.innerHTML = `<div class="blueprint-card"><div class="blueprint-title">Main Level Blueprint</div><div class="blueprint-grid">
-    ${blueprintCell(state, 4, 'yard', 'Backyard')}
-    <div class="blueprint-cell blueprint-void"></div>
-    ${blueprintCell(state, 3, 'garage', 'Garage')}
-    ${blueprintCell(state, 0, 'main', 'Main House')}
-  </div><p class="blueprint-note">Tap an area to move the camera view. Characters do not move unless you command them.</p></div>`;
-  panel.querySelectorAll('[data-floor]').forEach(button => {
+  panel.classList.add('blueprint-fullscreen');
+  const cards = BLUEPRINT_FLOORS.map(item => floorCard(state, item)).join('');
+  panel.innerHTML = `<div class="blueprint-mode"><div class="blueprint-mode-header"><div><div class="blueprint-title">Whole House Blueprint</div><p class="blueprint-note">Tap any room or area to move the camera view. Characters stay where they are.</p></div><button class="blueprint-close" type="button">×</button></div><div class="blueprint-whole-house">${cards}</div></div>`;
+  panel.querySelector('.blueprint-close').onclick = event => { event.stopPropagation(); closePanel(); };
+  panel.querySelectorAll('[data-blueprint-floor]').forEach(button => {
     button.onclick = event => {
       event.stopPropagation();
-      const target = Number(button.dataset.floor);
-      navigateView(state, target, button.dataset.label, 'blueprint');
-      closePanel();
+      const target = Number(button.dataset.blueprintFloor);
+      navigateView(state, target, button.dataset.label || floors[target]?.name || 'Area', 'blueprint');
+      renderBlueprintPanel(state);
     };
   });
-  const active = panel.querySelector(`[data-floor="${current}"]`);
-  if (active) active.classList.add('active');
 }
 
-function blueprintCell(state, floor, className, label) {
-  const active = state.floor === floor ? ' active' : '';
-  return `<button class="blueprint-cell ${className}${active}" data-floor="${floor}" data-label="${label}"><span>${label}</span><small>${AREA_POSITIONS[floor]?.label || floors[floor]?.name || ''}</small></button>`;
+function floorCard(state, item) {
+  const floor = floors[item.id];
+  if (!floor) return '';
+  const active = state.floor === item.id ? ' active' : '';
+  const roomButtons = floor.rooms.map(room => roomButton(state, item, room)).join('');
+  const people = state.entities.filter(e => !e.hidden && e.floor === item.id);
+  const markers = people.map(entity => entityMarker(state, entity)).join('');
+  return `<section class="blueprint-floor-card ${item.className}${active}" data-blueprint-floor="${item.id}" data-label="${item.label}"><header><strong>${item.label}</strong><small>${people.length} here</small></header><div class="blueprint-mini-floor" style="--floor-w:${miniFloorWidth(floor)};--floor-h:${miniFloorHeight(floor)};">${roomButtons}${markers}</div></section>`;
+}
+
+function roomButton(state, item, room) {
+  const floor = floors[item.id];
+  const w = miniFloorWidth(floor);
+  const h = miniFloorHeight(floor);
+  const style = `left:${(room.x / w) * 100}%;top:${(room.y / h) * 100}%;width:${(room.w / w) * 100}%;height:${(room.h / h) * 100}%;`;
+  return `<button class="blueprint-room" style="${style}" data-blueprint-floor="${item.id}" data-label="${room.name}" title="${room.name}"><span>${room.name}</span></button>`;
+}
+
+function entityMarker(state, entity) {
+  const floor = floors[entity.floor];
+  const w = miniFloorWidth(floor);
+  const h = miniFloorHeight(floor);
+  const room = roomAt(entity.x, entity.y, entity.floor);
+  const label = `${entity.name}${room ? `, ${room.name}` : ''}`;
+  const selected = state.selectedId === entity.id ? ' selected' : '';
+  return `<button class="blueprint-person${selected}" style="left:${(entity.x / w) * 100}%;top:${(entity.y / h) * 100}%;" data-entity="${entity.id}" title="${label}">${headIcon(entity)}</button>`;
+}
+
+function miniFloorWidth(floor) {
+  return Math.max(960, ...floor.rooms.map(room => room.x + room.w));
+}
+
+function miniFloorHeight(floor) {
+  return Math.max(720, ...floor.rooms.map(room => room.y + room.h));
 }
 
 function renderLocatorPanel(state) {
   const panel = els.panel;
   if (!panel) return;
+  panel.classList.remove('blueprint-fullscreen');
   panel.classList.remove('hidden');
   const visible = state.entities.filter(e => !e.hidden);
   const buttons = visible.map(entity => `<button class="locator-row" data-entity="${entity.id}"><span class="locator-head">${headIcon(entity)}</span><span><strong>${entity.name}</strong><small>${floors[entity.floor]?.name || 'area'} • ${entity.action || 'Idle'}</small></span></button>`).join('');
