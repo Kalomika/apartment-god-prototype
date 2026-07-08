@@ -34,7 +34,42 @@ export const windows = [
 ];
 
 export function doorwayCenter(d) { return { x: d.x + d.w / 2, y: d.y + d.h / 2 }; }
-function nearDoorway(point, floor, pad = 22) { return doorways.some(d => d.floor === floor && point.x >= d.x - pad && point.x <= d.x + d.w + pad && point.y >= d.y - pad && point.y <= d.y + d.h + pad); }
+
+function pointInRect(point, rect) {
+  return point.x >= rect.x && point.x <= rect.x + rect.w && point.y >= rect.y && point.y <= rect.y + rect.h;
+}
+
+function segmentIntersectsRect(from, to, rect) {
+  const steps = Math.max(3, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / 6));
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const p = { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
+    if (pointInRect(p, rect)) return true;
+  }
+  return false;
+}
+
+export function doorwayPassageRect(d) {
+  const alongPad = 10;
+  const crossPad = 16;
+  if (d.w >= d.h) {
+    const h = Math.max(34, d.h + crossPad * 2);
+    return { x: d.x - alongPad, y: d.y + d.h / 2 - h / 2, w: d.w + alongPad * 2, h };
+  }
+  const w = Math.max(34, d.w + crossPad * 2);
+  return { x: d.x + d.w / 2 - w / 2, y: d.y - alongPad, w, h: d.h + alongPad * 2 };
+}
+
+function stepUsesDoorway(from, to, floor, roomA = null, roomB = null) {
+  return doorways.some(d => {
+    if (d.floor !== floor) return false;
+    if (roomA && roomB) {
+      const connectsRooms = (d.a === roomA.id && d.b === roomB.id) || (d.b === roomA.id && d.a === roomB.id);
+      if (!connectsRooms) return false;
+    }
+    return segmentIntersectsRect(from, to, doorwayPassageRect(d));
+  });
+}
 
 export function routeThroughDoors(from, to, floor) {
   const start = roomAt(from.x, from.y, floor);
@@ -57,12 +92,9 @@ export function routeThroughDoors(from, to, floor) {
 export function canStepThroughRooms(from, to, floor) {
   const a = roomAt(from.x, from.y, floor);
   const b = roomAt(to.x, to.y, floor);
-  if (!a || !b) return nearDoorway(to, floor) || nearDoorway(from, floor);
-  if (a.id === b.id) return true;
-  const door = doorways.find(d => d.floor === floor && ((d.a === a.id && d.b === b.id) || (d.b === a.id && d.a === b.id)));
-  if (!door) return false;
-  const pad = 18;
-  return to.x >= door.x - pad && to.x <= door.x + door.w + pad && to.y >= door.y - pad && to.y <= door.y + door.h + pad;
+  if (a && b && a.id === b.id) return true;
+  if (a && b) return stepUsesDoorway(from, to, floor, a, b);
+  return stepUsesDoorway(from, to, floor);
 }
 
 export function windowAt(x, y, floor) { return windows.find(w => w.floor === floor && x >= w.x - 12 && x <= w.x + w.w + 12 && y >= w.y - 14 && y <= w.y + w.h + 22) || null; }
