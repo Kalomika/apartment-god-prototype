@@ -11,13 +11,13 @@ for (const f of state.fighters) {
 }
 
 const [a, b] = state.fighters;
-a.x = 480;
+a.x = 260;
 a.y = 360;
 a.facing = 0;
 a.crouch = true;
 a.shadowHidden = true;
 a.noise = 8;
-b.x = 700;
+b.x = 350;
 b.y = 360;
 b.facing = Math.PI;
 b.noise = 12;
