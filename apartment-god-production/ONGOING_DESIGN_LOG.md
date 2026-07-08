@@ -233,3 +233,44 @@ This is a Canvas renderer-only visual upgrade. If the new drawing code has a bro
 
 Follow ups:
 If Kam likes the upstairs direction, continue with a similar guarded pass for main floor objects or move toward approved PNG replacement assets through the sprite pipeline.
+
+---
+
+## 2026-07-08 06:05 AM CT, First Lived In Activity Object Pass
+
+Status: NEEDS_TESTING
+Branch: phaser-migration
+Commit: world e38541a0aafb409ef75b194d12bd41bd29c4ef75, config d6148ba06cdd26ab62aa452fa37633e410b6890a, renderObjects c83ac0e58167f2e33081da7b03ea9aae56de5307
+Files changed: src/world.js, src/config.js, src/renderObjects.js, apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: pending main mirror
+Backup branch: backup/phaser-migration-before-lived-in-activity-pass-2026-07-08
+
+Summary:
+Started the lived in activity pass so the house feels less like people are just walking around and more like time is passing through activities that occupy space and visually do something.
+
+Implementation details:
+
+- Added default Bookshelf, Coffee Maker, and Dining Table objects to the house so reset does not leave core reading, coffee, and eating surfaces missing.
+- Added interaction menu entries for bookshelf, coffee maker, dining table, stereo song/album actions, and basic activity times in config.
+- Added object rendering overlays for a clearer pool table setup with a triangular rack and cue ball, avoiding the old crossed cue/rack visual clash.
+- Upgraded the weight bench overlay with a more recognizable bench, rack, barbell, and plates.
+- Added animated barbell movement when lift weights is active.
+- Added heavy bag sway and impact arc when heavy bag is active.
+- Added dining table plates, cups, and eating label when active.
+- Added coffee maker visual with brew light, carafe, and steam when coffee is active.
+- Added TV screen glow projection when TV is on.
+- Added console glow pulse during game activity.
+- Added stronger swim pool wave motion when swimming is active.
+
+Testing performed:
+Code inspection only. No local or Render browser test performed in this chat.
+
+Testing requested:
+After mirroring to main, test Render link. Check main floor for bookshelf, dining table, and coffee maker. Check basement pool table rack, weight bench, heavy bag, and console. Check backyard pool wave activity. Confirm nothing blanks, object clicks still open menus, and existing movement is not blocked by the new table/bookshelf placement.
+
+Known risks:
+This is still procedural Canvas fallback art, not final animation assets. Activity durations are not fully corrected yet because indoor duration handling lives in action resolution and needs a separate guarded pass. New object actions may animate without full long term stat effects until the action consequence pass.
+
+Follow ups:
+Implement true lived in time durations for movies, games, albums, reading, coffee effects, eating at the table, and sleep time acceleration in a separate activity systems pass. Add real sprites or sprite sheet animations for all major activities when the pipeline is ready.
