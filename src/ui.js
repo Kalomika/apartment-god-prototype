@@ -51,6 +51,10 @@ export function createUi(state, surface, options = {}) {
   const cell = actor => openDeviceHome(state, actor, openMenu);
 
   function handleCanvasPoint(x, y, menuX = null, menuY = null) {
+    if (state.suppressNextCanvasClick || state.cameraGestureActive) {
+      state.suppressNextCanvasClick = false;
+      return;
+    }
     const menuPos = menuX == null || menuY == null ? menuPoint(x, y) : { x: menuX, y: menuY };
     if (x > 960 || y > 720) return closeMenu();
     if (state.buildPick && placeBuildRequest(state, selected(state), x, y)) return closeMenu();
@@ -88,8 +92,8 @@ export function createUi(state, surface, options = {}) {
   function openCompoundMap() {
     openMenu(16, 74, 'House Map', [
       { label: 'Main House', run: () => jumpArea(0, 'Main House') },
-      { label: 'Backyard, same level', run: () => jumpArea(4, 'Backyard') },
-      { label: 'Garage, same level', run: () => jumpArea(3, 'Garage') },
+      { label: 'Backyard North', run: () => jumpArea(4, 'Backyard North') },
+      { label: 'Garage West', run: () => jumpArea(3, 'Garage West') },
       { label: 'Front Patio', run: () => jumpArea(0, 'Front Patio / Entry') },
       { label: 'Upstairs', run: () => jumpArea(1, 'Upstairs') },
       { label: 'Basement', run: () => jumpArea(2, 'Basement') }
@@ -143,7 +147,7 @@ export function createUi(state, surface, options = {}) {
   function setFloor(floor) { jumpArea(floor, floors[floor]?.name || 'area'); }
 
   function bindButtons() {
-    const areaButtons = [[0, 'Main'], [1, 'Upstairs'], [2, 'Basement'], [3, 'Garage Area'], [4, 'Backyard']];
+    const areaButtons = [[0, 'Main'], [1, 'Upstairs'], [2, 'Basement'], [3, 'Garage West'], [4, 'Yard North']];
     for (const [i, label] of areaButtons) { const btn = document.getElementById(`floor-${i}`); if (btn) { btn.textContent = label; btn.onclick = () => setFloor(i); } }
     document.getElementById('speed-1').onclick = () => { state.speed = 1; };
     document.getElementById('speed-3').onclick = () => { state.speed = 3; };
