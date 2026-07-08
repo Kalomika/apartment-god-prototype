@@ -17,6 +17,12 @@ Same level attached areas:
 - Garage is attached to the main floor, reached through the foyer or entry side door.
 - Front patio is attached to the main floor, reached through the front door.
 
+Compass lock:
+
+- Backyard is north, above Main House.
+- Garage is west, left of Main House.
+- Garage overhead exit faces downward, toward the front of the house.
+
 These attached areas should use slide or pan transitions rather than feeling like arbitrary floors.
 
 ## Floating controls
@@ -57,6 +63,7 @@ Current practical implementation:
 - The blueprint overlay shows schematic rooms and character heads.
 - It is not yet a true live shrink of the renderer.
 - Later it can become a live mini simulation view.
+- The visible blueprint grid must keep Garage west and Backyard north.
 
 ## Character locator behavior
 
@@ -126,6 +133,7 @@ The garage is a single open space, not a set of rooms.
 Rules:
 
 - All vehicles should be in one open garage area.
+- The garage is west of the main house.
 - The garage overhead exit faces downward toward the front of the house.
 - Cars, bikes, motorbikes, and ATVs should be able to route around each other and leave through the same downward garage opening.
 - Do not create side rooms that trap vehicles or make their exit path visually impossible.
@@ -201,6 +209,36 @@ Rules:
 - Do not make normal money infinite.
 - Keep a manual developer refill button for testing only.
 - The real game should not expose that button in production.
+
+## Current implemented checkpoint
+
+Implemented on `phaser-migration` so scheduled follow up work should not redo these as new work:
+
+- Refresh test autosave keeps character positions across reload and Reset clears that refresh state.
+- Garage and backyard are attached main level areas in the navigation model, not true vertical floors.
+- Garage layout is now one open garage area.
+- Garage is treated as west of the main house in the camera and blueprint model.
+- Backyard is treated as north of the main house in the camera and blueprint model.
+- Garage overhead exit and parked vehicles face downward.
+- Same level swipe navigation exists for Main to Yard and Main to Garage.
+- Camera transitions now draw both source and target areas during slides.
+- Full screen blueprint mode exists with schematic floors and character markers.
+- Character locator moves the camera to a character without changing selection.
+- Doorway rendering currently uses open gaps and does not draw swing symbols.
+- Vehicle flow has staged luggage, trunk, remote lock or unlock flashes, seat assignment, and return parking logic.
+
+## Current pending checkpoint
+
+Pending or still rough:
+
+- Convert blueprint into a true live mini renderer instead of schematic boxes.
+- Make selected character door crossing trigger camera slide exactly at the doorway moment.
+- Add proper simple top down door art, thin line and knob only.
+- Add a front patio as its own navigable same level area.
+- Add a developer money refill button for test mode.
+- Finish plane runway, takeoff, plane interior, landing, and seatbelt sequence.
+- Build real city, neighborhood, driving route, and destination spaces.
+- Continue reducing object edge blocking without letting characters pass through walls.
 
 ## Secret house story ideas
 
