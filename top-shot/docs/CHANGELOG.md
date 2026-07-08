@@ -2,6 +2,47 @@
 
 All Top Shot changes must be logged here with date, time, branch, rollback reference, files changed, feature summary, and Render link/cache buster when known.
 
+## 2026-07-08 06:55 AM CT
+
+Branch: `top-shot-v0-1`
+
+Render link: `https://top-shot-prototype.onrender.com/?v=afcd5c8`
+
+Rollback created before update:
+
+- `backup/top-shot-before-combat-cover-models-2026-07-08`
+- `backup/top-shot-rollback-1-2026-07-08-combat-models`
+
+Files changed:
+
+- `top-shot/index.html`
+- `top-shot/styles.css`
+- `top-shot/src/main.js`
+- `top-shot/src/cameraAngles.js`
+- `top-shot/src/cqcLab.js`
+- `top-shot/src/physicality.js`
+- `top-shot/src/state.js`
+- `top-shot/docs/CQC_LAB_PLAN.md`
+- `top-shot/docs/CHANGELOG.md`
+
+Changes made:
+
+- Added CQC Lab access from the main Top Shot panel with a Main Match button and a CQC Lab button.
+- Added direct CQC Lab URL support with `?mode=cqc`.
+- Added a controlled CQC Lab state where two fighters stand face to face without parachute entry or full-match chaos.
+- Added CQC Lab buttons for Guard, Jab, Cross, Block, Parry, Slip Left, Slip Right, Step Back, Slow Mo, and Reset.
+- Added a tighter overhead drone camera behavior for CQC Lab, so the camera sits much closer above the fighters.
+- Added live fighter status labels, such as Guarding, Crawling, Crouching, Blocking, Parrying, Slipping, Hit Stun, Hiding, and Pinned to Cover.
+- Added a Fight Commentary card that mirrors recent fight events so Kam can look away and still read what happened.
+- Added a local browser Records card that saves completed match results, winner, loser, match length, method, and short highlights.
+- Added initial persistent debris/body-collision support files and state fields, but the full debris throwing and body collision loop still needs the next integration pass.
+
+Known risks or not verified:
+
+- Browser runtime was not executed from this connector, so the Render build needs live testing.
+- CQC Lab is intentionally button-driven first. Approved moves still need to be promoted into the main match combat system after review.
+- Persistent records are stored in browser localStorage, so they are per-device until a backend/save system is added.
+
 ## 2026-07-08 06:36 AM CT
 
 Branch: `top-shot-v0-1`
