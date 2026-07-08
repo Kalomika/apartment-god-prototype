@@ -6,16 +6,16 @@ import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
 import { drawOffsiteScene } from './offsiteScenes.js';
 import { drawSoccer } from './soccerSystem.js';
-import { syncPhoneUi } from './phoneUI.js';
 import { drawCameraTransition, syncCameraNavigationUi } from './cameraNavigation.js';
 import { formatTime } from './renderHelpers.js';
 
 export { formatTime };
 
+let cameraUiFailed = false;
+
 export function draw(ctx, state) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  syncPhoneUi(state);
-  syncCameraNavigationUi(state);
+  syncSafeCameraUi(state);
 
   if (state.cameraTransition?.t > 0) drawTransitioningScene(ctx, state);
   else drawScene(ctx, state);
@@ -23,6 +23,16 @@ export function draw(ctx, state) {
   drawStatus(ctx, state);
   drawOverlay(ctx, state);
   drawCameraTransition(ctx, state, PLAY_W, PLAY_H);
+}
+
+function syncSafeCameraUi(state) {
+  if (cameraUiFailed) return;
+  try {
+    syncCameraNavigationUi(state);
+  } catch (error) {
+    cameraUiFailed = true;
+    console.error('[Apartment God] Camera navigation UI disabled after render error.', error);
+  }
 }
 
 function drawScene(ctx, state) {
