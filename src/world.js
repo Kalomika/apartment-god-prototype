@@ -26,12 +26,9 @@ export const floors = [
   },
   {
     id: 2,
-    name: 'Basement Game Room',
+    name: 'Open Basement',
     rooms: [
-      { id: 'basement_game', name: 'Game Room', x: 24, y: 36, w: 912, h: 456 },
-      { id: 'basement_gym', name: 'Cyber Gym', x: 24, y: 508, w: 500, h: 176 },
-      { id: 'basement_hall', name: 'Basement Hall', x: 524, y: 508, w: 196, h: 176 },
-      { id: 'basement_stairs', name: 'Basement Stairs', x: 720, y: 508, w: 216, h: 176 }
+      { id: 'basement', name: 'Open Basement', x: 24, y: 36, w: 912, h: 648 }
     ]
   },
   {
@@ -78,16 +75,16 @@ export const objects = [
   { id: 'toilet2', label: 'Upstairs Toilet', kind: 'toilet', floor: 1, room: 'bath2', x: 880, y: 222, w: 44, h: 54, solid: true, enterable: true },
   { id: 'light_bedroom', label: 'Bedroom Light', kind: 'light', floor: 1, room: 'bedroom', x: 430, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_up', label: 'Downstairs Stairs', kind: 'stairs', floor: 1, room: 'stairs2', x: 766, y: 554, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'stairs_down' },
-  { id: 'basement_stairs_up', label: 'Main Floor Stairs', kind: 'stairs', floor: 2, room: 'basement_stairs', x: 766, y: 554, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'basement_door' },
-  { id: 'pool_table', label: 'Pool Table', kind: 'pool_table', floor: 2, room: 'basement_game', x: 96, y: 100, w: 250, h: 122, solid: true },
-  { id: 'dartboard', label: 'Dart Board', kind: 'dartboard', floor: 2, room: 'basement_game', x: 44, y: 86, w: 34, h: 34, solid: false },
-  { id: 'arcade_machine', label: 'Arcade Machine', kind: 'arcade', floor: 2, room: 'basement_game', x: 420, y: 74, w: 54, h: 78, solid: true },
-  { id: 'game_console', label: 'Console Setup', kind: 'game_console', floor: 2, room: 'basement_game', x: 620, y: 96, w: 172, h: 58, solid: true },
-  { id: 'basement_couch', label: 'Basement Couch', kind: 'couch', floor: 2, room: 'basement_game', x: 614, y: 176, w: 168, h: 62, solid: true },
-  { id: 'treadmill', label: 'Treadmill', kind: 'treadmill', floor: 2, room: 'basement_gym', x: 62, y: 548, w: 116, h: 56, solid: false, enterable: true },
-  { id: 'weight_bench', label: 'Weight Bench', kind: 'weight_bench', floor: 2, room: 'basement_gym', x: 216, y: 602, w: 128, h: 46, solid: false, enterable: true },
-  { id: 'heavy_bag', label: 'Heavy Bag', kind: 'heavy_bag', floor: 2, room: 'basement_gym', x: 436, y: 548, w: 44, h: 80, solid: false, enterable: true },
-  { id: 'light_basement_game', label: 'Game Room Light', kind: 'light', floor: 2, room: 'basement_game', x: 494, y: 52, w: 22, h: 22, solid: false },
+  { id: 'basement_stairs_up', label: 'Main Floor Stairs', kind: 'stairs', floor: 2, room: 'basement', x: 766, y: 554, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'basement_door' },
+  { id: 'pool_table', label: 'Pool Table', kind: 'pool_table', floor: 2, room: 'basement', x: 96, y: 100, w: 250, h: 122, solid: true },
+  { id: 'dartboard', label: 'Dart Board', kind: 'dartboard', floor: 2, room: 'basement', x: 44, y: 86, w: 34, h: 34, solid: false },
+  { id: 'arcade_machine', label: 'Arcade Machine', kind: 'arcade', floor: 2, room: 'basement', x: 420, y: 74, w: 54, h: 78, solid: true },
+  { id: 'game_console', label: 'Console Setup', kind: 'game_console', floor: 2, room: 'basement', x: 620, y: 96, w: 172, h: 58, solid: true },
+  { id: 'basement_couch', label: 'Basement Couch', kind: 'couch', floor: 2, room: 'basement', x: 614, y: 176, w: 168, h: 62, solid: true },
+  { id: 'treadmill', label: 'Treadmill', kind: 'treadmill', floor: 2, room: 'basement', x: 62, y: 548, w: 116, h: 56, solid: false, enterable: true },
+  { id: 'weight_bench', label: 'Weight Bench', kind: 'weight_bench', floor: 2, room: 'basement', x: 216, y: 602, w: 128, h: 46, solid: false, enterable: true },
+  { id: 'heavy_bag', label: 'Heavy Bag', kind: 'heavy_bag', floor: 2, room: 'basement', x: 436, y: 548, w: 44, h: 80, solid: false, enterable: true },
+  { id: 'light_basement_game', label: 'Basement Light', kind: 'light', floor: 2, room: 'basement', x: 494, y: 52, w: 22, h: 22, solid: false },
   { id: 'garage_entry_door', label: 'House Door', kind: 'stairs', floor: 3, room: 'garage_entry', x: 628, y: 506, w: 68, h: 34, solid: false, toFloor: 0, exitId: 'garage_door' },
   { id: 'garage_overhead_door', label: 'Overhead Garage Door', kind: 'garage_door', floor: 3, room: 'garage_bay', x: 118, y: 38, w: 548, h: 28, solid: false },
   { id: 'car_1', label: 'Family Car', kind: 'car', floor: 3, room: 'garage_bay', x: 126, y: 138, w: 116, h: 230, solid: true },
@@ -119,7 +116,7 @@ export function getTravelStair(fromFloor, toFloor) {
   return null;
 }
 export function clampToPlay(x, y) { return { x: Math.max(30, Math.min(PLAY_W - 30, x)), y: Math.max(30, Math.min(PLAY_H - 30, y)) }; }
-export function approachPoint(obj, action = '') { const cx = obj.x + obj.w / 2; const cy = obj.y + obj.h / 2; if (obj.enterable || ['sleep', 'nap', 'shower', 'toilet', 'swim', 'swim_together', 'soccer_practice', 'soccer_match'].includes(action)) return clampToPlay(cx, cy); if (obj.kind === 'fridge') return clampToPlay(obj.x + obj.w + 44, cy); if (['stove', 'sink', 'desk'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36); if (obj.kind === 'pool_table') return clampToPlay(cx + 18, obj.y + obj.h + 48); if (obj.kind === 'arcade') return clampToPlay(cx, obj.y + obj.h + 34); if (obj.kind === 'game_console') return clampToPlay(cx, obj.y + obj.h + 54); if (obj.kind === 'dartboard') return clampToPlay(obj.x + obj.w + 80, cy + 12); if (obj.kind === 'treadmill') return clampToPlay(cx, cy); if (obj.kind === 'weight_bench') return clampToPlay(cx, cy + 4); if (obj.kind === 'heavy_bag') return clampToPlay(obj.x + obj.w / 2, obj.y + obj.h + 42); if (obj.kind === 'kennel') return clampToPlay(cx, obj.y + obj.h + 30); if (['trash_can', 'outdoor_trash'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 30); if (obj.kind === 'car') return clampToPlay(obj.x + obj.w + 28, obj.y + obj.h * 0.62); if (['bike', 'motorbike', 'atv'].includes(obj.kind)) return clampToPlay(cx + 28, cy); if (obj.kind === 'tv') return clampToPlay(160, 214); if (obj.kind === 'couch') return clampToPlay(obj.x + obj.w / 2, obj.y + 34); if (obj.kind === 'door') return clampToPlay(obj.x + obj.w / 2, obj.y - 28); if (obj.kind === 'stairs') return clampToPlay(cx, obj.y + obj.h + 28); if (obj.kind === 'dog_bowl') return clampToPlay(obj.x + obj.w / 2, obj.y + obj.h + 30); if (obj.kind === 'light') return clampToPlay(obj.x - 26, obj.y + 10); return clampToPlay(cx, obj.y + obj.h + 32); }
+export function approachPoint(obj, action = '') { const cx = obj.x + obj.w / 2; const cy = obj.y + obj.h / 2; if (obj.enterable || ['sleep', 'nap', 'shower', 'toilet', 'swim', 'swim_together', 'soccer_practice', 'soccer_match'].includes(action)) return clampToPlay(cx, cy); if (obj.kind === 'fridge') return clampToPlay(obj.x + obj.w + 44, cy); if (['stove', 'sink'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36); if (obj.kind === 'desk') return clampToPlay(cx, obj.y + obj.h + 42); if (obj.kind === 'pool_table') return clampToPlay(cx + 18, obj.y + obj.h + 48); if (obj.kind === 'arcade') return clampToPlay(cx, obj.y + obj.h + 34); if (obj.kind === 'game_console') return clampToPlay(cx, obj.y + obj.h + 54); if (obj.kind === 'dartboard') return clampToPlay(obj.x + obj.w + 80, cy + 12); if (obj.kind === 'treadmill') return clampToPlay(cx, cy); if (obj.kind === 'weight_bench') return clampToPlay(cx, cy + 4); if (obj.kind === 'heavy_bag') return clampToPlay(obj.x + obj.w / 2, obj.y + obj.h + 42); if (obj.kind === 'kennel') return clampToPlay(cx, obj.y + obj.h + 30); if (['trash_can', 'outdoor_trash'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 30); if (obj.kind === 'car') return clampToPlay(obj.x + obj.w + 28, obj.y + obj.h * 0.62); if (['bike', 'motorbike', 'atv'].includes(obj.kind)) return clampToPlay(cx + 28, cy); if (obj.kind === 'tv') return clampToPlay(160, 214); if (obj.kind === 'couch') return clampToPlay(obj.x + obj.w / 2, obj.y + 34); if (obj.kind === 'door') return clampToPlay(obj.x + obj.w / 2, obj.y - 28); if (obj.kind === 'stairs') return clampToPlay(cx, obj.y + obj.h + 28); if (obj.kind === 'dog_bowl') return clampToPlay(obj.x + obj.w / 2, obj.y + obj.h + 30); if (obj.kind === 'light') return clampToPlay(obj.x - 26, obj.y + 10); return clampToPlay(cx, obj.y + obj.h + 32); }
 export function solidObjects(floor, allowId = '') { return objects.filter(o => o.floor === floor && o.solid && !o.enterable && o.id !== allowId); }
 export function expandedRect(o, pad = 18) { return { x: o.x - pad, y: o.y - pad, w: o.w + pad * 2, h: o.h + pad * 2 }; }
 export function pointInRect(x, y, r) { return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h; }
