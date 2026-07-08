@@ -59,6 +59,28 @@ function drawActivityCloneFx(ctx, state) {
     ctx.stroke();
     ctx.setLineDash([]);
   }
+  if (game.cueThrust?.t > 0) {
+    const pct = game.cueThrust.t / .45;
+    const pull = 18 * Math.sin(pct * Math.PI);
+    const dx = game.cueThrust.x2 - game.cueThrust.x1;
+    const dy = game.cueThrust.y2 - game.cueThrust.y1;
+    const mag = Math.max(1, Math.hypot(dx, dy));
+    const ox = (dx / mag) * pull;
+    const oy = (dy / mag) * pull;
+    ctx.strokeStyle = '#d6b27a';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(game.cueThrust.x1 - ox, game.cueThrust.y1 - oy);
+    ctx.lineTo(game.cueThrust.x2 - ox, game.cueThrust.y2 - oy);
+    ctx.stroke();
+    ctx.strokeStyle = '#3b2a1d';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(game.cueThrust.x2 - ox, game.cueThrust.y2 - oy);
+    ctx.lineTo(game.cueThrust.x2 - ox + dx / mag * 10, game.cueThrust.y2 - oy + dy / mag * 10);
+    ctx.stroke();
+  }
   for (const ball of game.balls) {
     if (ball.pocketed) continue;
     ctx.fillStyle = ball.fill || '#f8fbff';
