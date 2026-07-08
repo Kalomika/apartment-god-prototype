@@ -113,6 +113,17 @@ function uniquePoints(points) {
   });
 }
 
+function finishPlainMove(entity) {
+  clearMoveAllowance(entity);
+  if (!entity.target && !entity.pending) {
+    entity.action = 'Idle';
+    entity.pose = 'stand';
+    entity.idleT = 0;
+    return false;
+  }
+  return true;
+}
+
 export function commandMove(entity, x, y, run = false, allowId = '') {
   const to = clampToPlay(x, y);
   entity.moveAllowId = allowId || '';
@@ -252,6 +263,7 @@ function recoverBlocked(state, entity, _next, dt) {
       clearMoveAllowance(entity);
       return true;
     }
+    return finishPlainMove(entity);
   }
 
   entity.path = [];
@@ -278,8 +290,7 @@ function acceptWaypoint(state, entity, next) {
   entity.path.shift();
   if (!entity.path.length) {
     if (finishFloorTravel(state, entity)) return false;
-    clearMoveAllowance(entity);
-    return true;
+    return finishPlainMove(entity);
   }
   return false;
 }
