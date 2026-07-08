@@ -1,7 +1,7 @@
 import { addGarbageFromAction } from './garbage.js';
 import { byId, log, say } from './state.js';
 import { getObject, approachPoint } from './world.js';
-import { commandObject } from './movement.js';
+import { commandMove, commandObject } from './movement.js';
 import { createOffsiteJob } from './travelLocations.js';
 
 const GARAGE_FLOOR = 3;
@@ -63,6 +63,15 @@ function setPartyAction(state, v, action, pose = 'stand') { for (const id of v.p
 function setRemoteFlash(v, label = 'UNLOCK') { v.remoteFlashT = 0.9; v.remoteLabel = label; }
 function makeLuggageManifest(state, partyIds, actionId) { const count = vacationBagCount(actionId); return humansInParty(state, partyIds).map(e => ({ entityId: e.id, count, loaded: false, unloaded: false })); }
 
+function routeToVehicleSeat(entity, vehicle, point) {
+  const final = entity.path?.[entity.path.length - 1];
+  if (final && Math.hypot(final.x - point.x, final.y - point.y) <= 8) return;
+  commandMove(entity, point.x, point.y, false, vehicle.id);
+  entity.target = null;
+  entity.pending = null;
+  entity.moveAllowId = vehicle.id;
+}
+
 function routePartyToVehicle(state, v) {
   const vehicle = getObject(v.vehicleId);
   if (!vehicle) return;
@@ -73,9 +82,9 @@ function routePartyToVehicle(state, v) {
     const seat = v.seatAssignments?.find(s => s.entityId === id);
     const p = seat ? seatPoint(vehicle, seat.seatId) : approachPoint(vehicle, `enter_${vehicle.kind || 'vehicle'}`);
     if (e.floor !== GARAGE_FLOOR) commandObject(e, vehicle, `enter_${vehicle.kind || 'vehicle'}`);
-    else if (Math.hypot(e.x - p.x, e.y - p.y) > 14) { const final = e.path?.[e.path.length - 1]; if (!final || Math.hypot(final.x - p.x, final.y - p.y) > 8) e.path = [{ x: p.x, y: p.y }]; e.target = null; e.pending = null; e.moveAllowId = vehicle.id; }
-    e.action = 'Walking to vehicle';
-    e.pose = 'walk';
+    else if (Math.hypot(e.x - p.x, e.y - p.y) > 14) routeToVehicleSeat(e, vehicle, p);
+    e.action = e.path?.length ? 'Walking to vehicle' : 'Waiting at vehicle';
+    e.pose = e.path?.length ? 'walk' : 'stand';
   }
 }
 function routeHumansToPack(state, v) { const pack = getObject('bed'); if (!pack) return false; for (const e of humansInParty(state, v.partyIds)) { clearTimedAction(e); e.vehicleTrip = { actionId: v.actionId, vehicleId: v.vehicleId }; commandObject(e, pack, 'pack_luggage'); say(e, 'PACK'); } return true; }
@@ -144,6 +153,6 @@ function updateVehicleReturning(state, dt) {
 }
 
 function spawnPartyAtSeats(state, v) { const vehicle = { x: v.parkX, y: v.parkY, w: v.w, h: v.h }; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; const seat = v.seatAssignments?.find(s => s.entityId === id); const p = seat ? seatPoint(vehicle, seat.seatId) : { x: v.parkX + v.w + 24, y: v.parkY + v.h * .62 }; clearTimedAction(e); e.hidden = false; e.floor = GARAGE_FLOOR; e.x = p.x; e.y = p.y; e.path = []; e.target = null; e.pending = null; e.action = 'Exiting vehicle'; e.pose = 'exiting_vehicle'; e.vehicleTrip = null; say(e, 'BACK'); } selectVisiblePerson(state); }
-function routePartyInsideFromGarage(state, v) { const stairs = getObject('garage_entry_door'); const exit = stairs ? approachPoint(stairs, 'use_stairs') : { x: 872, y: 504 }; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; clearTimedAction(e); e.path = [exit]; e.target = null; e.pending = stairs ? { type: 'floorTravel', targetFloor: HOUSE_FLOOR, objectId: stairs.id, actionId: 'use_stairs', stairId: stairs.id } : null; e.moveAllowId = stairs?.id || ''; e.action = 'Walking in from garage'; e.pose = 'walk'; } }
+function routePartyInsideFromGarage(state, v) { const stairs = getObject('garage_entry_door'); const exit = stairs ? approachPoint(stairs, 'use_stairs') : { x: 872, y: 504 }; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; clearTimedAction(e); if (stairs) commandObject(e, stairs, 'use_stairs'); else commandMove(e, exit.x, exit.y); e.action = 'Walking in from garage'; e.pose = 'walk'; } }
 function approach(value, target, step) { if (value < target) return Math.min(target, value + step); if (value > target) return Math.max(target, value - step); return value; }
 function finishVehicleReturn(state, v) { const action = v.actionId; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; e.hidden = false; e.path = []; e.target = null; e.pending = null; e.moveAllowId = ''; e.action = 'Returned'; e.pose = 'stand'; clearTimedAction(e); if (e.carrying && String(e.carrying).includes('luggage')) e.carrying = null; if (action === 'movies') addGarbageFromAction(state, 'popcorn', e); } state.objectState.garageDoorOpen = false; state.objectState.vehicleInUse = null; state.vehicleReturn = null; selectVisiblePerson(state); log(state, `Returned from ${action.replaceAll('_', ' ')}.`); }
