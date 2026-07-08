@@ -40,22 +40,23 @@ function buildPhoneUi(state) {
 
   const verticalDock = document.createElement('section');
   verticalDock.id = 'vertical-nav-dock';
-  verticalDock.className = 'control-bar-group vertical-control-group';
+  verticalDock.setAttribute('aria-label', 'Vertical floor controls');
 
   const up = document.createElement('button');
   up.textContent = '↑ Up';
-  up.className = 'control-bar-button vertical-control-button';
+  up.className = 'vertical-screen-button';
   up.type = 'button';
   up.onclick = event => { event.stopPropagation(); navigateView(state, upTarget(state.floor), floorName(upTarget(state.floor)), 'vertical-button'); dirty = true; };
 
   const down = document.createElement('button');
   down.textContent = '↓ Down';
-  down.className = 'control-bar-button vertical-control-button';
+  down.className = 'vertical-screen-button';
   down.type = 'button';
   down.onclick = event => { event.stopPropagation(); navigateView(state, downTarget(state.floor), floorName(downTarget(state.floor)), 'vertical-button'); dirty = true; };
 
   verticalDock.appendChild(up);
   verticalDock.appendChild(down);
+  wrap.appendChild(verticalDock);
 
   const dock = document.createElement('section');
   dock.id = 'phone-dock';
@@ -74,7 +75,6 @@ function buildPhoneUi(state) {
   panel.onpointerdown = event => event.stopPropagation();
 
   dock.appendChild(button);
-  controlBar.appendChild(verticalDock);
   controlBar.appendChild(dock);
   document.body.appendChild(panel);
   els = { button, panel, up, down, dock, verticalDock };
