@@ -4,7 +4,7 @@ body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 30% 2
 .shell { display: grid; grid-template-columns: minmax(0, 1fr) 320px; min-height: 100vh; gap: 14px; padding: 14px; }
 .stage { position: relative; align-self: center; justify-self: center; width: min(100%, 1280px); aspect-ratio: 16 / 9; border: 1px solid #344154; background: #111925; box-shadow: 0 22px 90px #0008; overflow: hidden; }
 canvas { display: block; width: 100%; height: 100%; image-rendering: auto; }
-.overlay { position: absolute; left: 16px; top: 16px; pointer-events: none; font-weight: 800; color: #f6d672; text-shadow: 0 2px 8px #000; }
+.overlay { position: absolute; left: 16px; top: 16px; right: 16px; pointer-events: none; font-weight: 800; color: #f6d672; text-shadow: 0 2px 8px #000; line-height: 1.18; }
 .panel { border: 1px solid #263549; background: #0d131dcc; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 28px); overflow: auto; }
 h1 { margin: 0; letter-spacing: .08em; text-transform: uppercase; }
 .tagline, .hint { color: #9fb0c7; margin: 0; font-size: 13px; line-height: 1.35; }
@@ -36,4 +36,20 @@ button:hover { background: #1d2a3c; }
 .meter { height: 8px; background: #263040; border-radius: 999px; overflow: hidden; margin: 5px 0; }
 .meter span { display: block; height: 100%; background: linear-gradient(90deg, #7bd68e, #f0d36a); }
 .log { margin: 0; padding-left: 18px; color: #c5d1e2; font-size: 12px; line-height: 1.35; }
-@media (max-width: 1000px) { .shell { grid-template-columns: 1fr; } .panel { max-height: none; } }
+@media (max-width: 1000px) {
+  html, body { height: 100%; overflow: hidden; }
+  body { min-height: 100svh; }
+  .shell { display: flex; flex-direction: column; height: 100svh; min-height: 100svh; gap: 8px; padding: 8px; overflow: hidden; }
+  .stage { align-self: stretch; justify-self: auto; width: 100%; height: 50svh; min-height: 46svh; max-height: 54svh; flex: 0 0 50svh; aspect-ratio: auto; border-radius: 0; box-shadow: 0 14px 42px #0008; }
+  canvas { width: 100%; height: 100%; }
+  .overlay { left: 10px; top: 10px; right: 10px; max-height: calc(50svh - 20px); overflow: hidden; font-size: clamp(15px, 4.2vw, 22px); line-height: 1.16; }
+  .panel { flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto; -webkit-overflow-scrolling: touch; border-radius: 12px 12px 0 0; padding: 14px; padding-bottom: 88px; }
+  h1 { font-size: clamp(42px, 14vw, 64px); line-height: .95; }
+  select, button { min-height: 48px; font-size: 16px; }
+  .row { gap: 10px; }
+}
+@media (max-width: 420px) {
+  .stage { height: 52svh; flex-basis: 52svh; min-height: 48svh; }
+  .overlay { max-height: calc(52svh - 20px); }
+  .panel { padding: 12px; padding-bottom: 96px; }
+}
