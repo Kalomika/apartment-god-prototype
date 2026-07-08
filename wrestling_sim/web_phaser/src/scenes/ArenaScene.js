@@ -5,18 +5,11 @@ import { ChoicePanel } from '../ui/ChoicePanel.js';
 import { initialMatch, roster } from '../data/roster.js';
 import { MatchEngine } from '../sim/matchEngine.js';
 
-const wrestlerTextureKey = (id) => `wrestler-${id}`;
-
 export class ArenaScene extends Phaser.Scene {
   constructor() {
     super('ArenaScene');
     this.layout = null;
     this.snapshot = null;
-  }
-
-  preload() {
-    this.load.svg(wrestlerTextureKey('rex-sterling'), 'assets/wrestlers/rex_sterling_neutral.svg', { width: 256, height: 256 });
-    this.load.svg(wrestlerTextureKey('dante-crowe'), 'assets/wrestlers/dante_crowe_neutral.svg', { width: 256, height: 256 });
   }
 
   create() {
@@ -26,8 +19,8 @@ export class ArenaScene extends Phaser.Scene {
     this.engine = new MatchEngine({ red, blue, ruleSet: initialMatch.ruleSet });
     this.ring = new RingRenderer(this);
     this.choicePanel = new ChoicePanel(this);
-    this.wrestlerA = new WrestlerProxy(this, red, wrestlerTextureKey(red.id));
-    this.wrestlerB = new WrestlerProxy(this, blue, wrestlerTextureKey(blue.id));
+    this.wrestlerA = new WrestlerProxy(this, red);
+    this.wrestlerB = new WrestlerProxy(this, blue);
     this.referee = this.createReferee();
     this.hudText = this.add.text(0, 0, '', {
       fontFamily: 'Arial Black, Arial, sans-serif',
@@ -98,7 +91,7 @@ export class ArenaScene extends Phaser.Scene {
     const redScreen = this.ring.ringToScreen(this.snapshot.red.position.x, this.snapshot.red.position.y);
     const blueScreen = this.ring.ringToScreen(this.snapshot.blue.position.x, this.snapshot.blue.position.y);
     const refScreen = this.ring.ringToScreen(this.snapshot.referee.position.x, this.snapshot.referee.position.y);
-    const sizeScale = Phaser.Math.Clamp(this.ring.bounds.size / 420, 0.72, 1.15);
+    const sizeScale = Phaser.Math.Clamp(this.ring.bounds.size / 360, 0.82, 1.22);
 
     this.wrestlerA.setSpriteScale(sizeScale);
     this.wrestlerB.setSpriteScale(sizeScale);
@@ -109,7 +102,7 @@ export class ArenaScene extends Phaser.Scene {
     this.wrestlerA.setState(this.snapshot.red.state);
     this.wrestlerB.setState(this.snapshot.blue.state);
     this.referee.setPosition(Math.round(refScreen.x), Math.round(refScreen.y));
-    this.referee.setScale(sizeScale * 0.72);
+    this.referee.setScale(sizeScale * 0.64);
     this.hudText.setPosition(Math.round(this.layout.width * 0.5), 8);
     this.hudText.setFontSize(this.layout.width < 430 ? 13 : 16);
     this.hudText.setText(`${this.snapshot.red.profile.shortName} STA ${Math.round(this.snapshot.red.stamina)} DMG ${Math.round(this.snapshot.red.damage)}   ${this.snapshot.blue.profile.shortName} STA ${Math.round(this.snapshot.blue.stamina)} DMG ${Math.round(this.snapshot.blue.damage)}`);
