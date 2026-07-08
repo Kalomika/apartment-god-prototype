@@ -10,11 +10,24 @@ import { updateVehicleDeparture } from './vehicleSystem.js';
 import { installCameraSwipeNavigation, updateCameraTransition } from './cameraNavigation.js';
 import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
 
+const REFRESH_SAVE_KEY = 'apartment_god_test_refresh_state_v3';
+
+function loadRefreshStateSafely(state) {
+  try {
+    return loadRefreshState(state);
+  } catch (error) {
+    console.error('[Apartment God] Bad refresh state skipped so the game can boot.', error);
+    try { localStorage.removeItem(REFRESH_SAVE_KEY); } catch (_) {}
+    state.saveStatus = { message: 'Skipped bad refresh state' };
+    return false;
+  }
+}
+
 export function bootCanvasGame() {
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const state = createState();
-  loadRefreshState(state);
+  loadRefreshStateSafely(state);
   installCameraSwipeNavigation(state, canvas);
   const ui = createUi(state, canvas);
 
