@@ -5,16 +5,197 @@ export function drawObjects(ctx, state) {
   for (const obj of objects.filter(o => o.floor === state.floor)) {
     if (obj.kind === 'car' && state.objectState.vehicleInUse === obj.id) continue;
     if (obj.kind === 'soccer_field') continue;
-    const active = state.entities.some(e => e.target?.objectId === obj.id || String(e.action || '').toLowerCase().includes(obj.kind));
+    const active = isObjectActive(state, obj);
     ctx.save();
     ctx.shadowColor = active ? 'rgba(232,198,97,.55)' : 'transparent';
     ctx.shadowBlur = active ? 16 : 0;
     if (!drawStyledObject(ctx, obj, state)) drawFallbackObject(ctx, obj);
+    drawLivedInObjectDetails(ctx, obj, state, active);
     if (obj.id?.startsWith('pet_flap')) drawPetFlap(ctx, obj);
     if (obj.kind === 'stove') drawStoveBackPanel(ctx, obj, state);
-    if (obj.kind === 'swim_pool') drawPoolDepthDetail(ctx, obj);
+    if (obj.kind === 'swim_pool') drawPoolDepthDetail(ctx, obj, state);
     ctx.restore();
   }
+}
+
+function isObjectActive(state, obj) {
+  const label = String(obj.label || '').toLowerCase();
+  const kind = String(obj.kind || '').toLowerCase();
+  return state.entities.some(e => {
+    if (e.hidden || e.floor !== obj.floor) return false;
+    const action = String(e.action || '').toLowerCase();
+    return e.target?.objectId === obj.id || e.pending?.objectId === obj.id || action.includes(kind) || (label && action.includes(label));
+  });
+}
+
+function hasAction(state, terms, floor = null) {
+  const list = Array.isArray(terms) ? terms : [terms];
+  return state.entities.some(e => {
+    if (e.hidden) return false;
+    if (floor !== null && e.floor !== floor) return false;
+    const action = String(e.action || '').toLowerCase();
+    return list.some(term => action.includes(term));
+  });
+}
+
+function drawLivedInObjectDetails(ctx, obj, state, active) {
+  if (obj.kind === 'pool_table') drawPlayablePoolOverlay(ctx, obj, state, active);
+  if (obj.kind === 'weight_bench') drawWeightBenchOverlay(ctx, obj, state, active);
+  if (obj.kind === 'heavy_bag') drawHeavyBagOverlay(ctx, obj, state, active);
+  if (obj.kind === 'dining_table') drawDiningTable(ctx, obj, state, active);
+  if (obj.kind === 'coffee_maker') drawCoffeeMaker(ctx, obj, state, active);
+  if (obj.kind === 'tv') drawTvGlow(ctx, obj, state);
+  if (obj.kind === 'game_console') drawConsoleGlow(ctx, obj, state, active);
+}
+
+function drawPlayablePoolOverlay(ctx, o, state, active) {
+  const felt = { x: o.x + 14, y: o.y + 14, w: o.w - 28, h: o.h - 28 };
+  ctx.save();
+  ctx.shadowColor = 'transparent';
+  rounded(ctx, felt.x, felt.y, felt.w, felt.h, 12, true, false, '#557d67');
+  for (const [px, py] of [[16,16],[o.w/2,12],[o.w-16,16],[16,o.h-16],[o.w/2,o.h-12],[o.w-16,o.h-16]]) circle(ctx, o.x + px, o.y + py, 7, '#2c2622');
+
+  const cy = o.y + o.h * .5;
+  const rackX = o.x + o.w * .64;
+  const gap = 13;
+  const colors = ['#f1c66a', '#ff75df', '#74e6ff', '#90d68c', '#f08b57', '#a98bff', '#f8fbff', '#e06767', '#74c0a8', '#d2b064'];
+  circle(ctx, o.x + o.w * .29, cy, 6, '#f8fbff');
+  ctx.strokeStyle = '#d6b27a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(rackX - 12, cy - 32);
+  ctx.lineTo(rackX + 54, cy);
+  ctx.lineTo(rackX - 12, cy + 32);
+  ctx.closePath();
+  ctx.stroke();
+  let index = 0;
+  for (let row = 0; row < 5; row++) {
+    for (let col = 0; col <= row; col++) {
+      circle(ctx, rackX + row * gap, cy + (col - row / 2) * gap, 5.6, colors[index++ % colors.length]);
+    }
+  }
+
+  const pulse = active ? Math.sin((state.time || 0) * .18) * 5 : 0;
+  line(ctx, o.x + 34, o.y + o.h + 14 + pulse * .12, o.x + o.w - 34, o.y + o.h + 2, '#d6b27a', 3);
+  ctx.fillStyle = '#f1c66a';
+  ctx.font = '900 9px system-ui';
+  ctx.fillText(active ? 'GAME IN PROGRESS' : 'RACKED', o.x + 76, o.y + o.h - 14);
+  ctx.restore();
+}
+
+function drawWeightBenchOverlay(ctx, o, state, active) {
+  const lift = active || hasAction(state, 'lift weights', o.floor);
+  const rep = lift ? Math.sin((state.time || 0) * .28) : 0;
+  const barY = o.y + 2 - Math.max(0, rep) * 18;
+  ctx.save();
+  ctx.shadowColor = 'transparent';
+  rounded(ctx, o.x + 18, o.y + 17, o.w - 36, 20, 8, true, false, '#20252f');
+  rounded(ctx, o.x + 28, o.y + 20, o.w - 56, 14, 7, true, false, '#4f5d6b');
+  line(ctx, o.x + 20, o.y + 40, o.x + 8, o.y + 52, '#9aa2aa', 3);
+  line(ctx, o.x + o.w - 20, o.y + 40, o.x + o.w - 8, o.y + 52, '#9aa2aa', 3);
+  line(ctx, o.x + 7, barY, o.x + o.w - 7, barY, '#f1e9de', 4);
+  drawPlateStack(ctx, o.x + 3, barY, -1);
+  drawPlateStack(ctx, o.x + o.w - 3, barY, 1);
+  if (lift) {
+    ctx.fillStyle = '#f1c66a';
+    ctx.font = '900 8px system-ui';
+    ctx.fillText('REP', o.x + o.w / 2 - 10, o.y - 8);
+  }
+  ctx.restore();
+}
+
+function drawPlateStack(ctx, x, y, dir) {
+  for (let i = 0; i < 3; i++) {
+    rounded(ctx, x + dir * i * 5 - 4, y - 13, 8, 26, 3, true, false, i % 2 ? '#343b46' : '#596575');
+  }
+}
+
+function drawHeavyBagOverlay(ctx, o, state, active) {
+  const punching = active || hasAction(state, 'heavy bag', o.floor);
+  const sway = punching ? Math.sin((state.time || 0) * .42) * 5 : 0;
+  ctx.save();
+  ctx.shadowColor = 'transparent';
+  ctx.clearRect(o.x + 2, o.y + 10, o.w - 4, o.h - 10);
+  line(ctx, o.x + o.w / 2, o.y, o.x + o.w / 2 + sway * .35, o.y + 17, '#b99d70', 2);
+  rounded(ctx, o.x + 6 + sway, o.y + 16, o.w - 12, o.h - 20, 16, true, false, '#7b4e46');
+  rounded(ctx, o.x + 10 + sway, o.y + 22, o.w - 20, 18, 9, true, false, 'rgba(255,255,255,.12)');
+  if (punching) {
+    ctx.strokeStyle = '#f1c66a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(o.x + o.w / 2 + sway + 22, o.y + 42, 10, -0.9, 0.9);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawDiningTable(ctx, o, state, active) {
+  ctx.save();
+  ctx.shadowColor = 'transparent';
+  rounded(ctx, o.x, o.y, o.w, o.h, 18, true, false, '#8f6844');
+  rounded(ctx, o.x + 10, o.y + 10, o.w - 20, o.h - 20, 14, true, false, '#b78556');
+  for (const [x, y] of [[18,18], [o.w - 18,18], [18,o.h - 18], [o.w - 18,o.h - 18]]) circle(ctx, o.x + x, o.y + y, 10, '#e8decf');
+  for (const [x, y] of [[o.w / 2 - 28, 18], [o.w / 2 + 28, o.h - 18]]) {
+    rounded(ctx, o.x + x - 14, o.y + y - 7, 28, 14, 7, true, false, '#d9c1a1');
+    circle(ctx, o.x + x + 20, o.y + y, 4, '#74e6ff');
+  }
+  if (active || hasAction(state, ['eat', 'meal'], o.floor)) {
+    ctx.fillStyle = '#f1c66a';
+    ctx.font = '900 9px system-ui';
+    ctx.fillText('EATING', o.x + o.w / 2 - 19, o.y + o.h / 2 + 4);
+  }
+  ctx.restore();
+}
+
+function drawCoffeeMaker(ctx, o, state, active) {
+  const brewing = active || hasAction(state, 'coffee', o.floor);
+  const steam = Math.sin((state.time || 0) * .35);
+  ctx.save();
+  ctx.shadowColor = 'transparent';
+  rounded(ctx, o.x, o.y, o.w, o.h, 7, true, false, '#343b46');
+  rounded(ctx, o.x + 8, o.y + 8, o.w - 16, o.h - 12, 4, true, false, '#141a22');
+  ctx.fillStyle = brewing ? '#f1c66a' : '#7ea4a0';
+  ctx.fillRect(o.x + o.w - 12, o.y + 8, 5, 5);
+  rounded(ctx, o.x + 12, o.y + o.h - 2, 18, 12, 5, true, false, '#6f4e37');
+  if (brewing) {
+    ctx.strokeStyle = 'rgba(255,255,255,.65)';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(o.x + 14 + i * 7, o.y - 2);
+      ctx.quadraticCurveTo(o.x + 10 + i * 7 + steam * 2, o.y - 13, o.x + 16 + i * 7, o.y - 22);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawTvGlow(ctx, o, state) {
+  if (!state.tv?.on) return;
+  ctx.save();
+  ctx.shadowColor = 'transparent';
+  const pulse = .22 + Math.abs(Math.sin((state.time || 0) * .22)) * .18;
+  ctx.globalAlpha = pulse;
+  ctx.fillStyle = '#74e6ff';
+  ctx.beginPath();
+  ctx.moveTo(o.x - 18, o.y + o.h + 4);
+  ctx.lineTo(o.x + o.w + 18, o.y + o.h + 4);
+  ctx.lineTo(o.x + o.w + 74, o.y + 156);
+  ctx.lineTo(o.x - 74, o.y + 156);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawConsoleGlow(ctx, o, state, active) {
+  if (!active && !hasAction(state, ['console', 'game'], o.floor)) return;
+  ctx.save();
+  ctx.shadowColor = 'transparent';
+  const pulse = Math.abs(Math.sin((state.time || 0) * .24));
+  ctx.strokeStyle = `rgba(116,230,255,${.32 + pulse * .42})`;
+  ctx.lineWidth = 3;
+  rounded(ctx, o.x + 14, o.y + 8, o.w - 28, o.h - 16, 8, false, true);
+  ctx.restore();
 }
 
 function drawPetFlap(ctx, o) {
@@ -35,7 +216,7 @@ function drawPetFlap(ctx, o) {
   ctx.restore();
 }
 
-function drawPoolDepthDetail(ctx, o) {
+function drawPoolDepthDetail(ctx, o, state) {
   ctx.save();
   ctx.shadowColor = 'transparent';
   const inner = { x: o.x + 19, y: o.y + 19, w: o.w - 38, h: o.h - 38 };
@@ -50,16 +231,25 @@ function drawPoolDepthDetail(ctx, o) {
   }
   ctx.strokeStyle = 'rgba(255,255,255,.55)';
   ctx.lineWidth = 2;
+  const swimming = hasAction(state, 'swim', o.floor);
+  const offset = swimming ? Math.sin((state.time || 0) * .32) * 9 : 0;
   for (let y = inner.y + 24; y < inner.y + inner.h - 12; y += 26) {
     ctx.beginPath();
     ctx.moveTo(inner.x + 14, y);
-    ctx.quadraticCurveTo(inner.x + inner.w / 2, y - 13, inner.x + inner.w - 14, y);
+    ctx.quadraticCurveTo(inner.x + inner.w / 2, y - 13 + offset, inner.x + inner.w - 14, y);
     ctx.stroke();
   }
   ctx.strokeStyle = 'rgba(9,36,65,.40)';
   ctx.lineWidth = 3;
   rounded(ctx, inner.x, inner.y, inner.w, inner.h, 22, false, true);
   drawPoolSteps(ctx, inner.x + 16, inner.y + inner.h - 48);
+  if (swimming) {
+    ctx.strokeStyle = 'rgba(255,255,255,.75)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(inner.x + inner.w * .55, inner.y + inner.h * .52, 24 + Math.abs(offset), 0, Math.PI * 2);
+    ctx.stroke();
+  }
   ctx.fillStyle = 'rgba(255,255,255,.78)';
   ctx.font = '900 9px system-ui';
   ctx.fillText('SHALLOW', inner.x + 18, inner.y + 21);
@@ -112,4 +302,22 @@ function rounded(ctx, x, y, w, h, r, fill = true, stroke = false, color = '') {
   else ctx.rect(x, y, Math.max(1, w), Math.max(1, h));
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
+}
+
+function circle(ctx, x, y, r, color = '', fill = true) {
+  if (color) fill ? ctx.fillStyle = color : ctx.strokeStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  if (fill) ctx.fill();
+  else ctx.stroke();
+}
+
+function line(ctx, x1, y1, x2, y2, color, width = 1) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
 }
