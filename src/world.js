@@ -67,7 +67,7 @@ export const objects = [
   { id: 'garage_door', label: 'Garage Interior Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'entry', x: 28, y: 418, w: 34, h: 72, solid: false, toFloor: 3, exitId: 'garage_entry_door' },
   { id: 'backyard_door', label: 'Back Door to Yard', kind: 'stairs', styleAs: 'door', floor: 0, room: 'living', x: 374, y: 38, w: 76, h: 34, solid: false, toFloor: 4, exitId: 'yard_back_door' },
   { id: 'dog_bowl', label: 'Dog Bowl', kind: 'dog_bowl', floor: 0, room: 'kitchen', x: 558, y: 256, w: 36, h: 26, solid: false },
-  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'entry', x: 492, y: 386, w: 170, h: 86, solid: true },
+  { id: 'dining_table', label: 'Wall Dining Table', kind: 'dining_table', floor: 0, room: 'entry', x: 508, y: 494, w: 170, h: 52, solid: true },
   { id: 'light_living', label: 'Living Light', kind: 'light', floor: 0, room: 'living', x: 408, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_down', label: 'Upstairs Stairs', kind: 'stairs', floor: 0, room: 'stairs', x: 780, y: 554, w: 118, h: 84, solid: false, toFloor: 1, exitId: 'stairs_up' },
 
@@ -145,7 +145,7 @@ export function approachPoint(obj, action = '') {
   if (obj.kind === 'fridge') return clampToPlay(obj.x + obj.w + 44, cy);
   if (['stove', 'sink'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36);
   if (obj.kind === 'coffee_maker') return clampToPlay(cx, obj.y + obj.h + 28);
-  if (obj.kind === 'dining_table') return clampToPlay(cx, obj.y + obj.h + 34);
+  if (obj.kind === 'dining_table') return clampToPlay(cx, obj.y - 32);
   if (obj.kind === 'bookshelf') return clampToPlay(obj.x + obj.w + 36, cy);
   if (obj.kind === 'desk') return clampToPlay(cx, obj.y + obj.h + 42);
   if (obj.kind === 'pool_table') return clampToPlay(cx + 18, obj.y + obj.h + 48);
