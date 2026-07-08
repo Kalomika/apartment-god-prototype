@@ -15,9 +15,6 @@ export const doorways = [
   { floor: 1, a: 'office', b: 'hall', x: 574, y: 382, w: 82, h: 18 },
   { floor: 1, a: 'bath2', b: 'hall', x: 826, y: 382, w: 64, h: 18 },
   { floor: 1, a: 'hall', b: 'stairs2', x: 802, y: 516, w: 58, h: 22 },
-  { floor: 3, a: 'garage_bay', b: 'garage_storage', x: 180, y: 456, w: 100, h: 18 },
-  { floor: 3, a: 'garage_bay', b: 'garage_entry', x: 640, y: 456, w: 110, h: 18 },
-  { floor: 3, a: 'garage_storage', b: 'garage_entry', x: 486, y: 540, w: 18, h: 60 },
   { floor: 4, a: 'yard', b: 'pool_area', x: 596, y: 150, w: 18, h: 100 },
   { floor: 4, a: 'yard', b: 'kennel_area', x: 596, y: 470, w: 18, h: 92 }
 ];
@@ -27,7 +24,7 @@ export const windows = [
   { id: 'win_kitchen', label: 'Kitchen Window', floor: 0, room: 'kitchen', x: 618, y: 34, w: 82, h: 8 },
   { id: 'win_bedroom', label: 'Bedroom Window', floor: 1, room: 'bedroom', x: 142, y: 34, w: 96, h: 8 },
   { id: 'win_office', label: 'Office Window', floor: 1, room: 'office', x: 564, y: 34, w: 88, h: 8 },
-  { id: 'win_garage', label: 'Garage Vent', floor: 3, room: 'garage_bay', x: 420, y: 34, w: 110, h: 8 }
+  { id: 'win_garage', label: 'Garage Vent', floor: 3, room: 'garage', x: 420, y: 34, w: 110, h: 8 }
 ];
 
 export function doorwayCenter(d) { return { x: d.x + d.w / 2, y: d.y + d.h / 2 }; }
