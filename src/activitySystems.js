@@ -23,12 +23,16 @@ function updatePoolGame(state, dt) {
   if (!game) return;
   game.t += dt;
   game.messageT = Math.max(0, (game.messageT || 0) - dt);
+  if (game.cueThrust) game.cueThrust.t = Math.max(0, game.cueThrust.t - dt);
 
   updateBalls(game, table, dt);
   if (!game.winner) {
     game.shotT -= dt;
     if (game.shotT <= 0 && ballsSettled(game)) shootPool(state, table, players);
     checkPoolWinner(state, players);
+  } else {
+    game.winnerT = (game.winnerT ?? 3.5) - dt;
+    if (game.winnerT <= 0) finishPoolGame(state, players, game);
   }
 }
 
@@ -39,6 +43,10 @@ function samePlayers(game, players) {
 
 function startPoolGame(state, table, players) {
   const names = players.map(p => p.name);
+  for (const p of players) {
+    p.carrying = 'cue_stick';
+    p.pose = 'pool';
+  }
   state.poolGame = {
     tableId: table.id,
     playerIds: players.map(p => p.id),
@@ -52,11 +60,27 @@ function startPoolGame(state, table, players) {
     message: 'Rack broken',
     messageT: 2,
     winner: null,
+    winnerT: 0,
     targetId: null,
     cueLine: null,
+    cueThrust: null,
     balls: rackBalls(table)
   };
-  log(state, `${names.join(' and ')} started a pool mini game.`);
+  log(state, `${names.join(' and ')} grabbed cue sticks and started pool.`);
+}
+
+function finishPoolGame(state, players, game) {
+  for (const p of players) {
+    if (String(p.action || '').toLowerCase().includes('pool')) {
+      p.action = 'Idle';
+      p.actionT = 0;
+      p.actionTotal = 0;
+      p.pose = 'stand';
+      if (p.carrying === 'cue_stick') p.carrying = null;
+    }
+  }
+  state.poolGame = null;
+  log(state, `The pool match ended. ${game.winner} was the winner.`);
 }
 
 function rackBalls(table) {
@@ -124,6 +148,8 @@ function shootPool(state, table, players) {
   const targets = game.balls.filter(b => !b.pocketed && b.id !== 'cue');
   if (!cue || !targets.length) return checkPoolWinner(state, players);
 
+  shooter.carrying = 'cue_stick';
+  shooter.pose = 'pool';
   const before = targets.filter(b => b.pocketed).length;
   const skill = shooter.skills?.learning ?? shooter.skills?.intellect ?? 3;
   const stamina = shooter.needs?.stamina ?? 60;
@@ -163,6 +189,7 @@ function shootPool(state, table, players) {
   game.messageT = 2.2;
   game.targetId = target.id;
   game.cueLine = { x1: cue.x, y1: cue.y, x2: aim.x, y2: aim.y, t: 1.1 };
+  game.cueThrust = { x1: cue.x - ux * 54, y1: cue.y - uy * 54, x2: cue.x - ux * 8, y2: cue.y - uy * 8, t: .45 };
   game.shots[shooter.id] = (game.shots[shooter.id] || 0) + 1;
   if (!madeShot) game.turn = (game.turn + 1) % Math.max(1, players.length);
   game.shotT = madeShot ? 1.15 : 1.55;
@@ -203,12 +230,13 @@ function resetCueBall(cue, table) {
 function checkPoolWinner(state, players) {
   const game = state.poolGame;
   const live = game.balls.filter(b => !b.pocketed && b.id !== 'cue').length;
-  const maxShots = Math.max(8, players.length * 6);
+  const maxShots = Math.max(10, players.length * 8);
   const shotCount = Object.values(game.shots || {}).reduce((sum, n) => sum + n, 0);
-  if (live > 0 && shotCount < maxShots && game.t < 28) return;
+  if (live > 0 && shotCount < maxShots && game.t < 45) return;
   const ranked = players.map(p => ({ player: p, score: game.score[p.id] || 0 })).sort((a, b) => b.score - a.score);
   const winner = ranked[0]?.player || players[0];
   game.winner = winner?.name || 'Player';
+  game.winnerT = 3.5;
   game.message = `${game.winner} wins ${ranked.map(r => r.score).join(' to ')}`;
   game.messageT = 4;
   for (const p of players) {
