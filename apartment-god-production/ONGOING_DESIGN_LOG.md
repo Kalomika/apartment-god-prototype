@@ -114,3 +114,56 @@ Autonomy touches core runtime behavior and can easily make the game feel worse i
 
 Follow ups:
 Implement autonomy upgrade carefully on phaser-migration, then mirror main only when Kam needs Render browser testing.
+
+---
+
+## 2026-07-08 05:05 AM CT, First Autonomy Intelligence Upgrade
+
+Status: NEEDS_TESTING
+Branch: phaser-migration
+Commit: autonomy 365fd9fefef5e6792afc095aaaecd235115678d5, movement 2677312bdf2f48026fb20b280e1eb4e102082916
+Files changed: src/autonomy.js, src/movement.js
+Runtime files changed: yes
+Render playable branch updated: no
+Backup branch: backup/phaser-migration-before-autonomy-upgrade-2026-07-08
+
+Summary:
+Implemented the first active intelligence upgrade for the current Canvas engine. The goal is to make characters function better without player guidance, stop pointless porch style wandering, use fallback objects, vary activities, and recover from blocked paths more aggressively.
+
+Implementation details:
+
+Autonomy changes:
+
+- Replaced simple resident/girlfriend/dog random idle behavior with a shared human decision driver and dog decision driver.
+- Added lightweight per actor brain memory with recent actions and recent objects.
+- Actors now rotate activity choices to avoid repeating the same object/action too often.
+- Human actors now prioritize urgent needs first: bladder, hunger, freshness, energy, social, fun, and stamina.
+- Bathroom fallback now tries same floor and alternate floor toilets.
+- Shower/freshness fallback now tries same floor and alternate floor showers, with sink grooming as backup.
+- Hunger fallback tries fridge snack/meal and stove meal.
+- Energy fallback tries bed, couch, or basement couch.
+- Social logic attempts talk, hold hands, kiss, cuddle, and tickle when partner is available.
+- Fun logic rotates TV, couch, desk, console, arcade, pool, darts, swimming, soccer, treadmill, weights, and heavy bag.
+- Morning logic nudges bathroom, shower, and hunger if needed.
+- Bedtime logic starts a simple sleep routine when night hours and energy/stamina suggest it.
+- Dog logic now prioritizes bowl, kennel, nearby people, limited yard/house travel, and avoids random pointless front porch behavior.
+- Smart wander now stays inside useful rooms on the current floor instead of picking arbitrary coordinates across the whole playfield.
+
+Movement changes:
+
+- Route candidate generation now allows multi step obstacle routing instead of only candidates with a direct start or end connection.
+- Added more candidate points around blockers.
+- Filters route candidates to actual rooms and out of solid object padding.
+- Block recovery now retries longer and can snap to the final waypoint after repeated recovery attempts so the actor can complete an action instead of staying blocked forever.
+
+Testing performed:
+Code inspection only through GitHub file review. No local or Render runtime test performed in this chat.
+
+Testing requested:
+Mirror to main if Render testing is needed, then test reset, idle autonomy, bathroom fallback, shower fallback, hunger fallback, fun activity variety, social actions, dog choices, and garage movement near ATV.
+
+Known risks:
+This is a broad behavior change. It may expose unsupported actions, awkward timing, or path edge cases. It intentionally avoids building the full future job/movie/coffee/vocation systems in this pass.
+
+Follow ups:
+If this pass works, continue with deeper activity duration, sleep time speedup, thought bubbles, job schedules, default bookshelf, coffee maker, movie/show metadata, and clearer visible reasons for actor choices.
