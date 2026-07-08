@@ -1,11 +1,11 @@
 import { canStepThroughRooms, routeThroughDoors } from './blueprint.js';
 import { approachPoint, clampToPlay, expandedRect, getObject, getStairExit, getTravelStair, pointInRect, segmentHitsRect, solidObjects } from './world.js';
 
-const ROUTE_BLOCK_PAD = 16;
-const ROUTE_CLEAR_PAD = 12;
-const ROUTE_CORNER_PAD = 28;
-const PERSON_COLLISION_PAD = 10;
-const DOG_COLLISION_PAD = 8;
+const ROUTE_BLOCK_PAD = 8;
+const ROUTE_CLEAR_PAD = 5;
+const ROUTE_CORNER_PAD = 18;
+const PERSON_COLLISION_PAD = 4;
+const DOG_COLLISION_PAD = 3;
 
 function directBlocked(a, b, floor, allowId = '', pad = ROUTE_CLEAR_PAD) {
   return solidObjects(floor, allowId).some(o => segmentHitsRect(a, b, expandedRect(o, pad)));
@@ -31,38 +31,21 @@ function routeAround(a, b, floor, allowId = '') {
 function routeLeg(a, b, floor, allowId = '') {
   const blockers = solidObjects(floor, allowId).filter(o => segmentHitsRect(a, b, expandedRect(o, ROUTE_BLOCK_PAD)));
   if (!blockers.length) return [b];
-
   const o = blockers[0];
   const r = expandedRect(o, ROUTE_CORNER_PAD);
   const candidates = uniquePoints([
-    clampToPlay(r.x - 20, r.y - 20),
-    clampToPlay(r.x + r.w + 20, r.y - 20),
-    clampToPlay(r.x - 20, r.y + r.h + 20),
-    clampToPlay(r.x + r.w + 20, r.y + r.h + 20),
+    clampToPlay(r.x - 24, r.y - 24),
+    clampToPlay(r.x + r.w + 24, r.y - 24),
+    clampToPlay(r.x - 24, r.y + r.h + 24),
+    clampToPlay(r.x + r.w + 24, r.y + r.h + 24),
     clampToPlay(r.x - 20, r.y + r.h / 2),
     clampToPlay(r.x + r.w + 20, r.y + r.h / 2),
-    clampToPlay(r.x + r.w / 2, r.y - 24),
-    clampToPlay(r.x + r.w / 2, r.y + r.h + 24),
-    clampToPlay(o.x - 18, o.y - 18),
-    clampToPlay(o.x + o.w + 18, o.y - 18),
-    clampToPlay(o.x - 18, o.y + o.h + 18),
-    clampToPlay(o.x + o.w + 18, o.y + o.h + 18)
+    clampToPlay(r.x + r.w / 2, r.y - 22),
+    clampToPlay(r.x + r.w / 2, r.y + r.h + 22)
   ]);
-
-  candidates.sort((p, q) => {
-    const dp = Math.hypot(p.x - a.x, p.y - a.y) + Math.hypot(b.x - p.x, b.y - p.y);
-    const dq = Math.hypot(q.x - a.x, q.y - a.y) + Math.hypot(b.x - q.x, b.y - q.y);
-    return dp - dq;
-  });
-
-  for (const p of candidates) {
-    if (legClear(a, p, floor, allowId) && legClear(p, b, floor, allowId)) return [p, b];
-  }
-
-  for (const p of candidates) {
-    if (legClear(a, p, floor, allowId)) return [p, b];
-  }
-
+  candidates.sort((p, q) => Math.hypot(p.x - a.x, p.y - a.y) + Math.hypot(b.x - p.x, b.y - p.y) - Math.hypot(q.x - a.x, q.y - a.y) - Math.hypot(b.x - q.x, b.y - q.y));
+  for (const p of candidates) if (legClear(a, p, floor, allowId) && legClear(p, b, floor, allowId)) return [p, b];
+  for (const p of candidates) if (legClear(a, p, floor, allowId)) return [p, b];
   return [b];
 }
 
@@ -112,7 +95,6 @@ export function commandObject(entity, obj, actionId) {
   entity.action = `Going to ${obj.label}`;
   entity.pose = 'walk';
   entity.stopped = false;
-
   if (entity.floor !== obj.floor) {
     const stairs = travelStairFor(entity, obj.floor);
     if (stairs && stairs.floor === entity.floor) {
@@ -122,7 +104,6 @@ export function commandObject(entity, obj, actionId) {
       return;
     }
   }
-
   entity.path = routeAround({ x: entity.x, y: entity.y }, target, obj.floor, obj.id);
 }
 
@@ -154,7 +135,7 @@ function finishFloorTravel(state, entity) {
   const exit = getStairExit(stairs);
   if (exit) {
     entity.x = exit.x + exit.w / 2;
-    entity.y = exit.y + exit.h + 34;
+    entity.y = exit.styleAs === 'door' ? exit.y + exit.h / 2 : exit.y + exit.h + 34;
   }
   const obj = getObject(pending.objectId);
   entity.pending = null;
@@ -162,17 +143,16 @@ function finishFloorTravel(state, entity) {
   entity.recoveryCount = 0;
   clearMoveAllowance(entity);
   if (obj) {
-    if (entity.floor !== obj.floor) {
-      commandObject(entity, obj, pending.actionId);
-    } else {
+    if (entity.floor !== obj.floor) commandObject(entity, obj, pending.actionId);
+    else {
       const target = approachPoint(obj, pending.actionId);
       entity.moveAllowId = obj.id;
       entity.path = routeAround({ x: entity.x, y: entity.y }, target, entity.floor, obj.id);
       entity.target = { type: 'object', objectId: obj.id, actionId: pending.actionId };
     }
   }
-  if (entity.id === 'resident' && state.viewHoldT <= 0) state.floor = entity.floor;
-  entity.action = oldFloor !== entity.floor ? 'Using stairs' : entity.action;
+  if (entity.id === state.selectedId && state.viewHoldT <= 0) state.floor = entity.floor;
+  entity.action = oldFloor !== entity.floor ? 'Using passage' : entity.action;
   return true;
 }
 
@@ -186,12 +166,16 @@ function recoverBlocked(entity, _next, dt) {
     return;
   }
   const final = entity.path[0];
-  if (final && entity.recoveryCount <= 3) {
+  if (final && entity.recoveryCount <= 5) {
     const reroute = routeAround({ x: entity.x, y: entity.y }, final, entity.floor, entity.moveAllowId || '');
     if (reroute.length) {
       entity.path = reroute;
       return;
     }
+  }
+  if (final && entity.recoveryCount <= 7 && canStepThroughRooms({ x: entity.x, y: entity.y }, final, entity.floor)) {
+    entity.path = [final];
+    return;
   }
   entity.path = [];
   entity.target = null;
@@ -201,10 +185,10 @@ function recoverBlocked(entity, _next, dt) {
 }
 
 function closeEnoughToFinish(entity, next, dist) {
-  if (entity.target && dist < 34) return true;
-  if (entity.pending && dist < 38) return true;
+  if (entity.target && dist < 38) return true;
+  if (entity.pending && dist < 42) return true;
   const remaining = entity.path?.length || 0;
-  if (remaining <= 1 && Math.hypot(next.x - entity.x, next.y - entity.y) < 26) return true;
+  if (remaining <= 1 && Math.hypot(next.x - entity.x, next.y - entity.y) < 28) return true;
   return false;
 }
 
@@ -225,10 +209,8 @@ function acceptWaypoint(state, entity, next) {
 export function updateMovement(state, entity, dt) {
   if (entity.hidden || entity.stopped) return false;
   if (!entity.path.length) return false;
-
   const next = entity.path[0];
-  if (entity.floor !== state.floor && entity.id === 'resident' && state.viewHoldT <= 0) state.floor = entity.floor;
-
+  if (entity.floor !== state.floor && entity.id === state.selectedId && state.viewHoldT <= 0) state.floor = entity.floor;
   const dx = next.x - entity.x;
   const dy = next.y - entity.y;
   const dist = Math.hypot(dx, dy);
@@ -239,7 +221,6 @@ export function updateMovement(state, entity, dt) {
     recoverBlocked(entity, next, dt);
     return false;
   }
-
   const from = { x: entity.x, y: entity.y };
   const to = { x: entity.x + (dx / dist) * step, y: entity.y + (dy / dist) * step };
   if (!blockedStep(entity, from, to)) {
