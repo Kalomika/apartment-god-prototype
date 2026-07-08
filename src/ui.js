@@ -107,6 +107,11 @@ export function createUi(state, surface, options = {}) {
     return jumpArea(2, 'Basement');
   }
 
+  function refillDevMoney() {
+    state.money = Math.max(state.money || 0, 50000);
+    log(state, 'Developer test money refilled to $50000.');
+  }
+
   function selfItems(actor) { return [
     { label: 'Cell', run: () => cell(actor) }, { label: 'Stop', run: () => stopEntity(actor) }, { label: 'Resume / Auto', run: () => resumeEntity(actor) },
     { label: 'Get food', run: () => startObjectAction(state, actor, objects.find(o => o.id === 'fridge'), 'snack') }, { label: 'Cook meal', run: () => startCookingFlow(state, actor) },
@@ -145,7 +150,7 @@ export function createUi(state, surface, options = {}) {
     document.getElementById('pause').onclick = () => { state.paused = !state.paused; };
     document.getElementById('reset').onclick = () => { clearRefreshState(state); location.reload(); };
     commandPanel.innerHTML = '';
-    const buttons = [['Map', () => openCompoundMap()], ['Up', () => changeVertical(1)], ['Down', () => changeVertical(-1)], ['Cell', () => cell(selected(state))], ['Save', () => saveGame(state, 1)], ['Load', () => loadGame(state, 1)], ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))], ['Auto Mode', () => { state.autonomyMode = state.autonomyMode === 'free' ? 'guided' : 'free'; log(state, `Autonomy: ${state.autonomyMode}.`); }]];
+    const buttons = [['Map', () => openCompoundMap()], ['Up', () => changeVertical(1)], ['Down', () => changeVertical(-1)], ['Dev $', () => refillDevMoney()], ['Cell', () => cell(selected(state))], ['Save', () => saveGame(state, 1)], ['Load', () => loadGame(state, 1)], ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))], ['Auto Mode', () => { state.autonomyMode = state.autonomyMode === 'free' ? 'guided' : 'free'; log(state, `Autonomy: ${state.autonomyMode}.`); }]];
     for (const [label, run] of buttons) { const b = document.createElement('button'); b.textContent = label; b.onclick = run; commandPanel.appendChild(b); }
   }
 
