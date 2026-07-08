@@ -41,6 +41,11 @@ function clearBodyLine(arena, a, b, pad = 17) {
 
 export function chooseDestination(state, f, enemy) {
   const d = dist(f, enemy);
+  if (isUnderFire(state, f)) {
+    const cover = nearCover(state.arena, f);
+    if (cover) return safeDest(state.arena, f, coverPoint(state.arena, cover, f, enemy, 44) || center(cover));
+    return safeDest(state.arena, f, awayPoint(f, enemy, 150));
+  }
   if (f.bleed?.rate > 0 || f.hp < 45 || f.dodge < 20 || f.block < 20) {
     const shadow = state.arena.shadows?.slice().sort((a, b) => dist(f, center(a)) - dist(f, center(b)))[0];
     if (shadow && !f.hideCooldown && (f.bleed?.rate > 0 || f.hp < 36)) return center(shadow);
@@ -75,8 +80,9 @@ export function moveFighter(state, f, dest, dt) {
   const turn = normalizeAngle(moveAngle - f.facing);
   f.facing = normalizeAngle(f.facing + clamp(turn, -dt * 9, dt * 9));
   const stage = stageFor(f);
+  const defensive = isUnderFire(state, f) || f.memory.command?.type === 'roll_cover';
   const stealthMod = f.crouch || f.prone || f.shadowHidden ? 0.55 : 1;
-  const urgency = f.memory.command?.urgent ? 1.18 : 1;
+  const urgency = f.memory.command?.urgent || defensive ? 1.28 : 1;
   const limpMod = stage.id === 'purple' ? 0.72 : stage.id === 'red' ? 0.84 : 1;
   const speed = f.stats.speed * stage.speed * stealthMod * urgency * limpMod * (f.stamina < 20 ? 0.68 : 1);
   const step = Math.min(dist(f, route), speed * dt);
@@ -84,12 +90,12 @@ export function moveFighter(state, f, dest, dt) {
   const movedAmount = dist(f, moved);
   updateStuckMemory(f, movedAmount, route);
   f.x = moved.x; f.y = moved.y;
-  f.shadowHidden = !f.hideCooldown && inShadow(state.arena, f) && (f.crouch || f.prone || f.stamina < 45 || f.bleed?.rate > 0);
-  f.wallLean = Boolean(nearWall(state.arena, f, 17) && (f.hp < 52 || f.bleed?.rate > 0 || f.stamina < 22));
-  f.pose = movedAmount > 0.55 ? movementPose(f, stage, f.stuckT > 0.4) : f.stuckT > 0.4 ? 'reposition' : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : 'idle_guard';
-  f.stamina = clamp(f.stamina - movedAmount * (f.memory.command?.urgent ? 0.012 : 0.005), 0, 100);
+  f.shadowHidden = !f.hideCooldown && inShadow(state.arena, f) && (f.crouch || f.prone || f.stamina < 45 || f.bleed?.rate > 0 || defensive);
+  f.wallLean = Boolean(nearWall(state.arena, f, 17) && (f.hp < 70 || f.bleed?.rate > 0 || f.stamina < 35 || defensive));
+  f.pose = movedAmount > 0.55 ? movementPose(f, stage, f.stuckT > 0.4) : f.stuckT > 0.4 ? 'reposition' : f.wallLean ? 'wall_lean' : f.shadowHidden ? 'hide_shadow' : defensive ? 'duck' : 'idle_guard';
+  f.stamina = clamp(f.stamina - movedAmount * ((f.memory.command?.urgent || defensive) ? 0.012 : 0.005), 0, 100);
   f.noise = f.prone ? 8 : f.crouch || f.shadowHidden ? 10 : ['ninja', 'shadow_ninja'].includes(f.archetypeId) ? 18 : f.memory.command?.urgent ? 55 : 34;
-  f.hidden = f.shadowHidden || f.prone || f.crouch;
+  f.hidden = f.shadowHidden || f.prone || f.crouch || f.wallLean;
 }
 
 function cachedRoute(state, f, dest) {
@@ -127,8 +133,13 @@ function movementPose(f, stage, stuck = false) {
   if (stuck) return 'reposition';
   if (f.prone) return 'crawl';
   if (f.crouch) return 'crouchWalk';
+  if (f.memory.command?.type === 'roll_cover' || isUnderFire({ clock: f.memory.command?.until || 0 }, f)) return 'combat_roll';
   if (stage.id === 'purple') return 'stagger_limp';
   if (stage.id === 'red') return 'limp_run';
   if (f.memory.command?.urgent) return 'rush';
   return 'run';
+}
+
+function isUnderFire(state, f) {
+  return Boolean(f.suppressedUntil && f.suppressedUntil > state.clock);
 }
