@@ -1,5 +1,6 @@
 import { coverPoint, nearCover } from './arena.js';
 import { angleTo, clamp, dist } from './utils.js';
+import { stealthSearchPlan } from './stealth.js';
 
 export function updateBrain(state, f, enemy, visible, audible) {
   if (!f.brain) f.brain = { intent: 'scan', dest: null, until: 0, lastHp: f.hp };
@@ -29,9 +30,13 @@ export function brainDestination(f) {
 function choosePlan(state, f, enemy, visible, audible) {
   const d = dist(f, enemy);
   if (f.bleed?.rate > 0 || f.hp < 34) return survivalPlan(state, f, enemy);
+
+  const stealthPlan = stealthSearchPlan(state, f, enemy, visible, audible);
+  if (stealthPlan) return stealthPlan;
+
   if (!visible && f.memory.lastSeen) return { intent: 'investigate', dest: { x: f.memory.lastSeen.x, y: f.memory.lastSeen.y }, hold: 1.25 };
   if (!visible && audible) return { intent: 'listen_push', dest: cautiousPoint(f, enemy, 120), hold: 1.0 };
-  if (!visible) return { intent: 'scan', dest: patrolPoint(state, f), hold: 1.4 };
+  if (!visible) return { intent: state.stealth?.phase === 'recovery' ? 'recover_patrol' : 'scan', dest: patrolPoint(state, f), hold: 1.4 };
   if (['archer', 'marine', 'suit_operative', 'survival_commando', 'field_agent'].includes(f.archetypeId)) {
     const desired = f.archetypeId === 'archer' ? 190 : f.archetypeId === 'suit_operative' ? 112 : f.archetypeId === 'field_agent' ? 136 : 150;
     const orbit = f.archetypeId === 'archer' ? 280 : f.archetypeId === 'suit_operative' ? 175 : f.archetypeId === 'field_agent' ? 205 : 230;
