@@ -6,11 +6,13 @@ const MAP_D = 25.5;
 const CAMERA_PRESETS = {
   topdown: {
     label: 'Top Down',
-    description: 'straight overhead tactical read',
-    heightBase: 26,
-    heightScale: 1.18,
-    minHeight: 24,
-    maxHeight: 36,
+    description: 'straight overhead tactical read that zooms toward close combat',
+    heightBase: 12.5,
+    heightScale: 1.55,
+    minHeight: 13.5,
+    maxHeight: 34,
+    closePadding: 5.2,
+    farPadding: 9.4,
     offsetX: 0,
     offsetZ: 0,
     up: [0, 0, -1]
@@ -18,34 +20,40 @@ const CAMERA_PRESETS = {
   high: {
     label: 'High Tactical',
     description: 'mostly overhead with a slight forward lean',
-    heightBase: 23,
-    heightScale: 1.05,
-    minHeight: 22,
-    maxHeight: 34,
+    heightBase: 12,
+    heightScale: 1.5,
+    minHeight: 13,
+    maxHeight: 32,
+    closePadding: 5,
+    farPadding: 9.2,
     offsetX: 0,
-    offsetZ: 0.22,
+    offsetZ: 0.18,
     up: [0, 1, 0]
   },
   oblique: {
     label: 'Oblique',
     description: 'angled action-board view',
-    heightBase: 19,
-    heightScale: 0.95,
-    minHeight: 18,
-    maxHeight: 31,
-    offsetX: 0.34,
-    offsetZ: 0.48,
+    heightBase: 11,
+    heightScale: 1.36,
+    minHeight: 12.5,
+    maxHeight: 30,
+    closePadding: 5,
+    farPadding: 9,
+    offsetX: 0.28,
+    offsetZ: 0.42,
     up: [0, 1, 0]
   },
   isometric: {
     label: 'Isometric',
     description: 'optional diagonal 3D view',
-    heightBase: 17,
-    heightScale: 0.88,
-    minHeight: 17,
-    maxHeight: 29,
-    offsetX: 0.58,
-    offsetZ: 0.64,
+    heightBase: 11,
+    heightScale: 1.28,
+    minHeight: 13,
+    maxHeight: 30,
+    closePadding: 5.5,
+    farPadding: 9.5,
+    offsetX: 0.48,
+    offsetZ: 0.54,
     up: [0, 1, 0]
   }
 };
@@ -82,9 +90,11 @@ export function installCameraAngleControls(world, overlayEl) {
 
   world.updateCamera = function updateCamera(dt, state, actorEntities = []) {
     const THREE = this.THREE;
-    const points = actorEntities.filter(f => !f.extracted).map(f => arenaToWorld(f.x, f.y));
+    const active = actorEntities.filter(f => !f.extracted);
+    const points = active.map(f => arenaToWorld(f.x, f.y));
     const target = new THREE.Vector3(0, 0, 0);
-    let span = 13;
+    let span = 8;
+    let combatFocus = 1;
 
     if (points.length) {
       const minX = Math.min(...points.map(p => p.x));
@@ -92,7 +102,12 @@ export function installCameraAngleControls(world, overlayEl) {
       const minZ = Math.min(...points.map(p => p.z));
       const maxZ = Math.max(...points.map(p => p.z));
       target.set((minX + maxX) / 2, 0, (minZ + maxZ) / 2);
-      span = Math.max(maxX - minX, maxZ - minZ, 9);
+      const rawSpan = Math.max(maxX - minX, maxZ - minZ);
+      const fighterDistance = points.length > 1 ? Math.hypot(points[0].x - points[1].x, points[0].z - points[1].z) : rawSpan;
+      combatFocus = clamp((fighterDistance - 3.2) / 8.8, 0, 1);
+      const preset = CAMERA_PRESETS[this.cameraMode] || CAMERA_PRESETS.topdown;
+      const padding = lerp(preset.closePadding, preset.farPadding, combatFocus);
+      span = Math.max(rawSpan + padding, padding);
     }
 
     const preset = CAMERA_PRESETS[this.cameraMode] || CAMERA_PRESETS.topdown;
@@ -144,4 +159,8 @@ function arenaToWorld(x, y) {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * clamp(t, 0, 1);
 }
