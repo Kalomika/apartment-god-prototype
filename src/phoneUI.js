@@ -8,6 +8,7 @@ import { genreList, startMusic } from './music.js';
 import { addRequest, updateRequests } from './requests.js';
 import { loadGame, saveGame, slotSummary } from './saveSystem.js';
 import { startSharedObjectAction } from './sharedActions.js';
+import { guidedInterrupt } from './guidedControl.js';
 import { log, selected } from './state.js';
 import { DAILY_DESTINATIONS, isDestinationOpen, VACATION_DESTINATIONS } from './travelLocations.js';
 import { navigateView } from './cameraNavigation.js';
@@ -201,6 +202,11 @@ function actionButton(label, fn) {
   return button;
 }
 
+function guidedPhoneAction(state, actor, fn) {
+  guidedInterrupt(state, actor);
+  return fn();
+}
+
 function renderHome(screen, state) {
   const actor = selected(state);
   screen.innerHTML = `
@@ -219,7 +225,7 @@ function renderShop(screen, state) {
   const actor = selected(state);
   screen.innerHTML = '<h3>Shop / Build</h3><p class="phone-muted">Choose an item, then tap placement in the house.</p>';
   const items = [
-    ['Order food delivery, $18', () => orderFood(state, actor, false)],
+    ['Order food delivery, $18', () => guidedPhoneAction(state, actor, () => orderFood(state, actor, false))],
     ['Buy workout gear, $220', () => buyWorkoutGear(state, actor)],
     ['Build bookshelf', () => handleBuildRequest(state, actor, 'bookshelf')],
     ['Build couch', () => handleBuildRequest(state, actor, 'couch')],
@@ -253,7 +259,7 @@ function renderMusic(screen, state) {
   const actor = selected(state);
   screen.innerHTML = `<h3>Music</h3><p class="phone-muted">Pretend music only. Genres: ${genreList()}</p>`;
   for (const genre of ['rap', 'rock', 'classical', 'jazz', 'afrobeat', 'electronic', 'cyberpunk', 'ambient']) {
-    screen.appendChild(actionButton(`Play ${genre}`, () => startMusic(state, actor, genre)));
+    screen.appendChild(actionButton(`Play ${genre}`, () => guidedPhoneAction(state, actor, () => startMusic(state, actor, genre))));
   }
 }
 
@@ -261,21 +267,21 @@ function renderActivities(screen, state) {
   const actor = selected(state);
   screen.innerHTML = '<h3>Activities</h3>';
   appendActions(screen, [
-    ['Cook for myself', () => startCookingFlow(state, actor, 'self')],
-    ['Cook for the house', () => startCookingFlow(state, actor, 'house')],
-    ['Watch TV together', () => startSharedObjectAction(state, actor, 'tv', 'watch_together')],
-    ['Go to bed together', () => startSharedObjectAction(state, actor, 'bed', 'bed_together')],
-    ['Practice pool', () => startSharedObjectAction(state, actor, 'pool_table', 'pool_solo')],
-    ['Play pool together', () => startSharedObjectAction(state, actor, 'pool_table', 'pool_together')],
-    ['Play arcade', () => startSharedObjectAction(state, actor, 'arcade_machine', 'arcade')],
-    ['Play console', () => startSharedObjectAction(state, actor, 'game_console', 'console_game')],
-    ['Throw darts', () => startSharedObjectAction(state, actor, 'dartboard', 'darts')],
-    ['Run treadmill', () => startSharedObjectAction(state, actor, 'treadmill', 'treadmill')],
-    ['Lift weights', () => startSharedObjectAction(state, actor, 'weight_bench', 'lift_weights')],
-    ['Hit heavy bag', () => startSharedObjectAction(state, actor, 'heavy_bag', 'heavy_bag')],
-    ['Swim', () => startSharedObjectAction(state, actor, 'swim_pool', 'swim')],
-    ['Take trash out', () => startSharedObjectAction(state, actor, 'trash_kitchen', 'take_trash_out')],
-    ['Call dog to backyard', () => callDogToYard(state, actor)]
+    ['Cook for myself', () => guidedPhoneAction(state, actor, () => startCookingFlow(state, actor, 'self'))],
+    ['Cook for the house', () => guidedPhoneAction(state, actor, () => startCookingFlow(state, actor, 'house'))],
+    ['Watch TV together', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'tv', 'watch_together'))],
+    ['Go to bed together', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'bed', 'bed_together'))],
+    ['Practice pool', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'pool_table', 'pool_solo'))],
+    ['Play pool together', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'pool_table', 'pool_together'))],
+    ['Play arcade', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'arcade_machine', 'arcade'))],
+    ['Play console', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'game_console', 'console_game'))],
+    ['Throw darts', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'dartboard', 'darts'))],
+    ['Run treadmill', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'treadmill', 'treadmill'))],
+    ['Lift weights', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'weight_bench', 'lift_weights'))],
+    ['Hit heavy bag', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'heavy_bag', 'heavy_bag'))],
+    ['Swim', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'swim_pool', 'swim'))],
+    ['Take trash out', () => guidedPhoneAction(state, actor, () => startSharedObjectAction(state, actor, 'trash_kitchen', 'take_trash_out'))],
+    ['Call dog to backyard', () => guidedPhoneAction(state, actor, () => callDogToYard(state, actor))]
   ]);
 }
 
@@ -315,7 +321,7 @@ function renderPartyPicker(screen, state, actor, trip) {
     trip.chosen = state.entities.filter(e => e.id !== actor.id && !e.hidden).map(e => e.id);
   }));
   screen.appendChild(actionButton('Done, start outing', () => {
-    startOffsite(state, actor, trip.id, trip.chosen || []);
+    guidedPhoneAction(state, actor, () => startOffsite(state, actor, trip.id, trip.chosen || []));
     pendingTrip = null;
     tab = 'home';
   }));
