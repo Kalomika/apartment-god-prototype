@@ -2,6 +2,38 @@
 
 All Top Shot changes must be logged here with date, time, branch, rollback reference, files changed, feature summary, and Render link/cache buster when known.
 
+## 2026-07-09 12:45 AM CT
+
+Branch: `top-shot-v0-1`
+
+Render link: `https://top-shot-prototype.onrender.com/?mode=cqc&v=78b27ba`
+
+Rollback created before update:
+
+- `backup/top-shot-before-cqc-env-collision-fix-2026-07-09`
+
+Files changed:
+
+- `top-shot/src/cqcLab.js`
+- `top-shot/tests/cqcSmoke.js`
+- `top-shot/asset_inbox/reference_notes/CQC_LAB_COMBAT_IMPLEMENTATION_LOG.md`
+- `top-shot/docs/CHANGELOG.md`
+
+Changes made:
+
+- Fixed the CQC Lab issue shown in the Render screenshot where fighters could go through or stand inside lab objects and blocked props.
+- Added legal CQC fight anchors so spawn/reset positions are chosen from valid open floor space instead of the original center if that center overlaps a prop.
+- Added per-frame CQC environment collision resolution.
+- Routed CQC movement, approach, recoil, slips, step backs, sweeps, throws, and mount placement through legal floor checks.
+- Added fallback ring searches that push any fighter out of blocked geometry and into the nearest valid floor point.
+- Added legal mount anchoring so top and bottom fighters stay on open floor and do not share a blocked prop position.
+- Strengthened the CQC smoke test so it fails if either fighter enters blocked prop space at spawn, during manual actions, or during Auto CQC.
+
+Known risks or not verified:
+
+- Browser runtime was not executed from this connector, so Kam should verify visually on Render.
+- The fix prioritizes no object penetration. If the pair relocates farther from the center table than expected, the next pass should add a dedicated CQC Lab arena layout with deliberate open combat mats.
+
 ## 2026-07-08 02:48 PM CT
 
 Branch: `top-shot-v0-1`
