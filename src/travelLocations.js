@@ -1,24 +1,24 @@
 import { changeNeed, log, say, setMood } from './state.js';
 
 export const DAILY_DESTINATIONS = [
-  { id: 'work', label: 'Work Shift', cost: 0, duration: 14, hours: [6, 22], scene: 'work', stat: 'money', money: 95, fun: -5, energy: -14 },
-  { id: 'errand', label: 'Quick Errand', cost: 20, duration: 9, hours: [7, 23], scene: 'errand', fun: 4, energy: -6 },
-  { id: 'mall', label: 'Mall Trip', cost: 55, duration: 12, hours: [10, 22], scene: 'mall', fun: 14, social: 8, energy: -8 },
-  { id: 'movies', label: 'Movie Theater', cost: 32, duration: 13, hours: [11, 25], scene: 'theater', fun: 24, social: 10, energy: -7 },
-  { id: 'date', label: 'Date Night', cost: 72, duration: 14, hours: [17, 25], scene: 'date', fun: 20, social: 22, energy: -10 }
+  { id: 'work', label: 'Work Shift', cost: 0, duration: 60, hours: [6, 22], scene: 'work', stat: 'money', money: 95, fun: -5, energy: -14 },
+  { id: 'errand', label: 'Quick Errand', cost: 20, duration: 30, hours: [7, 23], scene: 'errand', fun: 4, energy: -6 },
+  { id: 'mall', label: 'Mall Trip', cost: 55, duration: 60, hours: [10, 22], scene: 'mall', fun: 14, social: 8, energy: -8 },
+  { id: 'movies', label: 'Movie Theater', cost: 32, duration: 120, hours: [11, 25], scene: 'theater', fun: 24, social: 10, energy: -7 },
+  { id: 'date', label: 'Date Night', cost: 72, duration: 90, hours: [17, 25], scene: 'date', fun: 20, social: 22, energy: -10 }
 ];
 
 export const VACATION_DESTINATIONS = [
-  { id: 'vacation_beach', label: 'Beach Resort', cost: 420, duration: 22, scene: 'beach_resort', activities: ['surf', 'relax', 'treasure_search'], fun: 30, freshness: 12, energy: -14 },
-  { id: 'vacation_alps', label: 'The Alps', cost: 680, duration: 24, scene: 'alps', activities: ['ski', 'hot_cocoa', 'sightsee'], fun: 26, freshness: 18, energy: -18 },
-  { id: 'vacation_camping', label: 'Forest Camping', cost: 240, duration: 20, scene: 'camping', activities: ['hike', 'campfire', 'stargaze'], fun: 24, freshness: 16, energy: -20 },
-  { id: 'vacation_tokyo', label: 'Neon Tokyo', cost: 760, duration: 25, scene: 'tokyo', activities: ['arcade', 'ramen', 'night_walk'], fun: 32, social: 12, energy: -18 },
-  { id: 'vacation_paris', label: 'Paris Weekend', cost: 720, duration: 24, scene: 'paris', activities: ['museum', 'cafe', 'walk'], fun: 28, social: 12, energy: -14 },
-  { id: 'vacation_safari', label: 'Kenya Safari', cost: 820, duration: 26, scene: 'safari', activities: ['safari_drive', 'photo', 'sunset'], fun: 34, freshness: 10, energy: -18 },
-  { id: 'vacation_island', label: 'Private Island', cost: 930, duration: 26, scene: 'private_island', activities: ['snorkel', 'relax', 'treasure_search'], fun: 36, freshness: 16, energy: -16 },
-  { id: 'vacation_vegas', label: 'Vegas Lights', cost: 650, duration: 22, scene: 'vegas', activities: ['show', 'buffet', 'night_walk'], fun: 28, social: 10, energy: -22 },
-  { id: 'vacation_cruise', label: 'Cruise Ship', cost: 700, duration: 24, scene: 'cruise', activities: ['deck_walk', 'buffet', 'show'], fun: 30, social: 14, energy: -12 },
-  { id: 'vacation_desert', label: 'Desert Spa', cost: 540, duration: 20, scene: 'desert_spa', activities: ['spa', 'stargaze', 'hike'], fun: 22, freshness: 20, energy: -10 }
+  { id: 'vacation_beach', label: 'Beach Resort', cost: 420, duration: 140, scene: 'beach_resort', activities: ['surf', 'relax', 'treasure_search'], fun: 30, freshness: 12, energy: -14 },
+  { id: 'vacation_alps', label: 'The Alps', cost: 680, duration: 150, scene: 'alps', activities: ['ski', 'hot_cocoa', 'sightsee'], fun: 26, freshness: 18, energy: -18 },
+  { id: 'vacation_camping', label: 'Forest Camping', cost: 240, duration: 130, scene: 'camping', activities: ['hike', 'campfire', 'stargaze'], fun: 24, freshness: 16, energy: -20 },
+  { id: 'vacation_tokyo', label: 'Neon Tokyo', cost: 760, duration: 160, scene: 'tokyo', activities: ['arcade', 'ramen', 'night_walk'], fun: 32, social: 12, energy: -18 },
+  { id: 'vacation_paris', label: 'Paris Weekend', cost: 720, duration: 150, scene: 'paris', activities: ['museum', 'cafe', 'walk'], fun: 28, social: 12, energy: -14 },
+  { id: 'vacation_safari', label: 'Kenya Safari', cost: 820, duration: 160, scene: 'safari', activities: ['safari_drive', 'photo', 'sunset'], fun: 34, freshness: 10, energy: -18 },
+  { id: 'vacation_island', label: 'Private Island', cost: 930, duration: 160, scene: 'private_island', activities: ['snorkel', 'relax', 'treasure_search'], fun: 36, freshness: 16, energy: -16 },
+  { id: 'vacation_vegas', label: 'Vegas Lights', cost: 650, duration: 140, scene: 'vegas', activities: ['show', 'buffet', 'night_walk'], fun: 28, social: 10, energy: -22 },
+  { id: 'vacation_cruise', label: 'Cruise Ship', cost: 700, duration: 150, scene: 'cruise', activities: ['deck_walk', 'buffet', 'show'], fun: 30, social: 14, energy: -12 },
+  { id: 'vacation_desert', label: 'Desert Spa', cost: 540, duration: 130, scene: 'desert_spa', activities: ['spa', 'stargaze', 'hike'], fun: 22, freshness: 20, energy: -10 }
 ];
 
 export const ALL_TRAVEL = [...DAILY_DESTINATIONS, ...VACATION_DESTINATIONS];
@@ -76,15 +76,15 @@ export function createOffsiteJob(actionId, partyIds, vehicleId = 'car_1') {
     actionId,
     destinationId: destination?.id || actionId,
     label: destination?.label || actionId.replaceAll('_', ' '),
-    t: destination?.duration ?? 10,
+    t: destination?.duration ?? 30,
     actors: partyIds,
     vehicleId,
     stage: vacation ? 'plane' : 'activity',
     scene: vacation ? 'plane' : destination?.scene || actionId,
     destinationScene: destination?.scene || actionId,
     progress: 0,
-    planeT: vacation ? 6 : 0,
-    planeTotal: vacation ? 6 : 0,
+    planeT: vacation ? 12 : 0,
+    planeTotal: vacation ? 12 : 0,
     vacation,
     returning: false,
     activities: destination?.activities || [],
@@ -96,7 +96,7 @@ export function updateOffsiteJob(state, dt) {
   const job = state.offsite;
   if (!job) return false;
   if (job.stage === 'plane' || job.stage === 'return_plane') {
-    const total = job.planeTotal || 6;
+    const total = job.planeTotal || 12;
     job.planeT -= dt;
     job.progress = 1 - Math.max(0, job.planeT) / total;
     if (job.planeT <= 0) {
@@ -112,14 +112,14 @@ export function updateOffsiteJob(state, dt) {
     return false;
   }
   job.t -= dt;
-  job.progress = 1 - Math.max(0, job.t) / Math.max(1, destinationFor(job.actionId)?.duration || 10);
+  job.progress = 1 - Math.max(0, job.t) / Math.max(1, destinationFor(job.actionId)?.duration || 30);
   if (job.t > 0) return false;
   if (job.vacation && !job.returning) {
     job.returning = true;
     job.stage = 'return_plane';
     job.scene = 'plane';
-    job.planeT = 6;
-    job.planeTotal = 6;
+    job.planeT = 12;
+    job.planeTotal = 12;
     job.progress = 0;
     log(state, `Leaving ${job.label}. Return flight boarding.`);
     return false;
