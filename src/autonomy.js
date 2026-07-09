@@ -71,7 +71,7 @@ function driveHuman(state, actor, partner) {
 
   if ((actor.needs.social ?? 100) < 52 && trySocial(state, actor, partner)) return;
   if ((actor.needs.fun ?? 100) < 72 && tryFunActivity(state, actor, partner)) return;
-  if ((actor.needs.stamina ?? 100) < 45 && tryExerciseOrRest(state, actor)) return;
+  if ((actor.needs.stamina ?? 100) < 55 && tryRestForStamina(state, actor)) return;
 
   if (tryTraitWeightedActivity(state, actor, partner)) return;
   if (tryUsefulIdle(state, actor, partner)) return;
@@ -85,9 +85,9 @@ function urgentNeed(actor) {
     ['hunger', needs.hunger ?? 100, 44],
     ['freshness', needs.freshness ?? 100, 38],
     ['energy', needs.energy ?? 100, 34],
+    ['stamina', needs.stamina ?? 100, 34],
     ['social', needs.social ?? 100, 26],
-    ['fun', needs.fun ?? 100, 28],
-    ['stamina', needs.stamina ?? 100, 28]
+    ['fun', needs.fun ?? 100, 28]
   ];
   const urgent = priorities.filter(([, value, limit]) => value < limit).sort((a, b) => a[1] - b[1]);
   return urgent[0]?.[0] || '';
@@ -100,7 +100,8 @@ function satisfyNeed(state, actor, need, partner) {
   ]));
   if (need === 'hunger') return tryAnyObject(state, actor, [
     ['fridge', actor.needs?.hunger < 26 ? 'meal' : 'snack'],
-    ['stove', 'meal']
+    ['stove', 'meal'],
+    ['dining_table', 'eat_meal']
   ]);
   if (need === 'freshness') return tryAnyObject(state, actor, orderedByFloor(actor, [
     ['shower', 'shower'],
@@ -112,9 +113,9 @@ function satisfyNeed(state, actor, need, partner) {
     ['couch', 'nap'],
     ['basement_couch', 'nap']
   ]));
+  if (need === 'stamina') return tryRestForStamina(state, actor);
   if (need === 'social') return trySocial(state, actor, partner);
   if (need === 'fun') return tryFunActivity(state, actor, partner);
-  if (need === 'stamina') return tryExerciseOrRest(state, actor);
   return false;
 }
 
@@ -151,40 +152,45 @@ function trySocial(state, actor, partner) {
 
 function tryFunActivity(state, actor, partner) {
   const togetherOk = partner && !partner.hidden && partner.type === 'person' && partner.floor === actor.floor && !isBusy(partner);
+  const stamina = actor.needs?.stamina ?? 100;
   const choices = [
     ['tv', togetherOk ? 'watch_together' : randomTvAction(actor)],
     ['couch', togetherOk && Math.random() < .45 ? 'watch_together' : 'relax'],
     ['desk', deskAction(actor)],
+    ['bookshelf', Math.random() < .55 ? 'read' : 'study'],
     ['game_console', togetherOk ? 'console_together' : 'console_game'],
     ['arcade_machine', togetherOk ? 'arcade_together' : 'arcade'],
     ['pool_table', togetherOk ? 'pool_together' : 'pool_solo'],
-    ['dartboard', togetherOk ? 'darts_together' : 'darts'],
-    ['swim_pool', togetherOk ? 'swim_together' : 'swim'],
-    ['soccer_field', 'soccer_practice'],
-    ['treadmill', 'treadmill'],
-    ['weight_bench', 'lift_weights'],
-    ['heavy_bag', 'heavy_bag']
+    ['dartboard', togetherOk ? 'darts_together' : 'darts']
   ];
+  if (stamina > 58) {
+    choices.push(
+      ['swim_pool', togetherOk ? 'swim_together' : 'swim'],
+      ['soccer_field', 'soccer_practice'],
+      ['treadmill', 'treadmill'],
+      ['weight_bench', 'lift_weights'],
+      ['heavy_bag', 'heavy_bag']
+    );
+  }
   return tryAnyObject(state, actor, rotateObjectChoices(actor, choices));
 }
 
-function tryExerciseOrRest(state, actor) {
-  if ((actor.needs.energy ?? 100) < 34) return satisfyNeed(state, actor, 'energy');
-  return tryAnyObject(state, actor, rotateObjectChoices(actor, [
-    ['treadmill', 'treadmill'],
-    ['weight_bench', 'lift_weights'],
-    ['heavy_bag', 'heavy_bag'],
-    ['swim_pool', 'swim'],
-    ['soccer_field', 'soccer_practice'],
-    ['couch', 'relax']
-  ]));
+function tryRestForStamina(state, actor) {
+  return tryAnyObject(state, actor, rotateObjectChoices(actor, orderedByFloor(actor, [
+    ['couch', 'relax'],
+    ['bed', 'nap'],
+    ['basement_couch', 'relax'],
+    ['dining_table', 'sit_table'],
+    ['tv', 'watch_tv']
+  ])));
 }
 
 function tryTraitWeightedActivity(state, actor, partner) {
   const traits = actor.traits || [];
   const choices = [];
-  if (traits.includes('creative')) choices.push(['desk', 'desk_work'], ['tv', 'comedy']);
-  if (traits.includes('active')) choices.push(['treadmill', 'treadmill'], ['weight_bench', 'lift_weights'], ['soccer_field', 'soccer_practice']);
+  const stamina = actor.needs?.stamina ?? 100;
+  if (traits.includes('creative')) choices.push(['desk', 'desk_work'], ['bookshelf', 'study'], ['tv', 'comedy']);
+  if (traits.includes('active') && stamina > 60) choices.push(['treadmill', 'treadmill'], ['weight_bench', 'lift_weights'], ['heavy_bag', 'heavy_bag'], ['soccer_field', 'soccer_practice']);
   if (traits.includes('playful')) choices.push(['arcade_machine', 'arcade'], ['game_console', 'console_game'], ['dartboard', 'darts']);
   if (traits.includes('social') && partner) {
     if (trySocial(state, actor, partner)) return true;
@@ -198,6 +204,7 @@ function tryUsefulIdle(state, actor, partner) {
   return tryAnyObject(state, actor, rotateObjectChoices(actor, [
     ['tv', randomTvAction(actor)],
     ['desk', deskAction(actor)],
+    ['bookshelf', 'read'],
     ['couch', 'relax'],
     ['game_console', 'console_game'],
     ['pool_table', 'pool_solo'],
@@ -379,43 +386,26 @@ function rememberFailure(actor, objectId, actionId) {
 }
 
 function randomTvAction(actor) {
-  return rotateByRecent(actor, ['watch_tv', 'comedy', 'horror', 'sports']);
+  const n = (actor.brain?.recentActions?.length || 0) % 4;
+  return ['watch_tv', 'comedy', 'horror', 'sports'][n];
 }
 
 function deskAction(actor) {
-  return rotateByRecent(actor, ['desk_work', 'play_game', 'phone']);
-}
-
-function rotateByRecent(actor, values) {
-  ensureBrain(actor);
-  const sorted = [...values].sort((a, b) => recentPenalty(actor, '', a) - recentPenalty(actor, '', b) + Math.random() * .3 - .15);
-  return sorted[0];
-}
-
-function gameHour(state) {
-  return Math.floor(((state.time || 0) / 60) % 24);
+  const needs = actor.needs || {};
+  if ((needs.fun ?? 100) < 46) return 'play_game';
+  if ((needs.social ?? 100) < 48) return 'phone';
+  return 'desk_work';
 }
 
 function smartWander(actor) {
   const room = roomAt(actor.x, actor.y, actor.floor);
-  const safeRooms = {
-    0: ['living', 'kitchen', 'entry', 'stairs'],
-    1: ['bedroom', 'office', 'hall', 'stairs2'],
-    2: ['basement'],
-    3: ['garage'],
-    4: actor.type === 'dog' ? ['yard', 'kennel_area'] : ['yard', 'pool_area']
-  }[actor.floor] || [];
-  const currentAllowed = room && safeRooms.includes(room.id) && room.id !== 'front_porch';
-  const targetRoomId = currentAllowed ? room.id : safeRooms[0];
-  const targetRoom = room && currentAllowed ? room : null;
-  const fallback = targetRoom || { x: 120, y: 120, w: 280, h: 180 };
-  const x = fallback.x + fallback.w * (.25 + Math.random() * .5);
-  const y = fallback.y + fallback.h * (.25 + Math.random() * .5);
-  commandMove(actor, x, y, false);
-  if (!actor.path.length) {
-    actor.action = 'Thinking';
-    actor.pose = 'stand';
-  } else {
-    actor.action = targetRoomId ? `Wandering ${targetRoomId}` : 'Wandering';
-  }
+  const cx = room ? room.x + room.w / 2 : 480;
+  const cy = room ? room.y + room.h / 2 : 360;
+  const jitter = actor.type === 'dog' ? 55 : 78;
+  commandMove(actor, cx + (Math.random() - .5) * jitter, cy + (Math.random() - .5) * jitter, false);
+  actor.action = actor.path.length ? 'Wandering' : 'Idle';
+}
+
+function gameHour(state) {
+  return Math.floor(((state.time || 0) % 1440) / 60);
 }
