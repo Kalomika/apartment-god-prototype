@@ -12,8 +12,18 @@ function poolIntents(state) {
   return state.entities.filter(e => !e.hidden && (String(e.action || '').toLowerCase().includes('pool') || activeIds.has(e.id)));
 }
 
+function tableIsHorizontal(table) {
+  return table.w >= table.h;
+}
+
 function tablePositions(table, count = 2) {
-  const positions = [
+  const horizontal = tableIsHorizontal(table);
+  const positions = horizontal ? [
+    { x: table.x + table.w * .50, y: table.y + table.h + 44 },
+    { x: table.x + table.w * .50, y: table.y - 40 },
+    { x: table.x - 42, y: table.y + table.h * .50 },
+    { x: table.x + table.w + 42, y: table.y + table.h * .50 }
+  ] : [
     { x: table.x + table.w * .50, y: table.y + table.h + 44 },
     { x: table.x + table.w * .50, y: table.y - 40 },
     { x: table.x - 42, y: table.y + table.h * .34 },
@@ -144,16 +154,28 @@ function finishPoolGame(state, players, game) {
 }
 
 function rackBalls(table) {
-  const cy = table.y + table.h * .62;
-  const startX = table.x + table.w * .50;
+  const horizontal = tableIsHorizontal(table);
   const gap = 13;
-  const balls = [{ id: 'cue', value: 0, x: table.x + table.w * .50, y: table.y + table.h * .22, vx: 0, vy: 0, fill: '#f8fbff' }];
   const colors = ['#f1c66a', '#ff75df', '#74e6ff', '#90d68c', '#f08b57', '#a98bff', '#f8fbff', '#e06767', '#74c0a8', '#d2b064'];
+  const balls = [{ id: 'cue', value: 0, x: horizontal ? table.x + table.w * .26 : table.x + table.w * .50, y: horizontal ? table.y + table.h * .50 : table.y + table.h * .22, vx: 0, vy: 0, fill: '#f8fbff' }];
   let index = 0;
-  for (let row = 0; row < 4; row++) {
-    for (let col = 0; col <= row; col++) {
-      balls.push({ id: `ball_${index + 1}`, value: index < 4 ? 1 : 2, x: startX + (col - row / 2) * gap, y: cy + row * gap, vx: 0, vy: 0, fill: colors[index % colors.length] });
-      index += 1;
+  if (horizontal) {
+    const startX = table.x + table.w * .62;
+    const cy = table.y + table.h * .50;
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col <= row; col++) {
+        balls.push({ id: `ball_${index + 1}`, value: index < 4 ? 1 : 2, x: startX + row * gap, y: cy + (col - row / 2) * gap, vx: 0, vy: 0, fill: colors[index % colors.length] });
+        index += 1;
+      }
+    }
+  } else {
+    const cy = table.y + table.h * .62;
+    const startX = table.x + table.w * .50;
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col <= row; col++) {
+        balls.push({ id: `ball_${index + 1}`, value: index < 4 ? 1 : 2, x: startX + (col - row / 2) * gap, y: cy + row * gap, vx: 0, vy: 0, fill: colors[index % colors.length] });
+        index += 1;
+      }
     }
   }
   return balls;
@@ -304,8 +326,8 @@ function pocketPoints(table) {
 }
 
 function resetCueBall(cue, table) {
-  cue.x = table.x + table.w * .50;
-  cue.y = table.y + table.h * .22;
+  cue.x = tableIsHorizontal(table) ? table.x + table.w * .26 : table.x + table.w * .50;
+  cue.y = tableIsHorizontal(table) ? table.y + table.h * .50 : table.y + table.h * .22;
   cue.vx = 0;
   cue.vy = 0;
 }
