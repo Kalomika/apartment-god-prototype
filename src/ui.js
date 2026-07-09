@@ -1,4 +1,5 @@
 import { windowAt, toggleWindow } from './blueprint.js';
+import { careerHudLine } from './careerSystem.js';
 import { ACTIONS, DOG_SOCIAL_ACTIONS, DOUBLE_TAP_MS, NEEDS, SOCIAL_ACTIONS } from './config.js';
 import { startObjectAction, startOffsite, startSocialAction, throwFetchBall } from './actions.js';
 import { placeBuildRequest } from './buildRequests.js';
@@ -197,8 +198,8 @@ export function createUi(state, surface, options = {}) {
   function renderHud() {
     const actor = selected(state); selectedName.textContent = actor.name; currentAction.textContent = actor.action || 'Idle';
     needs.innerHTML = NEEDS.map(([key, label]) => { const value = Math.round(actor.needs[key] ?? 0); return `<div class="need-row"><span>${label}</span><div class="need-bar"><div class="need-fill" style="width:${value}%"></div></div><span>${value}</span></div>`; }).join('');
-    const music = state.music ? `<br>Music: ${state.music.genre}` : ''; const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : ''; const delivery = state.delivery ? `<br>Delivery: ${state.delivery.phase}` : ''; const save = state.saveStatus?.message ? `<br>Save: ${state.saveStatus.message}` : `<br>Slot 1: ${slotSummary(1)}`; const trash = state.garbage ? `<br>Trash: ${Math.round(state.garbage.kitchen || 0)}%` : '';
-    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Area: ${floors[state.floor]?.name || state.floor}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}${music}${build}${delivery}${trash}${save}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
+    const music = state.music ? `<br>Music: ${state.music.genre}` : ''; const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : ''; const delivery = state.delivery ? `<br>Delivery: ${state.delivery.phase}` : ''; const save = state.saveStatus?.message ? `<br>Save: ${state.saveStatus.message}` : `<br>Slot 1: ${slotSummary(1)}`; const trash = state.garbage ? `<br>Trash: ${Math.round(state.garbage.kitchen || 0)}%` : ''; const career = actor.type === 'person' ? `<br>${careerHudLine(state, actor)}` : '';
+    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Area: ${floors[state.floor]?.name || state.floor}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}${career}${music}${build}${delivery}${trash}${save}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
     logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
   }
 
