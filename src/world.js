@@ -51,12 +51,12 @@ export const objects = [
   { id: 'shower', label: 'Shower', kind: 'shower', floor: 0, room: 'bath', x: 806, y: 70, w: 60, h: 88, solid: true, enterable: true },
   { id: 'toilet', label: 'Toilet', kind: 'toilet', floor: 0, room: 'bath', x: 878, y: 212, w: 44, h: 54, solid: true, enterable: true },
   { id: 'door', label: 'Front Door', kind: 'door', floor: 0, room: 'entry', x: 240, y: 544, w: 96, h: 34, solid: false },
-  { id: 'pet_flap_front', label: 'Pet Flap', kind: 'stairs', styleAs: 'door', floor: 0, room: 'entry', x: 354, y: 548, w: 46, h: 24, solid: false, toFloor: 4, exitId: 'pet_flap_yard' },
+  { id: 'pet_flap_front', label: 'Front Pet Flap', kind: 'door', styleAs: 'door', floor: 0, room: 'entry', x: 354, y: 548, w: 46, h: 24, solid: false },
   { id: 'basement_door', label: 'Basement Door', kind: 'stairs', floor: 0, room: 'stairs', x: 742, y: 386, w: 82, h: 52, solid: false, toFloor: 2, exitId: 'basement_stairs_up' },
   { id: 'garage_door', label: 'Garage Interior Door', kind: 'stairs', floor: 0, room: 'entry', x: 28, y: 418, w: 34, h: 72, solid: false, toFloor: 3, exitId: 'garage_entry_door' },
   { id: 'backyard_door', label: 'Kitchen/Living Back Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'living', x: 416, y: 38, w: 54, h: 34, solid: false, toFloor: 4, exitId: 'yard_back_door' },
-  { id: 'dog_bowl', label: 'Dog Bowl', kind: 'dog_bowl', floor: 0, room: 'entry', x: 654, y: 500, w: 36, h: 26, solid: false },
-  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'living', x: 348, y: 222, w: 154, h: 76, solid: true },
+  { id: 'dog_bowl', label: 'Dog Bowl', kind: 'dog_bowl', floor: 0, room: 'entry', x: 650, y: 474, w: 36, h: 26, solid: false },
+  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'living', x: 360, y: 272, w: 76, h: 154, solid: true },
   { id: 'light_living', label: 'Living Light', kind: 'light', floor: 0, room: 'living', x: 408, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_down', label: 'Upstairs Stairs', kind: 'stairs', floor: 0, room: 'stairs', x: 780, y: 554, w: 118, h: 84, solid: false, toFloor: 1, exitId: 'stairs_up' },
 
@@ -88,7 +88,7 @@ export const objects = [
 
   { id: 'trash_outdoor', label: 'Outdoor Trash Bin', kind: 'outdoor_trash', floor: 4, room: 'yard', x: 70, y: 92, w: 54, h: 66, solid: false },
   { id: 'yard_back_door', label: 'Back Door to House', kind: 'stairs', styleAs: 'door', floor: 4, room: 'yard', x: 148, y: 560, w: 80, h: 34, solid: false, toFloor: 0, exitId: 'backyard_door' },
-  { id: 'pet_flap_yard', label: 'Pet Flap', kind: 'stairs', styleAs: 'door', floor: 4, room: 'yard', x: 240, y: 562, w: 50, h: 24, solid: false, toFloor: 0, exitId: 'pet_flap_front' },
+  { id: 'pet_flap_yard', label: 'Yard Pet Flap', kind: 'door', styleAs: 'door', floor: 4, room: 'yard', x: 240, y: 562, w: 50, h: 24, solid: false },
   { id: 'soccer_field', label: 'Backyard Soccer Field', kind: 'soccer_field', floor: 4, room: 'yard', x: 82, y: 190, w: 420, h: 300, solid: false, enterable: true },
   { id: 'swim_pool', label: 'Backyard Pool', kind: 'swim_pool', floor: 4, room: 'pool_area', x: 650, y: 92, w: 236, h: 190, solid: false, enterable: true },
   { id: 'kennel', label: 'Dog Kennel', kind: 'kennel', floor: 4, room: 'kennel_area', x: 688, y: 430, w: 112, h: 82, solid: true },
@@ -127,15 +127,15 @@ export function getStairExit(stairs) {
 
 export function getTravelStair(fromFloor, toFloor) {
   if (fromFloor === toFloor) return null;
-  if (fromFloor === 0 && toFloor === 4) return getObject('backyard_door') || getObject('pet_flap_front');
-  if (fromFloor === 4 && toFloor === 0) return getObject('yard_back_door') || getObject('pet_flap_yard');
+  if (fromFloor === 0 && toFloor === 4) return getObject('backyard_door');
+  if (fromFloor === 4 && toFloor === 0) return getObject('yard_back_door');
   const direct = objects.find(o => o.kind === 'stairs' && o.floor === fromFloor && o.toFloor === toFloor);
   if (direct) return direct;
   if (fromFloor !== 0) return objects.find(o => o.kind === 'stairs' && o.floor === fromFloor && o.toFloor === 0) || null;
   if (toFloor === 1) return getObject('stairs_down');
   if (toFloor === 2) return getObject('basement_door');
   if (toFloor === 3) return getObject('garage_door');
-  if (toFloor === 4) return getObject('backyard_door') || getObject('pet_flap_front');
+  if (toFloor === 4) return getObject('backyard_door');
   return null;
 }
 
