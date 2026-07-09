@@ -19,7 +19,7 @@ export function createBattle(aId = 'suit_operative', bId = 'survival_commando', 
     commandHistory: [],
     dropsLeft: freshDropsLeft(),
     fighters: [],
-    projectiles: [], effects: [], pickups: [], debris: [], stealth: createStealthState(), log: ['Top Shot desert industrial site loaded. Press Begin Sortie to deploy fighters.']
+    projectiles: [], effects: [], pickups: [], debris: [], stealth: createStealthState(), cinematic: { phase: 'ready', t: 0, label: 'site quiet' }, log: ['Top Shot desert industrial site loaded. Press Begin Sortie to deploy fighters.']
   };
   if (options.autoStart) beginBattle(state, aId, bId);
   return state;
@@ -43,17 +43,13 @@ export function beginBattle(state, aId = state.selectedFighters?.A || 'suit_oper
   state.pickups = [];
   state.debris = [];
   state.stealth = createStealthState();
-  state.fighters = [
-    makeFighter('A', ARCHETYPES[aId], arena.spawnA, 0),
-    makeFighter('B', ARCHETYPES[bId], arena.spawnB, 1)
-  ];
-  state.log = ['Begin sortie. Fighters are parachuting into the desert industrial site one after another.'];
+  state.cinematic = { phase: 'intro', t: 0, label: 'parachute entry' };
+  state.fighters = [makeFighter('A', ARCHETYPES[aId], arena.spawnA, 0), makeFighter('B', ARCHETYPES[bId], arena.spawnB, 1)];
+  state.log = ['Intro sequence. Fighters parachute into the desert industrial site one after another.'];
   return state;
 }
 
-function freshDropsLeft() {
-  return Object.fromEntries(Object.entries(COACH_DROPS).map(([id, drop]) => [id, drop.charges]));
-}
+function freshDropsLeft() { return Object.fromEntries(Object.entries(COACH_DROPS).map(([id, drop]) => [id, drop.charges])); }
 
 function makeFighter(team, archetype, spawn, index = 0) {
   const dropDuration = 1.55 + index * 0.2;
@@ -67,6 +63,7 @@ function makeFighter(team, archetype, spawn, index = 0) {
     deployAltitude: 12 + index * 1.8,
     deploying: true,
     hp: 100, vitalityCap: 100, painStage: 'green', stamina: 100, fight: 100, dodge: 100, block: 100, morale: 75, heat: 0, noise: 0,
+    elevation: 0, onObject: null, climbT: 0, jumpT: 0,
     prestige: archetype.stats.prestige, ruthless: archetype.stats.ruthlessness, defeated: false, finishT: 0,
     prone: false, crouch: false, hidden: false, extracting: false, extracted: false, incapacitated: false,
     comboT: 0, actionT: 0, cooldown: 0, rangedCd: 0, meleeCd: 0, specialCd: 0, bandageCd: 0, getupT: 0, commandCd: 0, holdT: 0,
