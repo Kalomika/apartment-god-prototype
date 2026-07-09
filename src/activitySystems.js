@@ -8,15 +8,16 @@ export function updateGameActivities(state, dt) {
 }
 
 function poolIntents(state) {
-  return state.entities.filter(e => !e.hidden && String(e.action || '').toLowerCase().includes('pool'));
+  const activeIds = new Set(state.poolGame?.playerIds || []);
+  return state.entities.filter(e => !e.hidden && (String(e.action || '').toLowerCase().includes('pool') || activeIds.has(e.id)));
 }
 
 function tablePositions(table, count = 2) {
   const positions = [
-    { x: table.x + table.w * .28, y: table.y + table.h + 44 },
-    { x: table.x + table.w * .72, y: table.y - 36 },
-    { x: table.x - 34, y: table.y + table.h * .34 },
-    { x: table.x + table.w + 34, y: table.y + table.h * .66 }
+    { x: table.x + table.w * .50, y: table.y + table.h + 44 },
+    { x: table.x + table.w * .50, y: table.y - 40 },
+    { x: table.x - 42, y: table.y + table.h * .34 },
+    { x: table.x + table.w + 42, y: table.y + table.h * .66 }
   ];
   return positions.slice(0, Math.max(1, Math.min(count, positions.length)));
 }
@@ -37,6 +38,9 @@ function guidePoolPlayers(state, table, players) {
     const spot = assignedPoolSpot(table, players, player);
     player.carrying = player.carrying === 'cue_stick' ? player.carrying : 'cue_stick';
     player.pose = player.path?.length ? 'walk' : 'pool';
+    if (!String(player.action || '').toLowerCase().includes('pool')) player.action = players.length > 1 ? 'Pool match' : 'Pool practice';
+    player.actionT = Math.max(player.actionT || 0, 300);
+    player.actionTotal = Math.max(player.actionTotal || 0, 300);
     if (player.floor !== 2) { ready = false; continue; }
     if (!isAtPoolPosition(player, spot)) {
       ready = false;
@@ -98,18 +102,22 @@ function startPoolGame(state, table, players) {
   for (const p of players) {
     p.carrying = 'cue_stick';
     p.pose = 'pool';
+    p.action = players.length > 1 ? 'Pool match' : 'Pool practice';
+    p.actionT = 300;
+    p.actionTotal = 300;
   }
   state.poolGame = {
     tableId: table.id,
     playerIds: players.map(p => p.id),
     names,
+    mode: players.length > 1 ? 'match' : 'practice',
     t: 0,
     shotT: 1.2,
     turn: 0,
     score: Object.fromEntries(players.map(p => [p.id, 0])),
     shots: Object.fromEntries(players.map(p => [p.id, 0])),
     streak: 0,
-    message: 'Players at table',
+    message: players.length > 1 ? 'Pool match started' : 'Pool practice started',
     messageT: 2,
     winner: null,
     winnerT: 0,
@@ -118,7 +126,7 @@ function startPoolGame(state, table, players) {
     cueThrust: null,
     balls: rackBalls(table)
   };
-  log(state, `${names.join(' and ')} grabbed cue sticks at the pool table.`);
+  log(state, players.length > 1 ? `${names.join(' and ')} started a real pool match.` : `${names[0]} started a full pool practice rack.`);
 }
 
 function finishPoolGame(state, players, game) {
@@ -132,19 +140,19 @@ function finishPoolGame(state, players, game) {
     }
   }
   state.poolGame = null;
-  log(state, `The pool match ended. ${game.winner} was the winner.`);
+  log(state, game.mode === 'match' ? `The pool match ended. ${game.winner} was the winner.` : `${game.winner} finished the full pool practice rack.`);
 }
 
 function rackBalls(table) {
-  const cy = table.y + table.h * .5;
-  const startX = table.x + table.w * .62;
-  const gap = 15;
-  const balls = [{ id: 'cue', value: 0, x: table.x + table.w * .30, y: cy, vx: 0, vy: 0, fill: '#f8fbff' }];
+  const cy = table.y + table.h * .62;
+  const startX = table.x + table.w * .50;
+  const gap = 13;
+  const balls = [{ id: 'cue', value: 0, x: table.x + table.w * .50, y: table.y + table.h * .22, vx: 0, vy: 0, fill: '#f8fbff' }];
   const colors = ['#f1c66a', '#ff75df', '#74e6ff', '#90d68c', '#f08b57', '#a98bff', '#f8fbff', '#e06767', '#74c0a8', '#d2b064'];
   let index = 0;
   for (let row = 0; row < 4; row++) {
     for (let col = 0; col <= row; col++) {
-      balls.push({ id: `ball_${index + 1}`, value: index < 4 ? 1 : 2, x: startX + row * gap, y: cy + (col - row / 2) * gap, vx: 0, vy: 0, fill: colors[index % colors.length] });
+      balls.push({ id: `ball_${index + 1}`, value: index < 4 ? 1 : 2, x: startX + (col - row / 2) * gap, y: cy + row * gap, vx: 0, vy: 0, fill: colors[index % colors.length] });
       index += 1;
     }
   }
@@ -214,15 +222,20 @@ function shootPool(state, table, players) {
 
   shooter.carrying = 'cue_stick';
   shooter.pose = 'pool';
-  const before = targets.filter(b => b.pocketed).length;
+  shooter.action = players.length > 1 ? 'Pool match' : 'Pool practice';
+  shooter.actionT = 300;
+  shooter.actionTotal = 300;
+  const beforeLive = targets.length;
+  const totalShots = Object.values(game.shots || {}).reduce((sum, n) => sum + n, 0);
   const skill = shooter.skills?.learning ?? shooter.skills?.intellect ?? 3;
   const stamina = shooter.needs?.stamina ?? 60;
   const pressure = Math.max(0, 1 - stamina / 120);
   const accuracy = Math.max(.18, Math.min(.92, .28 + skill * .075 - pressure * .22));
   const target = chooseTarget(cue, targets, game, accuracy);
   const aim = aimAtPocket(target, table, game.turn);
-  const angleNoise = (1 - accuracy) * (Math.sin(game.t * 13 + game.turn * 7) * .9);
-  const power = 145 + skill * 12 + Math.max(0, stamina - 50) * .4;
+  const reposition = accuracy < .43 && totalShots % 3 === 1 && targets.length > 2;
+  const angleNoise = reposition ? 0 : (1 - accuracy) * (Math.sin(game.t * 13 + game.turn * 7) * .9);
+  const power = reposition ? 90 + skill * 8 : 145 + skill * 12 + Math.max(0, stamina - 50) * .4;
   const dx = aim.x - cue.x;
   const dy = aim.y - cue.y;
   const mag = Math.max(1, Math.hypot(dx, dy));
@@ -235,18 +248,24 @@ function shootPool(state, table, players) {
   target.vx += ux * (power * .62 + accuracy * 80);
   target.vy += uy * (power * .62 + accuracy * 80);
 
-  const madeShot = Math.sin(game.t * 5 + game.turn * 3 + skill) < accuracy - .22;
+  const forcedRackProgress = totalShots > 0 && totalShots % 5 === 4;
+  const madeShot = !reposition && (Math.sin(game.t * 5 + game.turn * 3 + skill) < accuracy - .22 || forcedRackProgress);
   if (madeShot) {
     target.pocketed = true;
     game.score[shooter.id] = (game.score[shooter.id] || 0) + target.value;
     game.streak += 1;
-    game.message = `${shooter.name} sank a ball`;
+    game.message = `${shooter.name} sank ${target.id.replace('ball_', '#')}`;
     say(shooter, 'SINK');
     changeNeed(shooter, 'fun', 2 + game.streak);
     setMood(shooter, 'hyped');
+  } else if (reposition) {
+    game.streak = 0;
+    game.message = `${shooter.name} played position`;
+    say(shooter, 'NOD');
+    changeNeed(shooter, 'fun', 1);
   } else {
     game.streak = 0;
-    game.message = `${shooter.name} missed`;
+    game.message = `${shooter.name} missed the pocket`;
     say(shooter, 'MISS');
     changeNeed(shooter, 'fun', 1);
   }
@@ -258,8 +277,8 @@ function shootPool(state, table, players) {
   if (!madeShot) game.turn = (game.turn + 1) % Math.max(1, players.length);
   game.shotT = madeShot ? 1.15 : 1.55;
 
-  const after = targets.filter(b => b.pocketed).length;
-  if (after > before) changeNeed(shooter, 'social', players.length > 1 ? 2 : 0);
+  const afterLive = game.balls.filter(b => !b.pocketed && b.id !== 'cue').length;
+  if (afterLive < beforeLive) changeNeed(shooter, 'social', players.length > 1 ? 2 : 0);
 }
 
 function chooseTarget(cue, targets, game, accuracy) {
@@ -285,8 +304,8 @@ function pocketPoints(table) {
 }
 
 function resetCueBall(cue, table) {
-  cue.x = table.x + table.w * .30;
-  cue.y = table.y + table.h * .5;
+  cue.x = table.x + table.w * .50;
+  cue.y = table.y + table.h * .22;
   cue.vx = 0;
   cue.vy = 0;
 }
@@ -294,14 +313,12 @@ function resetCueBall(cue, table) {
 function checkPoolWinner(state, players) {
   const game = state.poolGame;
   const live = game.balls.filter(b => !b.pocketed && b.id !== 'cue').length;
-  const maxShots = Math.max(10, players.length * 8);
-  const shotCount = Object.values(game.shots || {}).reduce((sum, n) => sum + n, 0);
-  if (live > 0 && shotCount < maxShots && game.t < 45) return;
+  if (live > 0) return;
   const ranked = players.map(p => ({ player: p, score: game.score[p.id] || 0 })).sort((a, b) => b.score - a.score);
   const winner = ranked[0]?.player || players[0];
   game.winner = winner?.name || 'Player';
   game.winnerT = 3.5;
-  game.message = `${game.winner} wins ${ranked.map(r => r.score).join(' to ')}`;
+  game.message = game.mode === 'match' ? `${game.winner} clears the table ${ranked.map(r => r.score).join(' to ')}` : `${game.winner} cleared the rack`;
   game.messageT = 4;
   for (const p of players) {
     const won = p.id === winner?.id;
@@ -311,5 +328,5 @@ function checkPoolWinner(state, players) {
     setMood(p, won ? 'hyped' : 'happy');
     say(p, won ? 'WIN' : 'GG');
   }
-  log(state, `${game.winner} won the pool mini game ${ranked.map(r => r.score).join(' to ')}.`);
+  log(state, game.mode === 'match' ? `${game.winner} won after the last ball dropped.` : `${game.winner} finished pool practice after clearing every ball.`);
 }
