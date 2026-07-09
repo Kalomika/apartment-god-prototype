@@ -8,10 +8,11 @@ This support folder is for Top Shot research, implementation notes, asset notes,
 - `reference_notes/STEALTH_REFERENCE_ENGINE_LOG.md`, stealth reference study and implementation status covering Metal Gear Solid and Splinter Cell style takeaways, global stealth phases, suspicion buildup, sound against ambient noise, evidence discovery, last known position search, alert roles, and stealth smoke testing.
 - `reference_notes/FIGHTER_REDESIGN_MODEL_INTEGRITY_LOG.md`, low-poly tactical fighter redesign target based on the generated suit operative and survival commando concept sheet, including realistic proportions, readable face planes, gear layering, holsters, tactical vest, pouches, weapon staging, and animation-friendly segmentation.
 - `reference_notes/MOBILITY_BLOOD_HEALTH_CINEMATIC_LOG.md`, mobility and feedback pass covering climbable/elevated objects, jump down states, bullet evasion priority, blood spray, bleeding trails, visible health stages, realistic pacing, and intro/outro cinematic state.
+- `reference_notes/TACTICAL_COVER_PRESERVATION_AND_GRAPPLING_LOG.md`, tactical preservation pass covering pinned cover, peek fire, dive/roll-to-cover behavior, material-aware bullet/arrow impacts, armor sparks, ninja smoke escape, and ninja grappling hook traversal.
 
 ## Runtime note
 
-The CQC, stealth, fighter redesign, mobility, blood, health UI, and cinematic passes were also committed directly to runtime files on `top-shot-v0-1` because the user explicitly requested implementation, not only handoff notes.
+The CQC, stealth, fighter redesign, mobility, blood, health UI, cinematic, tactical cover, preservation, and ninja grappling passes were also committed directly to runtime files on `top-shot-v0-1` because the user explicitly requested implementation, not only handoff notes.
 
 Runtime files touched across these passes include:
 
