@@ -1,5 +1,5 @@
 import { EFFECT_TTL } from './config.js';
-import { blocked, coverPoint, nearCover } from './arena.js';
+import { blocked, climbableNear, coverPoint, nearCover, topPoint } from './arena.js';
 import { angleTo, chance, choose, clamp, dist, rand } from './utils.js';
 import { addLog } from './state.js';
 import { clearLine } from './perception.js';
@@ -46,7 +46,7 @@ export function updateCombat(state, dt) {
 
 export function tryAttack(state, f, enemy, visible) {
   if (f.cooldown > 0 || f.incapacitated || f.defeated || f.extracted || f.extracting || enemy.incapacitated || enemy.extracted || enemy.defeated) return;
-  if (isSuppressed(state, f) && !f.wallLean && !f.shadowHidden && !f.prone && !f.crouch) return;
+  if (isSuppressed(state, f) && !f.wallLean && !f.shadowHidden) return;
   const d = dist(f, enemy);
   if (f.bleed?.rate > 0 && (f.hidden || f.wallLean || f.hp < 35)) return bandage(state, f);
   if (f.hp < 45 && f.bandageCd <= 0 && f.hidden) return bandage(state, f);
@@ -75,7 +75,7 @@ function fireGun(state, f, enemy) {
     state.effects.push({ type: 'muzzle_flash', x: muzzle.x, y: muzzle.y, angle: a, ttl: 0.09 });
     suppressTarget(state, enemy, f, end);
     if (dist(end, enemy) < 28 || clearLine(state.arena, f, enemy) && Math.abs(spread) < hitSpread(f, enemy)) {
-      state.effects.push({ type: 'impact_flash', x: enemy.x, y: enemy.y, ttl: 0.1, kind: 'body' });
+      state.effects.push({ type: 'blood_spray', x: enemy.x, y: enemy.y, angle: a, ttl: 0.24, source: 'shot' });
       hit(state, f, enemy, rifle ? rand(5, 9) : rand(7, 12), 'shot', a);
     } else {
       impact(state, end.x, end.y, 'ricochet');
@@ -90,7 +90,7 @@ function fireGun(state, f, enemy) {
 function hitSpread(f, enemy) { return (f.stats.aim / 100) * (enemy.dodge < 30 ? 0.17 : 0.085); }
 function rayEnd(state, f, a, range) { for (let t = 22; t < range; t += 12) { const p = { x: f.x + Math.cos(a) * t, y: f.y + Math.sin(a) * t }; if (blocked(state.arena, p, 2)) return p; } return { x: f.x + Math.cos(a) * range, y: f.y + Math.sin(a) * range }; }
 function throwProjectile(state, f, enemy, type, speed, damage, resource) { f.resources[resource]--; const a = angleTo(f, enemy) + rand(-0.08, 0.08); state.projectiles.push({ type, team: f.team, owner: f.name, x: f.x, y: f.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, damage, ttl: 2.2, stuck: false }); f.rangedCd = type === 'arrow' ? 1.15 : 0.75; f.cooldown = 0.25; f.pose = type; addLog(state, `${f.name} throws ${type}.`); }
-function updateProjectiles(state, dt) { for (const p of state.projectiles) { if (p.type === 'grenade' || p.stuck) continue; p.ttl -= dt; p.x += p.vx * dt; p.y += p.vy * dt; if (blocked(state.arena, p, 4)) { p.stuck = true; p.vx = 0; p.vy = 0; impact(state, p.x, p.y, 'stick'); continue; } const target = state.fighters.find(f => f.team !== p.team && !f.incapacitated && !f.defeated && !f.extracted && f.rollT <= 0 && dist(f, p) < 24); if (target) { hit(state, { name: p.owner, stats: { aim: 55 } }, target, p.damage * 0.72, p.type, Math.atan2(p.vy, p.vx)); p.ttl = 0; } } state.projectiles = state.projectiles.filter(p => p.type === 'grenade' || p.ttl > 0 || p.stuck); }
+function updateProjectiles(state, dt) { for (const p of state.projectiles) { if (p.type === 'grenade' || p.stuck) continue; p.ttl -= dt; p.x += p.vx * dt; p.y += p.vy * dt; if (blocked(state.arena, p, 4)) { p.stuck = true; p.vx = 0; p.vy = 0; impact(state, p.x, p.y, 'stick'); continue; } const target = state.fighters.find(f => f.team !== p.team && !f.incapacitated && !f.defeated && !f.extracted && (f.rollT || 0) <= 0 && dist(f, p) < 24); if (target) { hit(state, { name: p.owner, stats: { aim: 55 } }, target, p.damage * 0.72, p.type, Math.atan2(p.vy, p.vx)); p.ttl = 0; } } state.projectiles = state.projectiles.filter(p => p.type === 'grenade' || p.ttl > 0 || p.stuck); }
 function meleeReach(f) { if (f.melee === 'sword') return 70; if (f.melee === 'knife' || f.melee === 'arrow_stab') return 48; return 46; }
 function melee(state, f, enemy, force = null) { const sword = f.melee === 'sword' || force === 'sword'; const stab = !sword && (f.melee === 'knife' || f.melee === 'arrow_stab'); const move = sword ? { id: choose(SWORD), limb: 'rightArm', kind: 'sword', reach: 70, damage: 18, stamina: 12, lean: -1 } : stab ? choose(STABS) : chooseCqcMove(f, enemy); if (f.fight < move.stamina) return; f.fight -= move.stamina; f.stamina -= move.stamina * 0.4; f.meleeCd = move.kind === 'power' ? 1.0 : move.kind === 'knee' || move.kind === 'elbow' ? 0.46 : 0.38; f.cooldown = f.meleeCd; f.pose = move.id; f.currentMove = { ...move, ttl: 0.25 }; const defended = defend(state, f, enemy, move); state.effects.push({ type: defended, x: enemy.x, y: enemy.y, ttl: EFFECT_TTL[defended] || 0.2, move: move.id }); if (defended === 'hit') hit(state, f, enemy, move.damage + f.stats.cqc * 0.05, move.kind, angleTo(f, enemy), move); }
 function chooseCqcMove(f, enemy) { const d = dist(f, enemy); const close = MOVES.filter(m => d < 34 ? ['punch', 'elbow', 'knee', 'headbutt'].includes(m.kind) : m.reach >= d - 4); const pool = close.length ? close : MOVES; if (f.archetypeId === 'martial_artist') return choose(pool); if (['ninja', 'shadow_ninja'].includes(f.archetypeId)) return choose(pool.filter(m => m.kind !== 'headbutt') || pool); return choose(pool.filter(m => !['knee','elbow'].includes(m.kind)) || pool); }
@@ -103,65 +103,29 @@ function defend(state, attacker, defender, move) {
   const cross = defender.limbs[crossLimb];
   const pressure = clamp((defender.stats.block + defender.stats.dodge + defender.stats.counter) / 300, 0.2, 1.05);
 
-  if (canSlip(move) && defender.dodge > 18 && chance(defender.dodge / 155 * defender.stats.dodge / 100)) {
-    defender.dodge -= 18;
-    defender.pose = `slip_${side}`;
-    shove(defender, angleTo(attacker, defender) + (side === 'left' ? 0.45 : -0.45), 16);
-    maybeCounter(state, defender, attacker, pressure * 0.45);
-    return 'slip';
-  }
-
-  if (normal && defender.block > 16 && normal.guard > 16 && canParry(move) && chance(defender.stats.counter / 190 * pressure)) {
-    defender.block -= 12;
-    normal.guard -= 13 + move.damage * 0.35;
-    normal.t = 0.16;
-    defender.pose = `parry_${normalLimb}`;
-    maybeCounter(state, defender, attacker, pressure * 0.75);
-    return 'parry';
-  }
-
-  if (normal && defender.block > 14 && normal.guard > 12 && chance(defender.block / 135 * defender.stats.block / 100 * normal.guard / 100)) {
-    defender.block -= 18;
-    normal.guard -= 22 + move.damage * 0.65;
-    normal.t = 0.2;
-    defender.pose = `block_${normalLimb}`;
-    maybeCounter(state, defender, attacker, pressure * 0.28);
-    return 'block';
-  }
-
-  if (cross && defender.block > 28 && cross.guard > 24 && !['kick', 'knee', 'power'].includes(move.kind) && chance(defender.block / 185 * defender.stats.block / 100 * cross.guard / 100)) {
-    defender.block -= 28;
-    cross.guard -= 32 + move.damage * 0.7;
-    cross.t = 0.22;
-    defender.pose = `cross_block_${crossLimb}`;
-    maybeCounter(state, defender, attacker, pressure * 0.4);
-    return 'cross_block';
-  }
-
+  if (canSlip(move) && defender.dodge > 18 && chance(defender.dodge / 155 * defender.stats.dodge / 100)) { defender.dodge -= 18; defender.pose = `slip_${side}`; shove(defender, angleTo(attacker, defender) + (side === 'left' ? 0.45 : -0.45), 16); maybeCounter(state, defender, attacker, pressure * 0.45); return 'slip'; }
+  if (normal && defender.block > 16 && normal.guard > 16 && canParry(move) && chance(defender.stats.counter / 190 * pressure)) { defender.block -= 12; normal.guard -= 13 + move.damage * 0.35; normal.t = 0.16; defender.pose = `parry_${normalLimb}`; maybeCounter(state, defender, attacker, pressure * 0.75); return 'parry'; }
+  if (normal && defender.block > 14 && normal.guard > 12 && chance(defender.block / 135 * defender.stats.block / 100 * normal.guard / 100)) { defender.block -= 18; normal.guard -= 22 + move.damage * 0.65; normal.t = 0.2; defender.pose = `block_${normalLimb}`; maybeCounter(state, defender, attacker, pressure * 0.28); return 'block'; }
+  if (cross && defender.block > 28 && cross.guard > 24 && !['kick', 'knee', 'power'].includes(move.kind) && chance(defender.block / 185 * defender.stats.block / 100 * cross.guard / 100)) { defender.block -= 28; cross.guard -= 32 + move.damage * 0.7; cross.t = 0.22; defender.pose = `cross_block_${crossLimb}`; maybeCounter(state, defender, attacker, pressure * 0.4); return 'cross_block'; }
   return 'hit';
 }
 
 function suppressTarget(state, target, shooter, end) {
   if (!target || target.incapacitated || target.defeated || target.extracted) return;
-  target.suppressedUntil = Math.max(target.suppressedUntil || 0, state.clock + 1.45);
-  target.dodge = clamp(target.dodge + 10, 0, 100);
-  target.block = clamp(target.block + 12, 0, 100);
+  target.suppressedUntil = Math.max(target.suppressedUntil || 0, state.clock + 2.25);
+  target.dodge = clamp(target.dodge + 18, 0, 100);
+  target.block = clamp(target.block + 15, 0, 100);
   const cover = nearCover(state.arena, target);
-  const p = cover ? coverPoint(state.arena, cover, target, shooter, 38) : null;
-  if (p) {
-    target.memory.command = { type: 'roll_cover', x: p.x, y: p.y, urgent: true, until: state.clock + 1.75 };
-    target.pose = 'combat_roll';
-    target.crouch = true;
-    target.prone = false;
-    if (!target.lastSuppressionLog || target.lastSuppressionLog < state.clock - 2.5) {
-      addLog(state, `${target.name} dives for cover under fire.`);
-      target.lastSuppressionLog = state.clock;
-    }
-  } else {
-    const a = angleTo(shooter, target);
-    target.memory.command = { type: 'roll_cover', x: clamp(target.x + Math.cos(a) * 120, 70, 890), y: clamp(target.y + Math.sin(a) * 120, 70, 650), urgent: true, until: state.clock + 1.4 };
-    target.pose = 'combat_roll';
-  }
+  let p = cover ? coverPoint(state.arena, cover, target, shooter, 30) : null;
+  const climbable = climbableNear(state.arena, target, 80);
+  if (!p && climbable) p = topPoint(climbable, target);
+  if (!p) { const a = angleTo(shooter, target); p = { x: clamp(target.x + Math.cos(a) * 185, 70, 890), y: clamp(target.y + Math.sin(a) * 185, 70, 650) }; }
+  target.memory.command = { type: 'roll_cover', x: p.x, y: p.y, urgent: true, until: state.clock + 2.15 };
+  target.memory.navTarget = null;
+  target.pose = target.onObject ? 'jump_down_escape' : 'combat_dive';
+  target.crouch = true;
+  target.prone = false;
+  if (!target.lastSuppressionLog || target.lastSuppressionLog < state.clock - 1.6) { addLog(state, `${target.name} breaks for cover under fire.`); target.lastSuppressionLog = state.clock; }
   state.effects.push({ type: 'suppression', x: target.x, y: target.y - 26, x2: end.x, y2: end.y, ttl: 0.28 });
 }
 function isSuppressed(state, f) { return Boolean(f.suppressedUntil && f.suppressedUntil > state.clock); }
@@ -175,8 +139,8 @@ function counter(state, defender, attacker) { const move = { id: 'right_cross', 
 function grapple(state, f, enemy) { f.fight -= 22; f.cooldown = 1.1; enemy.pose = 'thrown'; f.pose = 'grapple'; const a = angleTo(f, enemy); shove(enemy, a, 78); hit(state, f, enemy, 9, 'throw', a); state.effects.push({ type: 'grapple', x: enemy.x, y: enemy.y, ttl: EFFECT_TTL.grapple }); addLog(state, `${f.name} grabs and throws ${enemy.name}.`); }
 function smoke(state, f, enemy) { f.resources.smoke--; f.specialCd = 7; state.effects.push({ type: 'smoke', x: f.x, y: f.y, ttl: EFFECT_TTL.smoke }); const a = angleTo(enemy, f); f.x += Math.cos(a) * 135; f.y += Math.sin(a) * 135; addLog(state, `${f.name} vanishes through smoke.`); }
 function bandage(state, f) { f.bandageCd = 10; f.cooldown = 1.4; if (!startBandage(state, f)) { f.pose = 'bandage'; recoverVitality(f, 8); addLog(state, `${f.name} patches up.`); } }
-function hit(state, attacker, defender, amount, type, a, move = null) { const toughness = defender.stats?.toughness || 60; const defense = defender.wallLean || defender.shadowHidden || defender.crouch || defender.prone ? 0.62 : isSuppressed(state, defender) ? 0.78 : 1; const final = Math.max(1.1, amount * (1.04 - toughness / 240) * defense); defender.hp = clamp(defender.hp - final, 0, 100); updateVitalityCap(defender); defender.memory.lastHitBy = attacker.name; defender.pose = 'hit'; defender.hitLean = move?.lean || (Math.cos(a) > 0 ? 1 : -1); shove(defender, a, final * 0.72); impact(state, defender.x, defender.y, type); suppressTarget(state, defender, attacker, defender); if (['shot', 'sword', 'knife', 'arrow_stab'].includes(type) && final > 8 && chance(0.12 + final / 110)) addBleed(state, defender, type === 'shot' ? 1.4 : type === 'sword' ? 1.8 : 1.2, type); if (canSuddenIncapacitate(attacker, defender, type, final)) return incapacitate(state, defender, attacker, type); if (defender.hp <= 0) defeat(state, defender, attacker); }
+function hit(state, attacker, defender, amount, type, a, move = null) { const toughness = defender.stats?.toughness || 60; const defense = defender.wallLean || defender.shadowHidden || defender.crouch || defender.prone ? 0.62 : isSuppressed(state, defender) ? 0.78 : 1; const final = Math.max(1.1, amount * (1.04 - toughness / 240) * defense); defender.hp = clamp(defender.hp - final, 0, 100); updateVitalityCap(defender); defender.memory.lastHitBy = attacker.name; defender.pose = type === 'shot' ? 'shot_react' : 'hit'; defender.hitLean = move?.lean || (Math.cos(a) > 0 ? 1 : -1); shove(defender, a, final * 0.54); impact(state, defender.x, defender.y, type); if (type === 'shot') state.effects.push({ type: 'blood_spray', x: defender.x, y: defender.y, angle: a, ttl: 0.22, source: type }); suppressTarget(state, defender, attacker, defender); if (['shot', 'sword', 'knife', 'arrow_stab'].includes(type) && final > 8 && chance(type === 'shot' ? 0.28 + final / 90 : 0.12 + final / 110)) addBleed(state, defender, type === 'shot' ? 1.7 : type === 'sword' ? 1.8 : 1.2, type); if (canSuddenIncapacitate(attacker, defender, type, final)) return incapacitate(state, defender, attacker, type); if (defender.hp <= 0) defeat(state, defender, attacker); }
 function shove(f, a, power) { f.x += Math.cos(a) * power; f.y += Math.sin(a) * power; }
 function impact(state, x, y, kind) { state.effects.push({ type: 'impact', kind, x, y, ttl: EFFECT_TTL.impact }); }
-function defeat(state, f, attacker) { f.defeated = true; f.hp = 1; f.pose = 'defeated_kneel'; f.finishT = 4; f.stamina = 0; f.fight = 0; addLog(state, `${f.name} drops to a knee. ${attacker.name || 'Opponent'} can decide the finish.`); }
-function incapacitate(state, f, attacker, type = 'critical') { f.incapacitated = true; f.defeated = false; f.hp = 0; f.pose = 'down'; addLog(state, `${f.name} is suddenly incapacitated by ${attacker.name || type}.`); state.matchState = 'finished'; }
+function defeat(state, f, attacker) { f.defeated = true; f.hp = 1; f.pose = 'defeated_kneel'; f.finishT = 4; f.stamina = 0; f.fight = 0; state.cinematic = { phase: 'outro', t: 0, winner: attacker?.id || attacker?.name || 'opponent', loser: f.id, label: 'finish decision' }; addLog(state, `${f.name} drops to a knee. ${attacker.name || 'Opponent'} can decide the finish.`); }
+function incapacitate(state, f, attacker, type = 'critical') { f.incapacitated = true; f.defeated = false; f.hp = 0; f.pose = 'down'; state.cinematic = { phase: 'outro', t: 0, winner: attacker?.id || attacker?.name || 'opponent', loser: f.id, label: `${type} incapacitation` }; addLog(state, `${f.name} is suddenly incapacitated by ${attacker.name || type}.`); state.matchState = 'finished'; }
