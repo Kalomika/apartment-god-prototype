@@ -1,7 +1,8 @@
+import { applyWorkCompletion } from './careerSystem.js';
 import { changeNeed, log, say, setMood } from './state.js';
 
 export const DAILY_DESTINATIONS = [
-  { id: 'work', label: 'Work Shift', cost: 0, duration: 60, hours: [6, 22], scene: 'work', stat: 'money', money: 95, fun: -5, energy: -14 },
+  { id: 'work', label: 'Work Shift', cost: 0, duration: 60, hours: [5, 24], scene: 'work', stat: 'money', money: 95, fun: -5, energy: -14 },
   { id: 'errand', label: 'Quick Errand', cost: 20, duration: 30, hours: [7, 23], scene: 'errand', fun: 4, energy: -6 },
   { id: 'mall', label: 'Mall Trip', cost: 55, duration: 60, hours: [10, 22], scene: 'mall', fun: 14, social: 8, energy: -8 },
   { id: 'movies', label: 'Movie Theater', cost: 32, duration: 120, hours: [11, 25], scene: 'theater', fun: 24, social: 10, energy: -7 },
@@ -133,12 +134,16 @@ export function applyOffsiteRewards(state, job) {
   for (const id of job.actors || []) {
     const e = state.entities.find(x => x.id === id);
     if (!e) continue;
-    changeNeed(e, 'fun', destination?.fun ?? (action === 'work' ? -5 : 22));
-    changeNeed(e, 'hunger', -12);
-    changeNeed(e, 'energy', destination?.energy ?? -12);
-    changeNeed(e, 'freshness', destination?.freshness ?? -3);
-    if (destination?.social) changeNeed(e, 'social', destination.social);
-    if (action === 'work') { state.money += destination?.money ?? 95; changeNeed(e, 'social', -4); awardWorkPerks(state, e); }
+    if (action === 'work') {
+      changeNeed(e, 'hunger', -14);
+      applyWorkCompletion(state, e);
+    } else {
+      changeNeed(e, 'fun', destination?.fun ?? 22);
+      changeNeed(e, 'hunger', -12);
+      changeNeed(e, 'energy', destination?.energy ?? -12);
+      changeNeed(e, 'freshness', destination?.freshness ?? -3);
+      if (destination?.social) changeNeed(e, 'social', destination.social);
+    }
     if (action === 'movies') e.memory.movies.push(randomMovieTitle(state));
     if (action.includes('beach') && job.activities?.includes('treasure_search')) maybeFindBeachGold(state, e, job);
     setMood(e, action === 'work' ? 'tired' : 'happy');
@@ -146,24 +151,6 @@ export function applyOffsiteRewards(state, job) {
   }
   recordSecretActivity(state, action);
   maybeAwardSecretTickets(state);
-}
-
-function awardWorkPerks(state, actor) {
-  state.careers ??= { workHours: 0, movieTheaterHours: 0, airlineHours: 0 };
-  state.rewards ??= { freeTickets: {}, messages: [] };
-  state.careers.workHours += 8;
-  state.careers.movieTheaterHours += 2;
-  state.careers.airlineHours += 1;
-  if (state.careers.movieTheaterHours >= 6) {
-    state.careers.movieTheaterHours = 0;
-    state.rewards.freeTickets.movies = (state.rewards.freeTickets.movies || 0) + 1;
-    log(state, `${actor.name} earned free movie tickets from theater work perks.`);
-  }
-  if (state.careers.airlineHours >= 10) {
-    state.careers.airlineHours = 0;
-    state.rewards.freeTickets.vacation_any = (state.rewards.freeTickets.vacation_any || 0) + 1;
-    log(state, `${actor.name} earned an airline standby vacation ticket.`);
-  }
 }
 
 export function recordSecretActivity(state, actionId) {
