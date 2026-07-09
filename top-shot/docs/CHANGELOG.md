@@ -2,6 +2,48 @@
 
 All Top Shot changes must be logged here with date, time, branch, rollback reference, files changed, feature summary, and Render link/cache buster when known.
 
+## 2026-07-09 01:20 AM CT
+
+Branch: `top-shot-v0-1`
+
+Render link: `https://top-shot-prototype.onrender.com/?v=bbecedb`
+
+Rollback created before update:
+
+- `backup/top-shot-before-mobility-blood-health-cinematics-2026-07-09`
+
+Files changed:
+
+- `top-shot/src/arena.js`
+- `top-shot/src/perception.js`
+- `top-shot/src/combat.js`
+- `top-shot/src/wounds.js`
+- `top-shot/src/state.js`
+- `top-shot/src/systems.js`
+- `top-shot/src/three/effects3D.js`
+- `top-shot/src/main.js`
+- `top-shot/styles.css`
+- `top-shot/tests/simSmoke.js`
+- `top-shot/docs/CHANGELOG.md`
+
+Changes made:
+
+- Added climbable and elevated terrain data for containers, boulders, scrap stacks, tanks, the raised catwalk, and stair access.
+- Added fighter mobility fields for elevation, object climbing, and jump down states.
+- Added terrain aware movement so fighters can climb onto objects or jump down from them, especially when escaping gunfire.
+- Tuned movement toward more realistic human pacing while still letting suppressed fighters prioritize cover immediately.
+- Changed suppression behavior so fighters under bullets break for cover or elevation and stop trying to attack from open space.
+- Replaced bullet body impact flashes with tiny blood spray effects on hits.
+- Added blood drops/trails for active bleeding so wounds are visible over time.
+- Added visible health percentage, vitality cap, and five stage health ladder in the menu below the game.
+- Added intro and outro cinematic state tracking, visible overlay text, and victory/down pose handling after finishes.
+- Expanded smoke checks to assert intro cinematic state, running cinematic state, elevation fields, and valid health percentages.
+
+Known risks or not verified:
+
+- Browser runtime was not executed from this connector, so Kam should verify visually on Render after deploy.
+- Climbing is a first playable pass using procedural terrain volumes. Later it should get authored climb animations, ledge hands, foot planting, and better jump down arcs.
+
 ## 2026-07-09 12:45 AM CT
 
 Branch: `top-shot-v0-1`
