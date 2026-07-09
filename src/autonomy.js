@@ -195,17 +195,23 @@ function tryRestForStamina(state, actor) {
 }
 
 function tryTraitWeightedActivity(state, actor, partner) {
-  const traits = actor.traits || [];
   const choices = [];
   const stamina = actor.needs?.stamina ?? 100;
-  if (traits.includes('creative')) choices.push(['desk', 'desk_work'], ['bookshelf', 'study'], ['tv', 'comedy']);
-  if (traits.includes('active') && stamina > 60) choices.push(['treadmill', 'treadmill'], ['weight_bench', 'lift_weights'], ['heavy_bag', 'heavy_bag'], ['soccer_field', 'soccer_practice']);
-  if (traits.includes('playful')) choices.push(['arcade_machine', 'arcade'], ['game_console', 'console_game'], ['dartboard', 'darts']);
-  if (traits.includes('social') && partner) {
+  if (hasTrait(actor, 'creative')) choices.push(['desk', 'desk_work'], ['bookshelf', 'study'], ['tv', 'comedy']);
+  if (hasTrait(actor, 'active') && stamina > 60) choices.push(['treadmill', 'treadmill'], ['weight_bench', 'lift_weights'], ['heavy_bag', 'heavy_bag'], ['soccer_field', 'soccer_practice']);
+  if (hasTrait(actor, 'playful')) choices.push(['arcade_machine', 'arcade'], ['game_console', 'console_game'], ['dartboard', 'darts']);
+  if (hasTrait(actor, 'social') && partner) {
     if (trySocial(state, actor, partner)) return true;
   }
   if (!choices.length) return false;
   return tryAnyObject(state, actor, rotateObjectChoices(actor, choices));
+}
+
+function hasTrait(actor, trait) {
+  const traits = actor?.traits;
+  if (Array.isArray(traits)) return traits.includes(trait);
+  if (traits && typeof traits === 'object') return Boolean(traits[trait]);
+  return false;
 }
 
 function tryUsefulIdle(state, actor, partner) {
