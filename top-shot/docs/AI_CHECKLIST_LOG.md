@@ -4,19 +4,34 @@
 
 Branch: `top-shot-v0-1`
 
-Commit: `a6c36dd311dd102f9da803eae1d03625d07eab67`
+Commit: `e70f81e1addd4c344638ed229e262364030b59af`
 
-Previous terrain commit: `fdec5fa91855c5dd7e84e5dec62d6485d8501860`
+Previous terrain commit: `a6c36dd311dd102f9da803eae1d03625d07eab67`
 
-Render URL: `https://top-shot-prototype.onrender.com/?v=a6c36dd`
+Render URL: `https://top-shot-prototype.onrender.com/?v=e70f81e`
 
-Status: Terrain plus four procedural 3D archetypes are pushed to the live branch and Render smoke passed.
+Status: Emergency Top Shot CI failure audit completed. Automatic GitHub Actions email spam remains paused through manual-only workflow dispatch. Core simulation state, navmesh, wound handling, and battle-loop invariants were hardened against invalid fighter state and stuck finish conditions.
 
 ## Completed
 
-- [x] Confirmed local `top-shot-v0-1` matched `origin/top-shot-v0-1` before work began.
-- [x] Inspected `top-shot/asset_inbox/ASSET_MANIFEST.md` path; it is not present in this checkout.
-- [x] Inspected requested asset inbox folders; `model_candidates/`, `fx/`, `maps/`, and `reference_notes/` are not present locally.
+- [x] Confirmed `top-shot-v0-1` PR #5 is still the active Top Shot branch.
+- [x] Reviewed the latest GitHub Actions failure logs for `Top Shot Checks`.
+- [x] Confirmed the previous failure was in `npm run smoke`, not install or syntax setup.
+- [x] Identified the failing smoke matchup as `suit_operative` versus `survival_commando` with invalid fighter state.
+- [x] Paused automatic `push` and `pull_request` CI triggers to stop repeated GitHub failure notification emails.
+- [x] Kept `Top Shot Checks` available through manual `workflow_dispatch`.
+- [x] Hardened shared numeric utilities against `NaN`, non-finite angles, invalid clamp inputs, empty choice arrays, and invalid rectangle checks.
+- [x] Hardened navmesh waypoint and nearest-open selection against invalid destination coordinates.
+- [x] Hardened wound and bleed handling against invalid severity, invalid bleed pools, invalid HP drain, and half-dead active fighters.
+- [x] Reworked the battle loop to sanitize fighter coordinates, HP, elevation, resources, command targets, nav targets, and grapple targets before and after major simulation systems.
+- [x] Wired `updatePhysicality` into the main battle loop so the existing contact/debris system is no longer orphaned.
+- [x] Updated finish logic so defeated fighters no longer count as active fighters and cannot stall a match forever.
+
+## Completed earlier
+
+- [x] Confirmed local `top-shot-v0-1` matched `origin/top-shot-v0-1` before prior work began.
+- [x] Inspected `top-shot/asset_inbox/ASSET_MANIFEST.md` path; it is not present in that checkout.
+- [x] Inspected requested asset inbox folders; `model_candidates/`, `fx/`, `maps/`, and `reference_notes/` were not present locally at that checkpoint.
 - [x] Three.js scene loads from a local vendored module with CDN fallback.
 - [x] Desert industrial tactical terrain is visible in the canvas.
 - [x] Dusty ochre ground, rocks, scrap, metal containers, industrial ruins, generators, tanks, pipes, debris, shadows, and cover structures are present.
@@ -33,26 +48,23 @@ Status: Terrain plus four procedural 3D archetypes are pushed to the live branch
 - [x] Shadow Ninja uses a black masked blade/projectile silhouette with stealth, crouch, smoke, and shuriken behavior.
 - [x] Field Agent uses a refined pistol/formal tacticalwear silhouette with cover/evasion/patience behavior.
 - [x] Simulation smoke covers Shadow Ninja versus Field Agent.
-- [x] `npm run check` passed for this checkpoint.
-- [x] `npm run smoke` passed for this checkpoint.
-- [x] `npm run build` passed for this checkpoint.
-- [x] Local browser smoke showed nonblank WebGL canvas pixels on desktop and mobile.
-- [x] Local browser smoke confirmed no console errors.
-- [x] Render browser smoke confirmed the public build loads, serves Three.js, keeps the canvas nonblank, and starts Shadow Ninja versus Field Agent.
 
 ## Pending
 
+- [ ] Manually rerun `Top Shot Checks` from GitHub Actions when ready. Automatic runs remain paused to prevent new email spam.
+- [ ] Re-enable automatic CI only after the branch is stable and Kam wants GitHub failure emails back on.
 - [ ] Replace procedural actors with verified permissive GLB/glTF assets if the asset inbox becomes available.
 - [ ] Move existing CQC timing and request states onto visible 3D actor limb contact.
 - [ ] Add the next two archetypes: Jeet Fighter and Infiltration Soldier.
 
 ## Blocked
 
-- [ ] None at this checkpoint.
+- [ ] Local container could not clone GitHub because DNS resolution for `github.com` failed, so this audit used the GitHub connector and source inspection instead of a full local `npm run smoke` execution.
 
 ## Known bugs
 
-- [ ] Asset inbox manifest and candidate folders are missing from this checkout, so no Agent Mode assets were selected.
+- [ ] Automatic CI is intentionally disabled except manual dispatch.
+- [ ] Asset inbox manifest and candidate folders may still be missing from some checkouts, so no Agent Mode assets were selected.
 - [ ] The terrain art is procedural placeholder geometry and still needs material polish, scale tuning, and more cover readability.
 - [ ] Procedural actors are readable placeholders, not final rigged character models.
 - [ ] Shadow Ninja and Field Agent silhouettes still need authored animation clips and stronger weapon contact poses.
@@ -90,21 +102,22 @@ Status: Terrain plus four procedural 3D archetypes are pushed to the live branch
 
 ## Combat States Working
 
-- [x] Existing simulation smoke test still covers battle flow, command drops, wounds, CQC/ranged decisions, and finish states.
+- [x] Existing simulation smoke test covers battle flow, command drops, wounds, CQC/ranged decisions, and finish states.
 - [x] Placeholder actor limb/body volume accessors are scaffolded.
+- [x] Battle loop now has defensive invalid-state cleanup around the simulation systems.
 - [ ] Visible 3D blocks, parries, slips, counters, elbows, knees, kicks, grapples, and disarms need stronger visual/contact integration.
 
 ## Latest Validation Commands
 
-- [x] `npm run check`
-- [x] `npm run smoke`
-- [x] `npm run build`
-- [x] Render Playwright smoke against `https://top-shot-prototype.onrender.com/?v=a6c36dd`
+- [ ] `npm run check`, not run locally in this environment because GitHub clone DNS failed.
+- [ ] `npm run smoke`, not run locally in this environment because GitHub clone DNS failed.
+- [ ] `npm run build`, not run locally in this environment because GitHub clone DNS failed.
+- [ ] Manual GitHub Actions run pending.
 
 ## Render URL
 
-- [x] `https://top-shot-prototype.onrender.com/?v=a6c36dd`
+- [ ] `https://top-shot-prototype.onrender.com/?v=e70f81e`, pending manual verification.
 
 ## Next Recommended Task
 
-- [ ] Add Jeet Fighter and Infiltration Soldier as the next pair, using verified assets if available or procedural placeholders if not.
+- [ ] Manually dispatch Top Shot Checks from GitHub Actions, confirm smoke passes, then decide whether to re-enable automatic CI or keep it manual-only to avoid email noise.
