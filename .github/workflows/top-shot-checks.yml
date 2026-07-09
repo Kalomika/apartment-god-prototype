@@ -1,16 +1,7 @@
 name: Top Shot Checks
 
 on:
-  pull_request:
-    paths:
-      - 'top-shot/**'
-      - '.github/workflows/top-shot-checks.yml'
-  push:
-    branches:
-      - top-shot-v0-1
-    paths:
-      - 'top-shot/**'
-      - '.github/workflows/top-shot-checks.yml'
+  workflow_dispatch:
 
 jobs:
   top-shot:
