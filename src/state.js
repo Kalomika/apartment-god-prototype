@@ -1,6 +1,8 @@
 import { MOODS } from './config.js';
 
 const baseNeeds = () => ({ hunger: 72, freshness: 76, energy: 74, fun: 62, bladder: 72, social: 64, stamina: 82 });
+const morningNeeds = () => ({ hunger: 58, freshness: 46, energy: 86, fun: 58, bladder: 38, social: 64, stamina: 86 });
+const morningDogNeeds = () => ({ hunger: 54, freshness: 62, energy: 82, fun: 62, bladder: 68, social: 72, stamina: 86 });
 
 function baseSkills(id, type) {
   if (type === 'dog') return { strength: 1, cooking: 0, intellect: 1, learning: 2, money: 0, handy: 0 };
@@ -29,14 +31,25 @@ function entity(id, name, type, floor, x, y, color) {
   };
 }
 
+function morningEntity(id, name, type, floor, x, y, color, bubble = '') {
+  const e = entity(id, name, type, floor, x, y, color);
+  e.pose = type === 'dog' ? 'dog_rest' : 'sleep';
+  e.action = type === 'dog' ? 'Dog Bed' : 'Waking up';
+  e.needs = type === 'dog' ? morningDogNeeds() : morningNeeds();
+  e.bubble = bubble;
+  e.bubbleT = bubble ? 4 : 0;
+  e.idleT = -4;
+  return e;
+}
+
 export function createState() {
   return {
-    floor: 0,
+    floor: 1,
     selectedId: 'resident',
     followSelected: true,
     speed: 1,
     paused: false,
-    time: 8 * 60,
+    time: 6 * 60 + 45,
     money: 640,
     bill: 42,
     autonomyMode: 'guided',
@@ -50,7 +63,7 @@ export function createState() {
     partyPick: null,
     routines: [],
     appointments: [],
-    notifications: ['Apartment God booted.'],
+    notifications: ['Morning starts at home.'],
     tv: { on: false, channel: 'Idle', pulse: 0 },
     offsite: null,
     investments: { holdings: {}, tick: 0, lifetime: 0 },
@@ -66,11 +79,11 @@ export function createState() {
       yard: true, pool_area: true, kennel_area: true,
       secret_lab: true
     },
-    objectState: { workoutGear: false, bookshelf: false, openWindows: {}, vehicleInUse: null, garageDoorOpen: false },
+    objectState: { workoutGear: false, bookshelf: false, openWindows: {}, vehicleInUse: null, garageDoorOpen: false, morningGreetingDone: false },
     entities: [
-      entity('resident', 'Resident', 'person', 0, 150, 420, '#79b7ff'),
-      entity('girlfriend', 'Girlfriend', 'person', 0, 265, 420, '#f2a3d7'),
-      entity('dog', 'Dog', 'dog', 0, 610, 286, '#d7a66a'),
+      morningEntity('resident', 'Resident', 'person', 1, 178, 150, '#79b7ff', 'morning'),
+      morningEntity('girlfriend', 'Girlfriend', 'person', 1, 228, 150, '#f2a3d7', 'good morning'),
+      morningEntity('dog', 'Dog', 'dog', 0, 668, 472, '#d7a66a'),
       { ...entity('lab_test_subject', 'Test Subject', 'person', 5, 470, 414, '#74e6ff'), stopped: true, labOnly: true }
     ]
   };
