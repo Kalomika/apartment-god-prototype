@@ -1,4 +1,5 @@
 import { startObjectAction, startSocialAction, startOffsite } from './actions.js';
+import { shouldAutoStartWork } from './careerSystem.js';
 import { byId, say, setMood } from './state.js';
 import { getObject, roomAt } from './world.js';
 import { commandMove } from './movement.js';
@@ -61,6 +62,7 @@ function driveHuman(state, actor, partner) {
   const urgent = urgentNeed(actor);
   if (urgent && satisfyNeed(state, actor, urgent, partner)) return;
 
+  if (shouldAutoStartWork(state, actor) && tryAutoWork(state, actor)) return;
   if (shouldSleep(state, actor, partner, hour) && trySleepRoutine(state, actor, partner)) return;
 
   if (hour >= 6 && hour <= 10) {
@@ -76,6 +78,13 @@ function driveHuman(state, actor, partner) {
   if (tryTraitWeightedActivity(state, actor, partner)) return;
   if (tryUsefulIdle(state, actor, partner)) return;
   smartWander(actor);
+}
+
+function tryAutoWork(state, actor) {
+  const ok = startOffsite(state, actor, 'work', [], 'auto');
+  if (!ok) return false;
+  rememberSuccess(actor, 'career', 'work');
+  return true;
 }
 
 function urgentNeed(actor) {
