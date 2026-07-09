@@ -6,6 +6,10 @@ const SKIN = '#3a241f';
 const SKIN_LIT = '#5a372f';
 const CLOTH_M = '#111820';
 const CLOTH_F = '#17131b';
+const PAJAMA_M = '#24324a';
+const PAJAMA_F = '#3a2438';
+const SWIM_M = '#1b5b82';
+const SWIM_F = '#6b2a70';
 const CYAN = '#74e6ff';
 const MAGENTA = '#ff75df';
 const DOG_COAT = '#f6f2e8';
@@ -39,6 +43,8 @@ function drawEntity(ctx, e, selected) {
 }
 
 function heading(e) {
+  const action = String(e.action || '').toLowerCase();
+  if (['sleep', 'nap', 'shower', 'swim', 'heavy bag', 'lift weights', 'treadmill'].some(t => action.includes(t))) return e.lastHeading ?? 0;
   const dx = e.vx || (e.target ? e.target.x - e.x : 0);
   const dy = e.vy || (e.target ? e.target.y - e.y : 0);
   if (Math.abs(dx) + Math.abs(dy) < 0.01) return e.lastHeading ?? 0;
@@ -48,26 +54,37 @@ function heading(e) {
 
 function drawPerson(ctx, e) {
   const action = String(e.action || '').toLowerCase();
-  const moving = Boolean(e.path?.length) || e.pose === 'walk' || action.includes('walk') || action.includes('run');
+  const pose = String(e.pose || '').toLowerCase();
+  const moving = Boolean(e.path?.length) || pose === 'walk' || action.includes('walk') || action.includes('run');
   const step = moving ? [-1, .45, 1, -.45][Math.floor(performance.now() / 120) % 4] : Math.sin(performance.now() / 700) * .12;
   const female = e.id === 'girlfriend';
   const accent = female ? MAGENTA : CYAN;
   const cloth = female ? CLOTH_F : CLOTH_M;
 
-  if (e.pose === 'sleep' || action.includes('sleep') || action.includes('nap')) {
+  if (pose === 'shower' || action.includes('shower')) return drawShowerPrivacy(ctx, female, accent);
+  if (pose.includes('swim') || action.includes('swim')) return drawSwimPose(ctx, female, accent);
+  if (pose === 'heavy_bag' || action.includes('heavy bag')) return drawBoxingPose(ctx, female, cloth, accent);
+  if (pose === 'lift_weights' || action.includes('lift weights')) return drawLiftPose(ctx, female, cloth, accent);
+  if (pose === 'treadmill' || action.includes('treadmill')) return drawTreadmillPose(ctx, female, cloth, accent);
+
+  if (pose === 'sleep' || action.includes('sleep') || action.includes('nap')) {
     ctx.save();
     ctx.rotate(-Math.PI / 2 + .08);
-    drawHumanBody(ctx, female, cloth, accent, 0, true);
+    drawHumanBody(ctx, female, female ? PAJAMA_F : PAJAMA_M, accent, 0, true, true);
     ctx.restore();
+    drawZs(ctx, accent);
     return;
   }
 
-  if (e.pose === 'sit' || action.includes('tv') || action.includes('desk') || action.includes('phone') || action.includes('game') || action.includes('ordering')) {
-    drawHumanBody(ctx, female, cloth, accent, step * .25, true);
+  if (pose === 'sit' || action.includes('tv') || action.includes('desk') || action.includes('phone') || action.includes('game') || action.includes('ordering') || action.includes('read') || action.includes('study') || action.includes('eat')) {
+    drawHumanBody(ctx, female, cloth, accent, step * .25, true, false);
+    if (action.includes('desk') || action.includes('study')) drawTypingHands(ctx, accent);
+    if (action.includes('eat')) drawSmallPlate(ctx);
+    if (action.includes('read')) drawBook(ctx);
     return;
   }
 
-  drawHumanBody(ctx, female, cloth, accent, step, false);
+  drawHumanBody(ctx, female, cloth, accent, step, false, false);
 
   if (action.includes('dance') || action.includes('music')) {
     ctx.fillStyle = accent;
@@ -76,7 +93,7 @@ function drawPerson(ctx, e) {
   }
 }
 
-function drawHumanBody(ctx, female, cloth, accent, step, seated) {
+function drawHumanBody(ctx, female, cloth, accent, step, seated, pajama = false) {
   const shoulder = female ? 29 : 34;
   const hip = female ? 24 : 28;
   const torsoH = seated ? female ? 36 : 40 : female ? 42 : 46;
@@ -107,11 +124,135 @@ function drawHumanBody(ctx, female, cloth, accent, step, seated) {
   ctx.lineTo(4, -34);
   ctx.stroke();
 
+  if (pajama) {
+    ctx.fillStyle = accent;
+    ctx.font = '900 7px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('PJ', 0, 11);
+    ctx.textAlign = 'left';
+  }
+}
+
+function drawShowerPrivacy(ctx, female, accent) {
+  const t = performance.now() / 300;
+  drawClothesPile(ctx, female);
+  for (let i = 0; i < 7; i++) {
+    const x = Math.sin(t + i) * 18 + (i % 2 ? 6 : -6);
+    const y = -8 + i * 5 + Math.cos(t * .7 + i) * 4;
+    ell(ctx, x, y, 20 + i * 1.5, 13, `rgba(235,250,255,${.30 - i * .018})`, '', 0);
+  }
+  for (let y = -20; y <= 18; y += 13) {
+    for (let x = -18; x <= 18; x += 13) roundRect(ctx, x, y, 10, 10, 2, accent);
+  }
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = 'rgba(255,255,255,.75)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, -5, 28, .25, Math.PI * 1.75);
+  ctx.stroke();
+}
+
+function drawClothesPile(ctx, female) {
+  const cloth = female ? CLOTH_F : CLOTH_M;
+  ell(ctx, -33, 32, 13, 7, cloth, INK, 1.5);
+  ell(ctx, -22, 28, 10, 6, female ? MAGENTA : CYAN, INK, 1);
+  ell(ctx, -38, 24, 7, 5, '#05070a', INK, 1);
+}
+
+function drawSwimPose(ctx, female, accent) {
+  const suit = female ? SWIM_F : SWIM_M;
+  const kick = Math.sin(performance.now() / 110);
+  ell(ctx, 0, 11, 42, 28, 'rgba(60,170,210,.28)', '', 0);
+  limb(ctx, -8, 10, -26, 26 + kick * 5, 7, SKIN);
+  limb(ctx, 8, 10, 26, 26 - kick * 5, 7, SKIN);
+  limb(ctx, -13, -6, -32, -14 - kick * 8, 6, SKIN);
+  limb(ctx, 13, -6, 32, -14 + kick * 8, 6, SKIN);
+  torso(ctx, female ? 27 : 32, female ? 23 : 27, 36, suit, accent);
+  ell(ctx, 0, -33, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5);
+  hair(ctx, female);
+  ctx.strokeStyle = 'rgba(255,255,255,.55)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 2, 35, .2, Math.PI * 1.1);
+  ctx.stroke();
+}
+
+function drawBoxingPose(ctx, female, cloth, accent) {
+  const jab = Math.max(0, Math.sin(performance.now() / 105));
+  drawHumanBodyBaseShadow(ctx);
+  limb(ctx, -10, 18, -18, 42, 8, cloth);
+  limb(ctx, 10, 18, 17, 40, 8, cloth);
+  shoe(ctx, -18, 46, -.2);
+  shoe(ctx, 17, 44, .2);
+  torso(ctx, female ? 29 : 34, female ? 24 : 28, female ? 40 : 44, cloth, accent);
+  limb(ctx, -15, -8, -34, -6, 7, cloth);
+  limb(ctx, 15, -8, 30 + jab * 18, -12, 7, cloth);
+  glove(ctx, -36, -6, accent);
+  glove(ctx, 34 + jab * 18, -12, accent);
+  ell(ctx, 0, -37, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5);
+  hair(ctx, female);
+}
+
+function drawLiftPose(ctx, female, cloth, accent) {
+  const rep = Math.max(0, Math.sin(performance.now() / 180));
+  drawHumanBodyBaseShadow(ctx);
+  limb(ctx, -10, 18, -20, 35, 8, cloth);
+  limb(ctx, 10, 18, 20, 35, 8, cloth);
+  torso(ctx, female ? 28 : 33, female ? 24 : 28, 36, cloth, accent);
+  const y = -34 - rep * 18;
+  line(ctx, -42, y, 42, y, '#dfe6ea', 4);
+  circle(ctx, -47, y, 8, '#343b46');
+  circle(ctx, 47, y, 8, '#343b46');
+  limb(ctx, -14, -8, -34, y, 7, cloth);
+  limb(ctx, 14, -8, 34, y, 7, cloth);
+  hand(ctx, -34, y, accent);
+  hand(ctx, 34, y, accent);
+  ell(ctx, 0, -37, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5);
+  hair(ctx, female);
+}
+
+function drawTreadmillPose(ctx, female, cloth, accent) {
+  const step = [-1, .45, 1, -.45][Math.floor(performance.now() / 95) % 4];
+  roundRect(ctx, -33, 24, 66, 18, 8, 'rgba(20,24,31,.65)');
+  drawHumanBody(ctx, female, cloth, accent, step * 1.4, false, false);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-30, 20);
+  ctx.lineTo(30, 20);
+  ctx.stroke();
+}
+
+function drawTypingHands(ctx, accent) {
   ctx.fillStyle = accent;
-  ctx.font = '900 7px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText(female ? 'FEMALE' : 'MALE', 0, 11);
-  ctx.textAlign = 'left';
+  ctx.fillRect(-18, 25, 10, 3);
+  ctx.fillRect(8, 25, 10, 3);
+}
+
+function drawSmallPlate(ctx) {
+  ell(ctx, 0, 31, 13, 6, '#efe7dc', INK, 1);
+  ell(ctx, 2, 31, 5, 3, '#b66d55', '', 0);
+}
+
+function drawBook(ctx) {
+  roundRect(ctx, -21, 24, 42, 18, 4, '#efe7dc');
+  line(ctx, 0, 25, 0, 41, '#8b6f53', 1);
+}
+
+function drawZs(ctx, accent) {
+  ctx.fillStyle = accent;
+  ctx.font = '900 12px system-ui';
+  ctx.fillText('Z', 24, -46);
+  ctx.font = '900 9px system-ui';
+  ctx.fillText('z', 38, -58);
+}
+
+function drawHumanBodyBaseShadow(ctx) {
+  ell(ctx, 0, 8, 34, 45, 'rgba(0,0,0,.22)', '', 0);
+}
+
+function glove(ctx, x, y, accent) {
+  ell(ctx, x, y, 7, 6, accent, INK, 1.5);
 }
 
 function drawDog(ctx, e) {
@@ -249,4 +390,20 @@ function ell(ctx, x, y, rx, ry, fill, stroke, lineWidth) {
     ctx.lineWidth = lineWidth;
     ctx.stroke();
   }
+}
+
+function line(ctx, x1, y1, x2, y2, color, width = 2) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+}
+
+function circle(ctx, x, y, r, color) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
 }
