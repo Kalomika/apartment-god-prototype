@@ -22,6 +22,7 @@ export function installTopShotEffects3D(world) {
       actor.group.scale.setScalar((entity.preview ? 1.14 : 1.2) * (altitude > 0 ? 0.94 : 1));
       if (entity.climbT > 0 || entity.jumpT > 0 || entity.grapple?.active) actor.group.position.y += Math.sin(Math.min(1, Math.max(entity.climbT || entity.jumpT || entity.grapple?.t || 0, 0)) * Math.PI) * 0.08;
       if (state?.mode === 'cqc') stabilizeCqcActor(actor, entity);
+      applyReadablePoseOverlay(actor, entity);
       syncParachute(this, entity, actor.group.position, altitude);
     }
     for (const [id, chute] of this.parachutes) {
@@ -41,6 +42,62 @@ export function installTopShotEffects3D(world) {
   };
 
   return world;
+}
+
+function applyReadablePoseOverlay(actor, entity) {
+  const pose = entity.currentMove?.id || entity.pose || entity.intent || '';
+  const p = actor.parts || {};
+  if (!actor.rig || !p.torso) return;
+  if (pose.includes('cover_pinned') || pose.includes('wall_lean') || pose.includes('cover_peek')) {
+    actor.rig.rotation.z += entity.team === 'A' ? 0.1 : -0.1;
+    p.torso.rotation.y = pose.includes('peek') ? 0.32 : 0.16;
+    p.shoulders.rotation.y = pose.includes('peek') ? 0.38 : 0.14;
+    p.head.rotation.y = pose.includes('peek') ? 0.18 : -0.08;
+    if (p.leftHand) p.leftHand.position.y = Math.max(p.leftHand.position.y, 1.12);
+    if (p.rightHand) p.rightHand.position.y = Math.max(p.rightHand.position.y, 1.05);
+  }
+  if (pose.includes('combat_dive')) {
+    actor.rig.rotation.x = -0.55;
+    actor.rig.rotation.z += entity.team === 'A' ? 0.28 : -0.28;
+    actor.rig.position.y = Math.max(actor.rig.position.y, 0.12);
+  }
+  if (pose.includes('combat_roll')) {
+    actor.rig.rotation.x = -0.85;
+    actor.rig.rotation.z += Math.sin(entity.anim || 0) * 0.55;
+    actor.rig.position.y = Math.max(actor.rig.position.y, 0.1);
+  }
+  if (pose.includes('crawl') || pose.includes('prone_aim')) {
+    actor.rig.rotation.x = -Math.PI / 2;
+    actor.rig.position.y = Math.max(actor.rig.position.y, 0.12);
+  }
+  if (pose.includes('grapple_launch')) {
+    actor.rig.rotation.x = -0.22;
+    actor.rig.position.y += 0.18;
+    if (p.leftHand) p.leftHand.position.set(0.48, 1.46, 0.24);
+    if (p.rightHand) p.rightHand.position.set(0.56, 1.5, -0.16);
+  }
+  if (pose.includes('wound') || pose.includes('shot_react')) {
+    p.torso.rotation.x = -0.2;
+    p.waist.rotation.x = -0.12;
+    if (p.leftHand) p.leftHand.position.set(0.24, 0.94, 0.12);
+    if (p.rightHand) p.rightHand.position.set(0.28, 0.92, -0.1);
+  }
+  if (pose.includes('left_jab')) {
+    p.waist.rotation.y = 0.16; p.torso.rotation.y = 0.22; p.shoulders.rotation.y = 0.34;
+    if (p.rightFoot) p.rightFoot.rotation.z = -0.12;
+  }
+  if (pose.includes('right_cross') || pose.includes('counter')) {
+    p.waist.rotation.y = -0.28; p.torso.rotation.y = -0.38; p.shoulders.rotation.y = -0.5;
+    if (p.rightFoot) p.rightFoot.rotation.z = -0.36;
+    if (p.leftHand) p.leftHand.position.set(0.26, 1.24, 0.28);
+  }
+  if (pose.includes('kick')) {
+    p.waist.rotation.y = -0.46; p.torso.rotation.y = -0.36; p.shoulders.rotation.y = -0.28;
+    actor.rig.rotation.z += pose.includes('left') ? 0.08 : -0.08;
+  }
+  if (pose.includes('knife') || pose.includes('slash') || pose.includes('sword')) {
+    p.waist.rotation.y = -0.22; p.torso.rotation.y = -0.34; p.shoulders.rotation.y = -0.48;
+  }
 }
 
 function anchorCqcPairs(world, state, entities) {
@@ -146,13 +203,7 @@ function createEffect(world, effect) {
     return new THREE.Line(new THREE.BufferGeometry(), material);
   }
   if (effect.type === 'blood_spray' || effect.type === 'spark' || effect.type === 'shrapnel') return burstGroup(THREE, effect.type);
-  if (effect.type === 'lodged_arrow') {
-    const group = new THREE.Group();
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.48, 6), new THREE.MeshBasicMaterial({ color: '#3b2718' }));
-    shaft.rotation.z = Math.PI / 2;
-    group.add(shaft);
-    return group;
-  }
+  if (effect.type === 'lodged_arrow') { const group = new THREE.Group(); const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.48, 6), new THREE.MeshBasicMaterial({ color: '#3b2718' })); shaft.rotation.z = Math.PI / 2; group.add(shaft); return group; }
   const color = effect.type === 'blood_drop' || effect.type === 'bleed' ? '#4f0507' : effect.type === 'muzzle_flash' ? '#fff1a3' : effect.type === 'impact_flash' ? '#fff6d8' : '#f0d36a';
   const radius = effect.type === 'blood_drop' ? 0.09 : effect.type === 'bleed' ? 0.13 : 0.22;
   return new THREE.Mesh(new THREE.SphereGeometry(radius, 10, 6), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1, depthWrite: false }));
@@ -163,11 +214,7 @@ function burstGroup(THREE, type) {
   const color = type === 'blood_spray' ? '#5b0507' : type === 'spark' ? '#ffcf6b' : '#b9a98d';
   const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1, depthWrite: false });
   const count = type === 'blood_spray' ? 8 : 6;
-  for (let i = 0; i < count; i++) {
-    const drop = new THREE.Mesh(new THREE.SphereGeometry(0.03 + i * 0.004, 6, 4), mat.clone());
-    drop.userData.offset = { x: (Math.random() - 0.5) * 0.42, y: Math.random() * 0.22, z: (Math.random() - 0.5) * 0.42 };
-    group.add(drop);
-  }
+  for (let i = 0; i < count; i++) { const drop = new THREE.Mesh(new THREE.SphereGeometry(0.03 + i * 0.004, 6, 4), mat.clone()); drop.userData.offset = { x: (Math.random() - 0.5) * 0.42, y: Math.random() * 0.22, z: (Math.random() - 0.5) * 0.42 }; group.add(drop); }
   return group;
 }
 
