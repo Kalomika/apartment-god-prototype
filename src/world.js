@@ -55,8 +55,8 @@ export const objects = [
   { id: 'basement_door', label: 'Basement Door', kind: 'stairs', floor: 0, room: 'stairs', x: 742, y: 386, w: 82, h: 52, solid: false, toFloor: 2, exitId: 'basement_stairs_up' },
   { id: 'garage_door', label: 'Garage Interior Door', kind: 'stairs', floor: 0, room: 'entry', x: 28, y: 418, w: 34, h: 72, solid: false, toFloor: 3, exitId: 'garage_entry_door' },
   { id: 'backyard_door', label: 'Kitchen/Living Back Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'living', x: 416, y: 38, w: 54, h: 34, solid: false, toFloor: 4, exitId: 'yard_back_door' },
-  { id: 'dog_bowl', label: 'Dog Bowl', kind: 'dog_bowl', floor: 0, room: 'kitchen', x: 558, y: 256, w: 36, h: 26, solid: false },
-  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'kitchen', x: 468, y: 224, w: 174, h: 76, solid: true },
+  { id: 'dog_bowl', label: 'Dog Bowl', kind: 'dog_bowl', floor: 0, room: 'entry', x: 654, y: 500, w: 36, h: 26, solid: false },
+  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'living', x: 348, y: 222, w: 154, h: 76, solid: true },
   { id: 'light_living', label: 'Living Light', kind: 'light', floor: 0, room: 'living', x: 408, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_down', label: 'Upstairs Stairs', kind: 'stairs', floor: 0, room: 'stairs', x: 780, y: 554, w: 118, h: 84, solid: false, toFloor: 1, exitId: 'stairs_up' },
 
