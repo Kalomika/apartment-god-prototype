@@ -274,3 +274,41 @@ This is still procedural Canvas fallback art, not final animation assets. Activi
 
 Follow ups:
 Implement true lived in time durations for movies, games, albums, reading, coffee effects, eating at the table, and sleep time acceleration in a separate activity systems pass. Add real sprites or sprite sheet animations for all major activities when the pipeline is ready.
+
+---
+
+## 2026-07-08 06:35 AM CT, Secret Sprite Test Lab First Slice
+
+Status: NEEDS_TESTING
+Branch: phaser-migration
+Commit: world 0b21d78194ce7dff24bc7ce71386a79b58729557, state be99da89f0c8ca2f2a0a29667c24705fc8ea0c44, camera fa84eac5d5e134834867d35e198f2167dff41093 and dfb83631d5719abc4fae9587f4ff0fb4ba23bab4
+Files changed: src/world.js, src/state.js, src/cameraNavigation.js, apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: no
+Backup branch: backup/phaser-migration-before-secret-lab-sprite-test-2026-07-08
+
+Summary:
+Added the first isolated Secret Lab East area as a sprite and animation proving ground without replacing the normal household character renderer.
+
+Implementation details:
+
+- Added floor 5, Secret Lab East, as a right side same level area east of Main House.
+- Added Secret Lab objects using existing known object kinds: lab bed, laptop desk, chair, motion screen, shower pod, toilet, pool table, console, dart board, treadmill, weight bench, heavy bag, and lab light.
+- Added a stopped lab only Test Subject on floor 5 so sprite and pose work can be isolated from Resident, Girlfriend, and Dog.
+- Added a Secret Lab utility button to the black control row using the lab flask icon.
+- Added a selected character utility button using the star icon so Kam can jump back to the selected playable character quickly.
+- Added swipe left from Main House to Secret Lab East and swipe right from Secret Lab East back to Main House.
+- Kept Secret Lab out of the blueprint by leaving it out of the blueprint floor list and hiding lab only markers from blueprint cards.
+- Added selected character follow state. Default is follow selected. Manual camera choices disable follow, and the star button resumes selected follow.
+
+Testing performed:
+Code inspection only through GitHub file review. No local or Render browser test performed in this chat.
+
+Testing requested:
+After main is updated for Render testing, check that the game boots, the black row shows star, lab, blueprint, locator, and phone controls, the lab button slides to Secret Lab East, swipe left from Main goes to the lab, swipe right from lab returns to Main, blueprint excludes the lab, locator still shows the Test Subject, lab objects open menus, and the star button returns to the selected character.
+
+Known risks:
+This is a same level camera and layout extension. It should remain isolated from normal autonomy, but it still touches world data, state initialization, and camera navigation. It has not been browser verified.
+
+Follow ups:
+Add sprite asset manifest and one Resident or Test Subject sprite fallback path inside the lab only. Add pose specific lab actions after the lab is confirmed stable.
