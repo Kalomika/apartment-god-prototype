@@ -2,6 +2,39 @@
 
 All Top Shot changes must be logged here with date, time, branch, rollback reference, files changed, feature summary, and Render link/cache buster when known.
 
+## 2026-07-08 02:48 PM CT
+
+Branch: `top-shot-v0-1`
+
+Render link: `https://top-shot-prototype.onrender.com/?v=model-integrity-20260708`
+
+Rollback created before update:
+
+- `backup/top-shot-before-fighter-redesign-model-integrity-2026-07-08`
+
+Files changed:
+
+- `top-shot/src/three/actors3D.js`
+- `top-shot/tests/modelSmoke.js`
+- `top-shot/package.json`
+- `top-shot/asset_inbox/reference_notes/FIGHTER_REDESIGN_MODEL_INTEGRITY_LOG.md`
+- `top-shot/asset_inbox/ASSET_MANIFEST.md`
+- `top-shot/docs/CHANGELOG.md`
+
+Changes made:
+
+- Pushed the generated fighter redesign concept into the procedural in-game actor models.
+- Reworked the suit operative toward a lean low-poly tactical stealth operative with sharper human proportions, jaw, brow, nose, cheek planes, ears, styled hair, jacket lapels, tie, belt, buckle, pocket square, cuffs, thigh holster, and pistol holster staging.
+- Reworked the survival commando toward a rugged low-poly tactical human with broader but believable proportions, face planes, bare forearms, gloves, tactical vest, shoulder straps, front plate, magazine pouches, belt, cargo pockets, knee pads, combat boots, and a more detailed rifle.
+- Added low-poly faceted material treatment so the models read closer to late PS1 and early PS2 tactical infiltration style instead of smooth placeholder mannequins.
+- Preserved animation and CQC compatibility through segmented limbs, named hurt zones, named limb volumes, and existing weapon staging rules.
+- Added a `modelSmoke.js` check for redesign details, mesh counts, hurt zones, and limb volumes, then included it in `npm run smoke`.
+
+Known risks or not verified:
+
+- Browser runtime was not executed from this connector, so Kam should verify visually on Render.
+- These are still procedural Three.js models, not authored GLB meshes. They push the concept into gameplay now, but a later artist pass should replace them with actual hand-modeled/rigged assets.
+
 ## 2026-07-08 02:32 PM CT
 
 Branch: `top-shot-v0-1`
