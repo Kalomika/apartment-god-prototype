@@ -24,20 +24,8 @@ export const floors = [
       { id: 'stairs2', name: 'Stairs', x: 720, y: 534, w: 216, h: 150 }
     ]
   },
-  {
-    id: 2,
-    name: 'Open Basement',
-    rooms: [
-      { id: 'basement', name: 'Open Basement', x: 24, y: 36, w: 912, h: 648 }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Garage Area',
-    rooms: [
-      { id: 'garage', name: 'Open Garage', x: 24, y: 36, w: 912, h: 648 }
-    ]
-  },
+  { id: 2, name: 'Open Basement', rooms: [{ id: 'basement', name: 'Open Basement', x: 24, y: 36, w: 912, h: 648 }] },
+  { id: 3, name: 'Garage Area', rooms: [{ id: 'garage', name: 'Open Garage', x: 24, y: 36, w: 912, h: 648 }] },
   {
     id: 4,
     name: 'Backyard Area',
@@ -64,10 +52,10 @@ export const objects = [
   { id: 'door', label: 'Front Door', kind: 'door', floor: 0, room: 'entry', x: 240, y: 544, w: 96, h: 34, solid: false },
   { id: 'pet_flap_front', label: 'Pet Flap', kind: 'stairs', styleAs: 'door', floor: 0, room: 'entry', x: 354, y: 548, w: 46, h: 24, solid: false, toFloor: 4, exitId: 'pet_flap_yard' },
   { id: 'basement_door', label: 'Basement Door', kind: 'stairs', floor: 0, room: 'stairs', x: 742, y: 386, w: 82, h: 52, solid: false, toFloor: 2, exitId: 'basement_stairs_up' },
-  { id: 'garage_door', label: 'Garage Interior Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'entry', x: 28, y: 418, w: 34, h: 72, solid: false, toFloor: 3, exitId: 'garage_entry_door' },
+  { id: 'garage_door', label: 'Garage Interior Door', kind: 'stairs', floor: 0, room: 'entry', x: 28, y: 418, w: 34, h: 72, solid: false, toFloor: 3, exitId: 'garage_entry_door' },
   { id: 'backyard_door', label: 'Kitchen/Living Back Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'living', x: 416, y: 38, w: 54, h: 34, solid: false, toFloor: 4, exitId: 'yard_back_door' },
   { id: 'dog_bowl', label: 'Dog Bowl', kind: 'dog_bowl', floor: 0, room: 'kitchen', x: 558, y: 256, w: 36, h: 26, solid: false },
-  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'entry', x: 50, y: 446, w: 154, h: 78, solid: true },
+  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'kitchen', x: 468, y: 224, w: 174, h: 76, solid: true },
   { id: 'light_living', label: 'Living Light', kind: 'light', floor: 0, room: 'living', x: 408, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_down', label: 'Upstairs Stairs', kind: 'stairs', floor: 0, room: 'stairs', x: 780, y: 554, w: 118, h: 84, solid: false, toFloor: 1, exitId: 'stairs_up' },
 
@@ -79,7 +67,7 @@ export const objects = [
   { id: 'stairs_up', label: 'Downstairs Stairs', kind: 'stairs', floor: 1, room: 'stairs2', x: 766, y: 554, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'stairs_down' },
 
   { id: 'basement_stairs_up', label: 'Main Floor Stairs', kind: 'stairs', floor: 2, room: 'basement', x: 766, y: 554, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'basement_door' },
-  { id: 'pool_table', label: 'Pool Table', kind: 'pool_table', floor: 2, room: 'basement', x: 96, y: 100, w: 250, h: 122, solid: true },
+  { id: 'pool_table', label: 'Pool Table', kind: 'pool_table', floor: 2, room: 'basement', x: 360, y: 242, w: 122, h: 250, solid: true },
   { id: 'dartboard', label: 'Dart Board', kind: 'dartboard', floor: 2, room: 'basement', x: 44, y: 86, w: 34, h: 34, solid: false },
   { id: 'arcade_machine', label: 'Arcade Machine', kind: 'arcade', floor: 2, room: 'basement', x: 420, y: 74, w: 54, h: 78, solid: true },
   { id: 'game_console', label: 'Console Setup', kind: 'game_console', floor: 2, room: 'basement', x: 620, y: 96, w: 172, h: 58, solid: true },
@@ -150,7 +138,7 @@ export function approachPoint(obj, action = '') {
   if (obj.kind === 'dining_table') return clampToPlay(obj.x + obj.w + 34, cy);
   if (obj.kind === 'bookshelf') return clampToPlay(obj.x + obj.w + 36, cy);
   if (obj.kind === 'desk') return clampToPlay(cx, obj.y + obj.h + 42);
-  if (obj.kind === 'pool_table') return clampToPlay(cx + 18, obj.y + obj.h + 48);
+  if (obj.kind === 'pool_table') return clampToPlay(cx, obj.y + obj.h + 48);
   if (obj.kind === 'arcade') return clampToPlay(cx, obj.y + obj.h + 34);
   if (obj.kind === 'game_console') return clampToPlay(cx, obj.y + obj.h + 54);
   if (obj.kind === 'dartboard') return clampToPlay(obj.x + obj.w + 80, cy + 12);
