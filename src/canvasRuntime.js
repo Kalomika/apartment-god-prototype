@@ -5,8 +5,6 @@ import { updateMovement } from './movement.js';
 import { resolveArrival, updateActions } from './actions.js';
 import { updateAutoHooks } from './autoHooks.js';
 import { updateAutonomy } from './autonomy.js';
-import { updateGameActivities } from './activitySystems.js';
-import { updateVehicleDeparture } from './vehicleSystem.js';
 import { installCameraSwipeNavigation, updateCameraTransition } from './cameraNavigation.js';
 import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
 
@@ -94,8 +92,6 @@ export function bootCanvasGame() {
           if (arrived) resolveArrival(state, entity);
         }
         updateActions(state, dt);
-        updateVehicleDeparture(state, dt);
-        updateGameActivities(state, dt);
         updateAutoHooks(state, dt);
         updateAutonomy(state, dt);
         state.time += dt * 0.6;
