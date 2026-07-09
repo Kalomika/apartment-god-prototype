@@ -1,11 +1,12 @@
 import { floors, roomAt } from './world.js';
 import { log } from './state.js';
 
-const MAIN_LEVEL_AREAS = new Set([0, 3, 4]);
+const MAIN_LEVEL_AREAS = new Set([0, 3, 4, 5]);
 const AREA_POSITIONS = {
   3: { x: -1, y: 0, label: 'Garage' },
   0: { x: 0, y: 0, label: 'Main House' },
-  4: { x: 0, y: -1, label: 'Backyard' }
+  4: { x: 0, y: -1, label: 'Backyard' },
+  5: { x: 1, y: 0, label: 'Secret Lab' }
 };
 
 const BLUEPRINT_FLOORS = [
@@ -23,6 +24,9 @@ let els = {};
 
 export function navigateView(state, targetFloor, label = floors[targetFloor]?.name || 'Area', reason = 'manual') {
   if (targetFloor == null || !floors[targetFloor]) return false;
+  if (reason === 'selected-character' || reason === 'auto-follow') state.followSelected = true;
+  else if (!['floor-travel', 'system'].includes(reason)) state.followSelected = false;
+
   const from = state.floor;
   if (from === targetFloor) {
     state.viewHoldT = state.buildPick ? 30 : 14;
@@ -36,13 +40,21 @@ export function navigateView(state, targetFloor, label = floors[targetFloor]?.na
   return true;
 }
 
-export function jumpToEntity(state, entityId) {
+export function jumpToEntity(state, entityId, reason = 'locator') {
   const entity = state.entities.find(e => e.id === entityId);
   if (!entity || entity.hidden) return false;
-  navigateView(state, entity.floor, `${entity.name}'s area`, 'locator');
+  navigateView(state, entity.floor, `${entity.name}'s area`, reason);
+  if (entity.id === state.selectedId) state.followSelected = true;
   state.viewFocus = { entityId: entity.id, t: 2.6 };
   log(state, `Found ${entity.name}. Selection unchanged.`);
   return true;
+}
+
+export function jumpToSelectedCharacter(state) {
+  const current = state.entities.find(e => e.id === state.selectedId && !e.hidden) || state.entities.find(e => !e.hidden && e.type === 'person');
+  if (!current) return false;
+  state.followSelected = true;
+  return jumpToEntity(state, current.id, 'selected-character');
 }
 
 export function updateCameraTransition(state, dt) {
@@ -141,6 +153,7 @@ function swipeTarget(floor, dx, dy, elapsed) {
   if (floor === 0) {
     if (!horizontal && dy > 42) return { floor: 4, label: 'Backyard North' };
     if (horizontal && dx > 42) return { floor: 3, label: 'Garage West' };
+    if (horizontal && dx < -42) return { floor: 5, label: 'Secret Lab East' };
   }
 
   if (floor === 4) {
@@ -152,6 +165,10 @@ function swipeTarget(floor, dx, dy, elapsed) {
     if (horizontal && dx < -42) return { floor: 0, label: 'Main House' };
     if (!horizontal && dy > 42) return { floor: 4, label: 'Backyard North' };
   }
+
+  if (floor === 5) {
+    if (horizontal && dx > 42) return { floor: 0, label: 'Main House' };
+  }
   return null;
 }
 
@@ -162,6 +179,24 @@ function buildCameraNavigationUi() {
   const dock = document.createElement('section');
   dock.id = 'camera-nav-dock';
   dock.className = 'control-bar-group camera-control-group';
+
+  const selectedButton = document.createElement('button');
+  selectedButton.id = 'selected-character-button';
+  selectedButton.className = 'camera-float-button control-bar-button icon-control-button';
+  selectedButton.type = 'button';
+  selectedButton.textContent = '★';
+  selectedButton.title = 'Jump to selected character and resume follow';
+  selectedButton.setAttribute('aria-label', 'Jump to selected character');
+  selectedButton.onclick = event => { event.stopPropagation(); closePanel(); jumpToSelectedCharacter(getActiveState()); };
+
+  const lab = document.createElement('button');
+  lab.id = 'secret-lab-button';
+  lab.className = 'camera-float-button control-bar-button icon-control-button';
+  lab.type = 'button';
+  lab.textContent = '⚗';
+  lab.title = 'Secret Sprite Test Lab';
+  lab.setAttribute('aria-label', 'Open secret sprite test lab');
+  lab.onclick = event => { event.stopPropagation(); closePanel(); navigateView(getActiveState(), 5, 'Secret Lab East', 'secret-lab-button'); };
 
   const blueprint = document.createElement('button');
   blueprint.id = 'blueprint-float-button';
@@ -187,14 +222,20 @@ function buildCameraNavigationUi() {
   panel.onclick = event => event.stopPropagation();
   panel.onpointerdown = event => event.stopPropagation();
 
+  dock.appendChild(selectedButton);
+  dock.appendChild(lab);
   dock.appendChild(blueprint);
   dock.appendChild(locator);
   controlBar.appendChild(dock);
   wrap.appendChild(panel);
-  els = { dock, blueprint, locator, panel };
+  els = { dock, selectedButton, lab, blueprint, locator, panel, state: null };
   document.addEventListener('click', event => {
     if (!panel.contains(event.target) && !dock.contains(event.target)) closePanel();
   });
+}
+
+function getActiveState() {
+  return els.state;
 }
 
 function togglePanel(name) {
@@ -208,7 +249,13 @@ function closePanel() {
 }
 
 function updateButtons(state) {
-  if (!els.blueprint || !els.locator) return;
+  els.state = state;
+  if (!els.blueprint || !els.locator || !els.lab || !els.selectedButton) return;
+  const selected = state.entities.find(e => e.id === state.selectedId && !e.hidden);
+  els.selectedButton.classList.toggle('disabled', !selected);
+  els.selectedButton.title = selected ? `Jump to ${selected.name} and resume follow` : 'No selected character visible';
+  els.lab.classList.toggle('disabled', false);
+  els.lab.title = state.floor === 5 ? 'Secret Lab East, swipe right to return' : 'Secret Sprite Test Lab';
   els.blueprint.classList.toggle('disabled', false);
   els.blueprint.title = 'Whole house blueprint view';
   els.locator.classList.toggle('disabled', !state.entities.some(e => !e.hidden));
@@ -220,7 +267,7 @@ function renderBlueprintPanel(state) {
   panel.classList.remove('hidden');
   panel.classList.add('blueprint-fullscreen');
   const cards = BLUEPRINT_FLOORS.map(item => floorCard(state, item)).join('');
-  panel.innerHTML = `<div class="blueprint-mode"><div class="blueprint-mode-header"><div><div class="blueprint-title">Whole House Blueprint</div><p class="blueprint-note">North is up. West is left. Tap any region or person marker. The blueprint closes and the camera moves there.</p></div><button class="blueprint-close" type="button">×</button></div><div class="blueprint-compound-map">${cards}</div></div>`;
+  panel.innerHTML = `<div class="blueprint-mode"><div class="blueprint-mode-header"><div><div class="blueprint-title">Whole House Blueprint</div><p class="blueprint-note">North is up. West is left. Tap any region or person marker. The blueprint closes and the camera moves there. Secret Lab is intentionally excluded.</p></div><button class="blueprint-close" type="button">×</button></div><div class="blueprint-compound-map">${cards}</div></div>`;
   panel.querySelector('.blueprint-close').onclick = event => { event.stopPropagation(); closePanel(); };
   panel.querySelectorAll('[data-blueprint-floor]').forEach(button => {
     button.onclick = event => {
@@ -244,7 +291,7 @@ function floorCard(state, item) {
   if (!floor) return '';
   const active = state.floor === item.id ? ' active' : '';
   const roomButtons = floor.rooms.map(room => roomButton(state, item, room)).join('');
-  const people = state.entities.filter(e => !e.hidden && e.floor === item.id);
+  const people = state.entities.filter(e => !e.hidden && e.floor === item.id && !e.labOnly);
   const markers = people.map(entity => entityMarker(state, entity)).join('');
   return `<section class="blueprint-floor-card ${item.className}${active}" data-blueprint-floor="${item.id}" data-label="${item.label}"><header><strong>${item.label}</strong><small>${people.length} here</small></header><div class="blueprint-mini-floor">${roomButtons}${markers}</div></section>`;
 }
@@ -282,7 +329,7 @@ function renderLocatorPanel(state) {
   panel.classList.remove('hidden');
   const visible = state.entities.filter(e => !e.hidden);
   const buttons = visible.map(entity => `<button class="locator-row" data-entity="${entity.id}"><span class="locator-head">${headIcon(entity)}</span><span><strong>${entity.name}</strong><small>${floors[entity.floor]?.name || 'area'} • ${entity.action || 'Idle'}</small></span></button>`).join('');
-  panel.innerHTML = `<div class="blueprint-card"><div class="blueprint-title">Find Household</div><div class="locator-list">${buttons || '<p class="blueprint-note">No visible household members.</p>'}</div><p class="blueprint-note">This moves the camera only. It does not change who is selected.</p></div>`;
+  panel.innerHTML = `<div class="blueprint-card"><div class="blueprint-title">Find Household</div><div class="locator-list">${buttons || '<p class="blueprint-note">No visible household members.</p>'}</div><p class="blueprint-note">This moves the camera only. It does not change who is selected. Tap ★ for the selected character.</p></div>`;
   panel.querySelectorAll('[data-entity]').forEach(button => {
     button.onclick = event => {
       event.stopPropagation();
@@ -294,6 +341,7 @@ function renderLocatorPanel(state) {
 
 function headIcon(entity) {
   if (entity.type === 'dog') return '🐕';
+  if (entity.id === 'lab_test_subject') return '🧪';
   const name = String(entity.name || '').toLowerCase();
   if (name.includes('girl') || name.includes('woman') || name.includes('wife') || name.includes('girlfriend')) return '👩';
   return '👤';
@@ -340,6 +388,6 @@ function drawVerticalTransition(ctx, tr, progress, playW, playH) {
   ctx.fillStyle = `rgba(248,251,255,${0.92 * alpha})`;
   ctx.font = '900 24px system-ui';
   ctx.textAlign = 'center';
-  ctx.fillText(`Moving ${tr.direction} to ${tr.label}`, playW / 2, 68);
+  ctx.fillText(`Moving ${tr.direction} to ${tr.label}`, playW / 2, 66);
   ctx.textAlign = 'left';
 }
