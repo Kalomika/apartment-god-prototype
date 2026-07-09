@@ -312,3 +312,38 @@ This is a same level camera and layout extension. It should remain isolated from
 
 Follow ups:
 Add sprite asset manifest and one Resident or Test Subject sprite fallback path inside the lab only. Add pose specific lab actions after the lab is confirmed stable.
+
+---
+
+## 2026-07-09 07:00 AM CT, Staged Fridge Snack Flow
+
+Status: NEEDS_TESTING
+Branch: mechanics-first-career-work-guard-2026-07-09
+Commit: actions 4178b21fb7e63072bb1299b045d68a645829a4ad
+Files changed: src/actions.js, apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: no
+Backup branch: safe feature branch from main
+
+Summary:
+Changed the fridge snack mechanic from one generic fridge timer into a two step visible flow: collect snack at the open fridge, then eat snack with its own time bar and hunger reward.
+
+Implementation details:
+
+- `snack` at the fridge now starts as `collect_snack` for a short visible pickup phase.
+- The fridge opens during pickup, then closes when the snack is collected.
+- The actor receives the visible `snack` carry item only after pickup finishes.
+- The actor then enters `Eating snack` with `currentActionId` set to `eat_snack`, pose set to sit, and the normal snack duration used as a second time bar.
+- Hunger, mood, and snack garbage now apply only after `eat_snack` finishes, not while the actor is still standing at the fridge.
+
+Testing performed:
+GitHub code inspection only. No local build or Render browser test performed from this connector run.
+
+Testing requested:
+On the playable build after branch integration, click Fridge, Get Snack. Confirm the actor walks to the fridge, fridge opens briefly, then the actor visibly carries/eats the snack with a second time bar, and hunger rises only after eating completes.
+
+Known risks:
+This is a guarded first slice of staged food behavior. Cooking/meal still needs its own prep, plate, table/eating, and cleanup chain.
+
+Follow ups:
+Stage cooking and fridge meal next: open fridge or use stove, prep/cook with time bar, plate food, sit/eat with time bar, then apply hunger and garbage only after eating.
