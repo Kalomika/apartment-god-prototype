@@ -2,8 +2,6 @@ import { changeNeed, log, say } from './state.js';
 import { floors, roomAt } from './world.js';
 
 export const doorways = [
-  { floor: 0, a: 'living', b: 'kitchen', x: 448, y: 206, w: 20, h: 68 },
-  { floor: 0, a: 'living', b: 'kitchen', x: 438, y: 76, w: 32, h: 74 },
   { floor: 0, a: 'living', b: 'entry', x: 226, y: 336, w: 86, h: 18 },
   { floor: 0, a: 'kitchen', b: 'entry', x: 586, y: 336, w: 92, h: 18 },
   { floor: 0, a: 'bath', b: 'stairs', x: 840, y: 336, w: 58, h: 18 },
