@@ -83,7 +83,7 @@ export function createState() {
     entities: [
       morningEntity('resident', 'Resident', 'person', 1, 178, 150, '#79b7ff', 'morning'),
       morningEntity('girlfriend', 'Girlfriend', 'person', 1, 228, 150, '#f2a3d7', 'good morning'),
-      morningEntity('dog', 'Dog', 'dog', 0, 668, 472, '#d7a66a'),
+      morningEntity('dog', 'Dog', 'dog', 0, 632, 494, '#d7a66a'),
       { ...entity('lab_test_subject', 'Test Subject', 'person', 5, 470, 414, '#74e6ff'), stopped: true, labOnly: true }
     ]
   };
