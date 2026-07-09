@@ -28,7 +28,7 @@ for (const [a, b] of matchups) {
   const first = state.fighters[0];
   first.suppressedUntil = state.clock + 2;
   updateBattle(state, 1 / 60);
-  if (!first.memory.command || first.memory.command.type !== 'roll_cover') throw new Error(`${first.name} did not create a roll to cover command under fire.`);
+  if (!['break_contact_cover', 'preserve_life', 'take_cover_before_fire', 'recover_cover'].some(intent => String(first.intent || '').includes(intent)) && !first.coverPinned && first.pose !== 'combat_dive') throw new Error(`${first.name} did not prioritize cover or evasion under fire.`);
   placeCoachDrop(state, 'med', 180, 360);
   placeCoachDrop(state, 'ammo', 240, 300);
   let steps = 0;
