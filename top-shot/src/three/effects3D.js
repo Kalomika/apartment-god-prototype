@@ -17,8 +17,10 @@ export function installTopShotEffects3D(world) {
       const actor = this.actors.get(entity.id);
       if (!actor) continue;
       const altitude = entity.deployAltitude || 0;
-      actor.group.position.y = actor.group.position.y || altitude;
+      const terrainLift = entity.elevation || 0;
+      actor.group.position.y = terrainLift + altitude * 0.08;
       actor.group.scale.setScalar((entity.preview ? 1.14 : 1.2) * (altitude > 0 ? 0.94 : 1));
+      if (entity.climbT > 0 || entity.jumpT > 0) actor.group.position.y += Math.sin(Math.min(1, Math.max(entity.climbT || entity.jumpT || 0, 0)) * Math.PI) * 0.08;
       if (state?.mode === 'cqc') stabilizeCqcActor(actor, entity);
       syncParachute(this, entity, actor.group.position, altitude);
     }
@@ -52,14 +54,15 @@ function anchorCqcPairs(world, state, entities) {
       const facing = bottom.facing || 0;
       const forward = { x: Math.cos(facing), z: Math.sin(facing) };
       const side = { x: -forward.z, z: forward.x };
-      bottomActor.group.position.set(base.x, 0, base.z);
+      const lift = bottom.elevation || 0;
+      bottomActor.group.position.set(base.x, lift, base.z);
       bottomActor.group.rotation.y = -facing;
       bottomActor.rig.rotation.set(-Math.PI / 2, 0, 0);
       bottomActor.rig.position.y = 0.18;
       bottomActor.applyPose?.('prone', 0, { ...bottom, pose: 'mounted_bottom', currentMove: null, lastMove: 0, prone: true });
       hideCqcWeapon(bottomActor, bottom);
 
-      topActor.group.position.set(base.x - forward.x * 0.34 + side.x * 0.18, 0.62, base.z - forward.z * 0.34 + side.z * 0.18);
+      topActor.group.position.set(base.x - forward.x * 0.34 + side.x * 0.18, lift + 0.62, base.z - forward.z * 0.34 + side.z * 0.18);
       topActor.group.rotation.y = -facing;
       topActor.rig.rotation.set(0.16, 0, 0);
       topActor.rig.position.y = 0.08;
@@ -74,7 +77,7 @@ function anchorCqcPairs(world, state, entities) {
     const actor = world.actors.get(entity.id);
     if (!actor) continue;
     const p = arenaToWorld(entity.x, entity.y);
-    actor.group.position.set(p.x, 0, p.z);
+    actor.group.position.set(p.x, entity.elevation || 0, p.z);
     actor.group.rotation.y = -(entity.facing || 0);
     actor.rig.rotation.set(-Math.PI / 2, 0, 0);
     actor.rig.position.y = 0.18;
@@ -89,18 +92,12 @@ function stabilizeCqcActor(actor, entity) {
   const weaponAction = ['pistol', 'burst', 'slash', 'knife', 'sword', 'blade', 'gun_butt'].some(move => action.includes(move));
   const grounded = entity.cqc?.grounded || entity.cqc?.mountedBy || ['grounded_back', 'grounded_side', 'swept_fall', 'thrown', 'mounted_bottom', 'down'].includes(entity.pose);
   const mountedTop = Boolean(entity.cqc?.mounting || ['mount_top', 'mount_pressure', 'ground_punch', 'ground_knife_stab'].includes(action));
-
-  if (grounded || mountedTop) {
-    hideCqcWeapon(actor, entity, weaponAction);
-    return;
-  }
-
+  if (grounded || mountedTop) { hideCqcWeapon(actor, entity, weaponAction); return; }
   if (!activeStrike && ['idle_guard', 'guard', 'cqc_lab', 'cqc_auto', 'pressure_step'].includes(action || entity.intent)) {
     actor.rig.rotation.set(0, 0, 0);
     actor.rig.position.y = 0;
     actor.applyPose?.('idle', 0, { ...entity, pose: 'idle_guard', currentMove: null, lastMove: 0 });
   }
-
   hideCqcWeapon(actor, entity, weaponAction);
 }
 
@@ -115,10 +112,7 @@ function syncParachute(world, entity, actorPos, altitude) {
   let chute = world.parachutes.get(entity.id);
   if (!chute) {
     chute = new THREE.Group();
-    const canopy = new THREE.Mesh(
-      new THREE.SphereGeometry(0.82, 20, 8, 0, Math.PI * 2, 0, Math.PI * 0.52),
-      new THREE.MeshBasicMaterial({ color: entity.team === 'A' ? '#d8e7ff' : '#e2d2b6', transparent: true, opacity: 0.82, depthWrite: false })
-    );
+    const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.82, 20, 8, 0, Math.PI * 2, 0, Math.PI * 0.52), new THREE.MeshBasicMaterial({ color: entity.team === 'A' ? '#d8e7ff' : '#e2d2b6', transparent: true, opacity: 0.82, depthWrite: false }));
     canopy.scale.set(1.55, 0.42, 1.0);
     const cordMat = new THREE.LineBasicMaterial({ color: '#f2e6cf', transparent: true, opacity: 0.56 });
     for (const offset of [-0.42, 0.42]) {
@@ -139,23 +133,14 @@ function syncParachute(world, entity, actorPos, altitude) {
 function syncEffectMeshes(world, state) {
   const active = new Set();
   for (const effect of state.effects || []) {
-    if (!['muzzle_flash', 'impact_flash', 'landing_flash', 'tracer', 'suppression'].includes(effect.type)) continue;
+    if (!['muzzle_flash', 'impact_flash', 'landing_flash', 'tracer', 'suppression', 'blood_spray', 'blood_drop', 'bleed'].includes(effect.type)) continue;
     const key = effect.__fxKey || (effect.__fxKey = `${effect.type}:${Math.round(effect.x)}:${Math.round(effect.y)}:${Math.random().toString(36).slice(2)}`);
     active.add(key);
     let mesh = world.effectMeshes.get(key);
-    if (!mesh) {
-      mesh = createEffect(world, effect);
-      world.effectMeshes.set(key, mesh);
-      world.markerRoot.add(mesh);
-    }
+    if (!mesh) { mesh = createEffect(world, effect); world.effectMeshes.set(key, mesh); world.markerRoot.add(mesh); }
     updateEffect(world, mesh, effect);
   }
-  for (const [key, mesh] of world.effectMeshes) {
-    if (active.has(key)) continue;
-    world.markerRoot.remove(mesh);
-    disposeObject(mesh);
-    world.effectMeshes.delete(key);
-  }
+  for (const [key, mesh] of world.effectMeshes) { if (active.has(key)) continue; world.markerRoot.remove(mesh); disposeObject(mesh); world.effectMeshes.delete(key); }
 }
 
 function createEffect(world, effect) {
@@ -164,45 +149,42 @@ function createEffect(world, effect) {
     const material = new THREE.LineBasicMaterial({ color: effect.type === 'suppression' ? '#79ddff' : '#fff4b2', transparent: true, opacity: 0.95 });
     return new THREE.Line(new THREE.BufferGeometry(), material);
   }
-  const color = effect.type === 'muzzle_flash' ? '#fff1a3' : effect.type === 'impact_flash' ? '#fff6d8' : '#f0d36a';
-  return new THREE.Mesh(
-    new THREE.SphereGeometry(0.22, 16, 10),
-    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1, depthWrite: false })
-  );
+  if (effect.type === 'blood_spray') {
+    const group = new THREE.Group();
+    const mat = new THREE.MeshBasicMaterial({ color: '#5b0507', transparent: true, opacity: 1, depthWrite: false });
+    for (let i = 0; i < 6; i++) {
+      const drop = new THREE.Mesh(new THREE.SphereGeometry(0.035 + i * 0.004, 6, 4), mat.clone());
+      drop.userData.offset = { x: (Math.random() - 0.5) * 0.34, y: Math.random() * 0.2, z: (Math.random() - 0.5) * 0.34 };
+      group.add(drop);
+    }
+    return group;
+  }
+  const color = effect.type === 'blood_drop' || effect.type === 'bleed' ? '#4f0507' : effect.type === 'muzzle_flash' ? '#fff1a3' : effect.type === 'impact_flash' ? '#fff6d8' : '#f0d36a';
+  const radius = effect.type === 'blood_drop' ? 0.09 : effect.type === 'bleed' ? 0.13 : 0.22;
+  return new THREE.Mesh(new THREE.SphereGeometry(radius, 10, 6), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1, depthWrite: false }));
 }
 
 function updateEffect(world, mesh, effect) {
-  const alpha = Math.max(0, Math.min(1, effect.ttl * (effect.type === 'tracer' ? 12 : 18)));
+  const alpha = Math.max(0, Math.min(1, effect.ttl * (effect.type === 'tracer' ? 12 : effect.type === 'blood_drop' ? 0.28 : 18)));
   if (mesh.isLine) {
-    const a = arenaToWorld(effect.x, effect.y);
-    const b = arenaToWorld(effect.x2 ?? effect.x, effect.y2 ?? effect.y);
+    const a = arenaToWorld(effect.x, effect.y); const b = arenaToWorld(effect.x2 ?? effect.x, effect.y2 ?? effect.y);
     mesh.geometry.dispose();
-    mesh.geometry = new world.THREE.BufferGeometry().setFromPoints([
-      new world.THREE.Vector3(a.x, 0.72, a.z),
-      new world.THREE.Vector3(b.x, 0.72, b.z)
-    ]);
+    mesh.geometry = new world.THREE.BufferGeometry().setFromPoints([new world.THREE.Vector3(a.x, 0.72, a.z), new world.THREE.Vector3(b.x, 0.72, b.z)]);
     mesh.material.opacity = effect.type === 'suppression' ? alpha * 0.35 : alpha * 0.78;
     return;
   }
   const p = arenaToWorld(effect.x, effect.y);
-  const lift = effect.type === 'muzzle_flash' ? 1.08 : effect.type === 'impact_flash' ? 0.74 : 0.22;
-  const scale = effect.type === 'landing_flash' ? 2.2 : effect.type === 'impact_flash' ? 1.45 : 1.0;
+  if (mesh.isGroup) {
+    mesh.position.set(p.x, 0.78, p.z);
+    mesh.children.forEach((child, i) => { const o = child.userData.offset || { x: 0, y: 0, z: 0 }; child.position.set(o.x * (1 - alpha + 0.3), o.y, o.z * (1 - alpha + 0.3)); child.material.opacity = alpha; child.scale.setScalar(Math.max(0.1, alpha * (1 - i * 0.06))); });
+    return;
+  }
+  const lift = effect.type === 'muzzle_flash' ? 1.08 : effect.type === 'impact_flash' ? 0.74 : effect.type === 'blood_drop' ? 0.045 : 0.22;
+  const scale = effect.type === 'landing_flash' ? 2.2 : effect.type === 'impact_flash' ? 1.45 : effect.type === 'blood_drop' ? Math.min(0.9, 0.35 + (effect.rate || 1) * 0.05) : 1.0;
   mesh.position.set(p.x, lift, p.z);
-  mesh.scale.setScalar(Math.max(0.08, alpha * scale));
-  mesh.material.opacity = alpha;
+  mesh.scale.set(effect.type === 'blood_drop' ? scale * 1.5 : Math.max(0.08, alpha * scale), effect.type === 'blood_drop' ? 0.08 : Math.max(0.08, alpha * scale), effect.type === 'blood_drop' ? scale : Math.max(0.08, alpha * scale));
+  mesh.material.opacity = effect.type === 'blood_drop' ? Math.min(0.75, alpha) : alpha;
 }
 
-function arenaToWorld(x, y) {
-  return {
-    x: (x / ARENA_W - 0.5) * MAP_W,
-    z: (y / ARENA_H - 0.5) * MAP_D
-  };
-}
-
-function disposeObject(object) {
-  object.traverse?.(child => {
-    child.geometry?.dispose?.();
-    if (Array.isArray(child.material)) child.material.forEach(material => material.dispose?.());
-    else child.material?.dispose?.();
-  });
-}
+function arenaToWorld(x, y) { return { x: (x / ARENA_W - 0.5) * MAP_W, z: (y / ARENA_H - 0.5) * MAP_D }; }
+function disposeObject(object) { object.traverse?.(child => { child.geometry?.dispose?.(); if (Array.isArray(child.material)) child.material.forEach(material => material.dispose?.()); else child.material?.dispose?.(); }); }
