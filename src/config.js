@@ -7,7 +7,7 @@ export const DOUBLE_TAP_MS = 320;
 
 export const NEEDS = [
   ['hunger', 'Hunger'],
-  ['freshness', 'Freshness'],
+  ['freshness', 'Hygiene'],
   ['energy', 'Energy'],
   ['fun', 'Fun'],
   ['bladder', 'Bladder'],
@@ -42,6 +42,7 @@ export const ACTIONS = {
   bed: [['sleep', 'Sleep'], ['bed_together', 'Go To Bed Together'], ['intimacy', 'Private Moment'], ['relax', 'Relax']],
   desk: [['desk_work', 'Work at Desk'], ['play_game', 'Play Game'], ['phone', 'Phone'], ['shop', 'Shop']],
   dog_bowl: [['feed_dog', 'Feed Dog']],
+  dog_bed: [['dog_rest', 'Dog Rest']],
   light: [['toggle_light', 'Toggle Room Light']],
   stairs: [['use_stairs', 'Use Stairs']],
   pool_table: [['pool_solo', 'Practice Pool'], ['pool_together', 'Play Pool Together']],
@@ -139,5 +140,9 @@ export const ACTION_TIMES = {
   sit_table: 18,
   enter_car: 2,
   enter_bike: 2,
-  enter_motorbike: 2
+  enter_motorbike: 2,
+  enter_atv: 2,
+  pack_luggage: 18,
+  load_luggage: 8,
+  unload_luggage: 8
 };
