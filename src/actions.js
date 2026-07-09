@@ -74,11 +74,13 @@ function beginTimedAction(entity, label, actionId) {
   entity.currentActionId = actionId;
   entity.pose = actionId === 'dog_rest' ? 'dog_rest' :
     ['sleep', 'nap', 'bed_together', 'intimacy'].includes(actionId) ? 'sleep' :
-    ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together', 'read', 'study', 'eat_meal', 'sit_table'].includes(actionId) ? 'sit' :
+    ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together', 'read', 'study', 'eat_meal', 'sit_table', 'eat_snack'].includes(actionId) ? 'sit' :
     ['treadmill', 'lift_weights', 'heavy_bag', 'swim', 'swim_together', 'shower', 'pool_solo', 'pool_together', 'soccer_practice', 'soccer_match'].includes(actionId) ? actionId : 'stand';
 }
 
 function actionDuration(actionId) {
+  if (actionId === 'collect_snack') return 2.5;
+  if (actionId === 'eat_snack') return ACTION_TIMES.snack ?? 10;
   return destinationFor(actionId)?.duration ?? ACTION_TIMES[actionId] ?? 4;
 }
 
@@ -95,9 +97,11 @@ export function resolveArrival(state, entity) {
       return;
     }
     if (isTogetherAction(target.actionId)) { if (queuePartnerForSharedAction(state, entity, target.actionId, obj)) return; entity.action = 'Idle'; entity.actionT = 0; entity.pose = 'stand'; return; }
-    const label = `${obj.label}: ${target.actionId.replaceAll('_', ' ')}`;
-    beginTimedAction(entity, label, target.actionId); say(entity, speechFor(target.actionId));
-    if (obj.kind === 'fridge') { state.objectState.fridgeOpen = true; state.objectState.fridgeActivity = target.actionId; if (target.actionId === 'snack') entity.carrying = 'snack'; }
+    const fridgeSnack = obj.kind === 'fridge' && target.actionId === 'snack';
+    const actionId = fridgeSnack ? 'collect_snack' : target.actionId;
+    const label = fridgeSnack ? `${obj.label}: getting snack` : `${obj.label}: ${target.actionId.replaceAll('_', ' ')}`;
+    beginTimedAction(entity, label, actionId); say(entity, speechFor(target.actionId));
+    if (obj.kind === 'fridge') { state.objectState.fridgeOpen = true; state.objectState.fridgeActivity = target.actionId; }
     if (obj.kind === 'door') state.objectState.doorOpen = true;
     if (obj.kind === 'tv' || ['watch_tv', 'comedy', 'horror', 'sports'].includes(target.actionId)) { state.tv.on = true; state.tv.channel = target.actionId; if (['watch_tv', 'comedy', 'horror', 'sports'].includes(target.actionId)) entity.carrying = 'popcorn'; }
     return;
@@ -149,9 +153,26 @@ export function updateActions(state, dt) {
   state.tv.pulse += dt;
 }
 
+function continueSnackFlow(state, e, actionId) {
+  if (actionId !== 'collect_snack') return false;
+  state.objectState.fridgeOpen = false;
+  state.objectState.fridgeActivity = null;
+  e.carrying = 'snack';
+  e.action = 'Eating snack';
+  e.actionT = actionDuration('eat_snack');
+  e.actionTotal = e.actionT;
+  e.currentActionId = 'eat_snack';
+  e.pose = 'sit';
+  say(e, 'SNACK');
+  log(state, `${e.name} got a snack and is eating it.`);
+  return true;
+}
+
 function finishAction(state, e) {
+  const actionId = e.currentActionId || '';
   const text = String(e.action || '').toLowerCase(); const continued = continueTrashRun(state, e, text); if (continued && text.includes('take trash out')) return;
-  if (text.includes('snack')) { changeNeed(e, 'hunger', 18); setMood(e, 'happy'); addGarbageFromAction(state, 'snack', e); }
+  if (continueSnackFlow(state, e, actionId)) return;
+  if (actionId === 'eat_snack' || (text.includes('snack') && actionId !== 'collect_snack')) { changeNeed(e, 'hunger', 18); setMood(e, 'happy'); addGarbageFromAction(state, 'snack', e); }
   if (text.includes('meal')) { changeNeed(e, 'hunger', 30); changeNeed(e, 'fun', 4); setMood(e, 'happy'); addGarbageFromAction(state, 'meal'); }
   if (text.includes('bring food')) { changeNeed(e, 'social', 5); setMood(e, 'happy'); }
   if (text.includes('shower')) { changeNeed(e, 'freshness', 36); setMood(e, 'calm'); }
@@ -224,4 +245,4 @@ function buildParty(state, actor, invitedIds, actionId) {
 }
 
 function finishOffsite(state) { const job = state.offsite; if (!job) return; applyOffsiteRewards(state, job); beginVehicleReturn(state, job.actionId, job.actors || [], job.vehicleId || state.objectState.vehicleInUse || 'car_1'); state.offsite = null; state.objectState.doorOpen = false; }
-function speechFor(actionId) { const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'SNACK', meal: 'COOK', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', read: 'READ', study: 'STUDY', eat_meal: 'EAT', coffee: 'COFFEE', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'BED', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
+function speechFor(actionId) { const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'SNACK', collect_snack: 'SNACK', eat_snack: 'SNACK', meal: 'COOK', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', read: 'READ', study: 'STUDY', eat_meal: 'EAT', coffee: 'COFFEE', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'BED', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
