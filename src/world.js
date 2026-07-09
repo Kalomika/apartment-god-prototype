@@ -67,7 +67,7 @@ export const objects = [
   { id: 'stairs_up', label: 'Downstairs Stairs', kind: 'stairs', floor: 1, room: 'stairs2', x: 766, y: 554, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'stairs_down' },
 
   { id: 'basement_stairs_up', label: 'Main Floor Stairs', kind: 'stairs', floor: 2, room: 'basement', x: 766, y: 554, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'basement_door' },
-  { id: 'pool_table', label: 'Pool Table', kind: 'pool_table', floor: 2, room: 'basement', x: 360, y: 242, w: 122, h: 250, solid: true },
+  { id: 'pool_table', label: 'Pool Table', kind: 'pool_table', floor: 2, room: 'basement', x: 250, y: 248, w: 250, h: 122, solid: true },
   { id: 'dartboard', label: 'Dart Board', kind: 'dartboard', floor: 2, room: 'basement', x: 44, y: 86, w: 34, h: 34, solid: false },
   { id: 'arcade_machine', label: 'Arcade Machine', kind: 'arcade', floor: 2, room: 'basement', x: 420, y: 74, w: 54, h: 78, solid: true },
   { id: 'game_console', label: 'Console Setup', kind: 'game_console', floor: 2, room: 'basement', x: 620, y: 96, w: 172, h: 58, solid: true },
