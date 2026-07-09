@@ -1,20 +1,21 @@
 import { ARENA_H, ARENA_W } from './config.js';
 import { blocked, solids } from './arena.js';
-import { dist, pointInRect } from './utils.js';
+import { dist, finiteOr, pointInRect } from './utils.js';
 
 export function nextWaypoint(arena, from, goal) {
-  const safeGoal = nearestOpen(arena, goal) || from;
-  if (clearSegment(arena, from, safeGoal)) return safeGoal;
-  const nodes = buildNodes(arena, from, safeGoal);
+  const startPoint = clampArenaPoint(from);
+  const safeGoal = nearestOpen(arena, goal) || startPoint;
+  if (clearSegment(arena, startPoint, safeGoal)) return safeGoal;
+  const nodes = buildNodes(arena, startPoint, safeGoal);
   const start = nodes[0];
   const end = nodes[1];
   const path = aStar(arena, nodes, start, end);
   if (path.length > 1) return path[1];
   const progress = nodes
     .slice(2)
-    .filter(p => clearSegment(arena, from, p) && dist(p, safeGoal) < dist(from, safeGoal))
-    .sort((a, b) => dist(from, a) + dist(a, safeGoal) - (dist(from, b) + dist(b, safeGoal)))[0];
-  return progress || escapePoint(arena, from, safeGoal);
+    .filter(p => clearSegment(arena, startPoint, p) && dist(p, safeGoal) < dist(startPoint, safeGoal))
+    .sort((a, b) => dist(startPoint, a) + dist(a, safeGoal) - (dist(startPoint, b) + dist(b, safeGoal)))[0];
+  return progress || escapePoint(arena, startPoint, safeGoal);
 }
 
 export function nearestOpen(arena, p) {
@@ -24,7 +25,7 @@ export function nearestOpen(arena, p) {
   for (const r of rings) {
     for (let i = 0; i < 16; i++) {
       const a = Math.PI * 2 * i / 16;
-      const test = clampArenaPoint({ x: p.x + Math.cos(a) * r, y: p.y + Math.sin(a) * r });
+      const test = clampArenaPoint({ x: clamped.x + Math.cos(a) * r, y: clamped.y + Math.sin(a) * r });
       if (!blocked(arena, test, 17)) return test;
     }
   }
@@ -104,13 +105,15 @@ function reconstruct(came, nodes, current) {
 
 function edgeCost(arena, a, b) {
   const d = dist(a, b);
-  if (d > 260) return Infinity;
+  if (!Number.isFinite(d) || d > 260) return Infinity;
   if (!clearSegment(arena, a, b)) return Infinity;
   return d;
 }
 
 function clearSegment(arena, a, b) {
-  const steps = Math.max(2, Math.ceil(dist(a, b) / 10));
+  const distance = dist(a, b);
+  if (!Number.isFinite(distance)) return false;
+  const steps = Math.max(2, Math.ceil(distance / 10));
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const p = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
@@ -120,11 +123,16 @@ function clearSegment(arena, a, b) {
 }
 
 function escapePoint(arena, from, goal) {
-  const away = Math.atan2(from.y - goal.y, from.x - goal.x);
-  const options = [0, 0.8, -0.8, 1.6, -1.6, Math.PI].map(o => nearestOpen(arena, { x: from.x + Math.cos(away + o) * 95, y: from.y + Math.sin(away + o) * 95 })).filter(Boolean);
-  return options.sort((a, b) => dist(from, b) - dist(from, a))[0] || from;
+  const safeFrom = clampArenaPoint(from);
+  const safeGoal = clampArenaPoint(goal);
+  const away = Math.atan2(safeFrom.y - safeGoal.y, safeFrom.x - safeGoal.x);
+  const options = [0, 0.8, -0.8, 1.6, -1.6, Math.PI].map(o => nearestOpen(arena, { x: safeFrom.x + Math.cos(away + o) * 95, y: safeFrom.y + Math.sin(away + o) * 95 })).filter(Boolean);
+  return options.sort((a, b) => dist(safeFrom, b) - dist(safeFrom, a))[0] || safeFrom;
 }
 
 function clampArenaPoint(p) {
-  return { x: Math.max(64, Math.min(ARENA_W - 64, p.x)), y: Math.max(64, Math.min(ARENA_H - 64, p.y)) };
+  return {
+    x: Math.max(64, Math.min(ARENA_W - 64, finiteOr(p?.x, ARENA_W / 2))),
+    y: Math.max(64, Math.min(ARENA_H - 64, finiteOr(p?.y, ARENA_H / 2)))
+  };
 }
