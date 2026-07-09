@@ -69,7 +69,16 @@ export function createState() {
     investments: { holdings: {}, tick: 0, lifetime: 0 },
     rewards: { freeTickets: {}, messages: [] },
     secretLog: { used: {}, lastRewardAt: 0 },
-    careers: { workHours: 0, movieTheaterHours: 0, airlineHours: 0 },
+    careers: {
+      workHours: 0,
+      movieTheaterHours: 0,
+      airlineHours: 0,
+      people: {
+        resident: { trackId: 'storyboard_artist', level: 1, xp: 0, shiftsWorked: 0, lastWorkedDay: -1, lateWarnings: 0, missedShifts: 0, lastPay: 0, status: 'employed' },
+        girlfriend: { trackId: 'remote_support', level: 1, xp: 0, shiftsWorked: 0, lastWorkedDay: -1, lateWarnings: 0, missedShifts: 0, lastPay: 0, status: 'employed' }
+      },
+      history: []
+    },
     garbage: { kitchen: 0, bagsOutside: 0, looseItems: [] },
     roomLights: {
       living: true, kitchen: true, bath: true, entry: true, stairs: true,
