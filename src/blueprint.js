@@ -2,9 +2,9 @@ import { changeNeed, log, say } from './state.js';
 import { floors, roomAt } from './world.js';
 
 export const doorways = [
-  { floor: 0, a: 'living', b: 'kitchen', x: 438, y: 76, w: 32, h: 236 },
-  { floor: 0, a: 'living', b: 'entry', x: 226, y: 336, w: 86, h: 18 },
-  { floor: 0, a: 'kitchen', b: 'entry', x: 586, y: 336, w: 92, h: 18 },
+  { floor: 0, a: 'living', b: 'kitchen', x: 438, y: 42, w: 34, h: 286 },
+  { floor: 0, a: 'living', b: 'entry', x: 34, y: 328, w: 406, h: 42 },
+  { floor: 0, a: 'kitchen', b: 'entry', x: 456, y: 328, w: 258, h: 42 },
   { floor: 0, a: 'bath', b: 'stairs', x: 840, y: 336, w: 58, h: 18 },
   { floor: 0, a: 'entry', b: 'front_porch', x: 218, y: 556, w: 118, h: 24 },
   { floor: 0, a: 'entry', b: 'front_porch', x: 348, y: 556, w: 58, h: 24 },
