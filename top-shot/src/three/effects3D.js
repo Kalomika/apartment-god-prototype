@@ -20,7 +20,7 @@ export function installTopShotEffects3D(world) {
       const terrainLift = entity.elevation || 0;
       actor.group.position.y = terrainLift + altitude * 0.08;
       actor.group.scale.setScalar((entity.preview ? 1.14 : 1.2) * (altitude > 0 ? 0.94 : 1));
-      if (entity.climbT > 0 || entity.jumpT > 0) actor.group.position.y += Math.sin(Math.min(1, Math.max(entity.climbT || entity.jumpT || 0, 0)) * Math.PI) * 0.08;
+      if (entity.climbT > 0 || entity.jumpT > 0 || entity.grapple?.active) actor.group.position.y += Math.sin(Math.min(1, Math.max(entity.climbT || entity.jumpT || entity.grapple?.t || 0, 0)) * Math.PI) * 0.08;
       if (state?.mode === 'cqc') stabilizeCqcActor(actor, entity);
       syncParachute(this, entity, actor.group.position, altitude);
     }
@@ -61,7 +61,6 @@ function anchorCqcPairs(world, state, entities) {
       bottomActor.rig.position.y = 0.18;
       bottomActor.applyPose?.('prone', 0, { ...bottom, pose: 'mounted_bottom', currentMove: null, lastMove: 0, prone: true });
       hideCqcWeapon(bottomActor, bottom);
-
       topActor.group.position.set(base.x - forward.x * 0.34 + side.x * 0.18, lift + 0.62, base.z - forward.z * 0.34 + side.z * 0.18);
       topActor.group.rotation.y = -facing;
       topActor.rig.rotation.set(0.16, 0, 0);
@@ -71,7 +70,6 @@ function anchorCqcPairs(world, state, entities) {
     }
     return;
   }
-
   for (const entity of entities) {
     if (!entity.cqc?.grounded && !['grounded_back', 'grounded_side', 'swept_fall', 'thrown', 'mounted_bottom', 'down'].includes(entity.pose)) continue;
     const actor = world.actors.get(entity.id);
@@ -116,10 +114,8 @@ function syncParachute(world, entity, actorPos, altitude) {
     canopy.scale.set(1.55, 0.42, 1.0);
     const cordMat = new THREE.LineBasicMaterial({ color: '#f2e6cf', transparent: true, opacity: 0.56 });
     for (const offset of [-0.42, 0.42]) {
-      const cordGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(offset, -0.08, -0.32), new THREE.Vector3(offset * 0.22, -1.8, -0.06)]);
-      chute.add(new THREE.Line(cordGeo, cordMat));
-      const cordGeo2 = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(offset, -0.08, 0.32), new THREE.Vector3(offset * 0.22, -1.8, 0.06)]);
-      chute.add(new THREE.Line(cordGeo2, cordMat));
+      chute.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(offset, -0.08, -0.32), new THREE.Vector3(offset * 0.22, -1.8, -0.06)]), cordMat));
+      chute.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(offset, -0.08, 0.32), new THREE.Vector3(offset * 0.22, -1.8, 0.06)]), cordMat));
     }
     chute.add(canopy);
     world.parachutes.set(entity.id, chute);
@@ -133,7 +129,7 @@ function syncParachute(world, entity, actorPos, altitude) {
 function syncEffectMeshes(world, state) {
   const active = new Set();
   for (const effect of state.effects || []) {
-    if (!['muzzle_flash', 'impact_flash', 'landing_flash', 'tracer', 'suppression', 'blood_spray', 'blood_drop', 'bleed'].includes(effect.type)) continue;
+    if (!['muzzle_flash', 'impact_flash', 'landing_flash', 'tracer', 'suppression', 'blood_spray', 'blood_drop', 'bleed', 'spark', 'shrapnel', 'lodged_arrow', 'grapple_line'].includes(effect.type)) continue;
     const key = effect.__fxKey || (effect.__fxKey = `${effect.type}:${Math.round(effect.x)}:${Math.round(effect.y)}:${Math.random().toString(36).slice(2)}`);
     active.add(key);
     let mesh = world.effectMeshes.get(key);
@@ -145,18 +141,16 @@ function syncEffectMeshes(world, state) {
 
 function createEffect(world, effect) {
   const THREE = world.THREE;
-  if (effect.type === 'tracer' || effect.type === 'suppression') {
-    const material = new THREE.LineBasicMaterial({ color: effect.type === 'suppression' ? '#79ddff' : '#fff4b2', transparent: true, opacity: 0.95 });
+  if (effect.type === 'tracer' || effect.type === 'suppression' || effect.type === 'grapple_line') {
+    const material = new THREE.LineBasicMaterial({ color: effect.type === 'suppression' ? '#79ddff' : effect.type === 'grapple_line' ? '#d6e4ff' : '#fff4b2', transparent: true, opacity: 0.95 });
     return new THREE.Line(new THREE.BufferGeometry(), material);
   }
-  if (effect.type === 'blood_spray') {
+  if (effect.type === 'blood_spray' || effect.type === 'spark' || effect.type === 'shrapnel') return burstGroup(THREE, effect.type);
+  if (effect.type === 'lodged_arrow') {
     const group = new THREE.Group();
-    const mat = new THREE.MeshBasicMaterial({ color: '#5b0507', transparent: true, opacity: 1, depthWrite: false });
-    for (let i = 0; i < 6; i++) {
-      const drop = new THREE.Mesh(new THREE.SphereGeometry(0.035 + i * 0.004, 6, 4), mat.clone());
-      drop.userData.offset = { x: (Math.random() - 0.5) * 0.34, y: Math.random() * 0.2, z: (Math.random() - 0.5) * 0.34 };
-      group.add(drop);
-    }
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.48, 6), new THREE.MeshBasicMaterial({ color: '#3b2718' }));
+    shaft.rotation.z = Math.PI / 2;
+    group.add(shaft);
     return group;
   }
   const color = effect.type === 'blood_drop' || effect.type === 'bleed' ? '#4f0507' : effect.type === 'muzzle_flash' ? '#fff1a3' : effect.type === 'impact_flash' ? '#fff6d8' : '#f0d36a';
@@ -164,19 +158,33 @@ function createEffect(world, effect) {
   return new THREE.Mesh(new THREE.SphereGeometry(radius, 10, 6), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1, depthWrite: false }));
 }
 
+function burstGroup(THREE, type) {
+  const group = new THREE.Group();
+  const color = type === 'blood_spray' ? '#5b0507' : type === 'spark' ? '#ffcf6b' : '#b9a98d';
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1, depthWrite: false });
+  const count = type === 'blood_spray' ? 8 : 6;
+  for (let i = 0; i < count; i++) {
+    const drop = new THREE.Mesh(new THREE.SphereGeometry(0.03 + i * 0.004, 6, 4), mat.clone());
+    drop.userData.offset = { x: (Math.random() - 0.5) * 0.42, y: Math.random() * 0.22, z: (Math.random() - 0.5) * 0.42 };
+    group.add(drop);
+  }
+  return group;
+}
+
 function updateEffect(world, mesh, effect) {
   const alpha = Math.max(0, Math.min(1, effect.ttl * (effect.type === 'tracer' ? 12 : effect.type === 'blood_drop' ? 0.28 : 18)));
   if (mesh.isLine) {
     const a = arenaToWorld(effect.x, effect.y); const b = arenaToWorld(effect.x2 ?? effect.x, effect.y2 ?? effect.y);
     mesh.geometry.dispose();
-    mesh.geometry = new world.THREE.BufferGeometry().setFromPoints([new world.THREE.Vector3(a.x, 0.72, a.z), new world.THREE.Vector3(b.x, 0.72, b.z)]);
-    mesh.material.opacity = effect.type === 'suppression' ? alpha * 0.35 : alpha * 0.78;
+    mesh.geometry = new world.THREE.BufferGeometry().setFromPoints([new world.THREE.Vector3(a.x, effect.type === 'grapple_line' ? 1.25 : 0.72, a.z), new world.THREE.Vector3(b.x, effect.type === 'grapple_line' ? 1.9 : 0.72, b.z)]);
+    mesh.material.opacity = effect.type === 'suppression' ? alpha * 0.35 : effect.type === 'grapple_line' ? alpha * 0.9 : alpha * 0.78;
     return;
   }
   const p = arenaToWorld(effect.x, effect.y);
   if (mesh.isGroup) {
-    mesh.position.set(p.x, 0.78, p.z);
-    mesh.children.forEach((child, i) => { const o = child.userData.offset || { x: 0, y: 0, z: 0 }; child.position.set(o.x * (1 - alpha + 0.3), o.y, o.z * (1 - alpha + 0.3)); child.material.opacity = alpha; child.scale.setScalar(Math.max(0.1, alpha * (1 - i * 0.06))); });
+    mesh.position.set(p.x, effect.type === 'lodged_arrow' ? 0.45 : 0.78, p.z);
+    if (effect.angle) mesh.rotation.y = -effect.angle;
+    mesh.children.forEach((child, i) => { const o = child.userData.offset || { x: 0, y: 0, z: 0 }; child.position.set(o.x * (1 - alpha + 0.3), o.y, o.z * (1 - alpha + 0.3)); if (child.material) child.material.opacity = effect.type === 'lodged_arrow' ? 1 : alpha; child.scale.setScalar(effect.type === 'lodged_arrow' ? 1 : Math.max(0.1, alpha * (1 - i * 0.06))); });
     return;
   }
   const lift = effect.type === 'muzzle_flash' ? 1.08 : effect.type === 'impact_flash' ? 0.74 : effect.type === 'blood_drop' ? 0.045 : 0.22;
