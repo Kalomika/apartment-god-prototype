@@ -13,6 +13,7 @@ import { updateTacticalPosture } from './tactics.js';
 import { updateBrain, brainDestination } from './brain.js';
 import { updateStealthSystem } from './stealth.js';
 import { shouldBandage, startBandage, updateWounds } from './wounds.js';
+import { hasAttackWindow, updateEngagementDirector } from './engagementDirector.js';
 
 export function updateBattle(state, dt) {
   if (state.paused) return;
@@ -83,6 +84,7 @@ function updateFighter(state, f, dt) {
   if (visible || audible) { if (!enemy.spottedT || enemy.spottedT <= 0) state.effects.push({ type: 'alert', x: enemy.x, y: enemy.y - 42, ttl: 0.8 }); enemy.spottedT = 0.9; if (visible) f.memory.lastSeen = { x: enemy.x, y: enemy.y, t: state.clock }; }
 
   f.spottedT = Math.max(0, (f.spottedT || 0) - dt);
+  updateEngagementDirector(state, f, enemy, visible, audible, dt);
   updateBrain(state, f, enemy, visible, audible);
   chooseStance(state, f, enemy, visible);
   if (!f.tacticLock || f.tacticLock <= state.clock) { updateTacticalPosture(state, f, enemy, visible, dt); f.tacticLock = state.clock + 0.3; }
@@ -106,15 +108,16 @@ function updateFighter(state, f, dt) {
 }
 
 function wantsPreservation(state, f, visible) {
+  if (hasAttackWindow(state, f) && (f.coverPinned || f.wallLean || f.intent === 'strike_now')) return false;
   const underFire = f.suppressedUntil && f.suppressedUntil > state.clock;
   return Boolean(underFire && !f.coverPinned || f.woundT > 0.15 || f.bleed?.rate > 0 && !f.hidden || f.hp < 62 && !f.coverPinned || f.stamina < 14);
 }
-function canPeekFromCover(state, f, visible) { return Boolean(visible && f.coverPinned && (f.peekCooldown || 0) <= 0 && (f.woundT || 0) <= 0.15 && (f.bleed?.rate || 0) < 6); }
+function canPeekFromCover(state, f, visible) { return Boolean(visible && f.coverPinned && ((f.peekCooldown || 0) <= 0 || hasAttackWindow(state, f)) && (f.woundT || 0) <= 0.15 && (f.bleed?.rate || 0) < 6); }
 
 function tryNinjaGrappleHook(state, f, enemy, visible) {
   if (!['ninja', 'shadow_ninja'].includes(f.archetypeId) || f.grappleCd > state.clock || f.grapple?.active) return false;
   const underFire = f.suppressedUntil && f.suppressedUntil > state.clock;
-  const shouldUse = underFire || visible && dist(f, enemy) > 115 || f.hp < 72;
+  const shouldUse = underFire || visible && dist(f, enemy) > 115 || f.hp < 72 || f.intent === 'vertical_reposition';
   if (!shouldUse) return false;
   const target = climbableNear(state.arena, f, 280);
   if (!target) return false;
