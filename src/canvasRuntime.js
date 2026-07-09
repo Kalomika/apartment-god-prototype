@@ -53,13 +53,13 @@ function cleanupStaleActorState(entity) {
   const hasTimer = Number(entity.actionT || 0) > 0;
   if (hasPath || hasTarget || hasTimer || entity.hidden) return;
   const action = String(entity.action || '').toLowerCase();
-  if (action === 'walking' || action === 'running' || action.startsWith('going to ')) {
+  if (action === 'recovered' || action === 'runtime recovered' || action === 'walking' || action === 'running' || action.startsWith('going to ')) {
     entity.action = 'Idle';
     entity.pose = 'stand';
     entity.blockedT = 0;
     entity.recoveryCount = 0;
   }
-  if (['walk', 'sit'].includes(entity.pose) && (action === 'idle' || action === 'walking' || action === 'running')) {
+  if (['walk', 'sit'].includes(entity.pose) && (action === 'idle' || action === 'walking' || action === 'running' || action === 'recovered')) {
     entity.pose = 'stand';
   }
 }
@@ -127,10 +127,12 @@ export function bootCanvasGame() {
         entity.path = [];
         entity.target = null;
         entity.pending = null;
-        entity.action = 'Recovered';
+        if (String(entity.action || '').toLowerCase() === 'recovered') entity.action = 'Idle';
         entity.pose = 'stand';
+        entity.blockedT = 0;
+        entity.recoveryCount = 0;
       }
-      state.saveStatus = { message: 'Recovered from runtime error' };
+      state.saveStatus = { message: 'Runtime error handled' };
       drawBootError(ctx, error);
       if (frameErrorCount > 2) state.paused = true;
     }
