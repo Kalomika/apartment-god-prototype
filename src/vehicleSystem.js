@@ -21,6 +21,9 @@ function isVacation(actionId) { return String(actionId || '').startsWith('vacati
 function vacationBagCount(actionId) { return ['vacation_beach', 'vacation_camping', 'vacation_desert'].includes(actionId) ? 1 : 2; }
 function luggageLabel(count) { return count > 1 ? 'large luggage' : 'luggage'; }
 function clearTimedAction(entity) { entity.actionT = 0; entity.actionTotal = 0; }
+function vehicleCenter(vehicle) { return { x: vehicle.x + vehicle.w / 2, y: vehicle.y + vehicle.h / 2 }; }
+function nearPoint(entity, point, radius = 80) { return entity && Math.hypot(entity.x - point.x, entity.y - point.y) <= radius; }
+function nearVehicle(entity, vehicle, radius = 150) { const c = vehicleCenter(vehicle); return entity?.floor === GARAGE_FLOOR && Math.hypot(entity.x - c.x, entity.y - c.y) <= radius; }
 
 function vehicleSeats(vehicle) {
   if (vehicle.kind === 'bike') return [{ id: 'rider', role: 'driver', dogOk: false }];
@@ -55,21 +58,48 @@ function seatPoint(vehicle, seatId) {
   return { x: x + w + 28, y: y + h * 0.60 };
 }
 
+function seatFallbackPoints(vehicle, seatId) {
+  const base = seatPoint(vehicle, seatId);
+  return [
+    base,
+    approachPoint(vehicle, `enter_${vehicle.kind || 'vehicle'}`),
+    { x: vehicle.x - 34, y: vehicle.y + vehicle.h * .55 },
+    { x: vehicle.x + vehicle.w + 34, y: vehicle.y + vehicle.h * .55 },
+    { x: vehicle.x + vehicle.w / 2, y: vehicle.y + vehicle.h + 36 },
+    { x: vehicle.x + vehicle.w / 2, y: vehicle.y - 36 }
+  ];
+}
+
 function allAtPoint(state, ids, floor, point, radius = 95) { return ids.every(id => { const e = byId(state, id); if (!e || e.hidden) return true; return e.floor === floor && Math.hypot(e.x - point.x, e.y - point.y) <= radius && !e.path?.length; }); }
-function allAtVehicle(state, v) { return (v.partyIds || []).every(id => { const e = byId(state, id); if (!e || e.hidden) return true; const seat = v.seatAssignments?.find(s => s.entityId === id); const p = seat ? seatPoint({ x: v.parkX, y: v.parkY, w: v.w, h: v.h }, seat.seatId) : { x: v.x + v.w / 2, y: v.y + v.h * .7 }; return e.floor === GARAGE_FLOOR && Math.hypot(e.x - p.x, e.y - p.y) < 80 && !e.path?.length; }); }
+function allAtVehicle(state, v) { return (v.partyIds || []).every(id => { const e = byId(state, id); if (!e || e.hidden) return true; const seat = v.seatAssignments?.find(s => s.entityId === id); const p = seat ? seatPoint({ x: v.parkX, y: v.parkY, w: v.w, h: v.h }, seat.seatId) : { x: v.x + v.w / 2, y: v.y + v.h * .7 }; return e.floor === GARAGE_FLOOR && !e.path?.length && (Math.hypot(e.x - p.x, e.y - p.y) < 95 || nearVehicle(e, { x: v.parkX, y: v.parkY, w: v.w, h: v.h }, 135)); }); }
 function humansInParty(state, partyIds) { return partyIds.map(id => byId(state, id)).filter(e => e?.type === 'person'); }
 function selectVisiblePerson(state) { const current = byId(state, state.selectedId); if (current && !current.hidden) return; const next = state.entities.find(e => e.type === 'person' && !e.hidden) || state.entities.find(e => !e.hidden); if (next) state.selectedId = next.id; }
 function setPartyAction(state, v, action, pose = 'stand') { for (const id of v.partyIds || []) { const e = byId(state, id); if (!e || e.hidden) continue; clearTimedAction(e); e.action = action; e.pose = pose; } }
 function setRemoteFlash(v, label = 'UNLOCK') { v.remoteFlashT = 0.9; v.remoteLabel = label; }
 function makeLuggageManifest(state, partyIds, actionId) { const count = vacationBagCount(actionId); return humansInParty(state, partyIds).map(e => ({ entityId: e.id, count, loaded: false, unloaded: false })); }
 
-function routeToVehicleSeat(entity, vehicle, point) {
+function routeToVehicleSeat(entity, vehicle, point, seatId = 'front_left') {
+  if (nearPoint(entity, point, 14)) { entity.path = []; return true; }
   const final = entity.path?.[entity.path.length - 1];
-  if (final && Math.hypot(final.x - point.x, final.y - point.y) <= 8) return;
-  commandMove(entity, point.x, point.y, false, vehicle.id);
-  entity.target = null;
-  entity.pending = null;
-  entity.moveAllowId = vehicle.id;
+  if (final && Math.hypot(final.x - point.x, final.y - point.y) <= 8) return true;
+  for (const candidate of seatFallbackPoints(vehicle, seatId)) {
+    commandMove(entity, candidate.x, candidate.y, false, vehicle.id);
+    entity.target = null;
+    entity.pending = null;
+    entity.moveAllowId = vehicle.id;
+    if (entity.path?.length) return true;
+    if (nearPoint(entity, candidate, 38)) return true;
+  }
+  if (nearVehicle(entity, vehicle, 155)) {
+    entity.x = point.x;
+    entity.y = point.y;
+    entity.path = [];
+    entity.target = null;
+    entity.pending = null;
+    entity.moveAllowId = vehicle.id;
+    return true;
+  }
+  return false;
 }
 
 function routePartyToVehicle(state, v) {
@@ -82,8 +112,9 @@ function routePartyToVehicle(state, v) {
     const seat = v.seatAssignments?.find(s => s.entityId === id);
     const p = seat ? seatPoint(vehicle, seat.seatId) : approachPoint(vehicle, `enter_${vehicle.kind || 'vehicle'}`);
     if (e.floor !== GARAGE_FLOOR) commandObject(e, vehicle, `enter_${vehicle.kind || 'vehicle'}`);
-    else if (Math.hypot(e.x - p.x, e.y - p.y) > 14) routeToVehicleSeat(e, vehicle, p);
-    e.action = e.path?.length ? 'Walking to vehicle' : 'Waiting at vehicle';
+    else if (Math.hypot(e.x - p.x, e.y - p.y) > 14) routeToVehicleSeat(e, vehicle, p, seat?.seatId || 'front_left');
+    const atSeat = e.floor === GARAGE_FLOOR && (nearPoint(e, p, 95) || nearVehicle(e, vehicle, 135));
+    e.action = e.path?.length ? 'Walking to vehicle' : atSeat ? 'Waiting at vehicle' : 'No route to vehicle';
     e.pose = e.path?.length ? 'walk' : 'stand';
   }
 }
