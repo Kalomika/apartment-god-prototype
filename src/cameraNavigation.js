@@ -66,6 +66,15 @@ export function updateCameraTransition(state, dt) {
     state.viewFocus.t = Math.max(0, state.viewFocus.t - dt);
     if (state.viewFocus.t <= 0) state.viewFocus = null;
   }
+  tryAutoFollowSelected(state);
+}
+
+function tryAutoFollowSelected(state) {
+  if (state.followSelected === false) return;
+  if (state.cameraTransition || state.buildPick || state.movePick || state.assign) return;
+  const current = state.entities.find(e => e.id === state.selectedId && !e.hidden);
+  if (!current || current.floor === state.floor) return;
+  navigateView(state, current.floor, `${current.name}'s area`, 'auto-follow');
 }
 
 export function installCameraSwipeNavigation(state, surface) {
