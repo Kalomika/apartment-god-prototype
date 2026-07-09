@@ -34,7 +34,8 @@ export const floors = [
       { id: 'pool_area', name: 'Pool Deck', x: 612, y: 36, w: 324, h: 330 },
       { id: 'kennel_area', name: 'Kennel Area', x: 612, y: 382, w: 324, h: 254 }
     ]
-  }
+  },
+  { id: 5, name: 'Secret Lab East', rooms: [{ id: 'secret_lab', name: 'Secret Sprite Test Lab', x: 24, y: 36, w: 912, h: 648 }] }
 ];
 
 export const objects = [
@@ -90,7 +91,21 @@ export const objects = [
   { id: 'pet_flap_yard', label: 'Pet Flap', kind: 'stairs', styleAs: 'door', floor: 4, room: 'yard', x: 240, y: 562, w: 50, h: 24, solid: false, toFloor: 0, exitId: 'pet_flap_front' },
   { id: 'soccer_field', label: 'Backyard Soccer Field', kind: 'soccer_field', floor: 4, room: 'yard', x: 82, y: 190, w: 420, h: 300, solid: false, enterable: true },
   { id: 'swim_pool', label: 'Backyard Pool', kind: 'swim_pool', floor: 4, room: 'pool_area', x: 650, y: 92, w: 236, h: 190, solid: false, enterable: true },
-  { id: 'kennel', label: 'Dog Kennel', kind: 'kennel', floor: 4, room: 'kennel_area', x: 688, y: 430, w: 112, h: 82, solid: true }
+  { id: 'kennel', label: 'Dog Kennel', kind: 'kennel', floor: 4, room: 'kennel_area', x: 688, y: 430, w: 112, h: 82, solid: true },
+
+  { id: 'lab_bed', label: 'Lab Bed', kind: 'bed', floor: 5, room: 'secret_lab', x: 72, y: 86, w: 180, h: 104, solid: true, enterable: true },
+  { id: 'lab_laptop_desk', label: 'Animation Laptop Desk', kind: 'desk', floor: 5, room: 'secret_lab', x: 318, y: 72, w: 140, h: 72, solid: true },
+  { id: 'lab_pose_chair', label: 'Pose Chair', kind: 'couch', floor: 5, room: 'secret_lab', x: 500, y: 82, w: 112, h: 56, facing: 'down', solid: true },
+  { id: 'lab_motion_screen', label: 'Motion Review Screen', kind: 'tv', floor: 5, room: 'secret_lab', x: 690, y: 70, w: 150, h: 38, wallMounted: true, solid: true },
+  { id: 'lab_shower', label: 'Lab Shower Pod', kind: 'shower', floor: 5, room: 'secret_lab', x: 72, y: 248, w: 66, h: 92, solid: true, enterable: true },
+  { id: 'lab_toilet', label: 'Lab Toilet', kind: 'toilet', floor: 5, room: 'secret_lab', x: 166, y: 278, w: 46, h: 56, solid: true, enterable: true },
+  { id: 'lab_pool_table', label: 'Lab Pool Table', kind: 'pool_table', floor: 5, room: 'secret_lab', x: 276, y: 260, w: 232, h: 112, solid: true },
+  { id: 'lab_game_console', label: 'Lab Console Station', kind: 'game_console', floor: 5, room: 'secret_lab', x: 592, y: 246, w: 166, h: 58, solid: true },
+  { id: 'lab_dartboard', label: 'Lab Dart Board', kind: 'dartboard', floor: 5, room: 'secret_lab', x: 842, y: 248, w: 36, h: 36, solid: false },
+  { id: 'lab_treadmill', label: 'Lab Treadmill', kind: 'treadmill', floor: 5, room: 'secret_lab', x: 72, y: 526, w: 124, h: 58, solid: false, enterable: true },
+  { id: 'lab_weight_bench', label: 'Lab Weight Bench', kind: 'weight_bench', floor: 5, room: 'secret_lab', x: 270, y: 572, w: 132, h: 48, solid: false, enterable: true },
+  { id: 'lab_heavy_bag', label: 'Lab Heavy Bag', kind: 'heavy_bag', floor: 5, room: 'secret_lab', x: 512, y: 520, w: 48, h: 86, solid: false, enterable: true },
+  { id: 'lab_light', label: 'Secret Lab Light', kind: 'light', floor: 5, room: 'secret_lab', x: 890, y: 58, w: 22, h: 22, solid: false }
 ];
 
 export function objectAt(x, y, floor) {
@@ -148,7 +163,7 @@ export function approachPoint(obj, action = '') {
   if (['trash_can', 'outdoor_trash'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 30);
   if (obj.kind === 'car') return clampToPlay(obj.x + obj.w + 28, obj.y + obj.h * 0.58);
   if (['bike', 'motorbike', 'atv'].includes(obj.kind)) return clampToPlay(cx + 34, cy + 18);
-  if (obj.kind === 'tv') { const couch = getObject(obj.room === 'living' ? 'couch' : 'basement_couch'); return couch ? clampToPlay(couch.x + couch.w / 2, couch.y + 28) : clampToPlay(cx, obj.y + 150); }
+  if (obj.kind === 'tv') { const couch = getObject(obj.room === 'living' ? 'couch' : obj.room === 'secret_lab' ? 'lab_pose_chair' : 'basement_couch'); return couch ? clampToPlay(couch.x + couch.w / 2, couch.y + 28) : clampToPlay(cx, obj.y + 150); }
   if (obj.kind === 'couch') return clampToPlay(cx, obj.facing === 'up' ? obj.y + 30 : obj.y + obj.h - 24);
   if (obj.kind === 'door') return clampToPlay(cx, obj.y - 28);
   if (obj.kind === 'stairs') return obj.styleAs === 'door' ? clampToPlay(cx, cy) : clampToPlay(cx, obj.y + obj.h + 28);
