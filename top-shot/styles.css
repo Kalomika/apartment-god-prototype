@@ -28,6 +28,11 @@ button.active-mode { background: #f0d36a; color: #071018; border-color: #fff0a8;
 .fighter-card h3 { margin: 0 0 6px; display: flex; justify-content: space-between; gap: 8px; }
 .action-pill { display: inline-flex; align-items: center; width: fit-content; max-width: 100%; margin: 3px 0 4px; border-radius: 999px; padding: 5px 9px; background: #f0d36a; color: #071018; font-size: 12px; font-weight: 950; letter-spacing: .04em; text-transform: uppercase; }
 .action-detail { display: block; color: #d8e2f2; line-height: 1.3; margin-bottom: 7px; }
+.health-readout { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; margin: 7px 0 4px; font-size: 12px; color: #dce8f7; }
+.health-readout span { color: #9fb0c7; }
+.vitality-ladder { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 5px 0 8px; }
+.vitality-ladder span { min-height: 17px; border-radius: 5px; border: 1px solid #33445b; display: grid; place-items: center; font-size: 10px; font-weight: 900; color: #526176; background: #0a1018; }
+.vitality-ladder span.active { color: #071018; background: var(--stage); border-color: #ffffff55; box-shadow: 0 0 8px color-mix(in srgb, var(--stage), transparent 58%); }
 .commentary-card, .records-card { background: #0f1722; border-color: #33445b; }
 .mini-log { margin: 6px 0 0; padding-left: 18px; color: #c5d1e2; font-size: 12px; line-height: 1.38; }
 .handler-request { display: grid; grid-template-columns: 58px minmax(0, 1fr); align-items: center; gap: 9px; margin: 8px 0 7px; padding: 7px 0; border-top: 1px solid #243247; border-bottom: 1px solid #243247; box-shadow: inset 3px 0 0 var(--signal); }
