@@ -59,9 +59,10 @@ export function startSocialAction(state, actor, target, socialId, options = {}) 
 
 function beginTimedAction(entity, label, actionId) {
   if (['pool_solo', 'pool_together'].includes(actionId)) {
-    entity.action = label;
-    entity.actionT = 0;
-    entity.actionTotal = 0;
+    entity.action = actionId === 'pool_together' ? 'Pool match' : 'Pool practice';
+    entity.actionT = 300;
+    entity.actionTotal = 300;
+    entity.currentActionId = actionId;
     entity.pose = 'pool';
     entity.carrying = 'cue_stick';
     say(entity, 'CUE');
@@ -104,7 +105,7 @@ export function resolveArrival(state, entity) {
     const other = byId(state, target.targetId); if (!other) return;
     if (target.socialId === 'fetch_ready') { state.fetch = { phase: 'ready', actorId: other.id, dogId: entity.id, ball: null }; say(entity, 'READY'); say(other, 'THROW'); other.carrying = 'ball'; log(state, 'Tap an open floor spot to throw the ball.'); return; }
     beginTimedAction(entity, `${target.socialId} with ${other.name}`, target.socialId); entity.pose = target.socialId;
-    other.action = `${target.socialId} with ${entity.name}`; other.actionT = entity.actionT; other.actionTotal = entity.actionT; other.pose = entity.pose; other.currentActionId = target.socialId;
+    other.action = target.socialId === 'pool_together' ? 'Pool match' : `${target.socialId} with ${entity.name}`; other.actionT = entity.actionT; other.actionTotal = entity.actionT; other.pose = entity.pose; other.currentActionId = target.socialId;
     if (target.socialId === 'pool_together') { other.carrying = 'cue_stick'; entity.carrying = 'cue_stick'; }
     say(entity, speechFor(target.socialId)); say(other, speechFor(target.socialId)); other.mood = entity.type === 'dog' ? 'dog' : 'happy';
     if (target.socialId === 'intimacy') { state.roomLights.bedroom = false; state.roomLights.hall = false; log(state, 'The bedroom lights turn off for privacy.'); }
@@ -121,18 +122,14 @@ function queuePartnerForSharedAction(state, entity, actionId, obj) {
 
 function canInviteeJoin(state, actor, invitee) {
   if (invitee.floor !== actor.floor) return { ok: false, heard: false, reason: 'too far away' };
-  const distance = Math.hypot(invitee.x - actor.x, invitee.y - actor.y);
-  const actorRoom = roomAt(actor.x, actor.y, actor.floor)?.id || ''; const inviteeRoom = roomAt(invitee.x, invitee.y, invitee.floor)?.id || '';
-  const hearingRange = actorRoom.includes('bath') || inviteeRoom.includes('bath') ? 120 : 260;
-  if (distance > hearingRange) return { ok: false, heard: false, reason: 'too far to hear' };
   const current = String(invitee.action || '').toLowerCase();
   if (invitee.path?.length || invitee.actionT > 0) return { ok: false, heard: true, reason: 'busy' };
   if (current.includes('shower')) return { ok: false, heard: true, reason: 'showering' };
   if (current.includes('toilet')) return { ok: false, heard: true, reason: 'in the bathroom' };
   if (current.includes('cooking') || current.includes('eating')) return { ok: false, heard: true, reason: 'busy' };
-  if ((invitee.needs?.bladder ?? 100) < 25) return { ok: false, heard: true, reason: 'bathroom need' };
-  if ((invitee.needs?.hunger ?? 100) < 25) return { ok: false, heard: true, reason: 'hungry' };
-  if ((invitee.needs?.energy ?? 100) < 18) return { ok: false, heard: true, reason: 'exhausted' };
+  if ((invitee.needs?.bladder ?? 100) < 18) return { ok: false, heard: true, reason: 'bathroom need' };
+  if ((invitee.needs?.hunger ?? 100) < 18) return { ok: false, heard: true, reason: 'hungry' };
+  if ((invitee.needs?.energy ?? 100) < 12) return { ok: false, heard: true, reason: 'exhausted' };
   return { ok: true, heard: true, reason: 'available' };
 }
 
@@ -142,6 +139,7 @@ export function updateActions(state, dt) {
   for (const e of state.entities) {
     if (e.bubbleT > 0) e.bubbleT -= dt;
     if (e.hidden) continue;
+    if (String(e.action || '').toLowerCase() === 'recovered') { e.action = 'Idle'; e.pose = 'stand'; }
     if (e.actionT > 0) { e.actionT -= dt; if (e.actionT <= 0) finishAction(state, e); }
     if (!e.path?.length && !e.target && !e.actionT && e.queuedTask) runQueuedTask(state, e);
   }
