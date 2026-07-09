@@ -1,5 +1,6 @@
 import { handleBuildRequest } from './buildRequests.js';
-import { startObjectAction } from './actions.js';
+import { startObjectAction, startOffsite } from './actions.js';
+import { assignCareer, CAREER_TRACKS, careerFor, quitCareer, trackForCareer, workDueText } from './careerSystem.js';
 import { startCookingFlow } from './cooking.js';
 import { orderFood, buyWorkoutGear } from './economy.js';
 import { startMusic } from './music.js';
@@ -25,8 +26,20 @@ export function openDeviceHome(state, actor, openMenu) {
     { label: 'Dart Board', run: () => handleBuildRequest(state, actor, 'dart board') }
   ]);
   const musicMenu = () => cell('Music Apps', ['rap', 'jazz', 'cyberpunk', 'ambient', 'rock', 'dance'].map(genre => ({ label: `Play ${genre}`, run: () => startMusic(state, actor, genre) })));
+  const careerMenu = () => {
+    const career = careerFor(state, actor);
+    const track = trackForCareer(career);
+    const items = [
+      { label: workDueText(state, actor), run: careerMenu },
+      { label: track ? `Work Shift Now: ${track.label}` : 'Temp Work Shift Now', run: () => startOffsite(state, actor, 'work', [], 'auto') }
+    ];
+    if (track) items.push({ label: `Quit ${track.label}`, run: () => quitCareer(state, actor) });
+    for (const option of CAREER_TRACKS) items.push({ label: `Apply: ${option.label} (${option.scheduleLabel})`, run: () => assignCareer(state, actor, option.id) });
+    cell('Career / Work', items);
+  };
   openMenu(660, 86, 'Cell', [
     { label: 'Food / Delivery', run: foodMenu },
+    { label: 'Career / Work', run: careerMenu },
     { label: 'Shop / Build Items', run: shopMenu },
     { label: 'Music Apps', run: musicMenu }
   ]);
