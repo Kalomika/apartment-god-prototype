@@ -4,11 +4,11 @@
 
 Branch: `top-shot-v0-1`
 
-Commit: `590aeb6694c3451a3fc34e3e66c022aa72fa9d5b`
+Commit: `a3b39c63dc8c558a6e021dbd211c4860b22d6ba5`
 
 Previous terrain commit: `a6c36dd311dd102f9da803eae1d03625d07eab67`
 
-Render URL: `https://top-shot-prototype.onrender.com/?v=590aeb6`
+Render URL: `https://top-shot-prototype.onrender.com/?v=a3b39c6`
 
 Status: Emergency Top Shot CI failure audit completed. Automatic GitHub Actions email spam remains paused through manual-only workflow dispatch. Core simulation state, navmesh, wound handling, and battle-loop invariants were hardened against invalid fighter state and stuck finish conditions.
 
@@ -116,7 +116,7 @@ Status: Emergency Top Shot CI failure audit completed. Automatic GitHub Actions 
 
 ## Render URL
 
-- [ ] `https://top-shot-prototype.onrender.com/?v=590aeb6`, pending manual verification.
+- [ ] `https://top-shot-prototype.onrender.com/?v=a3b39c6`, pending manual verification.
 
 ## Next Recommended Task
 
