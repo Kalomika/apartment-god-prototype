@@ -57,9 +57,22 @@ It adds or improves:
 - Pistol staging so pistols holster during bare hand moves and return to hand for gun butt or shooting moves.
 - Blade staging so knives and blades only come forward during knife actions and otherwise read as carried or sheathed.
 
+## Environment collision fix
+
+A collision pass was added after the user showed a Render screenshot where fighters were going through CQC Lab objects.
+
+The fix adds:
+
+- Legal CQC fight anchors so fighters do not spawn or reset inside props.
+- Per-frame environment collision resolution for CQC Lab fighters.
+- Movement through `legalStep`, so approach, auto pressure, step back, slips, recoil, sweeps, throws, and mount anchoring respect blocked geometry.
+- `legalPoint` and fallback ring searches to move fighters to the nearest legal open floor if any action pushes them into blocked space.
+- Legal mount anchors so mounted pairs stay on valid floor instead of sharing a point inside a table, wall, crate, or prop.
+- Smoke test assertions that fail if either fighter enters blocked prop space at spawn, during manual actions, or during Auto CQC.
+
 ## Priority still open
 
-The lab now has playable CQC logic and stronger rig poses. The next pass should add better interpolation curves, attack anticipation frames, impact freeze frames, actual reaction timing offsets, cleaner throw arcs, and sharper camera emphasis during close exchanges.
+The lab now has playable CQC logic, stronger rig poses, and environment collision protection. The next pass should add better interpolation curves, attack anticipation frames, impact freeze frames, actual reaction timing offsets, cleaner throw arcs, sharper camera emphasis during close exchanges, and richer CQC pushbox/hurtbox visualization.
 
 ## Requested combat design target
 
@@ -86,6 +99,7 @@ Research and translate movement logic from:
 - `top-shot/src/three/actors3D.js`
 - `top-shot/index.html`
 - `top-shot/tests/cqcSmoke.js`
+- `top-shot/tests/modelSmoke.js`
 - `top-shot/package.json`
 - `top-shot/asset_inbox/reference_notes/CQC_LAB_COMBAT_IMPLEMENTATION_LOG.md`
 - `top-shot/asset_inbox/ASSET_MANIFEST.md`
