@@ -1,4 +1,4 @@
-import { destinationFor, VACATION_DESTINATIONS } from './travelLocations.js';
+import { destinationFor, hasTravelPass, VACATION_DESTINATIONS } from './travelLocations.js';
 import { changeNeed, log, say } from './state.js';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -7,6 +7,7 @@ const DAYS_PER_MONTH = 30;
 const MONTHS_PER_YEAR = 12;
 const DAYS_PER_YEAR = DAYS_PER_MONTH * MONTHS_PER_YEAR;
 const CALENDAR_EPOCH_DAY_OFFSET = 1;
+const VACATION_EXTRA_HOUR_COST = 80;
 
 export const WORLD_HOLIDAYS = [
   { id: 'renewal_day', name: 'Renewal Day', month: 0, day: 1, note: 'fresh start, clean home, reset intentions' },
@@ -25,11 +26,11 @@ export function ensureCalendar(state) {
     history: Array.isArray(existing.history) ? existing.history.slice(-24) : [],
     holidays: Array.isArray(existing.holidays) && existing.holidays.length ? existing.holidays : WORLD_HOLIDAYS
   };
-  for (const booking of state.calendar.bookings) normalizeBooking(booking);
+  for (const booking of state.calendar.bookings) normalizeBooking(state, booking);
   return state.calendar;
 }
 
-function normalizeBooking(booking) {
+function normalizeBooking(state, booking) {
   booking.id ||= `booking_${Date.now()}_${Math.floor(Math.random() * 9999)}`;
   booking.type ||= 'travel';
   booking.actionId ||= 'errand';
@@ -39,7 +40,11 @@ function normalizeBooking(booking) {
   booking.createdAt = Number.isFinite(booking.createdAt) ? booking.createdAt : 0;
   booking.startMinute = Number.isFinite(booking.startMinute) ? booking.startMinute : 0;
   booking.status ||= 'scheduled';
-  booking.label ||= destinationFor(booking.actionId)?.label || booking.actionId.replaceAll('_', ' ');
+  const destination = destinationFor(booking.actionId);
+  booking.label ||= destination?.label || booking.actionId.replaceAll('_', ' ');
+  booking.duration = Number.isFinite(booking.duration) ? booking.duration : destination?.duration || 30;
+  booking.cost = Number.isFinite(booking.cost) ? booking.cost : bookingCost(state, booking.actionId, booking.duration);
+  booking.extraCost = Number.isFinite(booking.extraCost) ? booking.extraCost : Math.max(0, booking.cost - baseTravelCost(state, booking.actionId));
   return booking;
 }
 
@@ -98,11 +103,17 @@ export function bookCalendarTravel(state, actor, actionId, when, options = {}) {
   ensureCalendar(state);
   const destination = destinationFor(actionId);
   const startMinute = resolveWhen(state, when);
-  const duration = destination?.duration || 30;
+  const duration = Number.isFinite(options.duration) ? options.duration : destination?.duration || 30;
+  const cost = bookingCost(state, actionId, duration);
   const conflict = actorCalendarConflict(state, actor.id, startMinute, duration);
   if (conflict) {
     log(state, `${actor.name} already has ${conflict.label} booked then.`);
     say(actor, 'BUSY');
+    return false;
+  }
+  if (!canReserveBookingCost(state, cost)) {
+    log(state, `Cannot book ${destination?.label || actionId.replaceAll('_', ' ')}. Need $${cost}, available $${availableCalendarMoney(state)} after scheduled plans.`);
+    say(actor, 'BROKE');
     return false;
   }
   const booking = {
@@ -116,11 +127,13 @@ export function bookCalendarTravel(state, actor, actionId, when, options = {}) {
     createdAt: state.time || 0,
     startMinute,
     duration,
+    cost,
+    extraCost: Math.max(0, cost - baseTravelCost(state, actionId)),
     status: 'scheduled'
   };
   state.calendar.bookings.push(booking);
   state.calendar.bookings = state.calendar.bookings.slice(-24);
-  log(state, `${actor.name} booked ${booking.label} for ${bookingTimeLabel(booking)}.`);
+  log(state, `${actor.name} booked ${booking.label} for ${bookingTimeLabel(booking)}. Cost $${booking.cost}.`);
   say(actor, 'BOOKED');
   return true;
 }
@@ -137,12 +150,12 @@ function resolveWhen(state, when) {
   return target;
 }
 
-export function actorCalendarConflict(state, actorId, startMinute, duration = 30) {
+export function actorCalendarConflict(state, actorId, startMinute, duration = 30, excludeId = '') {
   ensureCalendar(state);
   const end = startMinute + duration;
   return state.calendar.bookings.find(b => {
-    normalizeBooking(b);
-    if (b.status !== 'scheduled') return false;
+    normalizeBooking(state, b);
+    if (b.id === excludeId || b.status !== 'scheduled') return false;
     if (b.actorId !== actorId && !b.invitedIds.includes(actorId)) return false;
     const bEnd = b.startMinute + (b.duration || 30);
     return startMinute < bEnd && end > b.startMinute;
@@ -153,7 +166,7 @@ export function upcomingBookings(state, actor = null, limit = 6) {
   ensureCalendar(state);
   const now = state.time || 0;
   return state.calendar.bookings
-    .map(normalizeBooking)
+    .map(b => normalizeBooking(state, b))
     .filter(b => b.status === 'scheduled' && b.startMinute >= now && (!actor || b.actorId === actor.id || b.invitedIds.includes(actor.id)))
     .sort((a, b) => a.startMinute - b.startMinute)
     .slice(0, limit);
@@ -163,7 +176,7 @@ export function dueCalendarBookings(state) {
   ensureCalendar(state);
   const now = state.time || 0;
   return state.calendar.bookings
-    .map(normalizeBooking)
+    .map(b => normalizeBooking(state, b))
     .filter(b => b.status === 'scheduled' && b.startMinute <= now)
     .sort((a, b) => a.startMinute - b.startMinute);
 }
@@ -183,7 +196,87 @@ export function markBookingStatus(state, bookingId, status) {
 export function findBooking(state, bookingId) {
   ensureCalendar(state);
   const booking = state.calendar.bookings.find(b => b.id === bookingId);
-  return booking ? normalizeBooking(booking) : null;
+  return booking ? normalizeBooking(state, booking) : null;
+}
+
+export function cancelBooking(state, actor, bookingId) {
+  const booking = markBookingStatus(state, bookingId, 'canceled');
+  if (!booking) {
+    log(state, 'That calendar event is no longer available.');
+    return false;
+  }
+  log(state, `${booking.label} was canceled.`);
+  if (actor) say(actor, 'CANCELED');
+  return true;
+}
+
+export function rescheduleBooking(state, actor, bookingId, when) {
+  const booking = findBooking(state, bookingId);
+  if (!booking || booking.status !== 'scheduled') {
+    log(state, 'That calendar event is no longer available.');
+    return false;
+  }
+  const startMinute = resolveWhen(state, when);
+  const conflict = actorCalendarConflict(state, booking.actorId, startMinute, booking.duration || 30, booking.id);
+  if (conflict) {
+    log(state, `${booking.label} conflicts with ${conflict.label}.`);
+    if (actor) say(actor, 'BUSY');
+    return false;
+  }
+  booking.startMinute = startMinute;
+  log(state, `${booking.label} moved to ${bookingTimeLabel(booking)}.`);
+  if (actor) say(actor, 'MOVED');
+  return true;
+}
+
+export function updateBookingDestination(state, actor, bookingId, actionId) {
+  const booking = findBooking(state, bookingId);
+  const destination = destinationFor(actionId);
+  if (!booking || booking.status !== 'scheduled' || !destination) {
+    log(state, 'That event cannot be updated.');
+    return false;
+  }
+  const duration = destination.duration || booking.duration || 30;
+  const cost = bookingCost(state, actionId, duration);
+  if (!canReserveBookingCost(state, cost, booking.id)) {
+    log(state, `Cannot update to ${destination.label}. Need $${cost}, available $${availableCalendarMoney(state, booking.id)} after other plans.`);
+    if (actor) say(actor, 'BROKE');
+    return false;
+  }
+  booking.actionId = actionId;
+  booking.label = destination.label;
+  booking.duration = duration;
+  booking.cost = cost;
+  booking.extraCost = Math.max(0, cost - baseTravelCost(state, actionId));
+  log(state, `Updated event to ${booking.label}. Cost $${booking.cost}.`);
+  if (actor) say(actor, 'UPDATE');
+  return true;
+}
+
+export function updateBookingDuration(state, actor, bookingId, duration) {
+  const booking = findBooking(state, bookingId);
+  if (!booking || booking.status !== 'scheduled') {
+    log(state, 'That event cannot be updated.');
+    return false;
+  }
+  const destination = destinationFor(booking.actionId);
+  if (!destination || !String(booking.actionId).startsWith('vacation_')) {
+    log(state, 'Only vacation events can change trip length right now.');
+    if (actor) say(actor, 'NOPE');
+    return false;
+  }
+  const cost = bookingCost(state, booking.actionId, duration);
+  if (!canReserveBookingCost(state, cost, booking.id)) {
+    log(state, `Cannot extend ${booking.label}. Need $${cost}, available $${availableCalendarMoney(state, booking.id)} after other plans.`);
+    if (actor) say(actor, 'BROKE');
+    return false;
+  }
+  booking.duration = duration;
+  booking.cost = cost;
+  booking.extraCost = Math.max(0, cost - baseTravelCost(state, booking.actionId));
+  log(state, `${booking.label} length updated to ${durationLabel(duration)}. Cost $${booking.cost}.`);
+  if (actor) say(actor, 'UPDATE');
+  return true;
 }
 
 export function skipToBooking(state, actor, bookingId) {
@@ -252,6 +345,57 @@ function resetActorsAfterTimeSkip(state, booking) {
   }
 }
 
+function baseTravelCost(state, actionId) {
+  const destination = destinationFor(actionId);
+  if (!destination || destination.cost <= 0) return 0;
+  return hasTravelPass(state, actionId) ? 0 : destination.cost;
+}
+
+export function bookingCost(state, actionId, duration = null) {
+  const destination = destinationFor(actionId);
+  if (!destination) return 0;
+  const base = baseTravelCost(state, actionId);
+  if (!String(actionId).startsWith('vacation_')) return base;
+  const baseDuration = destination.duration || 120;
+  const tripDuration = Number.isFinite(duration) ? duration : baseDuration;
+  const extraHours = Math.max(0, Math.ceil((tripDuration - baseDuration) / 60));
+  return base + extraHours * VACATION_EXTRA_HOUR_COST;
+}
+
+export function availableCalendarMoney(state, excludeBookingId = '') {
+  ensureCalendar(state);
+  const reserved = state.calendar.bookings.reduce((sum, booking) => {
+    normalizeBooking(state, booking);
+    if (booking.id === excludeBookingId || booking.status !== 'scheduled') return sum;
+    return sum + Math.max(0, booking.cost || 0);
+  }, 0);
+  return Math.max(0, Math.floor((state.money || 0) - reserved));
+}
+
+export function canReserveBookingCost(state, cost, excludeBookingId = '') {
+  return Math.max(0, cost || 0) <= availableCalendarMoney(state, excludeBookingId);
+}
+
+export function canAffordBookingNow(state, booking) {
+  normalizeBooking(state, booking);
+  const base = baseTravelCost(state, booking.actionId);
+  const extra = Math.max(0, booking.cost - base);
+  return (state.money || 0) >= base + extra;
+}
+
+export function bookingCostLabel(booking) {
+  return `Cost $${Math.max(0, Math.round(booking.cost || 0))}, Length ${durationLabel(booking.duration || 30)}`;
+}
+
+export function durationLabel(minutes) {
+  const rounded = Math.max(1, Math.round(minutes || 0));
+  const hours = Math.floor(rounded / 60);
+  const mins = rounded % 60;
+  if (hours && mins) return `${hours}h ${mins}m`;
+  if (hours) return `${hours}h`;
+  return `${mins}m`;
+}
+
 function skipDurationText(minutes) {
   const rounded = Math.max(1, Math.round(minutes));
   const days = Math.floor(rounded / 1440);
@@ -274,11 +418,11 @@ export function bookingShortLabel(booking) {
 
 export function calendarMenuRows(state, actor) {
   ensureCalendar(state);
-  const rows = upcomingBookings(state, actor, 6).map(b => ({ label: bookingShortLabel(b), booking: b }));
+  const rows = upcomingBookings(state, actor, 6).map(b => ({ label: `${bookingShortLabel(b)} ${bookingCostLabel(b)}`, booking: b }));
   if (!rows.length) rows.push({ label: 'No upcoming bookings', booking: null });
   return rows;
 }
 
 export function vacationOptions() {
-  return VACATION_DESTINATIONS.slice(0, 10).map(destination => ({ id: destination.id, label: destination.label }));
+  return VACATION_DESTINATIONS.slice(0, 10).map(destination => ({ id: destination.id, label: destination.label, duration: destination.duration }));
 }
