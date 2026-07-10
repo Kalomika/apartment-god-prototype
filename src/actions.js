@@ -119,12 +119,34 @@ function queuePartnerForSharedAction(state, entity, actionId, obj) {
   const partner = state.entities.find(e => e.id !== entity.id && e.type === 'person' && !e.hidden && e.floor === entity.floor);
   if (!partner) { say(entity, 'rn?'); log(state, `${entity.name} needs someone nearby for ${actionId.replaceAll('_', ' ')}.`); return false; }
   const decision = canInviteeJoin(state, entity, partner);
-  if (!decision.ok) { if (decision.heard) say(partner, 'not rn'); say(entity, 'rn?'); log(state, `${partner.name} declined ${obj.label}: ${decision.reason}.`); return false; }
+  if (!decision.ok) {
+    if (decision.heard) say(partner, 'not rn');
+    say(entity, 'rn?');
+    log(state, decision.heard ? `${partner.name} declined ${obj.label}: ${decision.reason}.` : `${partner.name} did not hear the invitation to ${obj.label}: ${decision.reason}.`);
+    return false;
+  }
   say(partner, 'yeah'); entity.action = `Waiting for ${partner.name}`; entity.actionT = 0; entity.pose = 'stand'; commandSocial(partner, entity, actionId); log(state, `${partner.name} agreed to join ${entity.name} at ${obj.label}.`); return true;
 }
 
-function canInviteeJoin(state, actor, invitee) {
-  if (invitee.floor !== actor.floor) return { ok: false, heard: false, reason: 'too far away' };
+function invitationHearing(state, actor, invitee, options = {}) {
+  if (options.viaPhone) return { heard: true, reason: 'phone call' };
+  if (invitee.floor !== actor.floor) return { heard: false, reason: 'on another floor' };
+  const distance = Math.hypot((invitee.x || 0) - (actor.x || 0), (invitee.y || 0) - (actor.y || 0));
+  const actorRoom = roomAt(actor.x, actor.y, actor.floor)?.id || '';
+  const inviteeRoom = roomAt(invitee.x, invitee.y, invitee.floor)?.id || '';
+  const sameRoom = actorRoom && actorRoom === inviteeRoom;
+  const current = String(invitee.action || '').toLowerCase();
+  const privateAction = current.includes('shower') || current.includes('toilet');
+  const bathroomRoom = inviteeRoom.includes('bath');
+  const hearingRange = sameRoom ? 260 : 135;
+  if ((privateAction || bathroomRoom) && distance > 85) return { heard: false, reason: 'behind the bathroom door' };
+  if (distance > hearingRange) return { heard: false, reason: sameRoom ? 'too far across the room' : 'too far through the house' };
+  return { heard: true, reason: 'within hearing range' };
+}
+
+function canInviteeJoin(state, actor, invitee, options = {}) {
+  const hearing = invitationHearing(state, actor, invitee, options);
+  if (!hearing.heard) return { ok: false, heard: false, reason: hearing.reason };
   const current = String(invitee.action || '').toLowerCase();
   if (invitee.path?.length || invitee.actionT > 0) return { ok: false, heard: true, reason: 'busy' };
   if (current.includes('shower')) return { ok: false, heard: true, reason: 'showering' };
@@ -133,7 +155,7 @@ function canInviteeJoin(state, actor, invitee) {
   if ((invitee.needs?.bladder ?? 100) < 18) return { ok: false, heard: true, reason: 'bathroom need' };
   if ((invitee.needs?.hunger ?? 100) < 18) return { ok: false, heard: true, reason: 'hungry' };
   if ((invitee.needs?.energy ?? 100) < 12) return { ok: false, heard: true, reason: 'exhausted' };
-  return { ok: true, heard: true, reason: 'available' };
+  return { ok: true, heard: true, reason: options.viaPhone ? 'available by phone' : 'available' };
 }
 
 export function throwFetchBall(state, x, y) { if (!state.fetch || state.fetch.phase !== 'ready') return false; const dog = byId(state, state.fetch.dogId); const actor = byId(state, state.fetch.actorId); if (!dog || !actor) return false; return startFetchThrow(state, actor, dog, x, y); }
@@ -220,7 +242,7 @@ function buildParty(state, actor, invitedIds, actionId) {
     const e = byId(state, id);
     if (!e || e.id === actor.id || e.hidden) continue;
     if (e.type === 'dog' && !['errand', 'mall', 'date', 'movies', 'dog_park', 'vacation_camping', 'vacation_beach'].includes(actionId)) { log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}: not allowed for that destination.`); continue; }
-    const decision = canInviteeJoin(state, actor, e);
+    const decision = canInviteeJoin(state, actor, e, { viaPhone: e.type === 'person' });
     if (!decision.ok) { if (decision.heard) say(e, 'not rn'); log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}: ${decision.reason}.`); continue; }
     say(e, 'yeah'); party.push(e);
   }
