@@ -3,6 +3,8 @@ import { ARENA_H, ARENA_W } from '../config.js';
 const MAP_W = 34;
 const MAP_D = 25.5;
 const GRID_STEP = 120;
+const DEBUG_UPDATE_HZ = 8;
+const DEBUG_UPDATE_INTERVAL = 1 / DEBUG_UPDATE_HZ;
 const TEAM_COLORS = { A: '#4dffb8', B: '#ffb45f', preview: '#f0d36a' };
 
 export function installTopShotDebugOverlay3D(world) {
@@ -13,7 +15,7 @@ export function installTopShotDebugOverlay3D(world) {
 
   const baseUpdate = world.update.bind(world);
   world.update = function updateWithDebugOverlay(dt, state) {
-    overlay.sync(state);
+    overlay.sync(state, dt);
     baseUpdate(dt, state);
   };
 
@@ -37,6 +39,7 @@ class TopShotDebugOverlay3D {
     this.world = world;
     this.THREE = world.THREE;
     this.enabled = false;
+    this.refreshT = DEBUG_UPDATE_INTERVAL;
     this.root = new this.THREE.Group();
     this.root.name = 'top-shot-debug-telemetry-root';
     this.root.visible = false;
@@ -54,12 +57,16 @@ class TopShotDebugOverlay3D {
   setVisible(visible) {
     this.enabled = Boolean(visible);
     this.root.visible = this.enabled;
+    this.refreshT = DEBUG_UPDATE_INTERVAL;
     if (!this.enabled) clearGroup(this.dynamicRoot);
     return this.enabled;
   }
 
-  sync(state) {
+  sync(state, dt = 0) {
     if (!this.enabled) return;
+    this.refreshT += Math.max(0, dt);
+    if (this.refreshT < DEBUG_UPDATE_INTERVAL) return;
+    this.refreshT = 0;
     clearGroup(this.dynamicRoot);
     if (!state) return;
     this.drawHeader(state);
@@ -73,18 +80,18 @@ class TopShotDebugOverlay3D {
   buildGrid() {
     for (let x = 0; x <= ARENA_W; x += GRID_STEP) {
       const major = x % (GRID_STEP * 2) === 0;
-      this.gridRoot.add(this.line([{ x, y: 0 }, { x, y: ARENA_H }], major ? '#28ff7c' : '#28ff7c', major ? 0.24 : 0.11, 0.045));
+      this.gridRoot.add(this.line([{ x, y: 0 }, { x, y: ARENA_H }], '#28ff7c', major ? 0.24 : 0.11, 0.045));
     }
     for (let y = 0; y <= ARENA_H; y += GRID_STEP) {
       const major = y % (GRID_STEP * 2) === 0;
-      this.gridRoot.add(this.line([{ x: 0, y }, { x: ARENA_W, y }], major ? '#28ff7c' : '#28ff7c', major ? 0.24 : 0.11, 0.045));
+      this.gridRoot.add(this.line([{ x: 0, y }, { x: ARENA_W, y }], '#28ff7c', major ? 0.24 : 0.11, 0.045));
     }
   }
 
   drawHeader(state) {
     const label = state.mode === 'cqc'
-      ? `DEBUG CQC | ${formatClock(state.clock)} | ${state.lab?.auto ? 'AUTO' : 'MANUAL'} | ${state.lab?.slowMo ? 'SLOW' : 'REAL TIME'}`
-      : `DEBUG MATCH | ${formatClock(state.clock)} | ${String(state.matchState || 'ready').toUpperCase()}`;
+      ? `DEBUG CQC | ${formatClock(state.clock)} | ${state.lab?.auto ? 'AUTO' : 'MANUAL'} | ${state.lab?.slowMo ? 'SLOW' : 'REAL TIME'} | ${DEBUG_UPDATE_HZ}HZ`
+      : `DEBUG MATCH | ${formatClock(state.clock)} | ${String(state.matchState || 'ready').toUpperCase()} | ${DEBUG_UPDATE_HZ}HZ`;
     this.dynamicRoot.add(this.label(label, 44, 40, '#9dffd1', 1.5));
   }
 
@@ -114,7 +121,7 @@ class TopShotDebugOverlay3D {
     if (target && Number.isFinite(target.x) && Number.isFinite(target.y)) {
       this.dynamicRoot.add(this.ring(target.x, target.y, 22, '#ffffff', 0.56, 0.18));
       this.dynamicRoot.add(this.line([fighter, target], '#ffffff', 0.34, 0.14));
-      this.dynamicRoot.add(this.label(target.type || 'target', target.x + 18, target.y - 18, '#ffffff', 0.8));
+      this.dynamicRoot.add(this.label(target.type || fighter.brain?.intent || 'target', target.x + 18, target.y - 18, '#ffffff', 0.8));
     }
 
     if (state.mode === 'cqc') this.drawCqcHitboxes(fighter, color);
@@ -125,6 +132,7 @@ class TopShotDebugOverlay3D {
     if (fighter.cqc?.mounting) status.push('mount top');
     if (fighter.cqc?.mountedBy) status.push('mounted');
     this.dynamicRoot.add(this.label(status.join(' | '), fighter.x + 24, fighter.y - 32, color, 0.9));
+    this.dynamicRoot.add(this.label(aiStatusFor(state, fighter), fighter.x + 24, fighter.y + 38, '#c9f7ff', 0.72));
   }
 
   drawCqcHitboxes(fighter, color) {
@@ -222,7 +230,7 @@ class TopShotDebugOverlay3D {
     ctx.strokeRect(1, 15, canvas.width - 2, 54);
     ctx.globalAlpha = 1;
     ctx.fillStyle = color;
-    ctx.fillText(String(text).slice(0, 48), 18, 43);
+    ctx.fillText(String(text).slice(0, 56), 18, 43);
 
     const texture = new THREE.CanvasTexture(canvas);
     const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
@@ -232,6 +240,35 @@ class TopShotDebugOverlay3D {
     sprite.scale.set(3.7 * scale, 0.7 * scale, 1);
     return sprite;
   }
+}
+
+function aiStatusFor(state, fighter) {
+  if (!fighter) return 'ai: none';
+  if (state.mode === 'cqc') return cqcStatusFor(state, fighter);
+  const other = (state.fighters || []).find(unit => unit.team !== fighter.team && !unit.extracted && !unit.incapacitated && !unit.defeated);
+  const parts = [];
+  if (fighter.memory?.command?.type) parts.push(`coach:${fighter.memory.command.type}${fighter.memory.command.urgent ? '!' : ''}`);
+  if (fighter.brain?.intent) parts.push(`brain:${fighter.brain.intent}`);
+  else if (fighter.intent) parts.push(`intent:${fighter.intent}`);
+  if (other) {
+    parts.push(`${Math.round(distance(fighter, other))}u`);
+    parts.push(fighter.spottedT > 0 ? 'spotted' : fighter.memory?.lastSeen ? 'last seen' : 'search');
+  }
+  if (fighter.awareness?.phase) parts.push(`aware:${fighter.awareness.phase}`);
+  if (fighter.coverPinned) parts.push('cover');
+  if (fighter.shadowHidden) parts.push('shadow');
+  if (fighter.stuckFrames > 0) parts.push(`stuck:${fighter.stuckFrames}`);
+  return parts.slice(0, 6).join(' | ') || 'ai: idle';
+}
+
+function cqcStatusFor(state, fighter) {
+  const parts = [state.lab?.auto ? 'cqc:auto' : 'cqc:manual'];
+  if (state.lab?.action) parts.push(`action:${state.lab.action}`);
+  if (fighter.cqc?.style) parts.push(fighter.cqc.style);
+  if (fighter.cqc?.guard) parts.push(`guard:${fighter.cqc.guard}`);
+  if (fighter.currentMove?.kind) parts.push(`move:${fighter.currentMove.kind}`);
+  if (fighter.cqc?.lastZone) parts.push(`zone:${fighter.cqc.lastZone}`);
+  return parts.slice(0, 6).join(' | ');
 }
 
 function arenaToWorld(x, y, lift = 0) {
@@ -244,6 +281,10 @@ function arenaToWorld(x, y, lift = 0) {
 
 function midpoint(a, b) {
   return (a + b) / 2;
+}
+
+function distance(a, b) {
+  return Math.hypot((a?.x || 0) - (b?.x || 0), (a?.y || 0) - (b?.y || 0));
 }
 
 function formatClock(seconds = 0) {
