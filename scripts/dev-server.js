@@ -17,21 +17,34 @@ const types = {
 };
 
 function safePath(urlPath) {
-  const normalized = normalize(decodeURIComponent(urlPath || '/')).replace(/^[/\\]+/, '');
+  let decoded = '/';
+  try {
+    decoded = decodeURIComponent(urlPath || '/');
+  } catch {
+    return null;
+  }
+  const normalized = normalize(decoded).replace(/^[/\\]+/, '');
   const requested = join(root, normalized || 'index.html');
   const rel = relative(root, requested);
-  if (rel.startsWith('..') || rel.includes(`..${sep}`)) return join(root, 'index.html');
+  if (rel.startsWith('..') || rel.includes(`..${sep}`)) return null;
   return requested;
 }
 
 createServer((req, res) => {
-  const url = new URL(req.url || '/', `http://localhost:${port}`);
-  let full = safePath(url.pathname);
-  if (!existsSync(full) || statSync(full).isDirectory()) full = join(root, 'index.html');
-  const ext = extname(full);
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Content-Type', types[ext] || 'application/octet-stream');
-  res.end(readFileSync(full));
+  try {
+    const url = new URL(req.url || '/', `http://localhost:${port}`);
+    let full = safePath(url.pathname);
+    if (!full || !existsSync(full) || statSync(full).isDirectory()) full = join(root, 'index.html');
+    const ext = extname(full);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Type', types[ext] || 'application/octet-stream');
+    res.end(readFileSync(full));
+  } catch {
+    res.statusCode = 404;
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end('Not found');
+  }
 }).listen(port, () => {
   console.log(`Apartment God running at http://localhost:${port}`);
 });
