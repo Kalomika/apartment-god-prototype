@@ -1,7 +1,7 @@
 import { handleBuildRequest } from './buildRequests.js';
 import { startObjectAction, startOffsite } from './actions.js';
 import { assignCareer, CAREER_TRACKS, careerFor, quitCareer, trackForCareer, workDueText } from './careerSystem.js';
-import { bookCalendarTravel, calendarDateLabel, calendarMenuRows, vacationOptions } from './calendarSystem.js';
+import { bookCalendarTravel, bookingTimeLabel, calendarDateLabel, calendarMenuRows, skipToBooking, vacationOptions } from './calendarSystem.js';
 import { startCookingFlow } from './cooking.js';
 import { orderFood, buyWorkoutGear } from './economy.js';
 import { relationshipLabel, relationshipSummary } from './reactionSystem.js';
@@ -53,7 +53,10 @@ export function openDeviceHome(state, actor, openMenu) {
     cell('Relationships', items);
   };
   const calendarMenu = () => {
-    const upcoming = calendarMenuRows(state, actor).map(row => ({ label: row.label, run: calendarMenu }));
+    const upcoming = calendarMenuRows(state, actor).map(row => ({
+      label: row.label,
+      run: () => row.booking ? eventDetailMenu(row.booking) : calendarMenu()
+    }));
     cell('Calendar', [
       { label: `Today: ${calendarDateLabel(state)}`, run: calendarMenu },
       ...upcoming,
@@ -64,6 +67,16 @@ export function openDeviceHome(state, actor, openMenu) {
       { label: 'Book Trip / Flight...', run: tripMenu }
     ]);
   };
+  const eventDetailMenu = booking => cell(`Event: ${booking.label}`, [
+    { label: `When: ${bookingTimeLabel(booking)}`, run: () => eventDetailMenu(booking) },
+    { label: `Status: ${booking.status}`, run: () => eventDetailMenu(booking) },
+    { label: 'Skip to this event?', run: () => confirmSkipMenu(booking) },
+    { label: 'Back to Calendar', run: calendarMenu }
+  ]);
+  const confirmSkipMenu = booking => cell('Skip time?', [
+    { label: `Yes, skip to ${bookingTimeLabel(booking)}`, run: () => skipToBooking(state, actor, booking.id) },
+    { label: 'No, stay here', run: () => eventDetailMenu(booking) }
+  ]);
   const bookingMenu = (label, actionId) => cell(`Book ${label}`, [
     { label: 'In 10 minutes', run: () => bookCalendarTravel(state, actor, actionId, { minute: (state.time || 0) + 10 }) },
     { label: 'Tonight 7 PM', run: () => bookCalendarTravel(state, actor, actionId, { daysFromNow: 0, hour: 19 }) },
