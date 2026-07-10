@@ -302,7 +302,7 @@ Implementation details:
 - Added selected character follow state. Default is follow selected. Manual camera choices disable follow, and the star button resumes selected follow.
 
 Testing performed:
-Code inspection only through GitHub file review. No local or Render browser test performed in this chat.
+Code inspection only through GitHub file review. No local or Render runtime test performed in this chat.
 
 Testing requested:
 After main is updated for Render testing, check that the game boots, the black row shows star, lab, blueprint, locator, and phone controls, the lab button slides to Secret Lab East, swipe left from Main goes to the lab, swipe right from lab returns to Main, blueprint excludes the lab, locator still shows the Test Subject, lab objects open menus, and the star button returns to the selected character.
@@ -312,3 +312,41 @@ This is a same level camera and layout extension. It should remain isolated from
 
 Follow ups:
 Add sprite asset manifest and one Resident or Test Subject sprite fallback path inside the lab only. Add pose specific lab actions after the lab is confirmed stable.
+
+---
+
+## 2026-07-09 07:00 PM CT, Invite Hearing Range Guard
+
+Status: NEEDS_TESTING
+Branch: mechanics-first-invite-hearing-2026-07-09
+Commit: actions e7f9ed6a69ce12ff85094b89da7b5adcbfd1a1b2
+Files changed: src/actions.js, apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: no
+Backup branch: none, small guarded feature branch from current main
+
+Summary:
+Added a realistic hearing check to invite acceptance so same floor no longer means an invite is automatically heard across the house.
+
+Implementation details:
+
+- Added `canInviteeHearInvite` to calculate whether the invitee can realistically hear the caller.
+- Same floor remains required unless a future phone invite path passes `viaPhone`.
+- Very close actors can hear each other.
+- Actors in the same room can hear within a larger room range.
+- Nearby actors in different rooms can hear within a smaller range.
+- Actors in bathrooms, showers, or toilets are treated as behind a bathroom door unless the caller is very close.
+- If an invitee cannot hear, the game logs that they could not hear instead of forcing a `not rn` speech bubble.
+- If an invitee does hear but is busy, showering, on the toilet, hungry, exhausted, or dealing with urgent bladder needs, the old refusal behavior still applies.
+
+Testing performed:
+Code inspection through GitHub file review. No local build or Render browser test performed in this run.
+
+Testing requested:
+On a test branch or after a deliberate Render mirror, place Resident and Girlfriend far apart on the same floor and try a together activity. Confirm the invite is not heard. Move them near each other and confirm the invite can be accepted or refused. Test while one actor is in the bathroom, shower, or toilet and confirm the response depends on close distance instead of the whole floor hearing it.
+
+Known risks:
+Offsite party invites currently use the same physical hearing logic, so remote or phone based party invitations still need their own explicit `viaPhone` path before they should ignore distance.
+
+Follow ups:
+Add a visible phone invite path for offsite and travel actions that bypasses physical hearing distance while still respecting busy state, urgent needs, routines, mood, relationship, and refusal logic.
