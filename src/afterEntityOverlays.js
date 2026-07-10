@@ -75,7 +75,7 @@ function drawFloorClothesPile(ctx, x, y, female) {
 }
 
 function drawCalendarSkipRecap(ctx, state) {
-  const recap = state.calendar?.skipRecap;
+  const recap = state.skipRecap;
   if (!recap || recap.visibleT <= 0) return;
   const x = PLAY_W - 382;
   const y = 92;
