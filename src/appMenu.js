@@ -1,7 +1,8 @@
 import { handleBuildRequest } from './buildRequests.js';
 import { startObjectAction, startOffsite } from './actions.js';
 import { assignCareer, CAREER_TRACKS, careerFor, quitCareer, trackForCareer, workDueText } from './careerSystem.js';
-import { bookCalendarTravel, bookingCostLabel, bookingTimeLabel, calendarDateLabel, calendarMenuRows, cancelBooking, rescheduleBooking, skipToBooking, updateBookingDestination, updateBookingDuration, vacationOptions } from './calendarSystem.js';
+import { bookCalendarTravel, bookingCostLabel, bookingTimeLabel, calendarDateLabel, calendarMenuRows, cancelBooking, rescheduleBooking, updateBookingDestination, updateBookingDuration, vacationOptions } from './calendarSystem.js';
+import { canSkipToBooking, skipToBookingPrep } from './calendarSkipSystem.js';
 import { startCookingFlow } from './cooking.js';
 import { orderFood, buyWorkoutGear } from './economy.js';
 import { relationshipLabel, relationshipSummary } from './reactionSystem.js';
@@ -67,18 +68,21 @@ export function openDeviceHome(state, actor, openMenu) {
       { label: 'Book Trip / Flight...', run: tripMenu }
     ]);
   };
-  const eventDetailMenu = booking => cell(`Event: ${booking.label}`, [
-    { label: `When: ${bookingTimeLabel(booking)}`, run: () => eventDetailMenu(booking) },
-    { label: bookingCostLabel(booking), run: () => eventDetailMenu(booking) },
-    { label: `Status: ${booking.status}`, run: () => eventDetailMenu(booking) },
-    { label: 'Skip to this event...', run: () => confirmSkipMenu(booking) },
-    { label: 'Reschedule event...', run: () => rescheduleMenu(booking) },
-    { label: 'Update event...', run: () => updateEventMenu(booking) },
-    { label: 'Cancel event', run: () => cancelEventMenu(booking) },
-    { label: 'Back to Calendar', run: calendarMenu }
-  ]);
-  const confirmSkipMenu = booking => cell('Skip time?', [
-    { label: `Yes, skip to ${bookingTimeLabel(booking)}`, run: () => skipToBooking(state, actor, booking.id) },
+  const eventDetailMenu = booking => {
+    const skipItems = canSkipToBooking(state, booking) ? [{ label: 'Skip to one hour before this event...', run: () => confirmSkipMenu(booking) }] : [];
+    cell(`Event: ${booking.label}`, [
+      { label: `When: ${bookingTimeLabel(booking)}`, run: () => eventDetailMenu(booking) },
+      { label: bookingCostLabel(booking), run: () => eventDetailMenu(booking) },
+      { label: `Status: ${booking.status}`, run: () => eventDetailMenu(booking) },
+      ...skipItems,
+      { label: 'Reschedule event...', run: () => rescheduleMenu(booking) },
+      { label: 'Update event...', run: () => updateEventMenu(booking) },
+      { label: 'Cancel event', run: () => cancelEventMenu(booking) },
+      { label: 'Back to Calendar', run: calendarMenu }
+    ]);
+  };
+  const confirmSkipMenu = booking => cell('Skip to prep time?', [
+    { label: `Yes, skip to one hour before ${booking.label}`, run: () => skipToBookingPrep(state, actor, booking.id) },
     { label: 'No, stay here', run: () => eventDetailMenu(booking) }
   ]);
   const cancelEventMenu = booking => cell('Cancel event?', [
