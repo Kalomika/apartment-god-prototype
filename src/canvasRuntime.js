@@ -44,8 +44,17 @@ function sanitizeRuntimeState(state) {
     entity.floor = Number.isInteger(entity.floor) ? entity.floor : 0;
     entity.x = Number.isFinite(entity.x) ? entity.x : 120;
     entity.y = Number.isFinite(entity.y) ? entity.y : 120;
+    applyPoseOrientation(entity);
     cleanupStaleActorState(entity);
   }
+}
+
+function applyPoseOrientation(entity) {
+  if (entity.type !== 'person') return;
+  const action = String(entity.action || '').toLowerCase();
+  const pose = String(entity.pose || '').toLowerCase();
+  const bedPose = pose === 'sleep' || action.includes('sleep') || action.includes('nap') || action.includes('bed together') || action.includes('waking up') || action.includes('king bed');
+  if (bedPose) entity.lastHeading = Math.PI / 2;
 }
 
 function cleanupStaleActorState(entity) {
