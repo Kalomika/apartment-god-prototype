@@ -1,5 +1,5 @@
 import { startOffsite } from './actions.js';
-import { bookingTimeLabel, dueCalendarBookings, ensureCalendar, markBookingStatus } from './calendarSystem.js';
+import { bookingTimeLabel, canAffordBookingNow, dueCalendarBookings, ensureCalendar, markBookingStatus } from './calendarSystem.js';
 import { byId, log, say } from './state.js';
 
 export function updateCalendarRuntime(state) {
@@ -14,12 +14,24 @@ export function updateCalendarRuntime(state) {
       continue;
     }
     const overdue = (state.time || 0) - booking.startMinute;
+    if (!canAffordBookingNow(state, booking)) {
+      markBookingStatus(state, booking.id, 'missed');
+      log(state, `${actor.name} could not start ${booking.label}. Cost $${booking.cost}, available $${Math.floor(state.money || 0)}.`);
+      say(actor, 'BROKE');
+      continue;
+    }
     if (actorBusy(actor) || state.offsite || state.vehicleDeparture || state.vehicleReturn) {
       handleBlockedBooking(state, actor, booking, overdue, `${actor.name} has ${booking.label} due now but is busy.`);
       continue;
     }
     const ok = startOffsite(state, actor, booking.actionId, booking.invitedIds || [], booking.vehicleId || 'auto', { fromQueue: true });
     if (ok) {
+      if (state.vehicleDeparture) {
+        state.vehicleDeparture.bookingId = booking.id;
+        state.vehicleDeparture.bookedDuration = booking.duration;
+        state.vehicleDeparture.extraCost = booking.extraCost || 0;
+        state.vehicleDeparture.bookedCost = booking.cost || 0;
+      }
       markBookingStatus(state, booking.id, 'started');
       say(actor, 'GO');
       log(state, `${actor.name}'s calendar started ${booking.label}.`);
