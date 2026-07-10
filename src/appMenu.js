@@ -1,6 +1,7 @@
 import { handleBuildRequest } from './buildRequests.js';
 import { startObjectAction, startOffsite } from './actions.js';
 import { assignCareer, CAREER_TRACKS, careerFor, quitCareer, trackForCareer, workDueText } from './careerSystem.js';
+import { bookCalendarTravel, calendarDateLabel, calendarMenuRows, vacationOptions } from './calendarSystem.js';
 import { startCookingFlow } from './cooking.js';
 import { orderFood, buyWorkoutGear } from './economy.js';
 import { relationshipLabel, relationshipSummary } from './reactionSystem.js';
@@ -8,7 +9,8 @@ import { startMusic } from './music.js';
 import { objects } from './world.js';
 
 export function openDeviceHome(state, actor, openMenu) {
-  actor.action = 'Using cell';
+  actor.action = 'Using phone';
+  actor.pose = 'sit';
   const cell = (title, items) => openMenu(660, 86, `Cell: ${title}`, [...items, { label: 'Back to Cell', run: () => openDeviceHome(state, actor, openMenu) }]);
   const foodMenu = () => cell('Food / Delivery', [
     { label: 'Order Food Delivery', run: () => orderFood(state, actor, false) },
@@ -50,8 +52,31 @@ export function openDeviceHome(state, actor, openMenu) {
     if (!items.length) items.push({ label: 'No relationship reads yet', run: relationshipMenu });
     cell('Relationships', items);
   };
+  const calendarMenu = () => {
+    const upcoming = calendarMenuRows(state, actor).map(row => ({ label: row.label, run: calendarMenu }));
+    cell('Calendar', [
+      { label: `Today: ${calendarDateLabel(state)}`, run: calendarMenu },
+      ...upcoming,
+      { label: 'Book Movie Ticket...', run: () => bookingMenu('Movie Ticket', 'movies') },
+      { label: 'Book Date Night...', run: () => bookingMenu('Date Night', 'date') },
+      { label: 'Book Mall Trip...', run: () => bookingMenu('Mall Trip', 'mall') },
+      { label: 'Book Quick Errand...', run: () => bookingMenu('Quick Errand', 'errand') },
+      { label: 'Book Trip / Flight...', run: tripMenu }
+    ]);
+  };
+  const bookingMenu = (label, actionId) => cell(`Book ${label}`, [
+    { label: 'In 10 minutes', run: () => bookCalendarTravel(state, actor, actionId, { minute: (state.time || 0) + 10 }) },
+    { label: 'Tonight 7 PM', run: () => bookCalendarTravel(state, actor, actionId, { daysFromNow: 0, hour: 19 }) },
+    { label: 'Tomorrow 10 AM', run: () => bookCalendarTravel(state, actor, actionId, { daysFromNow: 1, hour: 10 }) },
+    { label: 'Tomorrow 7 PM', run: () => bookCalendarTravel(state, actor, actionId, { daysFromNow: 1, hour: 19 }) }
+  ]);
+  const tripMenu = () => cell('Book Trip / Flight', vacationOptions().map(destination => ({
+    label: `${destination.label}: Tomorrow 9 AM`,
+    run: () => bookCalendarTravel(state, actor, destination.id, { daysFromNow: 1, hour: 9 }, { label: destination.label })
+  })));
   openMenu(660, 86, 'Cell', [
     { label: 'Food / Delivery', run: foodMenu },
+    { label: 'Calendar', run: calendarMenu },
     { label: 'Career / Work', run: careerMenu },
     { label: 'Relationships', run: relationshipMenu },
     { label: 'Shop / Build Items', run: shopMenu },
