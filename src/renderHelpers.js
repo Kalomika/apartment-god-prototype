@@ -1,5 +1,5 @@
-export function roundRect(ctx, x, y, w, h, r, fill) {
-  ctx.fillStyle = fill;
+export function roundRect(ctx, x, y, w, h, r, fill = '', stroke = false) {
+  if (fill) ctx.fillStyle = fill;
   ctx.beginPath();
   if (ctx.roundRect) ctx.roundRect(x, y, Math.max(1, w), Math.max(1, h), Math.max(0, r));
   else {
@@ -14,7 +14,8 @@ export function roundRect(ctx, x, y, w, h, r, fill) {
     ctx.lineTo(x, y + rr);
     ctx.quadraticCurveTo(x, y, x + rr, y);
   }
-  ctx.fill();
+  if (fill) ctx.fill();
+  if (stroke) ctx.stroke();
 }
 
 export function formatTime(minutes) {
