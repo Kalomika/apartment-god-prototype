@@ -117,16 +117,37 @@ function queuePartnerForSharedAction(state, entity, actionId, obj) {
   const partner = state.entities.find(e => e.id !== entity.id && e.type === 'person' && !e.hidden && e.floor === entity.floor);
   if (!partner) { say(entity, 'rn?'); log(state, `${entity.name} needs someone nearby for ${actionId.replaceAll('_', ' ')}.`); return false; }
   const decision = canInviteeJoin(state, entity, partner);
-  if (!decision.ok) { if (decision.heard) say(partner, 'not rn'); say(entity, 'rn?'); log(state, `${partner.name} declined ${obj.label}: ${decision.reason}.`); return false; }
+  if (!decision.ok) {
+    if (decision.heard) say(partner, 'not rn');
+    say(entity, 'rn?');
+    log(state, decision.heard ? `${partner.name} declined ${obj.label}: ${decision.reason}.` : `${partner.name} could not hear the invite for ${obj.label}: ${decision.reason}.`);
+    return false;
+  }
   say(partner, 'yeah'); entity.action = `Waiting for ${partner.name}`; entity.actionT = 0; entity.pose = 'stand'; commandSocial(partner, entity, actionId); log(state, `${partner.name} agreed to join ${entity.name} at ${obj.label}.`); return true;
 }
 
-function canInviteeJoin(state, actor, invitee) {
-  if (invitee.floor !== actor.floor) return { ok: false, heard: false, reason: 'too far away' };
+function canInviteeHearInvite(state, actor, invitee, options = {}) {
+  if (options.viaPhone) return { heard: true, reason: 'phone invite' };
+  if (invitee.floor !== actor.floor) return { heard: false, reason: 'on another floor' };
+  const distance = Math.hypot((invitee.x || 0) - (actor.x || 0), (invitee.y || 0) - (actor.y || 0));
+  const actorRoom = roomAt(actor.x, actor.y, actor.floor)?.id || '';
+  const inviteeRoom = roomAt(invitee.x, invitee.y, invitee.floor)?.id || '';
   const current = String(invitee.action || '').toLowerCase();
-  if (invitee.path?.length || invitee.actionT > 0) return { ok: false, heard: true, reason: 'busy' };
+  const behindBathroomDoor = inviteeRoom.includes('bath') || current.includes('shower') || current.includes('toilet');
+  if (distance <= 52) return { heard: true, reason: 'close enough' };
+  if (behindBathroomDoor) return { heard: false, reason: 'behind the bathroom door' };
+  if (actorRoom && actorRoom === inviteeRoom && distance <= 360) return { heard: true, reason: 'same room' };
+  if (distance <= 150) return { heard: true, reason: 'nearby' };
+  return { heard: false, reason: 'too far away' };
+}
+
+function canInviteeJoin(state, actor, invitee, options = {}) {
+  const hearing = canInviteeHearInvite(state, actor, invitee, options);
+  if (!hearing.heard) return { ok: false, heard: false, reason: hearing.reason };
+  const current = String(invitee.action || '').toLowerCase();
   if (current.includes('shower')) return { ok: false, heard: true, reason: 'showering' };
   if (current.includes('toilet')) return { ok: false, heard: true, reason: 'in the bathroom' };
+  if (invitee.path?.length || invitee.actionT > 0) return { ok: false, heard: true, reason: 'busy' };
   if (current.includes('cooking') || current.includes('eating')) return { ok: false, heard: true, reason: 'busy' };
   if ((invitee.needs?.bladder ?? 100) < 18) return { ok: false, heard: true, reason: 'bathroom need' };
   if ((invitee.needs?.hunger ?? 100) < 18) return { ok: false, heard: true, reason: 'hungry' };
@@ -217,7 +238,11 @@ function buildParty(state, actor, invitedIds, actionId) {
     if (!e || e.id === actor.id || e.hidden) continue;
     if (e.type === 'dog' && !['errand', 'mall', 'date', 'movies', 'dog_park', 'vacation_camping', 'vacation_beach'].includes(actionId)) { log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}: not allowed for that destination.`); continue; }
     const decision = canInviteeJoin(state, actor, e);
-    if (!decision.ok) { if (decision.heard) say(e, 'not rn'); log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}: ${decision.reason}.`); continue; }
+    if (!decision.ok) {
+      if (decision.heard) say(e, 'not rn');
+      log(state, decision.heard ? `${e.name} declined ${actionId.replaceAll('_', ' ')}: ${decision.reason}.` : `${e.name} could not hear the ${actionId.replaceAll('_', ' ')} invite: ${decision.reason}.`);
+      continue;
+    }
     say(e, 'yeah'); party.push(e);
   }
   return party;
