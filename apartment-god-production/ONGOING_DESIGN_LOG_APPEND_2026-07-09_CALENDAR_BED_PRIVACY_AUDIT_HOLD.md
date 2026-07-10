@@ -10,7 +10,7 @@ Main updated: no
 Backup branch: backup/phaser-migration-before-calendar-time-skip-2026-07-09
 
 Summary:
-Kam clarified the calendar event skip and bedroom direction rules during implementation. This batch remains on phaser-migration only and should not be mirrored to main or Render until video review and/or browser QA is done.
+Kam clarified the calendar event skip and bedroom direction rules during implementation. This batch remains on phaser-migration only and should not be mirrored to main or Render until the current branch audit is clean and Kam explicitly approves the Render branch update.
 
 Implemented:
 - Calendar event rows now open event detail instead of being passive rows.
@@ -34,7 +34,7 @@ Implemented:
 - Added post entity shower privacy overlay with a rectangular pixelated censor mosaic drawn after actors, plus a clearer clothes pile on the floor near the shower.
 
 Audit notes:
-- No video file was attached in the chat at the time of this log, so video specific errors could not be reviewed yet.
+- Kam did not attach a video in this turn. The earlier mention of a video file was a misread of Kam's request to audit current game errors before pushing.
 - GitHub compare shows phaser-migration is ahead of main and main has not been updated by this batch.
 - The branch contains only calendar, bedroom bed orientation, privacy overlay, render hook, state spawn, and log changes relative to main.
 - Known remaining issue: vehicle offsite creation still needs a follow up pass so booked vacation duration and extra vacation cost are fully respected after the vehicle finishes departing. Calendar booking and update guards are in place, but final offsite duration handoff needs verification and likely a small vehicleSystem update.
@@ -43,10 +43,10 @@ Testing performed:
 GitHub file inspection and branch compare only. No local npm build, no browser test, and no Render test performed in this chat.
 
 Testing requested before main mirror:
-Upload or provide the video if there is one to review. Then test on a non Render branch preview if available, or wait for explicit approval before main mirror. When eventually tested, check Cell > Calendar event detail, cancel, reschedule, update vacation spot, update trip length, skip option hiding inside the final hour, skip landing one in game hour before the event, skip recap check marks, bedroom bed west headboard orientation, morning sleep positions, Make Bed visual gesture, and shower censor plus floor clothes pile.
+Continue the code audit before main mirror. When eventually tested, check Cell > Calendar event detail, cancel, reschedule, update vacation spot, update trip length, skip option hiding inside the final hour, skip landing one in game hour before the event, skip recap check marks, bedroom bed west headboard orientation, morning sleep positions, Make Bed visual gesture, and shower censor plus floor clothes pile.
 
 Known risks:
 This batch touches calendar menu flow, runtime skip behavior, rendering order, state reset positions, and bedroom object layout. It is not yet browser verified and should not be called complete.
 
 Follow ups:
-Review video errors before Render push, verify boot, finish booked vacation duration and extra cost handoff in vehicleSystem, add richer bed activity menu, add true room tidiness and cleanliness scoring, connect Make Bed to room tidiness, add bathroom sinks, and continue full activity animation coverage.
+Verify boot, finish booked vacation duration and extra cost handoff in vehicleSystem, add richer bed activity menu, add true room tidiness and cleanliness scoring, connect Make Bed to room tidiness, add bathroom sinks, and continue full activity animation coverage.
