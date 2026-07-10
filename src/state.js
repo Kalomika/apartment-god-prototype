@@ -88,10 +88,10 @@ export function createState() {
       yard: true, pool_area: true, kennel_area: true,
       secret_lab: true
     },
-    objectState: { workoutGear: false, bookshelf: false, openWindows: {}, vehicleInUse: null, garageDoorOpen: false, morningGreetingDone: false },
+    objectState: { workoutGear: false, bookshelf: false, openWindows: {}, vehicleInUse: null, garageDoorOpen: false, morningGreetingDone: false, bedMade: false },
     entities: [
-      morningEntity('resident', 'Resident', 'person', 1, 178, 150, '#79b7ff', 'morning'),
-      morningEntity('girlfriend', 'Girlfriend', 'person', 1, 228, 150, '#f2a3d7', 'good morning'),
+      morningEntity('resident', 'Resident', 'person', 1, 150, 154, '#79b7ff', 'morning'),
+      morningEntity('girlfriend', 'Girlfriend', 'person', 1, 238, 154, '#f2a3d7', 'good morning'),
       morningEntity('dog', 'Dog', 'dog', 0, 632, 494, '#d7a66a'),
       { ...entity('lab_test_subject', 'Test Subject', 'person', 5, 470, 414, '#74e6ff'), stopped: true, labOnly: true }
     ]
