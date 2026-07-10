@@ -108,7 +108,7 @@ function privacyComfort(state, actor, other) {
 }
 
 function reactToIntrusion(state, actor, intruder, reason) {
-  const style = reactionStyle(actor, intruder, 'privacy');
+  const style = reactionStyle(state, actor, intruder, 'privacy');
   triggerReaction(state, actor, {
     type: 'privacy',
     style,
@@ -123,7 +123,7 @@ function reactToIntrusion(state, actor, intruder, reason) {
 }
 
 function reactToNoise(state, listener, maker) {
-  const style = reactionStyle(listener, maker, 'noise');
+  const style = reactionStyle(state, listener, maker, 'noise');
   triggerReaction(state, listener, {
     type: 'noise',
     style,
@@ -136,8 +136,8 @@ function reactToNoise(state, listener, maker) {
   log(state, `${listener.name} was annoyed by ${maker.name}'s noise.`);
 }
 
-function reactionStyle(actor, target, type) {
-  const rel = relationshipBetween({ entities: [actor, target], relationships: actor.__relationshipSource || {} }, actor.id, target.id);
+function reactionStyle(state, actor, target, type) {
+  const rel = relationshipBetween(state, actor.id, target.id);
   const timid = actor.traits?.timid || actor.traits?.meticulous || actor.id === 'girlfriend';
   const assertive = actor.traits?.assertive || actor.id === 'resident';
   if (type === 'privacy' && (actor.id === 'resident' || actor.id === 'girlfriend') && (target.id === 'resident' || target.id === 'girlfriend')) {
