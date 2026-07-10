@@ -39,7 +39,7 @@ export const ACTIONS = {
   shower: [['shower', 'Take Shower'], ['groom', 'Groom']],
   toilet: [['toilet', 'Use Toilet']],
   door: [['work', 'Work'], ['errand', 'Quick Errand'], ['mall', 'Mall Trip'], ['movies', 'Movie Theater'], ['date', 'Date Night']],
-  bed: [['sleep', 'Sleep'], ['bed_together', 'Go To Bed Together'], ['intimacy', 'Private Moment'], ['relax', 'Relax']],
+  bed: [['sleep', 'Sleep'], ['bed_together', 'Go To Bed Together'], ['make_bed', 'Make Bed'], ['intimacy', 'Private Moment'], ['relax', 'Relax']],
   desk: [['desk_work', 'Work at Desk'], ['play_game', 'Play Game'], ['phone', 'Phone'], ['shop', 'Shop']],
   dog_bowl: [['feed_dog', 'Feed Dog']],
   dog_bed: [['dog_rest', 'Dog Rest']],
@@ -66,7 +66,7 @@ export const SOCIAL_ACTIONS = [
   ['talk', 'Talk'], ['kiss', 'Kiss'], ['cuddle', 'Cuddle'], ['tickle', 'Tickle'], ['hands', 'Hold Hands'],
   ['watch_together', 'Watch TV Together'], ['bed_together', 'Go To Bed Together'], ['intimacy', 'Private Moment']
 ];
-export const DOG_SOCIAL_ACTIONS = [['pet', 'Pet Dog'], ['train', 'Train Dog'], ['fetch', 'Fetch']];
+export const DOG_SOCIAL_ACTIONS = [['pet', 'Pet Dog'], ['train', 'Train Dog'], ['fetch']];
 
 export const ACTION_TIMES = {
   watch_tv: 60,
@@ -87,6 +87,7 @@ export const ACTION_TIMES = {
   toilet: 9,
   sleep: 90,
   bed_together: 90,
+  make_bed: 10,
   intimacy: 40,
   desk_work: 60,
   play_game: 45,
