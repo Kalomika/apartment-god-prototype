@@ -4,7 +4,9 @@ import { byId, log, say } from './state.js';
 
 export function updateCalendarRuntime(state) {
   ensureCalendar(state);
+  applyPendingOffsiteHandoff(state);
   const due = dueCalendarBookings(state);
+  for (const actor of state.entities || []) if (actor.calendarReminderT > 0) actor.calendarReminderT -= .6;
   if (!due.length) return;
   for (const booking of due) {
     const actor = byId(state, booking.actorId);
@@ -26,6 +28,14 @@ export function updateCalendarRuntime(state) {
     }
     const ok = startOffsite(state, actor, booking.actionId, booking.invitedIds || [], booking.vehicleId || 'auto', { fromQueue: true });
     if (ok) {
+      state.pendingCalendarOffsite = {
+        bookingId: booking.id,
+        actionId: booking.actionId,
+        bookedDuration: booking.duration,
+        extraCost: booking.extraCost || 0,
+        bookedCost: booking.cost || 0,
+        applied: false
+      };
       if (state.vehicleDeparture) {
         state.vehicleDeparture.bookingId = booking.id;
         state.vehicleDeparture.bookedDuration = booking.duration;
@@ -39,7 +49,28 @@ export function updateCalendarRuntime(state) {
       handleBlockedBooking(state, actor, booking, overdue, `${actor.name}'s calendar could not start ${booking.label} yet.`);
     }
   }
-  for (const actor of state.entities || []) if (actor.calendarReminderT > 0) actor.calendarReminderT -= .6;
+}
+
+function applyPendingOffsiteHandoff(state) {
+  const pending = state.pendingCalendarOffsite;
+  if (!pending || pending.applied || !state.offsite) return;
+  if (state.offsite.actionId !== pending.actionId) return;
+  if (Number.isFinite(pending.bookedDuration) && pending.bookedDuration > 0) {
+    state.offsite.t = pending.bookedDuration;
+    state.offsite.bookedDuration = pending.bookedDuration;
+  }
+  if (pending.extraCost > 0) {
+    if ((state.money || 0) >= pending.extraCost) {
+      state.money -= pending.extraCost;
+      log(state, `Paid $${pending.extraCost} for extended trip time.`);
+    } else {
+      log(state, `Extended trip cost $${pending.extraCost} could not be paid. Trip uses standard length.`);
+    }
+  }
+  state.offsite.bookingId = pending.bookingId;
+  state.offsite.bookedCost = pending.bookedCost || 0;
+  pending.applied = true;
+  state.pendingCalendarOffsite = null;
 }
 
 function handleBlockedBooking(state, actor, booking, overdue, message) {
