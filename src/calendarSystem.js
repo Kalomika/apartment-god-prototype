@@ -6,6 +6,7 @@ const MONTH_NAMES = ['Dawn', 'Bloom', 'Ember', 'Rain', 'Suncrest', 'Harvest', 'G
 const DAYS_PER_MONTH = 30;
 const MONTHS_PER_YEAR = 12;
 const DAYS_PER_YEAR = DAYS_PER_MONTH * MONTHS_PER_YEAR;
+const CALENDAR_EPOCH_DAY_OFFSET = 1;
 
 export const WORLD_HOLIDAYS = [
   { id: 'renewal_day', name: 'Renewal Day', month: 0, day: 1, note: 'fresh start, clean home, reset intentions' },
@@ -66,12 +67,13 @@ export function timeText(totalMinute) {
 
 export function calendarDateForMinute(totalMinute) {
   const absoluteDay = Math.max(0, Math.floor(totalMinute / 1440));
-  const year = Math.floor(absoluteDay / DAYS_PER_YEAR) + 1;
-  const dayOfYear = absoluteDay % DAYS_PER_YEAR;
+  const calendarDay = Math.max(0, absoluteDay - CALENDAR_EPOCH_DAY_OFFSET);
+  const year = Math.floor(calendarDay / DAYS_PER_YEAR) + 1;
+  const dayOfYear = calendarDay % DAYS_PER_YEAR;
   const month = Math.floor(dayOfYear / DAYS_PER_MONTH);
   const day = dayOfYear % DAYS_PER_MONTH + 1;
-  const week = Math.floor(absoluteDay / 7) + 1;
-  return { absoluteDay, year, month, monthName: MONTH_NAMES[month], day, week, dayName: DAY_NAMES[absoluteDay % 7] };
+  const week = Math.floor(calendarDay / 7) + 1;
+  return { absoluteDay, calendarDay, year, month, monthName: MONTH_NAMES[month], day, week, dayName: DAY_NAMES[absoluteDay % 7] };
 }
 
 export function calendarDateLabel(state) {
