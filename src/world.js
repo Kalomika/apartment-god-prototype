@@ -43,7 +43,7 @@ export const objects = [
   { id: 'tv', label: 'Wall Mounted TV', kind: 'tv', floor: 0, room: 'living', x: 172, y: 54, w: 120, h: 30, wallMounted: true, solid: true },
   { id: 'stereo', label: 'Media Shelf', kind: 'stereo', floor: 0, room: 'living', x: 304, y: 60, w: 58, h: 34, solid: true },
   { id: 'bookshelf', label: 'Bookshelf', kind: 'bookshelf', floor: 0, room: 'living', x: 42, y: 72, w: 58, h: 150, solid: true },
-  { id: 'fridge', label: 'Fridge', kind: 'fridge', floor: 0, room: 'kitchen', x: 488, y: 70, w: 58, h: 88, solid: true },
+  { id: 'fridge', label: 'Fridge', kind: 'fridge', floor: 0, room: 'kitchen', x: 486, y: 70, w: 70, h: 88, facing: 'down', solid: true },
   { id: 'stove', label: 'Stove', kind: 'stove', floor: 0, room: 'kitchen', x: 598, y: 70, w: 72, h: 64, solid: true },
   { id: 'sink', label: 'Sink', kind: 'sink', floor: 0, room: 'kitchen', x: 690, y: 78, w: 54, h: 48, solid: true },
   { id: 'coffee_maker', label: 'Coffee Maker', kind: 'coffee_maker', floor: 0, room: 'kitchen', x: 648, y: 154, w: 42, h: 30, solid: false },
@@ -61,7 +61,7 @@ export const objects = [
   { id: 'light_living', label: 'Living Light', kind: 'light', floor: 0, room: 'living', x: 408, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_down', label: 'Upstairs Stairs', kind: 'stairs', floor: 0, room: 'stairs', x: 780, y: 554, w: 118, h: 84, solid: false, toFloor: 1, exitId: 'stairs_up' },
 
-  { id: 'bed', label: 'Bed', kind: 'bed', floor: 1, room: 'bedroom', x: 82, y: 98, w: 190, h: 112, solid: true, enterable: true },
+  { id: 'bed', label: 'King Bed', kind: 'bed', floor: 1, room: 'bedroom', x: 68, y: 90, w: 250, h: 132, solid: true, enterable: true },
   { id: 'desk', label: 'Laptop Desk', kind: 'desk', floor: 1, room: 'office', x: 552, y: 96, w: 122, h: 66, solid: true },
   { id: 'shower2', label: 'Upstairs Shower', kind: 'shower', floor: 1, room: 'bath2', x: 798, y: 72, w: 62, h: 90, solid: true, enterable: true },
   { id: 'toilet2', label: 'Upstairs Toilet', kind: 'toilet', floor: 1, room: 'bath2', x: 880, y: 222, w: 44, h: 54, solid: true, enterable: true },
@@ -148,7 +148,7 @@ export function approachPoint(obj, action = '') {
   const cx = obj.x + obj.w / 2;
   const cy = obj.y + obj.h / 2;
   if (obj.enterable || ['sleep', 'nap', 'shower', 'toilet', 'swim', 'swim_together', 'soccer_practice', 'soccer_match'].includes(action)) return clampToPlay(cx, cy);
-  if (obj.kind === 'fridge') return clampToPlay(obj.x + obj.w + 44, cy);
+  if (obj.kind === 'fridge') return clampToPlay(cx, obj.y + obj.h + 42);
   if (['stove', 'sink'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36);
   if (obj.kind === 'coffee_maker') return clampToPlay(cx, obj.y + obj.h + 28);
   if (obj.kind === 'dining_table') return clampToPlay(obj.x + obj.w + 34, cy);
@@ -165,8 +165,8 @@ export function approachPoint(obj, action = '') {
   if (['trash_can', 'outdoor_trash'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 30);
   if (obj.kind === 'car') return clampToPlay(obj.x + obj.w + 28, obj.y + obj.h * 0.58);
   if (['bike', 'motorbike', 'atv'].includes(obj.kind)) return clampToPlay(cx + 34, cy + 18);
-  if (obj.kind === 'tv') { const couch = getObject(obj.room === 'living' ? 'couch' : obj.room === 'secret_lab' ? 'lab_pose_chair' : 'basement_couch'); return couch ? clampToPlay(couch.x + couch.w / 2, couch.y + 28) : clampToPlay(cx, obj.y + 150); }
-  if (obj.kind === 'couch') return clampToPlay(cx, obj.facing === 'up' ? obj.y + 30 : obj.y + obj.h - 24);
+  if (obj.kind === 'tv') { const couch = getObject(obj.room === 'living' ? 'couch' : obj.room === 'secret_lab' ? 'lab_pose_chair' : 'basement_couch'); return couch ? clampToPlay(couch.x + couch.w / 2, couch.y + couch.h * .48) : clampToPlay(cx, obj.y + 150); }
+  if (obj.kind === 'couch') return clampToPlay(cx, obj.facing === 'up' ? obj.y + obj.h * .48 : obj.y + obj.h - 24);
   if (obj.kind === 'door') return clampToPlay(cx, obj.y - 28);
   if (obj.kind === 'stairs') return obj.styleAs === 'door' ? clampToPlay(cx, cy) : clampToPlay(cx, obj.y + obj.h + 28);
   if (obj.kind === 'dog_bowl') return clampToPlay(cx, obj.y + obj.h + 30);
