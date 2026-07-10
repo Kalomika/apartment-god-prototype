@@ -61,11 +61,12 @@ export const objects = [
   { id: 'light_living', label: 'Living Light', kind: 'light', floor: 0, room: 'living', x: 408, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_down', label: 'Upstairs Stairs', kind: 'stairs', floor: 0, room: 'stairs', x: 780, y: 554, w: 118, h: 84, solid: false, toFloor: 1, exitId: 'stairs_up' },
 
-  { id: 'bed', label: 'King Bed', kind: 'bed', floor: 1, room: 'bedroom', x: 68, y: 90, w: 250, h: 132, solid: true, enterable: true },
+  { id: 'bed', label: 'King Bed', kind: 'bed', floor: 1, room: 'bedroom', x: 66, y: 92, w: 302, h: 144, facing: 'east', headboard: 'west', solid: true, enterable: true },
+  { id: 'bedroom_tv', label: 'Bedroom Wall TV', kind: 'tv', floor: 1, room: 'bedroom', x: 424, y: 124, w: 30, h: 116, facing: 'west', wallMounted: true, solid: true },
   { id: 'desk', label: 'Laptop Desk', kind: 'desk', floor: 1, room: 'office', x: 552, y: 96, w: 122, h: 66, solid: true },
   { id: 'shower2', label: 'Upstairs Shower', kind: 'shower', floor: 1, room: 'bath2', x: 798, y: 72, w: 62, h: 90, solid: true, enterable: true },
   { id: 'toilet2', label: 'Upstairs Toilet', kind: 'toilet', floor: 1, room: 'bath2', x: 880, y: 222, w: 44, h: 54, solid: true, enterable: true },
-  { id: 'light_bedroom', label: 'Bedroom Light', kind: 'light', floor: 1, room: 'bedroom', x: 430, y: 52, w: 22, h: 22, solid: false },
+  { id: 'light_bedroom', label: 'Bedroom Light', kind: 'light', floor: 1, room: 'bedroom', x: 402, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_up', label: 'Downstairs Stairs', kind: 'stairs', floor: 1, room: 'stairs2', x: 766, y: 554, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'stairs_down' },
 
   { id: 'basement_stairs_up', label: 'Main Floor Stairs', kind: 'stairs', floor: 2, room: 'basement', x: 766, y: 554, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'basement_door' },
@@ -165,7 +166,10 @@ export function approachPoint(obj, action = '') {
   if (['trash_can', 'outdoor_trash'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 30);
   if (obj.kind === 'car') return clampToPlay(obj.x + obj.w + 28, obj.y + obj.h * 0.58);
   if (['bike', 'motorbike', 'atv'].includes(obj.kind)) return clampToPlay(cx + 34, cy + 18);
-  if (obj.kind === 'tv') { const couch = getObject(obj.room === 'living' ? 'couch' : obj.room === 'secret_lab' ? 'lab_pose_chair' : 'basement_couch'); return couch ? clampToPlay(couch.x + couch.w / 2, couch.y + couch.h * .48) : clampToPlay(cx, obj.y + 150); }
+  if (obj.kind === 'tv') {
+    const seat = obj.room === 'living' ? getObject('couch') : obj.room === 'bedroom' ? getObject('bed') : obj.room === 'secret_lab' ? getObject('lab_pose_chair') : getObject('basement_couch');
+    return seat ? clampToPlay(seat.x + seat.w * .55, seat.y + seat.h / 2) : clampToPlay(cx, obj.y + 150);
+  }
   if (obj.kind === 'couch') return clampToPlay(cx, obj.facing === 'up' ? obj.y + obj.h * .48 : obj.y + obj.h - 24);
   if (obj.kind === 'door') return clampToPlay(cx, obj.y - 28);
   if (obj.kind === 'stairs') return obj.styleAs === 'door' ? clampToPlay(cx, cy) : clampToPlay(cx, obj.y + obj.h + 28);
