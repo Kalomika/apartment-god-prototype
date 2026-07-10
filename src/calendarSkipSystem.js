@@ -1,4 +1,4 @@
-import { findBooking, gameDay, markBookingStatus, minuteOfDay, bookingTimeLabel, timeText } from './calendarSystem.js';
+import { findBooking, gameDay, markBookingStatus, bookingTimeLabel, timeText } from './calendarSystem.js';
 import { destinationFor } from './travelLocations.js';
 import { changeNeed, log, say } from './state.js';
 
@@ -43,7 +43,7 @@ export function skipToBookingPrep(state, actor, bookingId) {
   resetActorsAfterTimeSkip(state, booking);
   state.time = target;
   state.viewHoldT = 0;
-  state.calendar.skipRecap = buildSkipRecap(from, target, booking, skippedBookings);
+  state.skipRecap = buildSkipRecap(from, target, booking, skippedBookings);
   log(state, `Skipped to prep time for ${booking.label}, ${timeText(target)}.`);
   if (actor) say(actor, 'PREP');
   return true;
