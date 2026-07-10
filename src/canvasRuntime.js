@@ -127,7 +127,7 @@ export function bootCanvasGame() {
         updateRefreshAutosave(state, rawDt);
       }
 
-      if (state.calendar?.skipRecap?.visibleT > 0) state.calendar.skipRecap.visibleT -= rawDt;
+      if (state.skipRecap?.visibleT > 0) state.skipRecap.visibleT -= rawDt;
       draw(ctx, state);
       ui.renderHud();
     } catch (error) {
