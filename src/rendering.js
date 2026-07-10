@@ -2,6 +2,7 @@ import './fit.js';
 import { PLAY_H, PLAY_W, COLORS } from './config.js';
 import { drawWorld } from './renderWorld.js';
 import { drawObjects } from './renderObjects.js';
+import { drawObjectCorrectiveOverlays } from './objectCorrectiveOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
 import { drawAfterEntityOverlays } from './afterEntityOverlays.js';
@@ -53,6 +54,7 @@ function drawScene(ctx, state) {
   drawWorld(ctx, state);
   drawSoccer(ctx, state);
   drawObjects(ctx, state);
+  drawObjectCorrectiveOverlays(ctx, state);
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
