@@ -49,7 +49,7 @@ export function createState() {
     followSelected: true,
     speed: 1,
     paused: false,
-    time: 6 * 60 + 45,
+    time: 1440 + 6 * 60 + 45,
     money: 640,
     bill: 42,
     autonomyMode: 'guided',
@@ -69,6 +69,7 @@ export function createState() {
     investments: { holdings: {}, tick: 0, lifetime: 0 },
     rewards: { freeTickets: {}, messages: [] },
     secretLog: { used: {}, lastRewardAt: 0 },
+    calendar: { bookings: [], history: [] },
     careers: {
       workHours: 0,
       movieTheaterHours: 0,
