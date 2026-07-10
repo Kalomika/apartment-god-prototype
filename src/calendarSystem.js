@@ -207,6 +207,7 @@ export function skipToBooking(state, actor, bookingId) {
     return true;
   }
   applyTimeSkipConsequences(state, delta);
+  resetActorsAfterTimeSkip(state, booking);
   state.time = booking.startMinute;
   state.viewHoldT = 0;
   log(state, `Skipped ${skipDurationText(delta)} to ${booking.label}.`);
@@ -231,6 +232,23 @@ function applyTimeSkipConsequences(state, skippedMinutes) {
       changeNeed(entity, 'energy', -.18 * hours);
       changeNeed(entity, 'stamina', -.1 * hours);
     }
+  }
+}
+
+function resetActorsAfterTimeSkip(state, booking) {
+  for (const entity of state.entities || []) {
+    if (!entity || entity.hidden || entity.labOnly) continue;
+    entity.path = [];
+    entity.target = null;
+    entity.pending = null;
+    entity.queuedTask = null;
+    entity.actionT = 0;
+    entity.actionTotal = 0;
+    entity.pose = 'stand';
+    entity.stopped = false;
+    if (entity.carrying && !String(entity.carrying).includes('luggage')) entity.carrying = null;
+    entity.action = entity.id === booking.actorId ? `${booking.label} due` : 'Time skipped';
+    entity.idleT = entity.id === booking.actorId ? 4 : 0;
   }
 }
 
