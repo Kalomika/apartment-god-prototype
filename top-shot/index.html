@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Top Shot 3D</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="stage">
+      <canvas id="game" width="1280" height="720" aria-label="Top Shot tactical site"></canvas>
+      <div id="overlay" class="overlay"></div>
+    </section>
+    <aside class="panel">
+      <h1>Top Shot</h1>
+      <p class="tagline">3D tactical infiltration prototype.</p>
+      <div class="row mode-row">
+        <button id="mainMode">Main Match</button>
+        <button id="cqcLabMode">CQC Lab</button>
+      </div>
+      <label>Fighter A
+        <select id="fighterA"></select>
+      </label>
+      <label>Fighter B
+        <select id="fighterB"></select>
+      </label>
+      <label>Commander Ethos
+        <select id="commanderEthos">
+          <option value="ai">AI Choice</option>
+          <option value="respectful">Respectful</option>
+          <option value="ruthless">Ruthless</option>
+        </select>
+      </label>
+      <div class="row">
+        <button id="startMatch">Start Match</button>
+        <button id="pauseMatch">Pause</button>
+      </div>
+      <div class="row drops">
+        <button data-drop="med">Drop Med</button>
+        <button data-drop="ammo">Drop Ammo</button>
+        <button data-drop="weapon">Drop Weapon</button>
+        <button data-drop="extract">Extract</button>
+      </div>
+      <div class="row commands">
+        <button data-command="move">Go There</button>
+        <button data-command="cover">Take Cover</button>
+        <button data-command="ranged">Stay Ranged</button>
+        <button data-command="projectile">Projectile</button>
+        <button data-command="cqc">CQC / Hand to Hand</button>
+        <button data-command="sword">Use Blade</button>
+        <button data-command="grenade">Grenade</button>
+        <button data-command="disarm">Disarm</button>
+      </div>
+      <section id="labControls" class="lab-controls hidden">
+        <h2>CQC Lab</h2>
+        <p class="hint">Controlled close-quarter combat lab. Auto runs continuous CQC. Manual buttons test one move, range, hitboxes, reactions, sweeps, mounts, knife threats, and disarms.</p>
+        <div class="row lab-grid">
+          <button data-lab-action="auto">Auto</button>
+          <button data-lab-action="guard">Guard</button>
+          <button data-lab-action="jab">Jab</button>
+          <button data-lab-action="cross">Cross</button>
+          <button data-lab-action="body_shot">Body Shot</button>
+          <button data-lab-action="elbow">Elbow</button>
+          <button data-lab-action="knee">Knee</button>
+          <button data-lab-action="kick">Kick</button>
+          <button data-lab-action="sweep">Sweep</button>
+          <button data-lab-action="trip">Trip</button>
+          <button data-lab-action="block">Block</button>
+          <button data-lab-action="parry">Parry</button>
+          <button data-lab-action="slip_left">Slip Left</button>
+          <button data-lab-action="slip_right">Slip Right</button>
+          <button data-lab-action="step_back">Step Back</button>
+          <button data-lab-action="grab">Grab</button>
+          <button data-lab-action="throw">Throw</button>
+          <button data-lab-action="headbutt">Headbutt</button>
+          <button data-lab-action="knife_attack">Knife</button>
+          <button data-lab-action="gun_butt">Gun Butt</button>
+          <button data-lab-action="disarm">Disarm</button>
+          <button data-lab-action="mount">Mount</button>
+          <button data-lab-action="escape_mount">Escape Mount</button>
+          <button data-lab-action="ground_punch">Ground Punch</button>
+          <button data-lab-action="ground_knife">Ground Knife</button>
+          <button data-lab-action="limb_grab">Limb Grab</button>
+          <button data-lab-action="jump_attack">Jump Attack</button>
+          <button data-lab-action="slowmo">Slow Mo</button>
+          <button data-lab-action="reset">Reset</button>
+        </div>
+      </section>
+      <p id="dropHint" class="hint">No direct control. Pick an ethos or leave it on AI Choice. Commands are opportunity calls, not possession. Double tap the site for an urgent run-there call. Extraction forfeits the match but saves the fighter.</p>
+      <section id="hud"></section>
+      <ol id="log" class="log"></ol>
+    </aside>
+  </main>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
