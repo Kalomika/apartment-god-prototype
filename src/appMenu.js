@@ -1,7 +1,7 @@
 import { handleBuildRequest } from './buildRequests.js';
 import { startObjectAction, startOffsite } from './actions.js';
 import { assignCareer, CAREER_TRACKS, careerFor, quitCareer, trackForCareer, workDueText } from './careerSystem.js';
-import { bookCalendarTravel, bookingTimeLabel, calendarDateLabel, calendarMenuRows, skipToBooking, vacationOptions } from './calendarSystem.js';
+import { bookCalendarTravel, bookingCostLabel, bookingTimeLabel, calendarDateLabel, calendarMenuRows, cancelBooking, rescheduleBooking, skipToBooking, updateBookingDestination, updateBookingDuration, vacationOptions } from './calendarSystem.js';
 import { startCookingFlow } from './cooking.js';
 import { orderFood, buyWorkoutGear } from './economy.js';
 import { relationshipLabel, relationshipSummary } from './reactionSystem.js';
@@ -69,14 +69,55 @@ export function openDeviceHome(state, actor, openMenu) {
   };
   const eventDetailMenu = booking => cell(`Event: ${booking.label}`, [
     { label: `When: ${bookingTimeLabel(booking)}`, run: () => eventDetailMenu(booking) },
+    { label: bookingCostLabel(booking), run: () => eventDetailMenu(booking) },
     { label: `Status: ${booking.status}`, run: () => eventDetailMenu(booking) },
-    { label: 'Skip to this event?', run: () => confirmSkipMenu(booking) },
+    { label: 'Skip to this event...', run: () => confirmSkipMenu(booking) },
+    { label: 'Reschedule event...', run: () => rescheduleMenu(booking) },
+    { label: 'Update event...', run: () => updateEventMenu(booking) },
+    { label: 'Cancel event', run: () => cancelEventMenu(booking) },
     { label: 'Back to Calendar', run: calendarMenu }
   ]);
   const confirmSkipMenu = booking => cell('Skip time?', [
     { label: `Yes, skip to ${bookingTimeLabel(booking)}`, run: () => skipToBooking(state, actor, booking.id) },
     { label: 'No, stay here', run: () => eventDetailMenu(booking) }
   ]);
+  const cancelEventMenu = booking => cell('Cancel event?', [
+    { label: `Yes, cancel ${booking.label}`, run: () => cancelBooking(state, actor, booking.id) },
+    { label: 'No, keep event', run: () => eventDetailMenu(booking) }
+  ]);
+  const rescheduleMenu = booking => cell('Reschedule event', [
+    { label: 'In 10 minutes', run: () => rescheduleBooking(state, actor, booking.id, { minute: (state.time || 0) + 10 }) },
+    { label: 'Tonight 7 PM', run: () => rescheduleBooking(state, actor, booking.id, { daysFromNow: 0, hour: 19 }) },
+    { label: 'Tomorrow 10 AM', run: () => rescheduleBooking(state, actor, booking.id, { daysFromNow: 1, hour: 10 }) },
+    { label: 'Tomorrow 7 PM', run: () => rescheduleBooking(state, actor, booking.id, { daysFromNow: 1, hour: 19 }) },
+    { label: 'Back to Event', run: () => eventDetailMenu(booking) }
+  ]);
+  const updateEventMenu = booking => {
+    const vacation = String(booking.actionId || '').startsWith('vacation_');
+    const items = vacation ? [
+      { label: 'Change vacation spot...', run: () => vacationUpdateMenu(booking) },
+      { label: 'Change trip length...', run: () => durationUpdateMenu(booking) },
+      { label: 'Back to Event', run: () => eventDetailMenu(booking) }
+    ] : [
+      { label: 'Only vacations support length and spot updates right now', run: () => eventDetailMenu(booking) },
+      { label: 'Back to Event', run: () => eventDetailMenu(booking) }
+    ];
+    cell('Update Event', items);
+  };
+  const durationUpdateMenu = booking => {
+    const base = Math.max(90, Math.round((booking.duration || 120) / 10) * 10);
+    cell('Trip Length', [
+      { label: 'Standard length', run: () => updateBookingDuration(state, actor, booking.id, base) },
+      { label: 'Longer trip, plus 1 hour', run: () => updateBookingDuration(state, actor, booking.id, base + 60) },
+      { label: 'Long vacation, plus 2 hours', run: () => updateBookingDuration(state, actor, booking.id, base + 120) },
+      { label: 'Extended vacation, plus 3 hours', run: () => updateBookingDuration(state, actor, booking.id, base + 180) },
+      { label: 'Back to Update Event', run: () => updateEventMenu(booking) }
+    ]);
+  };
+  const vacationUpdateMenu = booking => cell('Vacation Spots', vacationOptions().map(destination => ({
+    label: `${destination.label}`,
+    run: () => updateBookingDestination(state, actor, booking.id, destination.id)
+  })).concat([{ label: 'Back to Update Event', run: () => updateEventMenu(booking) }]));
   const bookingMenu = (label, actionId) => cell(`Book ${label}`, [
     { label: 'In 10 minutes', run: () => bookCalendarTravel(state, actor, actionId, { minute: (state.time || 0) + 10 }) },
     { label: 'Tonight 7 PM', run: () => bookCalendarTravel(state, actor, actionId, { daysFromNow: 0, hour: 19 }) },
@@ -85,7 +126,7 @@ export function openDeviceHome(state, actor, openMenu) {
   ]);
   const tripMenu = () => cell('Book Trip / Flight', vacationOptions().map(destination => ({
     label: `${destination.label}: Tomorrow 9 AM`,
-    run: () => bookCalendarTravel(state, actor, destination.id, { daysFromNow: 1, hour: 9 }, { label: destination.label })
+    run: () => bookCalendarTravel(state, actor, destination.id, { daysFromNow: 1, hour: 9 }, { label: destination.label, duration: destination.duration })
   })));
   openMenu(660, 86, 'Cell', [
     { label: 'Food / Delivery', run: foodMenu },
