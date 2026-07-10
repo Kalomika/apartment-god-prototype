@@ -7,6 +7,7 @@ import { getObject, getStairExit, roomAt } from './world.js';
 import { commandObject, commandSocial } from './movement.js';
 import { applyOffsiteRewards, canAffordTravel, destinationFor, isDestinationOpen, payForTravel, updateOffsiteJob } from './travelLocations.js';
 import { updateInvestments } from './investmentSystem.js';
+import { updateReactionWorld } from './reactionSystem.js';
 import { startMiniSoccerAtField, startSoccerPracticeAtField } from './soccerSystem.js';
 
 function isTimedBusy(actor) {
@@ -145,6 +146,7 @@ export function updateActions(state, dt) {
     if (e.actionT > 0) { e.actionT -= dt; if (e.actionT <= 0) finishAction(state, e); }
     if (!e.path?.length && !e.target && !e.actionT && e.queuedTask) runQueuedTask(state, e);
   }
+  updateReactionWorld(state, dt);
   updateInvestments(state, dt);
   if (state.offsite) { state.time += dt * 22; if (updateOffsiteJob(state, dt)) finishOffsite(state); }
   state.tv.pulse += dt;
