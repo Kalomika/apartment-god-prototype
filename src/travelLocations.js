@@ -73,11 +73,14 @@ export function payForTravel(state, destination) {
 export function createOffsiteJob(actionId, partyIds, vehicleId = 'car_1') {
   const destination = destinationFor(actionId);
   const vacation = actionId.startsWith('vacation_');
+  const duration = destination?.duration ?? 30;
   return {
     actionId,
     destinationId: destination?.id || actionId,
     label: destination?.label || actionId.replaceAll('_', ' '),
-    t: destination?.duration ?? 30,
+    t: duration,
+    baseDuration: duration,
+    bookedDuration: duration,
     actors: partyIds,
     vehicleId,
     stage: vacation ? 'plane' : 'activity',
@@ -113,7 +116,8 @@ export function updateOffsiteJob(state, dt) {
     return false;
   }
   job.t -= dt;
-  job.progress = 1 - Math.max(0, job.t) / Math.max(1, destinationFor(job.actionId)?.duration || 30);
+  const duration = Math.max(1, job.bookedDuration || job.baseDuration || destinationFor(job.actionId)?.duration || 30);
+  job.progress = 1 - Math.max(0, job.t) / duration;
   if (job.t > 0) return false;
   if (job.vacation && !job.returning) {
     job.returning = true;
