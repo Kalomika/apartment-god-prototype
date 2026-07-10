@@ -312,3 +312,43 @@ This is a same level camera and layout extension. It should remain isolated from
 
 Follow ups:
 Add sprite asset manifest and one Resident or Test Subject sprite fallback path inside the lab only. Add pose specific lab actions after the lab is confirmed stable.
+
+---
+
+## 2026-07-09 09:15 PM CT, First Playable Career System Slice
+
+Status: NEEDS_TESTING
+Branch: phaser-migration
+Commit: career system c08fc576557ab7cac27f2da34a7d671c1e434128, state ce7a1c30d63f592e56ec3008319cfe37cb5e8538, travel rewards 81acdb3d6dd37f1b7ff058e3f5f22ad353742af7, phone menu d020191d87ca82fc75d639456b389b896d33858c, autonomy b857424a4e6a29a72f60fb1d3e05f8286927a586 and trait hardening current sha 434f38f4b91581f6858ac1e745c7d88c2f1f0303, HUD ecf29d3413edfae404b5554c66403e494e36c9b3
+Files changed: src/careerSystem.js, src/state.js, src/travelLocations.js, src/appMenu.js, src/autonomy.js, src/ui.js, apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: no
+Backup branch: backup/phaser-migration-before-career-system-2026-07-09
+
+Summary:
+Implemented the first playable career system slice so work is no longer only a generic offsite action. Careers now have tracks, schedules, per character assignments, pay, XP, promotions, fatigue effects, perks, phone access, HUD status, and autonomy hooks that can send characters to scheduled shifts.
+
+Implementation details:
+
+- Added `src/careerSystem.js` with career tracks for Storyboard Artist, Remote Support Lead, Movie Theater Crew, Airline Ground Crew, and Freelance Animator.
+- Added per character career state under `state.careers.people` with Resident defaulting to Storyboard Artist and Girlfriend defaulting to Remote Support Lead.
+- Added career pay, XP, level, shifts worked, last worked day, last pay, and promotion thresholds.
+- Added career effects on energy, stamina, fun, freshness, and social after a shift.
+- Added career perks for movie tickets, airline standby vacation tickets, and creative fun relief.
+- Updated work offsite rewards to call career completion instead of the old generic work perk function.
+- Added phone Career / Work menu with current status, Work Shift Now, Quit Job, and Apply options for all available tracks.
+- Added HUD career line for the selected person showing role, level, XP, and last pay.
+- Added autonomy logic so employed people can leave for scheduled shifts if their needs are not critically low and they are not already busy.
+- Hardened autonomy trait checks so existing object shaped traits still work when career scheduling runs.
+
+Testing performed:
+Code inspection through GitHub file review. Confirmed `src/autonomy.js` contains the scheduled work hook and hardened trait helper after the final write. No local or Render browser test performed in this chat.
+
+Testing requested:
+After main is updated for Render testing, open https://apartment-god-phaser.onrender.com. Test boot, Cell > Career / Work, Apply job, Work Shift Now, vehicle departure, offsite work completion, vehicle return, money increase, HUD career status, XP gain, promotion after repeated shifts, and that remaining home characters stay playable when one person leaves for work.
+
+Known risks:
+This touches autonomy, phone menu, offsite rewards, state shape, and HUD. Browser boot has not been verified. Reset and old saves may need normalization if saved career data is missing or stale, though `ensureCareers` is designed to normalize career state when accessed.
+
+Follow ups:
+Add missed shift warnings, job loss risk, work from laptop, interview/application consequences, job specific thoughts, work stress, remote work at desk, sick days, PTO, and clearer schedule alerts.
