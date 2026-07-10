@@ -8,9 +8,9 @@ Commit: see current PR head for exact latest SHA after log-only commits.
 
 Previous terrain commit: `a6c36dd311dd102f9da803eae1d03625d07eab67`
 
-Render URL: use the current PR head short SHA.
+Render URL: use the current PR head short SHA after deployment.
 
-Status: Emergency Top Shot CI failure audit completed. Automatic GitHub Actions email spam remains paused through manual-only workflow dispatch. Core simulation state, navmesh, wound handling, and battle-loop invariants were hardened against invalid fighter state and stuck finish conditions.
+Status: Broad audit pass completed across Top Shot plus shared/root prototype tooling. Automatic GitHub Actions email spam remains paused through manual-only workflow dispatch. Top Shot simulation, combat, routing, state creation, record keeping, and smoke invariants were hardened. Root and Top Shot dev servers were tightened against path traversal and malformed URL requests. Apartment God HUD rendering was moved away from unsafe user-influenced `innerHTML` paths.
 
 ## Completed
 
@@ -22,10 +22,19 @@ Status: Emergency Top Shot CI failure audit completed. Automatic GitHub Actions 
 - [x] Kept `Top Shot Checks` available through manual `workflow_dispatch`.
 - [x] Hardened shared numeric utilities against `NaN`, non-finite angles, invalid clamp inputs, empty choice arrays, and invalid rectangle checks.
 - [x] Hardened navmesh waypoint and nearest-open selection against invalid destination coordinates.
+- [x] Hardened movement routing against invalid points, malformed cached routes, malformed clear-line distances, and `flankSide` becoming `NaN`.
+- [x] Hardened combat move selection so empty filtered pools cannot crash melee execution.
+- [x] Hardened projectile, hit, shove, suppression, counter, disarm, and bleed combat paths against missing stats/resources and invalid numbers.
 - [x] Hardened wound and bleed handling against invalid severity, invalid bleed pools, invalid HP drain, and half-dead active fighters.
 - [x] Reworked the battle loop to sanitize fighter coordinates, HP, elevation, resources, command targets, nav targets, and grapple targets before and after major simulation systems.
 - [x] Wired `updatePhysicality` into the main battle loop so the existing contact/debris system is no longer orphaned.
 - [x] Updated finish logic so defeated fighters no longer count as active fighters and cannot stall a match forever.
+- [x] Hardened Top Shot state creation against invalid archetype IDs and non-finite clocks in logs.
+- [x] Fixed Top Shot record selection so defeated fighters are not treated as winners.
+- [x] Strengthened `top-shot/tests/simSmoke.js` to assert state integrity every deployment and live simulation tick, including fighter, command, route, grapple, and projectile values.
+- [x] Hardened root and Top Shot dev servers against path traversal, malformed URL encoding, and missing content-type protection.
+- [x] Made root `npm run check` recurse through `src`, `scripts`, and optional `tests`, matching the stricter Top Shot check approach.
+- [x] Reworked Apartment God HUD and log rendering to avoid user-influenced `innerHTML` injection paths.
 
 ## Completed earlier
 
