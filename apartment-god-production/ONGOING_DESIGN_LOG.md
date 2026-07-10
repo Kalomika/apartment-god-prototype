@@ -352,3 +352,42 @@ This touches autonomy, phone menu, offsite rewards, state shape, and HUD. Browse
 
 Follow ups:
 Add missed shift warnings, job loss risk, work from laptop, interview/application consequences, job specific thoughts, work stress, remote work at desk, sick days, PTO, and clearer schedule alerts.
+
+---
+
+## 2026-07-09 09:45 PM CT, Animated Reaction and Relationship First Slice
+
+Status: NEEDS_TESTING
+Branch: phaser-migration
+Commit: reaction system 5cf2c744771f7729a08beb14911e40e5b75ff079, reaction lookup fix ed5e3d67cad27b95f4ea59bd3fb91dfeb38e34a0, actions e7ff6a654f49133f32d508fb1c120926bf77765f, phone relationship menu 580045e2db34978901fac6840eb63f5ee5682463, reaction renderer 82b26a500925a514e5a991ca1fabbe59b23f9219
+Files changed: src/reactionSystem.js, src/actions.js, src/appMenu.js, src/renderEntities.js, apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: no
+Backup branch: backup/phaser-migration-before-reaction-relationship-system-2026-07-09
+
+Summary:
+Added the first additive reaction and relationship layer so characters can show animated emotional reactions instead of only text or emoji bubbles.
+
+Implementation details:
+
+- Added `src/reactionSystem.js` with relationship normalization, vibe, beef, annoyance, privacy comfort, and recent reason fields.
+- Added privacy scanning for shower, toilet, and intimacy style actions when another person enters the same room.
+- Added noise annoyance scanning for TV, music, stereo, treadmill, heavy bag, game, console, and arcade activity near tired or sleeping people.
+- Added relationship adjustments when a character reacts to privacy intrusion or noise.
+- Added speech style reaction bursts for more assertive reactions and thought bubble style reactions for timid or softer reactions.
+- Added special softer privacy behavior between Resident and Girlfriend when vibe is not hostile.
+- Added animated comic reaction bubbles in `renderEntities.js`, including jagged cuss burst and thought cloud versions with pulsing symbol motion.
+- Added a phone Relationships menu that lists Vibing and Beefing entries with vibe, beef, annoyance, and recent reason.
+- Hooked reaction updates into the existing `updateActions` tick so this layer sits on top of current actions, movement, jobs, and autonomy.
+
+Testing performed:
+Code inspection only through GitHub file review. Confirmed the renderer imports were not changed and the reaction tick is imported in `actions.js`. No local or Render browser test performed in this chat.
+
+Testing requested:
+After main is updated for Render testing, open https://apartment-god-phaser.onrender.com. Test boot, Cell > Relationships, one character showering while another enters the bathroom, someone sleeping while another uses TV or music nearby, and check whether animated burst or thought bubbles appear without breaking movement or actions.
+
+Known risks:
+This touches renderEntities and actions tick, so browser boot must be verified. Privacy detection depends on current room boxes, so bathroom reactions may need tuning if rooms are too broad or too narrow. Noise reactions are intentionally light but may need rate limiting if they feel spammy.
+
+Follow ups:
+Add more personality traits, explicit apology actions, relationship driven command resistance, dog loyalty, favorite object irritation, relationship history cards, and non symbol custom emotional animation sets.
