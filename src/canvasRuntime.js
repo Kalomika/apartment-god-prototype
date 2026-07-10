@@ -54,7 +54,7 @@ function applyPoseOrientation(entity) {
   const action = String(entity.action || '').toLowerCase();
   const pose = String(entity.pose || '').toLowerCase();
   const bedPose = pose === 'sleep' || action.includes('sleep') || action.includes('nap') || action.includes('bed together') || action.includes('waking up') || action.includes('king bed');
-  if (bedPose) entity.lastHeading = Math.PI / 2;
+  if (bedPose) entity.lastHeading = 0;
 }
 
 function cleanupStaleActorState(entity) {
@@ -127,6 +127,7 @@ export function bootCanvasGame() {
         updateRefreshAutosave(state, rawDt);
       }
 
+      if (state.calendar?.skipRecap?.visibleT > 0) state.calendar.skipRecap.visibleT -= rawDt;
       draw(ctx, state);
       ui.renderHud();
     } catch (error) {
