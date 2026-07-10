@@ -3,6 +3,7 @@ import { startObjectAction, startOffsite } from './actions.js';
 import { assignCareer, CAREER_TRACKS, careerFor, quitCareer, trackForCareer, workDueText } from './careerSystem.js';
 import { startCookingFlow } from './cooking.js';
 import { orderFood, buyWorkoutGear } from './economy.js';
+import { relationshipLabel, relationshipSummary } from './reactionSystem.js';
 import { startMusic } from './music.js';
 import { objects } from './world.js';
 
@@ -37,9 +38,22 @@ export function openDeviceHome(state, actor, openMenu) {
     for (const option of CAREER_TRACKS) items.push({ label: `Apply: ${option.label} (${option.scheduleLabel})`, run: () => assignCareer(state, actor, option.id) });
     cell('Career / Work', items);
   };
+  const relationshipMenu = () => {
+    const summary = relationshipSummary(state, actor);
+    const items = [];
+    const addRows = (label, rows) => {
+      if (!rows.length) items.push({ label: `${label}: none yet`, run: relationshipMenu });
+      for (const row of rows) items.push({ label: `${label}: ${relationshipLabel(state, actor, row.id)}`, run: relationshipMenu });
+    };
+    addRows('Vibing', summary.vibing);
+    addRows('Beefing', summary.beefing);
+    if (!items.length) items.push({ label: 'No relationship reads yet', run: relationshipMenu });
+    cell('Relationships', items);
+  };
   openMenu(660, 86, 'Cell', [
     { label: 'Food / Delivery', run: foodMenu },
     { label: 'Career / Work', run: careerMenu },
+    { label: 'Relationships', run: relationshipMenu },
     { label: 'Shop / Build Items', run: shopMenu },
     { label: 'Music Apps', run: musicMenu }
   ]);
