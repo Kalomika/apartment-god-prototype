@@ -116,7 +116,7 @@ export function resolveArrival(state, entity) {
 function queuePartnerForSharedAction(state, entity, actionId, obj) {
   const partner = state.entities.find(e => e.id !== entity.id && e.type === 'person' && !e.hidden && e.floor === entity.floor);
   if (!partner) { say(entity, 'rn?'); log(state, `${entity.name} needs someone nearby for ${actionId.replaceAll('_', ' ')}.`); return false; }
-  const decision = canInviteeJoin(state, entity, partner);
+  const decision = canInviteeJoin(entity, partner);
   if (!decision.ok) {
     if (decision.heard) say(partner, 'not rn');
     say(entity, 'rn?');
@@ -126,7 +126,7 @@ function queuePartnerForSharedAction(state, entity, actionId, obj) {
   say(partner, 'yeah'); entity.action = `Waiting for ${partner.name}`; entity.actionT = 0; entity.pose = 'stand'; commandSocial(partner, entity, actionId); log(state, `${partner.name} agreed to join ${entity.name} at ${obj.label}.`); return true;
 }
 
-function canInviteeHearInvite(state, actor, invitee, options = {}) {
+function canInviteeHearInvite(actor, invitee, options = {}) {
   if (options.viaPhone) return { heard: true, reason: 'phone invite' };
   if (invitee.floor !== actor.floor) return { heard: false, reason: 'on another floor' };
   const distance = Math.hypot((invitee.x || 0) - (actor.x || 0), (invitee.y || 0) - (actor.y || 0));
@@ -141,8 +141,8 @@ function canInviteeHearInvite(state, actor, invitee, options = {}) {
   return { heard: false, reason: 'too far away' };
 }
 
-function canInviteeJoin(state, actor, invitee, options = {}) {
-  const hearing = canInviteeHearInvite(state, actor, invitee, options);
+function canInviteeJoin(actor, invitee, options = {}) {
+  const hearing = canInviteeHearInvite(actor, invitee, options);
   if (!hearing.heard) return { ok: false, heard: false, reason: hearing.reason };
   const current = String(invitee.action || '').toLowerCase();
   if (current.includes('shower')) return { ok: false, heard: true, reason: 'showering' };
@@ -237,7 +237,7 @@ function buildParty(state, actor, invitedIds, actionId) {
     const e = byId(state, id);
     if (!e || e.id === actor.id || e.hidden) continue;
     if (e.type === 'dog' && !['errand', 'mall', 'date', 'movies', 'dog_park', 'vacation_camping', 'vacation_beach'].includes(actionId)) { log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}: not allowed for that destination.`); continue; }
-    const decision = canInviteeJoin(state, actor, e);
+    const decision = canInviteeJoin(actor, e);
     if (!decision.ok) {
       if (decision.heard) say(e, 'not rn');
       log(state, decision.heard ? `${e.name} declined ${actionId.replaceAll('_', ' ')}: ${decision.reason}.` : `${e.name} could not hear the ${actionId.replaceAll('_', ' ')} invite: ${decision.reason}.`);
