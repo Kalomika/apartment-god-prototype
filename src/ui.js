@@ -27,10 +27,14 @@ export function createUi(state, canvas) {
     return { x: (event.clientX - rect.left) * (canvas.width / rect.width), y: (event.clientY - rect.top) * (canvas.height / rect.height) };
   }
 
-  function closeMenu() { menu.classList.add('hidden'); menu.innerHTML = ''; state.menu = null; }
+  function clearElement(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+  function closeMenu() { menu.classList.add('hidden'); clearElement(menu); state.menu = null; }
 
   function openMenu(x, y, title, items) {
-    menu.innerHTML = `<h3>${title}</h3>`;
+    clearElement(menu);
+    const heading = document.createElement('h3');
+    heading.textContent = title;
+    menu.appendChild(heading);
     for (const item of items) {
       const button = document.createElement('button');
       button.textContent = item.label;
@@ -155,7 +159,7 @@ export function createUi(state, canvas) {
     document.getElementById('speed-3').onclick = () => { state.speed = 3; };
     document.getElementById('pause').onclick = () => { state.paused = !state.paused; };
     document.getElementById('reset').onclick = () => location.reload();
-    commandPanel.innerHTML = '';
+    clearElement(commandPanel);
     const buttons = [
       ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))],
       ['Phone: Food', () => orderFood(state, selected(state), false)], ['Phone: Workout', () => buyWorkoutGear(state, selected(state))], ['Phone: Music', () => phoneMusic(selected(state))],
@@ -169,18 +173,62 @@ export function createUi(state, canvas) {
     }
   }
 
+  function renderNeeds(actor) {
+    clearElement(needs);
+    for (const [key, label] of NEEDS) {
+      const value = Math.max(0, Math.min(100, Math.round(actor.needs[key] ?? 0)));
+      const row = document.createElement('div');
+      row.className = 'need-row';
+      const labelSpan = document.createElement('span');
+      labelSpan.textContent = label;
+      const bar = document.createElement('div');
+      bar.className = 'need-bar';
+      const fill = document.createElement('div');
+      fill.className = 'need-fill';
+      fill.style.width = `${value}%`;
+      const valueSpan = document.createElement('span');
+      valueSpan.textContent = String(value);
+      bar.appendChild(fill);
+      row.append(labelSpan, bar, valueSpan);
+      needs.appendChild(row);
+    }
+  }
+
+  function renderWorldState() {
+    clearElement(worldState);
+    const lines = [
+      `Clock: ${formatTime(state.time)}`,
+      `Floor: ${state.floor + 1}`,
+      `View hold: ${Math.ceil(state.viewHoldT || 0)}s`,
+      `Speed: ${state.speed}x`,
+      `Money: $${Math.round(state.money ?? 0)}`,
+      `Autonomy: ${state.autonomyMode}`
+    ];
+    if (state.music) lines.push(`Music: ${state.music.genre}`);
+    if (state.buildPick) lines.push(`Build: tap ${state.buildPick.label} spot`);
+    lines.push(`Electric bill: $${Math.max(0, Math.round(state.bill))}`);
+    for (const line of lines) {
+      worldState.appendChild(document.createTextNode(line));
+      worldState.appendChild(document.createElement('br'));
+    }
+  }
+
+  function renderLog() {
+    clearElement(logEl);
+    for (const item of state.notifications) {
+      const li = document.createElement('li');
+      li.textContent = item;
+      logEl.appendChild(li);
+    }
+  }
+
   function renderHud() {
     const actor = selected(state);
     selectedName.textContent = actor.name;
     currentAction.textContent = actor.action || 'Idle';
-    needs.innerHTML = NEEDS.map(([key, label]) => {
-      const value = Math.round(actor.needs[key] ?? 0);
-      return `<div class="need-row"><span>${label}</span><div class="need-bar"><div class="need-fill" style="width:${value}%"></div></div><span>${value}</span></div>`;
-    }).join('');
-    const music = state.music ? `<br>Music: ${state.music.genre}` : '';
-    const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : '';
-    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>Floor: ${state.floor + 1}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}${music}${build}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
-    logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
+    renderNeeds(actor);
+    renderWorldState();
+    renderLog();
   }
 
   canvas.addEventListener('click', handleCanvasClick);
