@@ -4,6 +4,7 @@ import { drawWorld } from './renderWorld.js';
 import { drawObjects } from './renderObjects.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
+import { drawAfterEntityOverlays } from './afterEntityOverlays.js';
 import { drawOffsiteScene } from './offsiteScenes.js';
 import { drawSoccer } from './soccerSystem.js';
 import { syncPhoneUi } from './phoneUI.js';
@@ -55,6 +56,7 @@ function drawScene(ctx, state) {
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
+  drawAfterEntityOverlays(ctx, state);
   drawPoolFx(ctx, state);
   drawCarriedItems(ctx, state);
 }
