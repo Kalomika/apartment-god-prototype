@@ -1,5 +1,5 @@
 import { destinationFor, VACATION_DESTINATIONS } from './travelLocations.js';
-import { log, say } from './state.js';
+import { changeNeed, log, say } from './state.js';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = ['Dawn', 'Bloom', 'Ember', 'Rain', 'Suncrest', 'Harvest', 'Gold', 'Shadow', 'Hearth', 'Frost', 'Star', 'Renewal'];
@@ -178,6 +178,72 @@ export function markBookingStatus(state, bookingId, status) {
     state.calendar.history = state.calendar.history.slice(0, 24);
   }
   return booking;
+}
+
+export function findBooking(state, bookingId) {
+  ensureCalendar(state);
+  const booking = state.calendar.bookings.find(b => b.id === bookingId);
+  return booking ? normalizeBooking(booking) : null;
+}
+
+export function skipToBooking(state, actor, bookingId) {
+  ensureCalendar(state);
+  const booking = findBooking(state, bookingId);
+  if (!booking || booking.status !== 'scheduled') {
+    log(state, 'That calendar event is no longer available.');
+    if (actor) say(actor, 'NOPE');
+    return false;
+  }
+  if (state.offsite || state.vehicleDeparture || state.vehicleReturn) {
+    log(state, 'Cannot skip time while the household is already traveling.');
+    if (actor) say(actor, 'WAIT');
+    return false;
+  }
+  const now = state.time || 0;
+  const delta = booking.startMinute - now;
+  if (delta <= 0) {
+    log(state, `${booking.label} is already due now.`);
+    if (actor) say(actor, 'NOW');
+    return true;
+  }
+  applyTimeSkipConsequences(state, delta);
+  state.time = booking.startMinute;
+  state.viewHoldT = 0;
+  log(state, `Skipped ${skipDurationText(delta)} to ${booking.label}.`);
+  if (actor) say(actor, 'SKIP');
+  return true;
+}
+
+function applyTimeSkipConsequences(state, skippedMinutes) {
+  const hours = Math.max(0, skippedMinutes / 60);
+  for (const entity of state.entities || []) {
+    if (!entity || entity.hidden || entity.labOnly || !entity.needs) continue;
+    const sleepish = String(entity.pose || '').includes('sleep') || String(entity.action || '').toLowerCase().includes('sleep');
+    const dog = entity.type === 'dog';
+    changeNeed(entity, 'hunger', -(dog ? .24 : .34) * hours);
+    changeNeed(entity, 'bladder', -(dog ? .18 : .44) * hours);
+    changeNeed(entity, 'freshness', -(dog ? .08 : .12) * hours);
+    changeNeed(entity, 'fun', -.08 * hours);
+    if (sleepish) {
+      changeNeed(entity, 'energy', .9 * hours);
+      changeNeed(entity, 'stamina', .65 * hours);
+    } else {
+      changeNeed(entity, 'energy', -.18 * hours);
+      changeNeed(entity, 'stamina', -.1 * hours);
+    }
+  }
+}
+
+function skipDurationText(minutes) {
+  const rounded = Math.max(1, Math.round(minutes));
+  const days = Math.floor(rounded / 1440);
+  const hours = Math.floor((rounded % 1440) / 60);
+  const mins = rounded % 60;
+  const parts = [];
+  if (days) parts.push(`${days} day${days === 1 ? '' : 's'}`);
+  if (hours) parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
+  if (mins || !parts.length) parts.push(`${mins} minute${mins === 1 ? '' : 's'}`);
+  return parts.join(', ');
 }
 
 export function bookingTimeLabel(booking) {
