@@ -38,7 +38,8 @@ function drawEntity(ctx, e, selected) {
   ctx.restore();
 
   if (e.actionT > 0) drawActionBar(ctx, e);
-  if (e.bubble && e.bubbleT > 0) drawBubble(ctx, e.bubble);
+  if (e.reaction?.t > 0) drawReactionBubble(ctx, e.reaction, e.type);
+  if (e.bubble && e.bubbleT > 0) drawBubble(ctx, e.bubble, e.reaction?.style || 'speech');
   ctx.restore();
 }
 
@@ -395,7 +396,69 @@ function drawActionBar(ctx, e) {
   ctx.textAlign = 'left';
 }
 
-function drawBubble(ctx, text) { const w = Math.max(72, text.length * 12 + 24); roundRect(ctx, -w / 2, -86, w, 34, 12, '#f8fbff'); ctx.fillStyle = '#10141b'; ctx.font = '900 16px system-ui'; ctx.textAlign = 'center'; ctx.fillText(text, 0, -64); ctx.textAlign = 'left'; }
+function drawReactionBubble(ctx, reaction, entityType) {
+  const t = performance.now() / 1000;
+  const style = reaction.style || 'speech';
+  const type = reaction.type || 'emotion';
+  const pulse = Math.sin(t * 12) * 3;
+  const bob = Math.sin(t * 6) * 4;
+  const y = entityType === 'dog' ? -82 : -100;
+  const fill = style === 'thought' ? 'rgba(245,248,255,.90)' : 'rgba(255,248,225,.96)';
+  const stroke = type === 'privacy' ? '#ff75df' : type === 'noise' ? '#f1c66a' : '#74e6ff';
+  const symbols = type === 'privacy' || type === 'noise' ? ['#', '!', '@', '%', '?'] : ['!', '?', '…'];
+  ctx.save();
+  ctx.translate(0, y + bob);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = stroke;
+  ctx.fillStyle = fill;
+  if (style === 'thought') drawThoughtCloud(ctx, pulse);
+  else drawJaggedBurst(ctx, pulse);
+  ctx.fillStyle = '#10141b';
+  ctx.font = '900 16px system-ui';
+  ctx.textAlign = 'center';
+  symbols.forEach((symbol, index) => {
+    const x = -24 + index * 12 + Math.sin(t * 10 + index) * 2;
+    const yy = 5 + Math.cos(t * 8 + index) * 3;
+    ctx.fillText(symbol, x, yy);
+  });
+  ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+function drawJaggedBurst(ctx, pulse) {
+  ctx.beginPath();
+  const points = 16;
+  for (let i = 0; i < points; i++) {
+    const a = (i / points) * Math.PI * 2;
+    const r = (i % 2 ? 29 : 42) + pulse;
+    const x = Math.cos(a) * r;
+    const y = Math.sin(a) * r * .62;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+}
+
+function drawThoughtCloud(ctx, pulse) {
+  ell(ctx, -22, -1, 18 + pulse * .25, 13, 'rgba(245,248,255,.92)', '#74e6ff', 2);
+  ell(ctx, 0, -7, 22 + pulse * .25, 16, 'rgba(245,248,255,.92)', '#74e6ff', 2);
+  ell(ctx, 23, 0, 17 + pulse * .25, 13, 'rgba(245,248,255,.92)', '#74e6ff', 2);
+  ell(ctx, -17, 29, 5, 4, 'rgba(245,248,255,.85)', '#74e6ff', 1.5);
+  ell(ctx, -30, 40, 3.5, 3, 'rgba(245,248,255,.80)', '#74e6ff', 1);
+}
+
+function drawBubble(ctx, text, style = 'speech') {
+  const w = Math.max(72, text.length * 12 + 24);
+  const fill = style === 'thought' ? '#eef7ff' : '#f8fbff';
+  roundRect(ctx, -w / 2, -86, w, 34, 12, fill);
+  ctx.fillStyle = '#10141b';
+  ctx.font = '900 16px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, 0, -64);
+  ctx.textAlign = 'left';
+}
 function ell(ctx, x, y, rx, ry, fill, stroke, lineWidth) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke && lineWidth > 0) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth; ctx.stroke(); } }
 function line(ctx, x1, y1, x2, y2, color, width = 2) { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
 function circle(ctx, x, y, r, color) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill(); }
