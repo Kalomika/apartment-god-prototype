@@ -36,6 +36,18 @@ export function startSoccerPracticeAtField(state, actor) {
   actor.y = clamp(actor.y || FIELD.y + FIELD.h * 0.68, FIELD.y + 46, FIELD.y + FIELD.h - 46);
   actor.path = [];
   actor.target = null;
+
+  if (actor.type === 'dog') {
+    actor.pose = 'dog_play_ball';
+    actor.action = 'Playing with soccer ball';
+    actor.actionT = 16;
+    actor.actionTotal = 16;
+    state.soccerGame = createDogBallPlay(actor);
+    say(actor, 'BALL');
+    log(state, `${actor.name} is playing with the soccer ball.`);
+    return true;
+  }
+
   actor.pose = 'soccer_kicking';
   actor.action = 'Soccer practice';
   actor.actionT = 16;
@@ -48,6 +60,7 @@ export function startSoccerPracticeAtField(state, actor) {
 
 export function startMiniSoccerAtField(state, actor) {
   if (!actor) return false;
+  if (actor.type === 'dog') return startSoccerPracticeAtField(state, actor);
   state.floor = FIELD.floor;
   state.viewHoldT = 18;
   const people = state.entities.filter(e => e.type === 'person' && !e.hidden);
@@ -89,9 +102,25 @@ function createSoccerGame(players, mode) {
   };
 }
 
+function createDogBallPlay(dog) {
+  return {
+    mode: 'dog_play',
+    floor: FIELD.floor,
+    playerIds: [dog.id],
+    names: [dog.name],
+    t: 0,
+    kickT: .45,
+    message: 'Dog ball play',
+    messageT: 2,
+    ball: { x: dog.x + 28, y: dog.y + 12, vx: 70, vy: -35 },
+    trail: []
+  };
+}
+
 export function updateSoccerGame(state, dt) {
   const game = state.soccerGame;
   if (!game) return;
+  if (game.mode === 'dog_play') return updateDogBallPlay(state, game, dt);
   const players = game.playerIds.map(id => state.entities.find(e => e.id === id)).filter(Boolean);
   if (!players.length || players.every(p => !String(p.action || '').toLowerCase().includes('soccer'))) { state.soccerGame = null; return; }
   game.t += dt;
@@ -102,6 +131,36 @@ export function updateSoccerGame(state, dt) {
   if (!game.winner && game.kickT <= 0) takeSoccerTurn(state, game, players);
   if (!game.winner && (game.t > (game.mode === 'match' ? 22 : 16) || totalShots(game) >= (game.mode === 'match' ? 10 : 8))) finishSoccer(state, game, players);
   if (game.winner && game.t > 28) state.soccerGame = null;
+}
+
+function updateDogBallPlay(state, game, dt) {
+  const dog = state.entities.find(e => e.id === game.playerIds?.[0]);
+  if (!dog || dog.hidden || !String(dog.action || '').toLowerCase().includes('soccer ball')) { state.soccerGame = null; return; }
+  game.t += dt;
+  game.kickT -= dt;
+  updateSoccerBall(game, dt);
+  const angle = game.t * 3.2;
+  dog.x = clamp(game.ball.x + Math.cos(angle) * 34, FIELD.x + 26, FIELD.x + FIELD.w - 26);
+  dog.y = clamp(game.ball.y + Math.sin(angle) * 28, FIELD.y + 32, FIELD.y + FIELD.h - 32);
+  dog.pose = 'dog_play_ball';
+  if (game.kickT <= 0) {
+    const dx = game.ball.x - dog.x;
+    const dy = game.ball.y - dog.y;
+    const mag = Math.max(1, Math.hypot(dx, dy));
+    game.ball.vx = dx / mag * 145 + Math.sin(game.t * 4) * 60;
+    game.ball.vy = dy / mag * 145 + Math.cos(game.t * 5) * 60;
+    game.kickT = .65;
+    say(dog, 'wo');
+  }
+  if (game.t > 16) {
+    changeNeed(dog, 'fun', 18);
+    changeNeed(dog, 'stamina', -8);
+    changeNeed(dog, 'freshness', -3);
+    setMood(dog, 'dog');
+    say(dog, 'BALL');
+    log(state, `${dog.name} finished playing with the soccer ball.`);
+    state.soccerGame = null;
+  }
 }
 
 function updateSoccerBall(game, dt) {
@@ -226,8 +285,19 @@ export function drawSoccer(ctx, state) {
   ctx.beginPath(); ctx.arc(ball.x, ball.y, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   ctx.strokeStyle = '#11151c'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(ball.x - 6, ball.y); ctx.lineTo(ball.x + 6, ball.y); ctx.moveTo(ball.x, ball.y - 6); ctx.lineTo(ball.x, ball.y + 6); ctx.stroke();
-  if (game) drawSoccerScore(ctx, game);
+  if (game && game.mode !== 'dog_play') drawSoccerScore(ctx, game);
+  if (game?.mode === 'dog_play') drawDogPlayLabel(ctx, game);
   ctx.restore();
+}
+
+function drawDogPlayLabel(ctx, game) {
+  ctx.fillStyle = 'rgba(8,10,15,.78)';
+  ctx.fillRect(FIELD.x + 20, FIELD.y + 18, 190, 40);
+  ctx.strokeStyle = 'rgba(241,198,106,.7)';
+  ctx.strokeRect(FIELD.x + 20, FIELD.y + 18, 190, 40);
+  ctx.fillStyle = '#f8fbff';
+  ctx.font = '900 13px system-ui';
+  ctx.fillText(`${game.names?.[0] || 'Dog'} playing ball`, FIELD.x + 32, FIELD.y + 43);
 }
 
 function drawGoal(ctx, goal) {
