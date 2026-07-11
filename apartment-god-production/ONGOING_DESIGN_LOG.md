@@ -248,7 +248,7 @@ Render playable branch updated: pending main mirror
 Backup branch: backup/phaser-migration-before-lived-in-activity-pass-2026-07-08
 
 Summary:
-Started the lived in activity pass so the house feels less like people are just walking around and more like time is passing through activities that occupy space and visually do something.
+Started the lived in activity pass so the house feels less like people are just walking around and more like time is passing through activities that occupy space and visually does something.
 
 Implementation details:
 
@@ -509,3 +509,40 @@ The branch contains runtime work after the development matrix backup point. This
 
 Follow ups:
 Use the matrix before the next gameplay run. Test the July 10 vehicle, clothing, world polish pass on mobile, then update the ongoing log and matrix with real browser results.
+
+---
+
+## 2026-07-11 05:25 AM CT, Top Down Visual Production Law Added
+
+Status: IMPLEMENTED
+Branch: phaser-migration
+Commit: matrix law 600cb8c167068d997671f97ee89b4d5adfef0b4d, reference README 474a45cfbf50fb1f82859f532231ac49b5bb9852, reference index f8c6e2330f70dc21a66bdeb1cc7a84af832b64d6, log sync current commit
+Files changed:
+apartment-god-production/DEVELOPMENT_MATRIX.md
+apartment-god-production/reference/README.md
+apartment-god-production/reference/external-reference-index.md
+apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: no
+Render playable branch updated: no
+Backup branch:
+backup/phaser-migration-before-development-matrix-2026-07-11
+
+Summary:
+Added a hard visual production law to the development matrix so future agents cannot treat Apartment God visuals as memory only, symbolic, crude, childish, side view contaminated, or good enough procedural guesswork.
+
+Implementation details:
+The matrix now defines true top down 2D production as a critical law. It defines crude design, childish design, top down anatomy, vehicle top down rules, car door and boarding expectations, bicycle and motorbike mounted rider expectations, ATV construction, dog soccer UI containment, reference based visual workflow, and a visual work preflight checklist. It also marks vehicles, dog soccer, camera snapping, dining placement, and vehicle top down compliance as needing correction.
+
+A visual reference archive folder was added under `apartment-god-production/reference/`. The archive README explains that reference material is study material, not runtime assets. The external reference index records Character Creator 2D, Modern by SmallScaleInt as an aesthetic and production reference for top down or angled top down 2D character quality, modular clothing, controllable outline, 8 direction animation discipline, vehicle and bike support, and adjustable animation frame rate.
+
+Testing performed:
+Documentation only. Verified the matrix was the right enforcement point because all future agents already read it during required preflight. No runtime files were changed and no browser test was needed.
+
+Testing requested:
+None for this documentation update. Future visual passes must use the matrix visual law and reference archive before implementation.
+
+Known risks:
+This does not fix the current runtime visual bugs by itself. It prevents the process failure from repeating, but the existing vehicle art, dog soccer UI behavior, camera snap, vehicle loop, bike rider pose, and dining placement still need a separate runtime correction pass.
+
+Follow ups:
+Run a focused runtime correction pass that moves the dining table down and right, removes or corrects side view vehicle wheel logic, restores or improves the older car readability, adds real vehicle boarding and exiting states, adds mounted bike and motorbike rider poses, hides dog soccer mini game UI, fixes camera snapping, and fixes parked vehicle redraw during departure.
