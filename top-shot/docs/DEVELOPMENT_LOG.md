@@ -2,6 +2,57 @@
 
 This file tracks meaningful Top Shot repo changes so future AI agents, Codex, Copilot, Grok, or human developers can continue from the repository instead of chat history.
 
+## 2026-07-11, Coverage matrix control board
+
+Tool or person: ChatGPT
+
+Branch: `top-shot-coverage-matrix`
+
+Backup branch: `backup/top-shot-v0-1-2026-07-11-coverage-matrix`
+
+Summary:
+
+- Added `top-shot/docs/COVERAGE_MATRIX.md` as the Top Shot feature, file, test, branch, risk, and next-action control board.
+- Wired the matrix into the required reading order in `top-shot/AGENTS.md`.
+- Updated the handbook to make matrix updates required when feature status, file ownership, branch status, known issues, PR status, risk, or test expectations change.
+- Updated the handoff so future agents know the matrix is now part of continuation protocol.
+- Updated the QA checklist so matrix freshness is part of stability and merge readiness.
+
+Files changed:
+
+- `top-shot/AGENTS.md`
+- `top-shot/docs/TOP_SHOT_HANDBOOK.md`
+- `top-shot/docs/HANDOFF.md`
+- `top-shot/docs/DEVELOPMENT_LOG.md`
+- `top-shot/docs/QA_CHECKLIST.md`
+- `top-shot/docs/COVERAGE_MATRIX.md`
+
+Systems affected:
+
+- Documentation and workflow only.
+- No runtime gameplay code changed.
+
+What was preserved:
+
+- Existing Top Shot runtime.
+- Stable branch workflow.
+- Starshot branch isolation.
+- Existing run, smoke, check, and build command expectations.
+
+Testing:
+
+- Not run. Documentation-only pass through GitHub file edits.
+
+Known risks:
+
+- The matrix is only useful if future agents keep it updated.
+- The matrix records current known status from docs and open PR metadata, but runtime behavior still needs local or browser verification.
+- PR #5 still documents a known `npm run smoke` failure with `Invalid fighter state`.
+
+Next recommended step:
+
+Use `COVERAGE_MATRIX.md` as the first stop before the next runtime change, then investigate the PR #5 smoke failure before declaring the stable branch merge ready.
+
 ## 2026-07-10, Repo memory and Starshot protocol scaffold
 
 Tool or person: ChatGPT
