@@ -29,31 +29,59 @@ Read these before any Top Shot task:
 9. Open PRs related to Top Shot
 10. The exact files to edit
 
-## Latest stable documentation pass
+## Latest Starshot pass
 
 Branch:
 
-`top-shot-v0-1`
+`top-shot-starshot-engine`
 
 Implemented:
 
-- Added Top Shot specific agent instructions.
-- Added full Top Shot handbook.
-- Added repo memory docs for handoff, development log, feature inventory, architecture, QA, and Starshot roadmap.
-- Preserved stable runtime. This pass is documentation only on the stable branch.
+- Added `top-shot/docs/STARSHOT_META_SYSTEM.md`.
+- Added the Starshot event bus scaffold.
+- Added the Starshot timing controller scaffold.
+- Added a unified actor runtime state derivation module.
+- Added a debug snapshot layer that can normalize actor state for overlays and tools.
+- Added an actor update pipeline scaffold with explicit profile, AI, combat, motion, animation, rendering, and debug stages.
+
+Files added in this pass:
+
+- `top-shot/docs/STARSHOT_META_SYSTEM.md`
+- `top-shot/src/starshot/eventBus.js`
+- `top-shot/src/starshot/timingController.js`
+- `top-shot/src/starshot/actorRuntimeState.js`
+- `top-shot/src/starshot/debugSnapshot.js`
+- `top-shot/src/starshot/actorUpdatePipeline.js`
+
+What changed in gameplay:
+
+- Nothing yet. This is a safe Phase 0 scaffold.
+- Existing match logic and CQC Lab were not intentionally modified.
+- The debug overlay has not yet been wired to the snapshot layer because existing runtime files were not updated in this pass.
 
 ## Current Starshot state
 
 `top-shot-starshot-engine` is intended for ambitious engine work.
 
-It currently inherits the debug overlay branch and has begun a first motion/animation slice. Treat it as experimental and not merge ready until checks run and browser behavior is verified.
+It inherits the debug overlay branch and has begun two major foundations:
 
-First Starshot slice files currently added on this branch:
+1. Phase 0 Meta-System scaffold.
+2. First motion/animation scaffold files.
+
+Existing first Starshot slice files:
 
 - `top-shot/src/three/animationState3D.js`
 - `top-shot/src/three/actorMotion3D.js`
 
-These files are scaffolding only until integrated and tested.
+Current Meta-System scaffold files:
+
+- `top-shot/src/starshot/eventBus.js`
+- `top-shot/src/starshot/timingController.js`
+- `top-shot/src/starshot/actorRuntimeState.js`
+- `top-shot/src/starshot/debugSnapshot.js`
+- `top-shot/src/starshot/actorUpdatePipeline.js`
+
+Treat this branch as experimental and not merge ready until checks run and browser behavior is verified.
 
 ## Important branches
 
@@ -95,6 +123,13 @@ npm run build
 - Collision debug toggles with `C`.
 - No console errors on start.
 - No obvious visual squashing.
+
+## Known current constraints
+
+- PR #5 notes a known smoke issue: `suit_operative vs survival_commando` can fail with `Invalid fighter state`.
+- PR #23, the debug overlay PR, remains open.
+- This environment did not run local `npm` checks.
+- Existing runtime files were not modified after the connector began returning PR payloads instead of target file contents, to avoid blind overwrites.
 
 ## Do not touch without explicit reason
 
