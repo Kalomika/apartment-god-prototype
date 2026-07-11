@@ -28,8 +28,7 @@ export function startMiniSoccer(state, actor) {
 
 export function startSoccerPracticeAtField(state, actor) {
   if (!actor) return false;
-  state.floor = FIELD.floor;
-  state.viewHoldT = 18;
+  focusIfSelected(state, actor, 18);
   actor.floor = FIELD.floor;
   actor.hidden = false;
   actor.x = clamp(actor.x || FIELD.x + FIELD.w * 0.5, FIELD.x + 40, FIELD.x + FIELD.w - 40);
@@ -40,8 +39,8 @@ export function startSoccerPracticeAtField(state, actor) {
   if (actor.type === 'dog') {
     actor.pose = 'dog_play_ball';
     actor.action = 'Playing with soccer ball';
-    actor.actionT = 16;
-    actor.actionTotal = 16;
+    actor.actionT = 18;
+    actor.actionTotal = 18;
     state.soccerGame = createDogBallPlay(actor);
     say(actor, 'BALL');
     log(state, `${actor.name} is playing with the soccer ball.`);
@@ -61,8 +60,7 @@ export function startSoccerPracticeAtField(state, actor) {
 export function startMiniSoccerAtField(state, actor) {
   if (!actor) return false;
   if (actor.type === 'dog') return startSoccerPracticeAtField(state, actor);
-  state.floor = FIELD.floor;
-  state.viewHoldT = 18;
+  focusIfSelected(state, actor, 18);
   const people = state.entities.filter(e => e.type === 'person' && !e.hidden);
   const players = people.length > 1 ? people.slice(0, 2) : [actor];
   players.forEach((p, i) => {
@@ -81,6 +79,12 @@ export function startMiniSoccerAtField(state, actor) {
   state.soccerGame = createSoccerGame(players, players.length > 1 ? 'match' : 'practice');
   log(state, players.length > 1 ? `${players.map(p => p.name).join(' and ')} started mini soccer.` : `${actor.name} started soccer practice.`);
   return true;
+}
+
+function focusIfSelected(state, actor, hold = 10) {
+  if (actor?.id !== state.selectedId) return;
+  state.floor = FIELD.floor;
+  state.viewHoldT = hold;
 }
 
 function createSoccerGame(players, mode) {
@@ -109,10 +113,10 @@ function createDogBallPlay(dog) {
     playerIds: [dog.id],
     names: [dog.name],
     t: 0,
-    kickT: .45,
-    message: 'Dog ball play',
-    messageT: 2,
-    ball: { x: dog.x + 28, y: dog.y + 12, vx: 70, vy: -35 },
+    kickT: 1.15,
+    message: '',
+    messageT: 0,
+    ball: { x: dog.x + 28, y: dog.y + 12, vx: 46, vy: -26 },
     trail: []
   };
 }
@@ -139,20 +143,19 @@ function updateDogBallPlay(state, game, dt) {
   game.t += dt;
   game.kickT -= dt;
   updateSoccerBall(game, dt);
-  const angle = game.t * 3.2;
-  dog.x = clamp(game.ball.x + Math.cos(angle) * 34, FIELD.x + 26, FIELD.x + FIELD.w - 26);
-  dog.y = clamp(game.ball.y + Math.sin(angle) * 28, FIELD.y + 32, FIELD.y + FIELD.h - 32);
+  const angle = game.t * 1.35;
+  dog.x = clamp(game.ball.x + Math.cos(angle) * 24, FIELD.x + 26, FIELD.x + FIELD.w - 26);
+  dog.y = clamp(game.ball.y + Math.sin(angle) * 20, FIELD.y + 32, FIELD.y + FIELD.h - 32);
   dog.pose = 'dog_play_ball';
   if (game.kickT <= 0) {
     const dx = game.ball.x - dog.x;
     const dy = game.ball.y - dog.y;
     const mag = Math.max(1, Math.hypot(dx, dy));
-    game.ball.vx = dx / mag * 145 + Math.sin(game.t * 4) * 60;
-    game.ball.vy = dy / mag * 145 + Math.cos(game.t * 5) * 60;
-    game.kickT = .65;
-    say(dog, 'wo');
+    game.ball.vx = dx / mag * 82 + Math.sin(game.t * 2.1) * 24;
+    game.ball.vy = dy / mag * 82 + Math.cos(game.t * 2.4) * 24;
+    game.kickT = 1.35;
   }
-  if (game.t > 16) {
+  if (game.t > 18) {
     changeNeed(dog, 'fun', 18);
     changeNeed(dog, 'stamina', -8);
     changeNeed(dog, 'freshness', -3);
@@ -165,8 +168,8 @@ function updateDogBallPlay(state, game, dt) {
 
 function updateSoccerBall(game, dt) {
   const b = game.ball;
-  game.trail.unshift({ x: b.x, y: b.y, a: .55 });
-  game.trail = game.trail.slice(0, 8).map((p, i) => ({ ...p, a: Math.max(0, .45 - i * .05) }));
+  game.trail.unshift({ x: b.x, y: b.y, a: .42 });
+  game.trail = game.trail.slice(0, 6).map((p, i) => ({ ...p, a: Math.max(0, .32 - i * .05) }));
   b.x += b.vx * dt;
   b.y += b.vy * dt;
   b.vx *= Math.pow(.62, dt);
@@ -286,18 +289,7 @@ export function drawSoccer(ctx, state) {
   ctx.strokeStyle = '#11151c'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(ball.x - 6, ball.y); ctx.lineTo(ball.x + 6, ball.y); ctx.moveTo(ball.x, ball.y - 6); ctx.lineTo(ball.x, ball.y + 6); ctx.stroke();
   if (game && game.mode !== 'dog_play') drawSoccerScore(ctx, game);
-  if (game?.mode === 'dog_play') drawDogPlayLabel(ctx, game);
   ctx.restore();
-}
-
-function drawDogPlayLabel(ctx, game) {
-  ctx.fillStyle = 'rgba(8,10,15,.78)';
-  ctx.fillRect(FIELD.x + 20, FIELD.y + 18, 190, 40);
-  ctx.strokeStyle = 'rgba(241,198,106,.7)';
-  ctx.strokeRect(FIELD.x + 20, FIELD.y + 18, 190, 40);
-  ctx.fillStyle = '#f8fbff';
-  ctx.font = '900 13px system-ui';
-  ctx.fillText(`${game.names?.[0] || 'Dog'} playing ball`, FIELD.x + 32, FIELD.y + 43);
 }
 
 function drawGoal(ctx, goal) {
