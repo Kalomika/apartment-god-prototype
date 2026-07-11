@@ -50,30 +50,39 @@ export function consumeTravelPass(state, actionId) {
   return false;
 }
 
-export function canAffordTravel(state, destination) {
-  return !destination || destination.cost <= 0 || state.money >= destination.cost || hasTravelPass(state, destination.id);
+export function travelCost(destination, vehicleId = 'auto') {
+  if (!destination || destination.cost <= 0) return 0;
+  if (vehicleId === 'bike') return Math.max(0, Math.round(destination.cost * .45));
+  if (vehicleId === 'motorbike') return Math.max(0, Math.round(destination.cost * .62));
+  return destination.cost;
 }
 
-export function payForTravel(state, destination) {
+export function canAffordTravel(state, destination, vehicleId = 'auto') {
+  const cost = travelCost(destination, vehicleId);
+  return !destination || cost <= 0 || state.money >= cost || hasTravelPass(state, destination.id);
+}
+
+export function payForTravel(state, destination, vehicleId = 'auto') {
   if (!destination) return true;
-  if (destination.cost <= 0) return true;
+  const cost = travelCost(destination, vehicleId);
+  if (cost <= 0) return true;
   if (consumeTravelPass(state, destination.id)) {
     log(state, `Used a free ticket for ${destination.label}.`);
     return true;
   }
-  if (state.money < destination.cost) {
-    log(state, `Not enough money for ${destination.label}. Need $${destination.cost}.`);
+  if (state.money < cost) {
+    log(state, `Not enough money for ${destination.label}. Need $${cost}.`);
     return false;
   }
-  state.money -= destination.cost;
-  log(state, `Paid $${destination.cost} for ${destination.label}.`);
+  state.money -= cost;
+  log(state, `Paid $${cost} for ${destination.label}.`);
   return true;
 }
 
 export function createOffsiteJob(actionId, partyIds, vehicleId = 'car_1') {
   const destination = destinationFor(actionId);
   const vacation = actionId.startsWith('vacation_');
-  const duration = destination?.duration ?? 30;
+  const duration = adjustedDuration(destination?.duration ?? 30, vehicleId);
   return {
     actionId,
     destinationId: destination?.id || actionId,
@@ -94,6 +103,12 @@ export function createOffsiteJob(actionId, partyIds, vehicleId = 'car_1') {
     activities: destination?.activities || [],
     treasureSeed: Math.random()
   };
+}
+
+function adjustedDuration(duration, vehicleId) {
+  if (vehicleId === 'bike') return Math.max(12, Math.round(duration * .72));
+  if (vehicleId === 'motorbike') return Math.max(10, Math.round(duration * .58));
+  return duration;
 }
 
 export function updateOffsiteJob(state, dt) {
@@ -146,6 +161,8 @@ export function applyOffsiteRewards(state, job) {
       changeNeed(e, 'hunger', -12);
       changeNeed(e, 'energy', destination?.energy ?? -12);
       changeNeed(e, 'freshness', destination?.freshness ?? -3);
+      if (job.vehicleId === 'bike') { changeNeed(e, 'freshness', -7); changeNeed(e, 'energy', -4); }
+      if (job.vehicleId === 'motorbike') { changeNeed(e, 'freshness', -4); changeNeed(e, 'energy', -2); }
       if (destination?.social) changeNeed(e, 'social', destination.social);
     }
     if (action === 'movies') e.memory.movies.push(randomMovieTitle(state));
