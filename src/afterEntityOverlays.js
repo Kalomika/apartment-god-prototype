@@ -1,21 +1,41 @@
 import { PLAY_W } from './config.js';
-import { objects } from './world.js';
+import { objects, roomAt } from './world.js';
 import { formatTime } from './renderHelpers.js';
 
 export function drawAfterEntityOverlays(ctx, state) {
+  drawWardrobeOverlays(ctx, state);
   drawShowerPrivacyOverlays(ctx, state);
   drawCalendarSkipRecap(ctx, state);
+}
+
+function drawWardrobeOverlays(ctx, state) {
+  const day = Math.floor((state.time || 0) / 1440) % 7;
+  for (const actor of state.entities || []) {
+    if (actor.hidden || actor.floor !== state.floor || actor.type !== 'person' || actor.labOnly) continue;
+    const wardrobe = actor.wardrobe;
+    if (!wardrobe?.colors?.length) continue;
+    const color = wardrobe.colors[wardrobe.currentDay ?? day] || wardrobe.colors[day] || '#74e6ff';
+    ctx.save();
+    ctx.globalAlpha = .72;
+    ctx.fillStyle = color;
+    ctx.strokeStyle = 'rgba(7,16,24,.72)';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, actor.x - 14, actor.y - 8, 28, 10, 5, color, true);
+    ctx.restore();
+  }
 }
 
 function drawShowerPrivacyOverlays(ctx, state) {
   const showering = (state.entities || []).filter(e => !e.hidden && e.floor === state.floor && isShowering(e));
   for (const actor of showering) {
     const shower = nearestShower(actor, state.floor);
+    if (!shower || !isNearObject(actor, shower, 92)) continue;
     const x = actor.x;
     const y = actor.y;
     ctx.save();
     drawVideoCensorMosaic(ctx, x, y);
-    drawFloorClothesPile(ctx, shower ? shower.x + shower.w + 22 : x + 42, shower ? shower.y + shower.h - 18 : y + 38, actor.id === 'girlfriend');
+    drawFloorClothesPile(ctx, shower.x + shower.w + 22, shower.y + shower.h - 18, actor.id === 'girlfriend');
+    drawHangingTowel(ctx, shower.x - 18, shower.y + shower.h - 18, actor.id === 'girlfriend');
     ctx.restore();
   }
 }
@@ -27,9 +47,14 @@ function isShowering(entity) {
 }
 
 function nearestShower(actor, floor) {
-  const showers = objects.filter(o => o.floor === floor && o.kind === 'shower');
+  const actorRoom = roomAt(actor.x, actor.y, floor);
+  const showers = objects.filter(o => o.floor === floor && o.kind === 'shower' && (!actorRoom || o.room === actorRoom.id));
   if (!showers.length) return null;
   return showers.sort((a, b) => distanceToObject(actor, a) - distanceToObject(actor, b))[0];
+}
+
+function isNearObject(actor, obj, radius) {
+  return distanceToObject(actor, obj) <= radius;
 }
 
 function distanceToObject(actor, obj) {
@@ -71,6 +96,21 @@ function drawFloorClothesPile(ctx, x, y, female) {
   ctx.fillStyle = '#071018';
   ctx.font = '900 8px system-ui';
   ctx.fillText('clothes', x - 18, y + 22);
+  ctx.restore();
+}
+
+function drawHangingTowel(ctx, x, y, female) {
+  ctx.save();
+  ctx.globalAlpha = .96;
+  roundRect(ctx, x - 10, y - 30, 20, 46, 7, female ? '#f4b5dd' : '#a8e9ff');
+  ctx.strokeStyle = 'rgba(7,16,24,.55)';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, x - 10, y - 30, 20, 46, 7, '', true);
+  ctx.fillStyle = '#071018';
+  ctx.font = '900 7px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText('TOWEL', x, y + 28);
+  ctx.textAlign = 'left';
   ctx.restore();
 }
 
