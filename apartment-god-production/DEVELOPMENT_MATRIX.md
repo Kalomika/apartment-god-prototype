@@ -1,6 +1,6 @@
 # Apartment God Development Matrix
 
-Last update: 2026-07-11 06:05 AM CT
+Last update: 2026-07-11 01:51 PM CT
 
 Purpose: living production tracker for Apartment God. The handbook is the rulebook. The backup policy protects restore points. The ongoing log is the history. This matrix is the control board that tells future AIs what exists, what still needs testing, what is blocked, and what should not be overwritten.
 
@@ -43,6 +43,7 @@ REJECTED          Known bad direction. Do not repeat without Kam explicitly reve
 | Development matrix | IMPLEMENTED | This file | Tracks systems, objects, animations, tests, branches, risks, and visual law. | Keep updated after every system level change. |
 | Top down visual production law | IMPLEMENTED | This matrix, Section 8 | Apartment God is a true top down 2D game. Major visuals cannot be created from memory only or symbolic shortcuts. | Before visual work, inspect references and complete the top down compliance checklist. |
 | Visual reference archive | IMPLEMENTED | `apartment-god-production/reference/` | Reference material is study material, not runtime material. Kam supplied references may be archived and studied for quality, construction, silhouette, animation, and camera rules. | Add reference notes or images before major visual passes when the category is under defined. |
+| True top down character and animation quality law | IMPLEMENTED | This matrix, Section 10 | Character work must target mature true top down sprite integrity, not isometric units, bathroom sign people, blob people, mascot shapes, or generic procedural actor drawings. Activity animation must have its own identity and anime influenced timing discipline. | Before character or animation work, create or update the style bible, animation manifest, frame standards, activity inventory, and entry loop exit plan. |
 | Autonomy | NEEDS_TESTING | `src/autonomy.js`, ongoing log | First intelligence upgrade exists. Actors should use needs, fallback objects, activity variety, and smarter choices. | Render test reset, idle autonomy, bathroom fallback, shower fallback, hunger fallback, fun variety, dog choices. |
 | Movement and pathfinding | NEEDS_TESTING | `src/movement.js`, ongoing log | Route candidate and blocked recovery improvements exist. | Test object approach, alternate routes, blocker recovery, stairs, garage ATV area. |
 | Mobile phone and menus | PARTIAL | `styles.css`, `src/appMenu.js`, `src/ui.js`, phone files | Handbook requires scrollable phone tabs and menus. Some newer menus exist. | Test every tab on mobile screen sizes. |
@@ -163,6 +164,8 @@ This is the bridge between the current procedural Canvas fallback and the future
 | Upstairs renderer | Medium | NEEDS_TESTING | Inspect upstairs objects, click targets, windows, stairs. |
 | Object placement | High | NEEDS_TESTING | Confirm bookshelf, coffee maker, dining table, closet, and pool edits do not block movement. |
 | Visual reference use | Critical | NEEDS_TESTING | Before any major visual change, confirm the AI inspected Section 8, the reference archive, current screenshots, and relevant approved or rejected examples. |
+| Character sprite integrity | Critical | NEEDS_TESTING | Before replacing actor visuals, inspect Section 10. Confirm characters are true top down, mature, readable, not toilet door silhouettes, not blob people, and not isometric units. |
+| Activity animation identity | Critical | NEEDS_TESTING | For every newly upgraded activity, confirm the action has its own pose logic, timing, entry, loop, exit plan where feasible, object alignment, and fallback behavior. |
 
 When asking Kam to test through browser, include:
 
@@ -197,6 +200,7 @@ Also say exactly what to test. Do not say complete unless the thing was actually
 | Vehicle and offsite travel | High | Can make household unplayable or pop actors. | Test one away, all away, return path, active vehicle hiding, duplicate guard. |
 | Top down visual law | Critical | If ignored, the game becomes symbolic, toy like, side view contaminated, or crude even when features technically work. | Reference first, top down anatomy checklist, visual review before commit. |
 | Visual reference discipline | Critical | Memory only asset creation causes winging it and inconsistent quality. | Inspect reference archive and current screenshots before visual work. |
+| True top down character animation quality | Critical | If ignored, the cast becomes toilet door icons, blob people, isometric units, mascot stickers, or reused generic poses even if the feature technically works. | Section 10 first, style bible first, animation inventory first, activity specific entry loop exit planning, manifest based sprite pipeline. |
 | Wardrobe and towel state | High | Can create stale actor overlays or broken state after shower, swim, reset, or day change. | Normalize state and test shower, swim, change clothes, reset. |
 | Renderer changes | High | Can blank canvas or break click targets. | Keep fallback, test boot and clicks. |
 | House layout | High | Can break routes, rooms, and object IDs. | Backup first, compare real source files. |
@@ -220,6 +224,7 @@ After every meaningful change, update whichever rows are affected:
 6. Risk Matrix
 7. Top Down Visual Production Law
 8. Visual Reference Archive Rule
+9. True Top Down Character And Animation Quality Law
 ```
 
 Then append the normal dated entry to:
@@ -467,4 +472,161 @@ Source: https://smallscaleint.itch.io/character-creator-2d-modern
 Use: aesthetic and production reference for top down or angled top down 2D character quality, modular clothing, controllable outline, 8 direction animation discipline, vehicle and bike support, and adjustable animation frame rate.
 Do not use as excuse to make Apartment God isometric if the target is true top down.
 Do not use as memory only shorthand. Study construction, then build an Apartment God version.
+```
+
+---
+
+## 10. True Top Down Character And Animation Quality Law
+
+Apartment God character work must achieve mature true top down sprite integrity. The target is not isometric, not side view, not pseudo 3D, not bathroom sign people, not toilet door looking characters, not blob people, not mascot stickers, and not generic procedural actor drawings.
+
+The quality bar may study Character Creator 2D, Modern by SmallScaleInt for polish, modular clothing discipline, outline control, animation organization, and frame rate control, but Apartment God must translate that standard into true top down presentation.
+
+### Character Visual Law
+
+Every upgraded character sprite, pose, clothing layer, and actor fallback must obey:
+
+```txt
+1. True overhead construction, not isometric posing.
+2. Mature readable proportions, not toy, toddler, emoji, or bathroom sign proportions.
+3. Clear head direction through hair shape, neckline, shoulders, ears, face wedge hints, accessory placement, and arm lead.
+4. Torso mass with shoulder shape, waist logic, clothing breakup, and believable top surfaces.
+5. Arm separation, hand placement, and pose clarity from above.
+6. Leg and footwear shapes designed for overhead readability, not side view shoe logic.
+7. Character identity readable through hair, outfit, silhouette, body type, accessories, and palette.
+8. Mobile readability at actual game scale.
+9. Consistent origin, scale, shadow, and depth rules across all actors.
+10. No toilet door silhouettes, no flat icon bodies, no chibi fallback unless Kam explicitly approves a chibi style reversal.
+```
+
+### Motion Quality Law
+
+Anime influenced motion means better timing and appeal, not random exaggeration.
+
+All character animation upgrades must consider:
+
+```txt
+1. anticipation,
+2. clean arcs,
+3. overlap,
+4. follow through,
+5. contact timing,
+6. weight shifts,
+7. settle,
+8. pose readability,
+9. emotional state,
+10. object alignment.
+```
+
+Locomotion must not slide like pawns. Idles must not feel dead. Activity loops must not be generic arm waving. Characters must feel like people living in a space, not markers moving across a board.
+
+### Unique Activity Animation Law
+
+Every major activity must have its own animation identity. Do not reuse a generic interact pose when the activity should read differently.
+
+Examples that must not share the same generic motion:
+
+```txt
+1. eating,
+2. drinking coffee,
+3. cooking,
+4. cleaning,
+5. showering,
+6. toilet use,
+7. grooming,
+8. sitting,
+9. sleeping,
+10. waking,
+11. watching TV,
+12. computer work,
+13. phone use,
+14. reading,
+15. playing games,
+16. playing pool,
+17. lifting weights,
+18. punching the heavy bag,
+19. swimming,
+20. changing clothes,
+21. carrying towels,
+22. socializing,
+23. arguing,
+24. kissing,
+25. cuddling,
+26. petting animals,
+27. dog ball play,
+28. opening doors,
+29. entering vehicles,
+30. exiting vehicles,
+31. bicycle or motorbike mounting,
+32. driving or riding,
+33. emotional reactions.
+```
+
+Before adding or replacing an activity animation, define whether it needs:
+
+```txt
+1. approach pose,
+2. entry animation,
+3. loop animation,
+4. exit animation,
+5. object specific held prop,
+6. directional variants,
+7. emotional variants,
+8. fallback if the upgraded sprite is missing.
+```
+
+### Frame And Sprite Sheet Guidance
+
+Frame rate should serve motion appeal and readability.
+
+Use these as starting targets, then adjust per animation:
+
+```txt
+1. calm idle: 6 to 10 fps effective feel,
+2. active idle or emotional idle: 8 to 12 fps effective feel,
+3. walk: 10 to 14 fps effective feel,
+4. urgent walk or run: 14 to 20 fps effective feel,
+5. snappy contact or reaction moment: timing based on action impact,
+6. long activity loop: enough frames to avoid robotic repetition,
+7. entry and exit actions: short, readable, and object aligned.
+```
+
+Do not increase frame rate to hide weak posing. Better pose design comes first. Smoother playback should support strong animation, not replace it.
+
+### Required Character Sprite Pipeline Before Broad Replacement
+
+Before replacing broad actor rendering, the work must produce or update:
+
+```txt
+1. a character style bible,
+2. top down anatomy rules,
+3. character scale and origin standards,
+4. frame dimensions,
+5. animation naming conventions,
+6. directional rules,
+7. activity animation inventory,
+8. manifest structure,
+9. fallback behavior,
+10. Phaser loading and animation mapping plan,
+11. depth sorting and object overlap rules,
+12. mobile readability checks.
+```
+
+If this pipeline does not exist, broad character replacement stays PLANNED or PARTIAL, not IMPLEMENTED.
+
+### Approval Rule
+
+A character or animation pass is not approved if any of these are true:
+
+```txt
+1. It looks like a toilet door sign.
+2. It reads as isometric when the target is true top down.
+3. It is only a label, blob, rectangle, circle, or icon pretending to be a person.
+4. It uses one generic interact pose for unrelated activities.
+5. It has no activity specific animation plan.
+6. It ignores the SmallScaleInt reference quality bar.
+7. It copies the reference directly instead of translating the standard into Apartment God.
+8. It does not preserve playability through safe fallbacks.
+9. It was not checked at actual game scale.
+10. It was not logged in this matrix and the ongoing log.
 ```
