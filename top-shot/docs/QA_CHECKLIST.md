@@ -8,9 +8,15 @@ From `top-shot/`:
 
 ```bash
 npm run check
+npm run smoke:sim
+npm run smoke:cqc
+npm run smoke:stealth
+npm run smoke:model
 npm run smoke
 npm run build
 ```
+
+`npm run smoke` remains the full safety gate. The split smoke scripts exist so a failure can be isolated quickly without deleting or weakening the complete smoke suite.
 
 Do not claim these passed unless they were actually run.
 
@@ -76,6 +82,13 @@ Do not claim these passed unless they were actually run.
 - Debug overlay does not change gameplay logic.
 - Debug overlay does not create obvious frame collapse during normal use.
 - AI or animation labels are readable and not misleading.
+
+## Smoke diagnostics checks
+
+- If `npm run smoke:sim` fails, read the printed smoke context before patching.
+- The smoke context should include matchup, phase, tick, clock, match state, cinematic phase, fighter snapshots, projectile snapshots, and recent log lines.
+- The direct regression for `diveT` without `diveVx` or `diveVy` must stay in `tests/simSmoke.js` until the invalid-state blocker is fully closed.
+- Do not remove or skip matchups just to make smoke green.
 
 ## Coverage matrix checks
 

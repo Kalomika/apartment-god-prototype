@@ -1,7 +1,7 @@
 import { EFFECT_TTL } from './config.js';
 import { blocked, slide } from './arena.js';
 import { addLog } from './state.js';
-import { angleTo, chance, clamp, dist } from './utils.js';
+import { angleTo, chance, clamp, dist, finiteOr } from './utils.js';
 import { updateVitalityCap } from './vitality.js';
 
 export function trySuperMove(state, f, enemy, visible) {
@@ -17,30 +17,35 @@ export function trySuperMove(state, f, enemy, visible) {
   if (commanded) f.memory.command = null;
   const a = angleTo(f, enemy);
   const speed = 275;
-  state.projectiles.push({ type: 'grenade', team: f.team, owner: f.name, x: f.x, y: f.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, fuse: 1.25, ttl: 1.35, blast: 118, damage: 82 });
+  state.projectiles.push({ type: 'grenade', team: f.team, owner: f.name, x: finiteOr(f.x, 0), y: finiteOr(f.y, 0), vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, fuse: 1.25, ttl: 1.35, blast: 118, damage: 82 });
   addLog(state, `${f.name} throws a grenade.`);
   return true;
 }
 
 export function updateExplosives(state, dt) {
-  for (const f of state.fighters) updateDive(state, f, dt);
+  const safeDt = Math.max(0, finiteOr(dt, 0));
+  for (const f of state.fighters) updateDive(state, f, safeDt);
   for (const p of state.projectiles.filter(p => p.type === 'grenade')) {
-    p.fuse -= dt;
-    p.ttl -= dt;
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
+    p.fuse = finiteOr(p.fuse, 0) - safeDt;
+    p.ttl = finiteOr(p.ttl, 0) - safeDt;
+    p.vx = finiteOr(p.vx, 0);
+    p.vy = finiteOr(p.vy, 0);
+    p.x = finiteOr(p.x, 0) + p.vx * safeDt;
+    p.y = finiteOr(p.y, 0) + p.vy * safeDt;
+    p.blast = finiteOr(p.blast, 118);
+    p.damage = finiteOr(p.damage, 82);
     if (blocked(state.arena, p, 5)) { p.vx *= -0.28; p.vy *= -0.28; }
     for (const f of state.fighters) reactToGrenade(state, f, p);
     if (p.fuse <= 0) explode(state, p);
   }
-  state.projectiles = state.projectiles.filter(p => p.type !== 'grenade' || p.ttl > 0);
+  state.projectiles = state.projectiles.filter(p => p.type !== 'grenade' || finiteOr(p.ttl, 0) > 0);
 }
 
 function reactToGrenade(state, f, grenade) {
   if (f.incapacitated || f.extracted || f.extracting || f.diveT > 0 || f.team === grenade.team && dist(f, grenade) > 70) return;
   const d = dist(f, grenade);
   if (d > 155 || grenade.fuse > 0.95) return;
-  const diveSkill = (f.stats.dodge + f.stats.stamina + f.stats.discipline) / 3;
+  const diveSkill = (finiteOr(f.stats?.dodge, 50) + finiteOr(f.stats?.stamina, 50) + finiteOr(f.stats?.discipline, 50)) / 3;
   if (!chance(clamp(diveSkill / 115, 0.35, 0.94))) return;
   const away = angleTo(grenade, f);
   const agile = f.archetypeId === 'ninja' || f.archetypeId === 'shadow_ninja';
@@ -48,30 +53,39 @@ function reactToGrenade(state, f, grenade) {
   f.diveVx = Math.cos(away) * (agile ? 250 : 190);
   f.diveVy = Math.sin(away) * (agile ? 250 : 190);
   f.pose = agile ? 'somersault_dive' : chance(0.5) ? 'dive_roll' : 'flat_dive';
-  state.effects.push({ type: 'dive', x: f.x, y: f.y, ttl: EFFECT_TTL.dive });
+  state.effects.push({ type: 'dive', x: finiteOr(f.x, 0), y: finiteOr(f.y, 0), ttl: EFFECT_TTL.dive });
   addLog(state, `${f.name} dives away from the grenade.`);
 }
 
 function updateDive(state, f, dt) {
   if (!f.diveT || f.diveT <= 0) return;
-  f.diveT -= dt;
-  const next = { x: f.x + f.diveVx * dt, y: f.y + f.diveVy * dt };
+  const safeDt = Math.max(0, finiteOr(dt, 0));
+  f.diveT = Math.max(0, finiteOr(f.diveT, 0) - safeDt);
+  const vx = finiteOr(f.diveVx, 0);
+  const vy = finiteOr(f.diveVy, 0);
+  const next = { x: finiteOr(f.x, 0) + vx * safeDt, y: finiteOr(f.y, 0) + vy * safeDt };
   const moved = slide(state.arena, f, next);
-  f.x = moved.x;
-  f.y = moved.y;
-  f.stamina = clamp(f.stamina - dt * 16, 0, 100);
+  f.x = finiteOr(moved.x, f.x);
+  f.y = finiteOr(moved.y, f.y);
+  f.diveVx = vx;
+  f.diveVy = vy;
+  f.stamina = clamp(f.stamina - safeDt * 16, 0, 100);
   if (f.diveT <= 0) { f.diveVx = 0; f.diveVy = 0; f.pose = 'recover_dive'; }
 }
 
 function explode(state, grenade) {
   grenade.ttl = 0;
+  grenade.x = finiteOr(grenade.x, 0);
+  grenade.y = finiteOr(grenade.y, 0);
+  grenade.blast = finiteOr(grenade.blast, 118);
+  grenade.damage = finiteOr(grenade.damage, 82);
   state.effects.push({ type: 'explosion', x: grenade.x, y: grenade.y, radius: grenade.blast, ttl: EFFECT_TTL.explosion });
   addLog(state, `Grenade detonates.`);
   for (const f of state.fighters) {
     if (f.incapacitated || f.extracted) continue;
     const d = dist(f, grenade);
     if (d > grenade.blast) continue;
-    const coverCut = blocked(state.arena, { x: (f.x + grenade.x) / 2, y: (f.y + grenade.y) / 2 }, 3) ? 0.55 : 1;
+    const coverCut = blocked(state.arena, { x: (finiteOr(f.x, 0) + grenade.x) / 2, y: (finiteOr(f.y, 0) + grenade.y) / 2 }, 3) ? 0.55 : 1;
     const dodgeCut = f.diveT > 0 ? 0.38 : 1;
     const damage = Math.max(4, grenade.damage * (1 - d / grenade.blast) * coverCut * dodgeCut);
     f.hp = clamp(f.hp - damage, 0, 100);

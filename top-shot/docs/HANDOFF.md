@@ -10,7 +10,15 @@ A safety branch was created for the coverage matrix documentation pass:
 
 `backup/top-shot-v0-1-2026-07-11-coverage-matrix`
 
-The current focused documentation branch is:
+A safety branch was created before the smoke invalid-state fix:
+
+`backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
+
+The current focused runtime fix branch is:
+
+`top-shot-smoke-invalid-state-fix`
+
+The coverage matrix documentation branch is:
 
 `top-shot-coverage-matrix`
 
@@ -34,7 +42,37 @@ Read these before any Top Shot task:
 10. Open PRs related to Top Shot
 11. The exact files to edit
 
-## Latest documentation pass
+## Latest runtime fix pass
+
+Branch:
+
+`top-shot-smoke-invalid-state-fix`
+
+Backup branch:
+
+`backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
+
+Implemented:
+
+- Hardened `top-shot/src/explosives.js` against invalid fighter and grenade state.
+- Root cause addressed: `updateDive()` assumed any fighter with `diveT > 0` also had finite `diveVx` and `diveVy`. Suppression and evasive pose logic can set `diveT` without grenade-dive velocity, which can produce `NaN` positions before later systems run.
+- Added finite guards for grenade fuse, ttl, position, velocity, blast, and damage.
+- Added finite guards for grenade dive effects and explosion midpoint math.
+- Upgraded `top-shot/tests/simSmoke.js` with richer invalid-state diagnostics, fighter/projectile context dumps, and a direct regression check for `diveT` without `diveVx` or `diveVy`.
+- Split `top-shot/package.json` smoke scripts into `smoke:sim`, `smoke:cqc`, `smoke:stealth`, and `smoke:model` so the failing area can be rerun directly.
+- Runtime and test code changed. This branch still needs a real smoke run from a local or CI environment with repo access.
+
+Files changed in latest pass:
+
+- `top-shot/src/explosives.js`
+- `top-shot/tests/simSmoke.js`
+- `top-shot/package.json`
+- `top-shot/docs/HANDOFF.md`
+- `top-shot/docs/DEVELOPMENT_LOG.md`
+- `top-shot/docs/QA_CHECKLIST.md`
+- `top-shot/docs/COVERAGE_MATRIX.md`
+
+## Previous documentation pass
 
 Branch:
 
@@ -49,7 +87,7 @@ Implemented:
 - Added `top-shot/docs/COVERAGE_MATRIX.md` as the Top Shot control board.
 - Wired the coverage matrix into the required reading flow.
 - Updated the handbook so feature, file ownership, branch status, known issue, PR status, risk, and test expectation changes require matrix updates.
-- Preserved runtime code. This pass is documentation only.
+- Preserved runtime code. That pass was documentation only.
 
 ## Current Starshot state
 
@@ -65,11 +103,19 @@ Stable:
 
 `top-shot-v0-1`
 
-Backup for this pass:
+Backup for coverage matrix pass:
 
 `backup/top-shot-v0-1-2026-07-11-coverage-matrix`
 
-Focused documentation branch:
+Backup for smoke fix pass:
+
+`backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
+
+Focused runtime fix branch:
+
+`top-shot-smoke-invalid-state-fix`
+
+Coverage matrix documentation branch:
 
 `top-shot-coverage-matrix`
 
@@ -87,9 +133,15 @@ From `top-shot/`:
 
 ```bash
 npm run check
+npm run smoke:sim
+npm run smoke:cqc
+npm run smoke:stealth
+npm run smoke:model
 npm run smoke
 npm run build
 ```
+
+`npm run smoke` remains the full gate. Use the split scripts to isolate failures, not to bypass the full suite.
 
 ## Manual QA focus
 
@@ -99,6 +151,8 @@ npm run build
 - Fighters move, fight, use cover, and use stealth.
 - Mounting and grounded CQC still work.
 - Projectiles and effects render.
+- Grenade throws and suppression dives do not create invalid fighter state.
+- If `npm run smoke:sim` fails, use the printed context before editing again.
 - Debug overlay toggles with `D`.
 - Collision debug toggles with `C`.
 - No console errors on start.

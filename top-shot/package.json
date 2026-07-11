@@ -7,7 +7,11 @@
     "start": "node scripts/dev-server.js",
     "build": "node scripts/build.js",
     "check": "node scripts/check.js",
-    "smoke": "node tests/simSmoke.js && node tests/cqcSmoke.js && node tests/stealthSmoke.js && node tests/modelSmoke.js"
+    "smoke:sim": "node tests/simSmoke.js",
+    "smoke:cqc": "node tests/cqcSmoke.js",
+    "smoke:stealth": "node tests/stealthSmoke.js",
+    "smoke:model": "node tests/modelSmoke.js",
+    "smoke": "npm run smoke:sim && npm run smoke:cqc && npm run smoke:stealth && npm run smoke:model"
   },
   "devDependencies": {}
 }
