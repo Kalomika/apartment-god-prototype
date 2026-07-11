@@ -1,5 +1,6 @@
 import { COLORS } from './config.js';
 import { roundRect } from './renderHelpers.js';
+import { drawTestActorSprite } from './testActorSpriteRenderer.js';
 
 const INK = '#071018';
 const SKIN = '#3a241f';
@@ -32,9 +33,13 @@ function drawEntity(ctx, e, selected) {
   }
 
   ctx.save();
-  ctx.rotate(heading(e));
-  if (e.type === 'dog') drawDog(ctx, e);
-  else drawPerson(ctx, e);
+  if (e.type === 'dog') {
+    ctx.rotate(heading(e));
+    drawDog(ctx, e);
+  } else if (!drawTestActorSprite(ctx, e)) {
+    ctx.rotate(heading(e));
+    drawPerson(ctx, e);
+  }
   ctx.restore();
 
   if (e.actionT > 0) drawActionBar(ctx, e);
@@ -459,6 +464,7 @@ function drawBubble(ctx, text, style = 'speech') {
   ctx.fillText(text, 0, -64);
   ctx.textAlign = 'left';
 }
+
 function ell(ctx, x, y, rx, ry, fill, stroke, lineWidth) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke && lineWidth > 0) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth; ctx.stroke(); } }
-function line(ctx, x1, y1, x2, y2, color, width = 2) { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
-function circle(ctx, x, y, r, color) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill(); }
+function line(ctx, x1, y1, x2, y2, color, width = 2) { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+function circle(ctx, x, y, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
