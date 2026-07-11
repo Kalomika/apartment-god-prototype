@@ -10,6 +10,8 @@ import { updateInvestments } from './investmentSystem.js';
 import { updateReactionWorld } from './reactionSystem.js';
 import { startMiniSoccerAtField, startSoccerPracticeAtField } from './soccerSystem.js';
 
+const TRAVEL_ACTIONS = ['work', 'errand', 'mall', 'movies', 'date'];
+
 function isTimedBusy(actor) {
   return Boolean(actor?.actionT > 0 && !String(actor.action || '').toLowerCase().includes('idle'));
 }
@@ -75,7 +77,7 @@ function beginTimedAction(entity, label, actionId) {
   entity.currentActionId = actionId;
   entity.pose = actionId === 'dog_rest' ? 'dog_rest' :
     ['sleep', 'nap', 'bed_together', 'intimacy'].includes(actionId) ? 'sleep' :
-    ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together', 'read', 'study', 'eat_meal', 'sit_table'].includes(actionId) ? 'sit' :
+    ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together', 'read', 'study', 'eat_meal', 'sit_table', 'change_clothes', 'plan_week_outfits'].includes(actionId) ? 'sit' :
     ['treadmill', 'lift_weights', 'heavy_bag', 'swim', 'swim_together', 'shower', 'pool_solo', 'pool_together', 'soccer_practice', 'soccer_match'].includes(actionId) ? actionId : 'stand';
 }
 
@@ -148,8 +150,16 @@ export function updateActions(state, dt) {
   }
   updateReactionWorld(state, dt);
   updateInvestments(state, dt);
-  if (state.offsite) { state.time += dt * 22; if (updateOffsiteJob(state, dt)) finishOffsite(state); }
+  if (state.offsite) {
+    if (shouldFastForwardOffsite(state)) state.time += dt * 22;
+    if (updateOffsiteJob(state, dt)) finishOffsite(state);
+  }
   state.tv.pulse += dt;
+}
+
+function shouldFastForwardOffsite(state) {
+  const actors = state.offsite?.actors || [];
+  return actors.includes('resident');
 }
 
 function finishAction(state, e) {
@@ -157,10 +167,12 @@ function finishAction(state, e) {
   if (text.includes('snack')) { changeNeed(e, 'hunger', 18); setMood(e, 'happy'); addGarbageFromAction(state, 'snack', e); }
   if (text.includes('meal')) { changeNeed(e, 'hunger', 30); changeNeed(e, 'fun', 4); setMood(e, 'happy'); addGarbageFromAction(state, 'meal'); }
   if (text.includes('bring food')) { changeNeed(e, 'social', 5); setMood(e, 'happy'); }
-  if (text.includes('shower')) { changeNeed(e, 'freshness', 36); setMood(e, 'calm'); }
+  if (text.includes('shower')) { changeNeed(e, 'freshness', 36); setMood(e, 'calm'); e.carrying = 'towel'; }
   if (text.includes('brush')) { changeNeed(e, 'freshness', 12); setMood(e, 'calm'); }
   if (text.includes('groom')) { changeNeed(e, 'freshness', 18); setMood(e, 'calm'); }
   if (text.includes('toilet')) { changeNeed(e, 'bladder', 36); changeNeed(e, 'freshness', -8); setMood(e, 'calm'); }
+  if (text.includes('change clothes')) { applyDailyOutfit(state, e); changeNeed(e, 'freshness', 6); setMood(e, 'calm'); }
+  if (text.includes('plan weekly outfits')) { if (e.wardrobe) e.wardrobe.planned = true; say(e, 'FIT'); setMood(e, 'calm'); }
   if (text.includes('sleep') || text.includes('nap') || text.includes('bed together')) { changeNeed(e, 'energy', 32); changeNeed(e, 'stamina', 24); state.objectState.bedMade = false; setMood(e, 'calm'); }
   if (text.includes('make bed')) { state.objectState.bedMade = true; changeNeed(e, 'fun', -1); setMood(e, 'calm'); }
   if (text.includes('intimacy')) { changeNeed(e, 'social', 30); changeNeed(e, 'fun', 10); state.objectState.bedMade = false; setMood(e, 'love'); }
@@ -171,7 +183,7 @@ function finishAction(state, e) {
   if (text.includes('game') || text.includes('console') || text.includes('arcade') || text.includes('pool') || text.includes('darts') || text.includes('chess')) { changeNeed(e, 'fun', 18); changeNeed(e, 'social', text.includes('together') ? 12 : 0); changeNeed(e, 'stamina', -3); setMood(e, 'hyped'); }
   if (text.includes('soccer')) { changeNeed(e, 'fun', 12); changeNeed(e, 'stamina', -9); changeNeed(e, 'freshness', -5); setMood(e, 'hyped'); }
   if (text.includes('treadmill') || text.includes('lift weights') || text.includes('heavy bag')) { changeNeed(e, 'stamina', -12); changeNeed(e, 'fun', 8); changeNeed(e, 'freshness', -8); setMood(e, 'hyped'); }
-  if (text.includes('swim')) { changeNeed(e, 'stamina', -7); changeNeed(e, 'fun', 18); changeNeed(e, 'freshness', 8); setMood(e, 'happy'); }
+  if (text.includes('swim')) { changeNeed(e, 'stamina', -7); changeNeed(e, 'fun', 18); changeNeed(e, 'freshness', 8); setMood(e, 'happy'); e.carrying = 'towel'; }
   if (text.includes('coffee')) { changeNeed(e, 'energy', 10); setMood(e, 'hyped'); }
   if (text.includes('eat at table')) { changeNeed(e, 'hunger', 24); changeNeed(e, 'social', 4); changeNeed(e, 'freshness', -3); setMood(e, 'happy'); }
   if (text.includes('phone') || text.includes('talk')) { changeNeed(e, 'social', 18); setMood(e, 'phone'); }
@@ -184,6 +196,15 @@ function finishAction(state, e) {
   e.action = 'Idle'; e.actionT = 0; e.actionTotal = 0; e.pose = 'stand'; e.currentActionId = null; e.idleT = -3;
   if (e.carrying && ['popcorn', 'snack'].includes(e.carrying)) e.carrying = null;
   if (e.queuedTask) runQueuedTask(state, e);
+}
+
+function applyDailyOutfit(state, e) {
+  if (!e?.wardrobe) return;
+  const day = Math.floor((state.time || 0) / 1440) % 7;
+  e.wardrobe.currentDay = day;
+  e.wardrobe.changedAt = state.time || 0;
+  say(e, 'FIT');
+  log(state, `${e.name} changed into ${e.wardrobe.outfits?.[day] || 'a fresh outfit'}.`);
 }
 
 function runQueuedTask(state, actor) {
@@ -203,9 +224,9 @@ export function startOffsite(state, actor, actionId, invitedIds = [], vehicleId 
   if (!options.fromQueue && isTimedBusy(actor)) return queueTask(state, actor, { type: 'offsite', actionId, invitedIds, vehicleId }, actionId.replaceAll('_', ' '));
   const destination = destinationFor(actionId);
   if (destination && !isDestinationOpen(state, destination)) { log(state, `${destination.label} is closed right now.`); say(actor, 'CLOSED'); return false; }
-  if (destination && !canAffordTravel(state, destination)) { log(state, `Insufficient money for ${destination.label}. Need $${destination.cost}.`); say(actor, 'BROKE'); return false; }
-  if (destination && !payForTravel(state, destination)) { say(actor, 'BROKE'); return false; }
-  const party = buildParty(state, actor, invitedIds, actionId);
+  if (destination && !canAffordTravel(state, destination, vehicleId)) { log(state, `Insufficient money for ${destination.label}.`); say(actor, 'BROKE'); return false; }
+  if (destination && !payForTravel(state, destination, vehicleId)) { say(actor, 'BROKE'); return false; }
+  const party = buildParty(state, actor, invitedIds, actionId, vehicleId);
   const partyIds = party.map(e => e.id);
   const tripVehicle = vehicleId === 'auto' && ['bike_trip', 'motorbike_trip'].includes(actionId) ? actionId === 'bike_trip' ? 'bike' : 'motorbike' : vehicleId;
   beginVehicleDeparture(state, actionId, partyIds, tripVehicle, actor.id);
@@ -214,11 +235,14 @@ export function startOffsite(state, actor, actionId, invitedIds = [], vehicleId 
   return true;
 }
 
-function buildParty(state, actor, invitedIds, actionId) {
+function buildParty(state, actor, invitedIds, actionId, vehicleId = 'auto') {
   const party = [actor];
+  const limitedVehicle = vehicleId === 'bike' || vehicleId === 'motorbike';
   for (const id of invitedIds || []) {
     const e = byId(state, id);
     if (!e || e.id === actor.id || e.hidden) continue;
+    if (limitedVehicle && e.type === 'dog') { log(state, `${e.name} cannot ride on ${vehicleId}.`); continue; }
+    if (limitedVehicle && party.length >= (vehicleId === 'bike' ? 1 : 2)) { log(state, `${vehicleId} has limited passenger space.`); continue; }
     if (e.type === 'dog' && !['errand', 'mall', 'date', 'movies', 'dog_park', 'vacation_camping', 'vacation_beach'].includes(actionId)) { log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}: not allowed for that destination.`); continue; }
     const decision = canInviteeJoin(state, actor, e);
     if (!decision.ok) { if (decision.heard) say(e, 'not rn'); log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}: ${decision.reason}.`); continue; }
@@ -228,4 +252,4 @@ function buildParty(state, actor, invitedIds, actionId) {
 }
 
 function finishOffsite(state) { const job = state.offsite; if (!job) return; applyOffsiteRewards(state, job); beginVehicleReturn(state, job.actionId, job.actors || [], job.vehicleId || state.objectState.vehicleInUse || 'car_1'); state.offsite = null; state.objectState.doorOpen = false; }
-function speechFor(actionId) { const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'SNACK', meal: 'COOK', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', make_bed: 'BED', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', read: 'READ', study: 'STUDY', eat_meal: 'EAT', coffee: 'COFFEE', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'BED', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
+function speechFor(actionId) { const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'SNACK', meal: 'COOK', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', make_bed: 'BED', change_clothes: 'FIT', plan_week_outfits: 'FIT', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', read: 'READ', study: 'STUDY', eat_meal: 'EAT', coffee: 'COFFEE', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'BED', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
