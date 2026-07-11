@@ -2,6 +2,7 @@ import { createActorRuntimeState } from './actorRuntimeState.js';
 
 export function createStarshotDebugSnapshot(state, world = null, options = {}) {
   const timing = options.timing || world?.starshotTiming?.snapshot?.() || { profile: 'real_time', scale: 1 };
+  const recentEvents = world?.starshotEventBus?.recent?.(8) || [];
   const actors = [];
   for (const fighter of state?.fighters || []) {
     const actor = world?.actors?.get?.(fighter.id) || null;
@@ -9,12 +10,12 @@ export function createStarshotDebugSnapshot(state, world = null, options = {}) {
   }
   return {
     mode: state?.mode || 'unknown',
-    clock: state?.clock || 0,
+    clock: Number.isFinite(state?.clock) ? state.clock : 0,
     matchState: state?.matchState || null,
     timing,
     actors,
     eventCount: world?.starshotEventBus?.recent?.(999)?.length || 0,
-    recentEvents: world?.starshotEventBus?.recent?.(8) || []
+    recentEvents
   };
 }
 
@@ -46,6 +47,7 @@ export function createActorDebugSnapshot(fighter, actor = null, context = {}) {
     target: runtime.ai.target,
     arena: runtime.arena,
     timingProfile: runtime.timing.profile || 'real_time',
+    timingScale: Number.isFinite(runtime.timing.scale) ? runtime.timing.scale : 1,
     flags: runtime.debug.flags
   };
 }
@@ -63,10 +65,19 @@ export function formatActorDebugLine(actor) {
     `v:${actor.speed}`,
     `combat:${actor.combatState}`
   ];
+  if (actor.hitFrameOpen) parts.push('hit:open');
+  if (actor.counterWindowOpen) parts.push('counter:open');
   if (actor.aiIntent) parts.push(`ai:${actor.aiIntent}`);
   if (actor.timingProfile && actor.timingProfile !== 'real_time') parts.push(`time:${actor.timingProfile}`);
   if (actor.flags?.length) parts.push(actor.flags.join(','));
   return parts.slice(0, 8).join(' | ');
+}
+
+export function formatTimingDebugLine(snapshot) {
+  const timing = snapshot?.timing || { profile: 'real_time', scale: 1 };
+  const eventCount = Number.isFinite(snapshot?.eventCount) ? snapshot.eventCount : 0;
+  const scale = Number.isFinite(timing.scale) ? Math.round(timing.scale * 100) / 100 : 1;
+  return `STARSHOT | time:${timing.profile || 'real_time'} x${scale} | actors:${snapshot?.actors?.length || 0} | events:${eventCount}`;
 }
 
 function round(value) {
