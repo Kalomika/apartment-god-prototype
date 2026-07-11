@@ -32,9 +32,9 @@ Stable base branch:
 
 `top-shot-v0-1`
 
-Current backup branch:
+Current backup branch for this matrix pass:
 
-`backup/top-shot-v0-1-2026-07-10`
+`backup/top-shot-v0-1-2026-07-11-coverage-matrix`
 
 Current experimental branch:
 
@@ -55,9 +55,10 @@ Before each Top Shot task, read:
 5. `top-shot/docs/FEATURE_INVENTORY.md`
 6. `top-shot/docs/ARCHITECTURE.md`
 7. `top-shot/docs/QA_CHECKLIST.md`
-8. Recent commits on the active branch
-9. Open PRs related to Top Shot
-10. The exact files to edit
+8. `top-shot/docs/COVERAGE_MATRIX.md`
+9. Recent commits on the active branch
+10. Open PRs related to Top Shot
+11. The exact files to edit
 
 Always check the latest repo state before coding because other AI agents or humans may have changed the code.
 
@@ -153,6 +154,7 @@ Top Shot must maintain:
 - `top-shot/docs/FEATURE_INVENTORY.md`
 - `top-shot/docs/ARCHITECTURE.md`
 - `top-shot/docs/QA_CHECKLIST.md`
+- `top-shot/docs/COVERAGE_MATRIX.md`
 
 Optional but encouraged:
 
@@ -170,7 +172,31 @@ Architecture changes update `ARCHITECTURE.md`.
 
 Test expectation changes update `QA_CHECKLIST.md`.
 
-## 12. Required completion report
+Feature, file ownership, branch status, known issue, PR status, risk, or test expectation changes update `COVERAGE_MATRIX.md`.
+
+## 12. Coverage matrix system
+
+`top-shot/docs/COVERAGE_MATRIX.md` is the control board for Top Shot.
+
+Use it to connect:
+
+- Gameplay purpose.
+- Current status.
+- Branch source.
+- Owning files.
+- Preservation target.
+- Automated checks.
+- Manual QA.
+- Risk level.
+- Next action.
+
+Before editing runtime code, use the matrix to confirm what feature is being affected and how to prove the change did not break the existing game.
+
+If a feature is not represented in the matrix, add it during the same pass that touches the feature.
+
+The matrix does not replace the handbook, handoff, feature inventory, architecture doc, or QA checklist. It cross-links them so future agents can see how all of the work is connected.
+
+## 13. Required completion report
 
 Every coding pass must report:
 
@@ -185,7 +211,7 @@ Every coding pass must report:
 - Exact next step
 - PR link or branch link
 
-## 13. Preferred Starshot implementation order
+## 14. Preferred Starshot implementation order
 
 Phase 1: Motion, animation state, visual inertia, micro-motion, and debug visibility.
 
@@ -201,7 +227,7 @@ Phase 6: Tournament mode, simulation logs, repeated fight stats, and balance dia
 
 Phase 7: Polish pass, sound hooks, camera drama, performance, UI clarity, and public build readiness.
 
-## 14. No fake confidence
+## 15. No fake confidence
 
 Do not say tests passed if they were not run.
 
@@ -221,7 +247,7 @@ Acceptable language:
 - Experimental branch, not merge ready.
 - Needs local run.
 
-## 15. Final principle
+## 16. Final principle
 
 Top Shot is allowed to become a monster.
 
