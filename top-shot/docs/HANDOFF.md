@@ -60,7 +60,17 @@ Implemented:
 - Added finite guards for grenade dive effects and explosion midpoint math.
 - Upgraded `top-shot/tests/simSmoke.js` with richer invalid-state diagnostics, fighter/projectile context dumps, and a direct regression check for `diveT` without `diveVx` or `diveVy`.
 - Split `top-shot/package.json` smoke scripts into `smoke:sim`, `smoke:cqc`, `smoke:stealth`, and `smoke:model` so the failing area can be rerun directly.
-- Runtime and test code changed. This branch still needs a real `npm run smoke` run from a local or CI environment with repo access.
+- Runtime and test code changed. This branch still needs a real smoke run from a local or CI environment with repo access.
+
+Files changed in latest pass:
+
+- `top-shot/src/explosives.js`
+- `top-shot/tests/simSmoke.js`
+- `top-shot/package.json`
+- `top-shot/docs/HANDOFF.md`
+- `top-shot/docs/DEVELOPMENT_LOG.md`
+- `top-shot/docs/QA_CHECKLIST.md`
+- `top-shot/docs/COVERAGE_MATRIX.md`
 
 ## Previous documentation pass
 
@@ -124,9 +134,14 @@ From `top-shot/`:
 ```bash
 npm run check
 npm run smoke:sim
+npm run smoke:cqc
+npm run smoke:stealth
+npm run smoke:model
 npm run smoke
 npm run build
 ```
+
+`npm run smoke` remains the full gate. Use the split scripts to isolate failures, not to bypass the full suite.
 
 ## Manual QA focus
 
@@ -137,6 +152,7 @@ npm run build
 - Mounting and grounded CQC still work.
 - Projectiles and effects render.
 - Grenade throws and suppression dives do not create invalid fighter state.
+- If `npm run smoke:sim` fails, use the printed context before editing again.
 - Debug overlay toggles with `D`.
 - Collision debug toggles with `C`.
 - No console errors on start.
