@@ -20,6 +20,7 @@ function drawCarryIcon(ctx, item) {
   const text = String(item).toLowerCase();
   if (text.includes('cue')) { ctx.save(); ctx.rotate(-0.72); ctx.strokeStyle = '#d6b27a'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(18, 0); ctx.stroke(); ctx.strokeStyle = '#3b2a1d'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(18, 0); ctx.stroke(); ctx.restore(); return; }
   if (text.includes('ball')) { ctx.fillStyle = '#f1c66a'; ctx.strokeStyle = '#11151c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); return; }
+  if (text.includes('towel')) { roundRect(ctx, -13, -10, 26, 20, 5, '#a8e9ff'); ctx.strokeStyle = '#071018'; ctx.lineWidth = 1.5; ctx.strokeRect(-10, -7, 20, 14); ctx.fillStyle = '#071018'; ctx.font = '900 6px system-ui'; ctx.textAlign = 'center'; ctx.fillText('TOWEL', 0, 2); ctx.textAlign = 'left'; return; }
   if (text.includes('luggage')) { drawLuggage(ctx, 0, 0, text.includes('large')); return; }
   if (text.includes('bag') || text.includes('trash')) { roundRect(ctx, -10, -8, 20, 18, 5, text.includes('trash') ? '#20252f' : '#f1c66a'); ctx.fillStyle = '#10141b'; ctx.font = '900 7px system-ui'; ctx.textAlign = 'center'; ctx.fillText(text.includes('trash') ? 'TR' : 'BAG', 0, 3); ctx.textAlign = 'left'; return; }
   if (text.includes('dish')) { roundRect(ctx, -11, -5, 22, 10, 5, '#d7e1f0'); return; }
@@ -66,44 +67,126 @@ function drawGarageDoor(ctx, state) {
   ctx.strokeStyle = '#74e6ff'; ctx.lineWidth = 3; ctx.strokeRect(186, 636, 548, 30);
 }
 
+function drawAnimatedVehicle(ctx, v, label) {
+  const kind = v.vehicleKind || (String(v.vehicleId).includes('bike') ? 'bike' : 'car');
+  if (kind === 'bike') return drawAnimatedBike(ctx, v, label);
+  if (kind === 'motorbike') return drawAnimatedMotorbike(ctx, v, label);
+  if (kind === 'atv') return drawAnimatedAtv(ctx, v, label);
+  return drawAnimatedCar(ctx, v, label);
+}
+
 function drawAnimatedCar(ctx, v, label) {
   const x = v.x;
   const y = v.y;
   const w = v.w || 116;
   const h = v.h || 230;
-  const vertical = h >= w;
   const flash = v.remoteFlashT > 0 && Math.floor(v.remoteFlashT * 12) % 2 === 0;
-  const body = v.vehicleId === 'car_2' ? '#9b3e35' : '#d9d7cc';
-  roundRect(ctx, x, y, w, h, 24, body);
-  roundRect(ctx, x + w * 0.18, y + h * 0.22, w * 0.64, h * 0.55, 16, '#0d1118');
-  ctx.strokeStyle = '#26313a'; ctx.lineWidth = 3;
-  ctx.strokeRect(x + w * 0.28, y + h * 0.34, w * 0.44, h * 0.28);
-  if (v.open) drawVehicleDoors(ctx, x, y, w, h);
+  const convertible = v.vehicleId === 'car_2';
+  if (convertible) drawConvertibleBody(ctx, x, y, w, h, flash);
+  else drawSuvBody(ctx, x, y, w, h, flash);
+  if (v.open) drawSubtleDoorSeams(ctx, x, y, w, h);
   if (v.trunkOpen) drawTrunk(ctx, x, y, w, h);
-  ctx.fillStyle = flash ? '#fff4a4' : '#f1c66a';
-  if (vertical) {
-    ctx.fillRect(x + w * 0.18, y + h - 18, Math.max(12, w * 0.18), 10);
-    ctx.fillRect(x + w * 0.64, y + h - 18, Math.max(12, w * 0.18), 10);
-    ctx.fillStyle = flash ? '#ff7272' : '#d84b4b';
-    ctx.fillRect(x + w * 0.18, y + 8, Math.max(12, w * 0.18), 8);
-    ctx.fillRect(x + w * 0.64, y + 8, Math.max(12, w * 0.18), 8);
-  } else {
-    ctx.fillRect(x + w - 22, y + h * 0.18, 10, Math.max(12, h * 0.18));
-    ctx.fillRect(x + w - 22, y + h * 0.64, 10, Math.max(12, h * 0.18));
-    ctx.fillStyle = flash ? '#ff7272' : '#d84b4b';
-    ctx.fillRect(x + 10, y + h * 0.18, 8, Math.max(12, h * 0.18));
-    ctx.fillRect(x + 10, y + h * 0.64, 8, Math.max(12, h * 0.18));
-  }
   if (flash) { ctx.strokeStyle = 'rgba(255,244,164,.65)'; ctx.lineWidth = 3; ctx.strokeRect(x - 8, y - 8, w + 16, h + 16); }
   drawStoredLuggage(ctx, v, x, y, w, h);
-  ctx.fillStyle = '#10141b'; ctx.font = '900 10px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, x + w / 2, y + h / 2); ctx.textAlign = 'left';
+  ctx.fillStyle = convertible ? '#f8fbff' : '#10141b'; ctx.font = '900 10px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, x + w / 2, y + h / 2); ctx.textAlign = 'left';
   if (v.remoteFlashT > 0) drawVehicleBubble(ctx, x + w / 2, y - 18, v.remoteLabel || 'REMOTE');
 }
 
-function drawVehicleDoors(ctx, x, y, w, h) { ctx.strokeStyle = '#2b1715'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x - 2, y + h * .30); ctx.lineTo(x - 34, y + h * .20); ctx.moveTo(x + w + 2, y + h * .30); ctx.lineTo(x + w + 34, y + h * .20); ctx.moveTo(x - 2, y + h * .62); ctx.lineTo(x - 32, y + h * .72); ctx.moveTo(x + w + 2, y + h * .62); ctx.lineTo(x + w + 32, y + h * .72); ctx.stroke(); }
+function drawSuvBody(ctx, x, y, w, h, flash) {
+  roundRect(ctx, x - 2, y - 2, w + 4, h + 4, 22, '#2a2f38');
+  roundRect(ctx, x + 5, y + 4, w - 10, h - 8, 18, '#e3e0d6');
+  roundRect(ctx, x + 17, y + 32, w - 34, 74, 12, '#7faeba');
+  roundRect(ctx, x + 17, y + 118, w - 34, 72, 10, '#9fb9bf');
+  line(ctx, x + 19, y + 112, x + w - 19, y + 112, '#4c5a63', 3);
+  drawVehicleLights(ctx, x, y, w, h, flash);
+  drawVehicleWheels(ctx, x, y, w, h, 13);
+}
+
+function drawConvertibleBody(ctx, x, y, w, h, flash) {
+  ctx.fillStyle = '#9b3e35';
+  ctx.beginPath();
+  ctx.moveTo(x + 14, y + 14);
+  ctx.lineTo(x + w - 14, y + 14);
+  ctx.quadraticCurveTo(x + w + 8, y + h * .45, x + w - 10, y + h - 18);
+  ctx.lineTo(x + 10, y + h - 18);
+  ctx.quadraticCurveTo(x - 8, y + h * .45, x + 14, y + 14);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#4a1717'; ctx.lineWidth = 3; ctx.stroke();
+  roundRect(ctx, x + 19, y + 70, w - 38, 54, 16, '#141820');
+  roundRect(ctx, x + 28, y + 82, w - 56, 30, 10, '#303a44');
+  line(ctx, x + 23, y + 52, x + w - 23, y + 52, '#f6d7d0', 4);
+  drawVehicleLights(ctx, x, y, w, h, flash);
+  drawVehicleWheels(ctx, x, y, w, h, 11);
+}
+
+function drawVehicleLights(ctx, x, y, w, h, flash) {
+  ctx.fillStyle = flash ? '#fff3a6' : '#f7f2e9';
+  ctx.fillRect(x + w * .20, y + h - 23, 18, 10);
+  ctx.fillRect(x + w * .66, y + h - 23, 18, 10);
+  ctx.fillStyle = flash ? '#ff615c' : '#b66d55';
+  ctx.fillRect(x + w * .20, y + 12, 18, 8);
+  ctx.fillRect(x + w * .66, y + 12, 18, 8);
+}
+
+function drawVehicleWheels(ctx, x, y, w, h, r) {
+  for (const [px, py] of [[-4, 40], [w + 4, 40], [-4, h - 48], [w + 4, h - 48]]) circle(ctx, x + px, y + py, r, '#111820');
+}
+
+function drawSubtleDoorSeams(ctx, x, y, w, h) {
+  ctx.save();
+  ctx.globalAlpha = .85;
+  ctx.strokeStyle = 'rgba(7,16,24,.65)';
+  ctx.lineWidth = 2;
+  line(ctx, x + 8, y + h * .38, x + 8, y + h * .62, 'rgba(7,16,24,.65)', 2);
+  line(ctx, x + w - 8, y + h * .38, x + w - 8, y + h * .62, 'rgba(7,16,24,.65)', 2);
+  ctx.restore();
+}
+
+function drawAnimatedBike(ctx, v, label) {
+  const x = v.x, y = v.y, w = v.w || 34, h = v.h || 96, cx = x + w / 2;
+  circle(ctx, cx, y + 17, 15, '#20252f', false);
+  circle(ctx, cx, y + h - 17, 15, '#20252f', false);
+  line(ctx, cx, y + 17, x + 7, y + h * .50, '#1e3540', 3);
+  line(ctx, x + 7, y + h * .50, cx, y + h - 17, '#1e3540', 3);
+  line(ctx, cx, y + 17, x + w - 7, y + h * .50, '#74e6ff', 3);
+  line(ctx, x + w - 7, y + h * .50, cx, y + h - 17, '#74e6ff', 3);
+  line(ctx, x + 6, y + 14, x + w - 6, y + 14, '#d8c4a4', 2);
+  roundRect(ctx, x + 8, y + h * .48, w - 16, 8, 3, '#111820');
+  ctx.fillStyle = '#f8fbff'; ctx.font = '900 8px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, cx, y + h + 14); ctx.textAlign = 'left';
+  if (v.remoteFlashT > 0) drawVehicleBubble(ctx, cx, y - 18, v.remoteLabel || 'READY');
+}
+
+function drawAnimatedMotorbike(ctx, v, label) {
+  const x = v.x, y = v.y, w = v.w || 48, h = v.h || 122, cx = x + w / 2;
+  circle(ctx, cx, y + 18, 15, '#15191f', false);
+  circle(ctx, cx, y + h - 18, 15, '#15191f', false);
+  roundRect(ctx, x + 9, y + 30, w - 18, 62, 18, '#2c3138');
+  roundRect(ctx, x + 13, y + 44, w - 26, 26, 9, '#9ecbd1');
+  roundRect(ctx, x + 16, y + 73, w - 32, 22, 9, '#111820');
+  line(ctx, x + 4, y + 26, x + w - 4, y + 26, '#d8c4a4', 2);
+  circle(ctx, cx, y + 9, 4, '#f1c66a');
+  ctx.fillStyle = '#f8fbff'; ctx.font = '900 8px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, cx, y + h + 14); ctx.textAlign = 'left';
+  if (v.remoteFlashT > 0) drawVehicleBubble(ctx, cx, y - 18, v.remoteLabel || 'READY');
+}
+
+function drawAnimatedAtv(ctx, v, label) {
+  const x = v.x, y = v.y, w = v.w || 82, h = v.h || 116;
+  roundRect(ctx, x + 10, y + 8, w - 20, h - 16, 18, '#485c3f');
+  roundRect(ctx, x + 20, y + 32, w - 40, 48, 12, '#789477');
+  roundRect(ctx, x + 26, y + 51, w - 52, 24, 8, '#2f372c');
+  for (const [px, py] of [[10, 22], [w - 10, 22], [10, h - 22], [w - 10, h - 22]]) { circle(ctx, x + px, y + py, 13, '#111820'); circle(ctx, x + px, y + py, 7, '#55606a'); }
+  line(ctx, x + 14, y + 12, x + w - 14, y + 12, '#111820', 4);
+  line(ctx, x + 14, y + h - 12, x + w - 14, y + h - 12, '#111820', 4);
+  ctx.fillStyle = '#f1c66a'; ctx.font = '900 8px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, x + w / 2, y + h / 2 + 4); ctx.textAlign = 'left';
+  if (v.remoteFlashT > 0) drawVehicleBubble(ctx, x + w / 2, y - 18, v.remoteLabel || 'READY');
+}
+
 function drawTrunk(ctx, x, y, w, h) { ctx.fillStyle = '#202838'; ctx.strokeStyle = '#f1c66a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + 8, y - 2); ctx.lineTo(x + w - 8, y - 2); ctx.lineTo(x + w - 18, y - 36); ctx.lineTo(x + 18, y - 36); ctx.closePath(); ctx.fill(); ctx.stroke(); }
 function drawStoredLuggage(ctx, v, x, y, w, h) { if (!v.vacation || !v.luggage?.length || (!v.trunkOpen && !v.luggageLoaded)) return; const loaded = v.luggage.filter(item => item.loaded || v.phase === 'loading_luggage' || v.phase === 'unloading_luggage'); loaded.slice(0, 4).forEach((item, index) => drawLuggage(ctx, x + w * .28 + index * 15, y + (v.trunkOpen ? -20 : 30), item.count > 1)); }
 function drawVehicleBubble(ctx, x, y, text) { ctx.fillStyle = 'rgba(8,10,15,.82)'; roundRect(ctx, x - 40, y - 12, 80, 24, 10, 'rgba(8,10,15,.82)'); ctx.fillStyle = '#f1c66a'; ctx.font = '900 10px system-ui'; ctx.textAlign = 'center'; ctx.fillText(text, x, y + 4); ctx.textAlign = 'left'; }
-function drawVehicleDeparture(ctx, state) { const v = state.vehicleDeparture; if (!v || state.floor !== 3) return; ctx.save(); drawGarageDoor(ctx, state); drawAnimatedCar(ctx, v, v.phase?.replaceAll('_', ' ').toUpperCase() || 'LEAVING'); ctx.restore(); }
-function drawVehicleReturn(ctx, state) { const v = state.vehicleReturn; if (!v || state.floor !== 3) return; ctx.save(); drawGarageDoor(ctx, state); drawAnimatedCar(ctx, v, v.phase?.replaceAll('_', ' ').toUpperCase() || 'RETURN'); ctx.restore(); }
+function drawVehicleDeparture(ctx, state) { const v = state.vehicleDeparture; if (!v || state.floor !== 3) return; ctx.save(); drawGarageDoor(ctx, state); drawAnimatedVehicle(ctx, v, v.phase?.replaceAll('_', ' ').toUpperCase() || 'LEAVING'); ctx.restore(); }
+function drawVehicleReturn(ctx, state) { const v = state.vehicleReturn; if (!v || state.floor !== 3) return; ctx.save(); drawGarageDoor(ctx, state); drawAnimatedVehicle(ctx, v, v.phase?.replaceAll('_', ' ').toUpperCase() || 'RETURN'); ctx.restore(); }
 function drawBuildPrompt(ctx, state) { if (!state.buildPick) return; ctx.save(); ctx.fillStyle = 'rgba(10,12,18,.78)'; ctx.fillRect(282, 10, 380, 34); ctx.fillStyle = '#f8fbff'; ctx.font = '900 15px system-ui'; ctx.fillText(`Tap placement spot for ${state.buildPick.label}`, 294, 32); ctx.restore(); }
+function circle(ctx, x, y, r, color, fill = true) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); if (fill) { ctx.fillStyle = color; ctx.fill(); } else { ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke(); } }
+function line(ctx, x1, y1, x2, y2, color, width = 1) { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
