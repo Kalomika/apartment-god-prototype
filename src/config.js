@@ -26,6 +26,10 @@ export const COLORS = {
   resident: '#79b7ff', girlfriend: '#f2a3d7', dog: '#d7a66a', active: '#f2d66d'
 };
 
+const VEHICLE_DESTINATIONS = [
+  ['work', 'Work'], ['errand', 'Quick Errand'], ['mall', 'Mall Trip'], ['movies', 'Movie Theater'], ['date', 'Date Night']
+];
+
 export const ACTIONS = {
   couch: [['watch_tv', 'Watch TV'], ['watch_together', 'Watch TV Together'], ['relax', 'Relax'], ['nap', 'Nap']],
   tv: [['watch_tv', 'Watch TV'], ['watch_together', 'Watch TV Together'], ['comedy', 'Comedy Channel'], ['horror', 'Horror Channel'], ['sports', 'Sports Channel']],
@@ -40,6 +44,7 @@ export const ACTIONS = {
   toilet: [['toilet', 'Use Toilet']],
   door: [['work', 'Work'], ['errand', 'Quick Errand'], ['mall', 'Mall Trip'], ['movies', 'Movie Theater'], ['date', 'Date Night']],
   bed: [['sleep', 'Sleep'], ['bed_together', 'Go To Bed Together'], ['make_bed', 'Make Bed'], ['intimacy', 'Private Moment'], ['relax', 'Relax']],
+  closet: [['change_clothes', 'Change Clothes'], ['plan_week_outfits', 'Plan Weekly Outfits']],
   desk: [['desk_work', 'Work at Desk'], ['play_game', 'Play Game'], ['phone', 'Phone'], ['shop', 'Shop']],
   dog_bowl: [['feed_dog', 'Feed Dog']],
   dog_bed: [['dog_rest', 'Dog Rest']],
@@ -55,11 +60,11 @@ export const ACTIONS = {
   weight_bench: [['lift_weights', 'Lift Weights']],
   heavy_bag: [['heavy_bag', 'Hit Heavy Bag']],
   swim_pool: [['swim', 'Swim'], ['swim_together', 'Swim Together']],
-  soccer_field: [['soccer_practice', 'Solo Soccer Practice'], ['soccer_match', 'Mini Soccer Match']],
+  soccer_field: [['soccer_practice', 'Kick Soccer Ball']],
   kennel: [['dog_rest', 'Dog Rest'], ['call_dog_yard', 'Call Dog To Yard']],
   car: [['work', 'Drive to Work'], ['errand', 'Drive Errand'], ['mall', 'Drive to Mall'], ['movies', 'Drive to Movies'], ['date', 'Drive Date Night'], ['drive', 'Cruise Around'], ['maintain_vehicle', 'Maintain Vehicle']],
-  bike: [['bike_trip', 'Bike Trip']],
-  motorbike: [['motorbike_trip', 'Motorbike Trip']]
+  bike: VEHICLE_DESTINATIONS.map(([id, label]) => [id, `Bike to ${label}`]),
+  motorbike: VEHICLE_DESTINATIONS.map(([id, label]) => [id, `Ride Motorbike to ${label}`])
 };
 
 export const SOCIAL_ACTIONS = [
@@ -89,6 +94,8 @@ export const ACTION_TIMES = {
   bed_together: 90,
   make_bed: 10,
   intimacy: 40,
+  change_clothes: 12,
+  plan_week_outfits: 18,
   desk_work: 60,
   play_game: 45,
   phone: 18,
