@@ -12,15 +12,20 @@ const PROFILE_SCALE = Object.freeze({
   [TIMING_PROFILES.CINEMATIC_SLOW]: 0.22
 });
 
+const hasProfile = profile => Object.prototype.hasOwnProperty.call(PROFILE_SCALE, profile);
+const safeSeconds = value => Number.isFinite(value) ? Math.max(0, value) : 0;
+
 export function createStarshotTimingController() {
   let profile = TIMING_PROFILES.REAL_TIME;
   let remaining = 0;
   let requestedBy = null;
   let rawDt = 0;
   let scaledDt = 0;
+  let lastProfile = TIMING_PROFILES.REAL_TIME;
 
   function update(dt) {
-    rawDt = Math.max(0, dt || 0);
+    rawDt = safeSeconds(dt);
+    lastProfile = profile;
     if (remaining > 0) {
       remaining = Math.max(0, remaining - rawDt);
       if (remaining <= 0) {
@@ -33,10 +38,11 @@ export function createStarshotTimingController() {
   }
 
   function request(nextProfile, duration = 0.08, source = 'unknown') {
-    if (!PROFILE_SCALE.hasOwnProperty(nextProfile)) return snapshot();
+    if (!hasProfile(nextProfile)) return snapshot();
     profile = nextProfile;
-    remaining = Math.max(0, duration || 0);
-    requestedBy = source;
+    remaining = safeSeconds(duration);
+    requestedBy = source || 'unknown';
+    scaledDt = rawDt * (PROFILE_SCALE[profile] ?? 1);
     return snapshot();
   }
 
@@ -54,6 +60,7 @@ export function createStarshotTimingController() {
 
   function reset() {
     profile = TIMING_PROFILES.REAL_TIME;
+    lastProfile = TIMING_PROFILES.REAL_TIME;
     remaining = 0;
     requestedBy = null;
     rawDt = 0;
@@ -63,11 +70,13 @@ export function createStarshotTimingController() {
   function snapshot() {
     return {
       profile,
+      lastProfile,
       rawDt,
       scaledDt,
       scale: PROFILE_SCALE[profile] ?? 1,
       remaining,
-      requestedBy
+      requestedBy,
+      active: profile !== TIMING_PROFILES.REAL_TIME
     };
   }
 
