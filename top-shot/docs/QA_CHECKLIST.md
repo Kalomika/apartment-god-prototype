@@ -14,6 +14,15 @@ npm run build
 
 Do not claim these passed unless they were actually run.
 
+## Documentation freshness checks
+
+- `top-shot/docs/HANDOFF.md` reflects the current branch state.
+- `top-shot/docs/DEVELOPMENT_LOG.md` has a dated entry for the pass.
+- `top-shot/docs/COVERAGE_MATRIX.md` reflects changed features, file ownership, branch status, known issues, PR status, risks, and test expectations.
+- `top-shot/docs/FEATURE_INVENTORY.md` is updated if player-facing feature behavior changed.
+- `top-shot/docs/ARCHITECTURE.md` is updated if module ownership or architecture changed.
+- This QA checklist is updated if test expectations changed.
+
 ## Startup checks
 
 - Game loads without console errors.
@@ -68,6 +77,14 @@ Do not claim these passed unless they were actually run.
 - Debug overlay does not create obvious frame collapse during normal use.
 - AI or animation labels are readable and not misleading.
 
+## Coverage matrix checks
+
+- Every touched runtime feature has a matching matrix row or a new row added.
+- Every new module has file ownership represented in the matrix or architecture doc.
+- Known issues discovered during testing are added to the matrix blocker section.
+- Open PR or branch status changes are reflected in the matrix.
+- Risk level is updated if the change becomes safer or more dangerous than before.
+
 ## Starshot checks
 
 For experimental Starshot work, also verify:
@@ -75,6 +92,7 @@ For experimental Starshot work, also verify:
 - Stable branch remains untouched or safely recoverable.
 - Backup branch exists.
 - Handoff and development log are updated.
+- Coverage matrix is updated.
 - New systems are modular.
 - Known broken items are listed.
 - Branch is clearly marked experimental if not merge-ready.
@@ -82,3 +100,5 @@ For experimental Starshot work, also verify:
 ## Merge rule
 
 A branch is not ready to merge into stable unless it passes automated checks and the relevant manual checks, or Kam explicitly accepts the risk.
+
+Matrix freshness is part of merge readiness. If the matrix does not match the branch, the branch is not ready.
