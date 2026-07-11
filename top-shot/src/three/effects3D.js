@@ -1,4 +1,5 @@
 import { ARENA_H, ARENA_W } from '../config.js';
+import { installTopShotDebugOverlay3D } from './debugOverlay3D.js';
 
 const MAP_W = 34;
 const MAP_D = 25.5;
@@ -40,6 +41,8 @@ export function installTopShotEffects3D(world) {
     syncEffectMeshes(this, state);
     this.renderer.render(this.scene, this.camera);
   };
+
+  installTopShotDebugOverlay3D(world);
 
   return world;
 }
