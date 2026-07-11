@@ -5,6 +5,7 @@ import { formatTime } from './renderHelpers.js';
 export function drawAfterEntityOverlays(ctx, state) {
   drawWardrobeOverlays(ctx, state);
   drawShowerPrivacyOverlays(ctx, state);
+  drawVehicleContrastLabels(ctx, state);
   drawCalendarSkipRecap(ctx, state);
 }
 
@@ -111,6 +112,40 @@ function drawHangingTowel(ctx, x, y, female) {
   ctx.textAlign = 'center';
   ctx.fillText('TOWEL', x, y + 28);
   ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+function drawVehicleContrastLabels(ctx, state) {
+  if (state.floor !== 3) return;
+  for (const vehicle of objects.filter(o => o.floor === 3 && ['car', 'bike', 'motorbike', 'atv'].includes(o.kind))) {
+    if (state.objectState?.vehicleInUse === vehicle.id) continue;
+    drawVehicleTag(ctx, vehicle.x + vehicle.w / 2, vehicle.y + vehicle.h / 2, vehicleShortLabel(vehicle));
+  }
+  const active = state.vehicleDeparture || state.vehicleReturn;
+  if (active) drawVehicleTag(ctx, active.x + active.w / 2, active.y + active.h / 2, vehicleShortLabel(active));
+}
+
+function vehicleShortLabel(vehicle) {
+  if (vehicle.vehicleId === 'car_1' || vehicle.id === 'car_1') return 'SUV';
+  if (vehicle.vehicleId === 'car_2' || vehicle.id === 'car_2') return 'CONV';
+  if (vehicle.vehicleKind === 'bike' || vehicle.kind === 'bike') return 'BIKE';
+  if (vehicle.vehicleKind === 'motorbike' || vehicle.kind === 'motorbike') return 'MOTO';
+  if (vehicle.vehicleKind === 'atv' || vehicle.kind === 'atv') return 'ATV';
+  return 'CAR';
+}
+
+function drawVehicleTag(ctx, x, y, text) {
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '900 10px system-ui';
+  const w = Math.max(40, text.length * 9 + 18);
+  roundRect(ctx, x - w / 2, y - 11, w, 22, 7, '#f1c66a');
+  ctx.strokeStyle = '#071018';
+  ctx.lineWidth = 3;
+  roundRect(ctx, x - w / 2, y - 11, w, 22, 7, '', true);
+  ctx.fillStyle = '#071018';
+  ctx.fillText(text, x, y + 1);
   ctx.restore();
 }
 
