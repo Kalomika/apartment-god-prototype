@@ -57,12 +57,13 @@ export const objects = [
   { id: 'backyard_door', label: 'Kitchen/Living Back Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'living', x: 416, y: 38, w: 54, h: 34, solid: false, toFloor: 4, exitId: 'yard_back_door' },
   { id: 'dog_bed', label: 'Dog Bed', kind: 'dog_bed', floor: 0, room: 'entry', x: 600, y: 476, w: 64, h: 42, solid: false, enterable: true },
   { id: 'dog_bowl', label: 'Dog Bowl', kind: 'dog_bowl', floor: 0, room: 'entry', x: 674, y: 486, w: 36, h: 26, solid: false },
-  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'living', x: 360, y: 272, w: 76, h: 154, solid: true },
+  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'kitchen', x: 506, y: 238, w: 210, h: 72, solid: true },
   { id: 'light_living', label: 'Living Light', kind: 'light', floor: 0, room: 'living', x: 408, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_down', label: 'Upstairs Stairs', kind: 'stairs', floor: 0, room: 'stairs', x: 780, y: 554, w: 118, h: 84, solid: false, toFloor: 1, exitId: 'stairs_up' },
 
   { id: 'bed', label: 'King Bed', kind: 'bed', floor: 1, room: 'bedroom', x: 66, y: 92, w: 302, h: 144, facing: 'east', headboard: 'west', solid: true, enterable: true },
   { id: 'bedroom_tv', label: 'Bedroom Wall TV', kind: 'tv', floor: 1, room: 'bedroom', x: 424, y: 124, w: 30, h: 116, facing: 'west', wallMounted: true, solid: true },
+  { id: 'closet', label: 'Bedroom Closet', kind: 'closet', floor: 1, room: 'bedroom', x: 386, y: 270, w: 66, h: 86, solid: true },
   { id: 'desk', label: 'Laptop Desk', kind: 'desk', floor: 1, room: 'office', x: 552, y: 96, w: 122, h: 66, solid: true },
   { id: 'shower2', label: 'Upstairs Shower', kind: 'shower', floor: 1, room: 'bath2', x: 798, y: 72, w: 62, h: 90, solid: true, enterable: true },
   { id: 'toilet2', label: 'Upstairs Toilet', kind: 'toilet', floor: 1, room: 'bath2', x: 880, y: 222, w: 44, h: 54, solid: true, enterable: true },
@@ -82,8 +83,8 @@ export const objects = [
 
   { id: 'garage_entry_door', label: 'House Door', kind: 'stairs', styleAs: 'door', floor: 3, room: 'garage', x: 872, y: 468, w: 34, h: 72, solid: false, toFloor: 0, exitId: 'garage_door' },
   { id: 'garage_overhead_door', label: 'Overhead Garage Door', kind: 'garage_door', floor: 3, room: 'garage', x: 186, y: 636, w: 548, h: 28, solid: false, facing: 'down' },
-  { id: 'car_1', label: 'Family Car', kind: 'car', floor: 3, room: 'garage', x: 196, y: 268, w: 116, h: 230, solid: true, facing: 'down' },
-  { id: 'car_2', label: 'Sports Car', kind: 'car', floor: 3, room: 'garage', x: 506, y: 268, w: 116, h: 230, solid: true, facing: 'down' },
+  { id: 'car_1', label: 'Family SUV', kind: 'car', floor: 3, room: 'garage', x: 196, y: 268, w: 126, h: 238, solid: true, facing: 'down', vehicleBody: 'suv' },
+  { id: 'car_2', label: 'Sports Convertible', kind: 'car', floor: 3, room: 'garage', x: 506, y: 268, w: 108, h: 226, solid: true, facing: 'down', vehicleBody: 'convertible' },
   { id: 'bike', label: 'Bicycle', kind: 'bike', floor: 3, room: 'garage', x: 742, y: 260, w: 34, h: 96, solid: true, facing: 'down' },
   { id: 'motorbike', label: 'Motorbike', kind: 'motorbike', floor: 3, room: 'garage', x: 802, y: 240, w: 48, h: 122, solid: true, facing: 'down' },
   { id: 'atv', label: 'ATV', kind: 'atv', floor: 3, room: 'garage', x: 690, y: 404, w: 82, h: 116, solid: true, facing: 'down' },
@@ -92,7 +93,7 @@ export const objects = [
   { id: 'yard_back_door', label: 'Back Door to House', kind: 'stairs', styleAs: 'door', floor: 4, room: 'yard', x: 148, y: 560, w: 80, h: 34, solid: false, toFloor: 0, exitId: 'backyard_door' },
   { id: 'pet_flap_yard', label: 'Yard Pet Flap', kind: 'door', styleAs: 'door', floor: 4, room: 'yard', x: 240, y: 562, w: 50, h: 24, solid: false },
   { id: 'soccer_field', label: 'Backyard Soccer Field', kind: 'soccer_field', floor: 4, room: 'yard', x: 82, y: 190, w: 420, h: 300, solid: false, enterable: true },
-  { id: 'swim_pool', label: 'Backyard Pool', kind: 'swim_pool', floor: 4, room: 'pool_area', x: 650, y: 92, w: 236, h: 190, solid: false, enterable: true },
+  { id: 'swim_pool', label: 'Backyard Pool', kind: 'swim_pool', floor: 4, room: 'pool_area', x: 632, y: 58, w: 282, h: 288, solid: false, enterable: true },
   { id: 'kennel', label: 'Dog Kennel', kind: 'kennel', floor: 4, room: 'kennel_area', x: 688, y: 430, w: 112, h: 82, solid: true },
 
   { id: 'lab_bed', label: 'Lab Bed', kind: 'bed', floor: 5, room: 'secret_lab', x: 72, y: 86, w: 180, h: 104, solid: true, enterable: true },
@@ -152,7 +153,8 @@ export function approachPoint(obj, action = '') {
   if (obj.kind === 'fridge') return clampToPlay(cx, obj.y + obj.h + 42);
   if (['stove', 'sink'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36);
   if (obj.kind === 'coffee_maker') return clampToPlay(cx, obj.y + obj.h + 28);
-  if (obj.kind === 'dining_table') return clampToPlay(obj.x + obj.w + 34, cy);
+  if (obj.kind === 'dining_table') return clampToPlay(cx, obj.y + obj.h + 34);
+  if (obj.kind === 'closet') return clampToPlay(obj.x - 34, cy);
   if (obj.kind === 'bookshelf') return clampToPlay(obj.x + obj.w + 36, cy);
   if (obj.kind === 'desk') return clampToPlay(cx, obj.y + obj.h + 42);
   if (obj.kind === 'pool_table') return clampToPlay(cx, obj.y + obj.h + 48);
