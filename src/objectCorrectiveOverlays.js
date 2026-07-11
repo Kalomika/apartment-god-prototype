@@ -21,9 +21,9 @@ function drawGarageVehicleCorrections(ctx, state) {
     ctx.shadowColor = 'transparent';
     if (vehicle.id === 'car_1') drawFamilySuv(ctx, vehicle, state);
     else if (vehicle.id === 'car_2') drawSportsConvertible(ctx, vehicle, state);
-    else if (vehicle.kind === 'bike') drawBetterBike(ctx, vehicle);
-    else if (vehicle.kind === 'motorbike') drawBetterMotorbike(ctx, vehicle);
-    else if (vehicle.kind === 'atv') drawBetterAtv(ctx, vehicle);
+    else if (vehicle.kind === 'bike') drawTopDownBike(ctx, vehicle);
+    else if (vehicle.kind === 'motorbike') drawTopDownMotorbike(ctx, vehicle);
+    else if (vehicle.kind === 'atv') drawTopDownAtv(ctx, vehicle);
     ctx.restore();
   }
 }
@@ -116,84 +116,109 @@ function drawCloset(ctx, closet, state) {
 
 function drawFamilySuv(ctx, o, state) {
   const flash = vehicleFlash(state, o);
-  roundRect(ctx, o.x - 2, o.y - 2, o.w + 4, o.h + 4, 22, '#2a2f38');
-  roundRect(ctx, o.x + 5, o.y + 4, o.w - 10, o.h - 8, 18, '#e3e0d6');
-  roundRect(ctx, o.x + 17, o.y + 32, o.w - 34, 74, 12, '#7faeba');
-  roundRect(ctx, o.x + 17, o.y + 118, o.w - 34, 72, 10, '#9fb9bf');
-  line(ctx, o.x + 19, o.y + 112, o.x + o.w - 19, o.y + 112, '#4c5a63', 3);
-  drawVehicleLights(ctx, o, flash, true);
-  drawVehicleWheels(ctx, o, 13);
-  ctx.fillStyle = '#111820';
-  ctx.font = '900 10px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText('SUV', o.x + o.w / 2, o.y + o.h / 2 + 5);
-  ctx.textAlign = 'left';
+  drawTopDownCarBase(ctx, o, '#e3e0d6', '#d3d0c6', '#7faeba', '#9fb9bf', flash, true);
 }
 
 function drawSportsConvertible(ctx, o, state) {
   const flash = vehicleFlash(state, o);
-  ctx.fillStyle = '#9b3e35';
-  ctx.beginPath();
-  ctx.moveTo(o.x + 14, o.y + 14);
-  ctx.lineTo(o.x + o.w - 14, o.y + 14);
-  ctx.quadraticCurveTo(o.x + o.w + 8, o.y + o.h * .45, o.x + o.w - 10, o.y + o.h - 18);
-  ctx.lineTo(o.x + 10, o.y + o.h - 18);
-  ctx.quadraticCurveTo(o.x - 8, o.y + o.h * .45, o.x + 14, o.y + 14);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = '#4a1717';
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  roundRect(ctx, o.x + 19, o.y + 70, o.w - 38, 54, 16, '#141820');
-  roundRect(ctx, o.x + 28, o.y + 82, o.w - 56, 30, 10, '#303a44');
-  line(ctx, o.x + 23, o.y + 52, o.x + o.w - 23, o.y + 52, '#f6d7d0', 4);
-  drawVehicleLights(ctx, o, flash, true);
-  drawVehicleWheels(ctx, o, 11);
-  ctx.fillStyle = '#f8fbff';
-  ctx.font = '900 9px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText('CONV', o.x + o.w / 2, o.y + o.h - 44);
-  ctx.textAlign = 'left';
+  drawTopDownCarBase(ctx, o, '#9b3e35', '#7d2f2a', '#f6d7d0', '#141820', flash, false);
+  roundRect(ctx, o.x + 22, o.y + o.h * .38, o.w - 44, 50, 14, '#171b23');
+  roundRect(ctx, o.x + 31, o.y + o.h * .43, o.w - 62, 26, 9, '#303a44');
 }
 
-function drawBetterBike(ctx, o) {
-  const cx = o.x + o.w / 2;
-  circle(ctx, cx, o.y + 17, 15, '#20252f', false);
-  circle(ctx, cx, o.y + o.h - 17, 15, '#20252f', false);
-  line(ctx, cx, o.y + 17, o.x + 7, o.y + o.h * .50, '#1e3540', 3);
-  line(ctx, o.x + 7, o.y + o.h * .50, cx, o.y + o.h - 17, '#1e3540', 3);
-  line(ctx, cx, o.y + 17, o.x + o.w - 7, o.y + o.h * .50, '#74e6ff', 3);
-  line(ctx, o.x + o.w - 7, o.y + o.h * .50, cx, o.y + o.h - 17, '#74e6ff', 3);
-  line(ctx, o.x + 6, o.y + 14, o.x + o.w - 6, o.y + 14, '#d8c4a4', 2);
-  roundRect(ctx, o.x + 8, o.y + o.h * .48, o.w - 16, 8, 3, '#111820');
-}
-
-function drawBetterMotorbike(ctx, o) {
-  const cx = o.x + o.w / 2;
-  circle(ctx, cx, o.y + 18, 15, '#15191f', false);
-  circle(ctx, cx, o.y + o.h - 18, 15, '#15191f', false);
-  roundRect(ctx, o.x + 9, o.y + 30, o.w - 18, 62, 18, '#2c3138');
-  roundRect(ctx, o.x + 13, o.y + 44, o.w - 26, 26, 9, '#9ecbd1');
-  roundRect(ctx, o.x + 16, o.y + 73, o.w - 32, 22, 9, '#111820');
-  line(ctx, o.x + 4, o.y + 26, o.x + o.w - 4, o.y + 26, '#d8c4a4', 2);
-  circle(ctx, cx, o.y + 9, 4, '#f1c66a');
-}
-
-function drawBetterAtv(ctx, o) {
-  roundRect(ctx, o.x + 10, o.y + 8, o.w - 20, o.h - 16, 18, '#485c3f');
-  roundRect(ctx, o.x + 20, o.y + 32, o.w - 40, 48, 12, '#789477');
-  roundRect(ctx, o.x + 26, o.y + 51, o.w - 52, 24, 8, '#2f372c');
-  for (const [x, y] of [[10, 22], [o.w - 10, 22], [10, o.h - 22], [o.w - 10, o.h - 22]]) {
-    circle(ctx, o.x + x, o.y + y, 13, '#111820');
-    circle(ctx, o.x + x, o.y + y, 7, '#55606a');
+function drawTopDownCarBase(ctx, o, body, panel, glassA, glassB, flash, roofed) {
+  roundRect(ctx, o.x + 4, o.y + 2, o.w - 8, o.h - 4, 21, '#20262f');
+  roundRect(ctx, o.x + 8, o.y + 6, o.w - 16, o.h - 12, 18, body);
+  roundRect(ctx, o.x + 15, o.y + 18, o.w - 30, 42, 13, panel);
+  roundRect(ctx, o.x + 16, o.y + o.h - 66, o.w - 32, 46, 13, panel);
+  if (roofed) {
+    roundRect(ctx, o.x + 20, o.y + 68, o.w - 40, 48, 12, glassA);
+    roundRect(ctx, o.x + 22, o.y + 126, o.w - 44, 58, 12, glassB);
+    roundRect(ctx, o.x + 30, o.y + 104, o.w - 60, 42, 10, '#d8dad3');
+  } else {
+    line(ctx, o.x + 22, o.y + 62, o.x + o.w - 22, o.y + 62, glassA, 4);
+    roundRect(ctx, o.x + 23, o.y + 28, o.w - 46, 34, 10, panel);
+    roundRect(ctx, o.x + 19, o.y + o.h - 64, o.w - 38, 42, 12, panel);
   }
-  line(ctx, o.x + 14, o.y + 12, o.x + o.w - 14, o.y + 12, '#111820', 4);
-  line(ctx, o.x + 14, o.y + o.h - 12, o.x + o.w - 14, o.y + o.h - 12, '#111820', 4);
-  ctx.fillStyle = '#f1c66a';
-  ctx.font = '900 9px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText('ATV', o.x + o.w / 2, o.y + o.h / 2 + 4);
-  ctx.textAlign = 'left';
+  drawSubtleTireHints(ctx, o);
+  drawTinyMirrors(ctx, o);
+  drawVehicleLights(ctx, o, flash, true);
+}
+
+function drawSubtleTireHints(ctx, o) {
+  ctx.save();
+  ctx.globalAlpha = .55;
+  const yTop = o.y + 44;
+  const yBot = o.y + o.h - 62;
+  roundRect(ctx, o.x + 5, yTop, 8, 34, 4, '#10141b');
+  roundRect(ctx, o.x + o.w - 13, yTop, 8, 34, 4, '#10141b');
+  roundRect(ctx, o.x + 5, yBot, 8, 34, 4, '#10141b');
+  roundRect(ctx, o.x + o.w - 13, yBot, 8, 34, 4, '#10141b');
+  ctx.restore();
+}
+
+function drawTinyMirrors(ctx, o) {
+  roundRect(ctx, o.x - 5, o.y + o.h * .42, 9, 14, 4, '#20262f');
+  roundRect(ctx, o.x + o.w - 4, o.y + o.h * .42, 9, 14, 4, '#20262f');
+}
+
+function drawTopDownBike(ctx, o) {
+  const cx = o.x + o.w / 2;
+  drawTopDownTire(ctx, cx, o.y + 13, 4.2, 14, '#111820');
+  drawTopDownTire(ctx, cx, o.y + o.h - 13, 4.2, 14, '#111820');
+  line(ctx, cx, o.y + 22, o.x + 8, o.y + o.h * .50, '#1e3540', 2.4);
+  line(ctx, o.x + 8, o.y + o.h * .50, cx, o.y + o.h - 22, '#1e3540', 2.4);
+  line(ctx, cx, o.y + 22, o.x + o.w - 8, o.y + o.h * .50, '#74e6ff', 2.4);
+  line(ctx, o.x + o.w - 8, o.y + o.h * .50, cx, o.y + o.h - 22, '#74e6ff', 2.4);
+  line(ctx, o.x + 7, o.y + 16, o.x + o.w - 7, o.y + 16, '#d8c4a4', 2);
+  roundRect(ctx, cx - 5, o.y + o.h * .49, 10, 13, 4, '#111820');
+}
+
+function drawTopDownMotorbike(ctx, o) {
+  const cx = o.x + o.w / 2;
+  drawTopDownTire(ctx, cx, o.y + 13, 5, 15, '#10141b');
+  drawTopDownTire(ctx, cx, o.y + o.h - 15, 6, 17, '#10141b');
+  roundRect(ctx, cx - 11, o.y + 31, 22, 38, 12, '#2c3138');
+  roundRect(ctx, cx - 13, o.y + 49, 26, 28, 10, '#9ecbd1');
+  roundRect(ctx, cx - 10, o.y + 78, 20, 26, 9, '#111820');
+  line(ctx, o.x + 6, o.y + 24, o.x + o.w - 6, o.y + 24, '#d8c4a4', 2.2);
+  circle(ctx, cx, o.y + 8, 4, '#f1c66a');
+}
+
+function drawTopDownAtv(ctx, o) {
+  const cx = o.x + o.w / 2;
+  roundRect(ctx, o.x + 17, o.y + 14, o.w - 34, o.h - 28, 18, '#485c3f');
+  roundRect(ctx, o.x + 25, o.y + 34, o.w - 50, 42, 12, '#789477');
+  roundRect(ctx, o.x + 31, o.y + 53, o.w - 62, 24, 8, '#2f372c');
+  drawAttachedAtvTire(ctx, o.x + 8, o.y + 28, 15, 25);
+  drawAttachedAtvTire(ctx, o.x + o.w - 8, o.y + 28, 15, 25);
+  drawAttachedAtvTire(ctx, o.x + 8, o.y + o.h - 30, 15, 25);
+  drawAttachedAtvTire(ctx, o.x + o.w - 8, o.y + o.h - 30, 15, 25);
+  line(ctx, o.x + 22, o.y + 16, o.x + o.w - 22, o.y + 16, '#111820', 3);
+  line(ctx, cx - 18, o.y + o.h - 17, cx + 18, o.y + o.h - 17, '#111820', 3);
+}
+
+function drawAttachedAtvTire(ctx, x, y, rx, ry) {
+  ctx.save();
+  ctx.fillStyle = '#10141b';
+  ctx.beginPath();
+  ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#444f57';
+  ctx.beginPath();
+  ctx.ellipse(x, y, rx * .42, ry * .62, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawTopDownTire(ctx, x, y, rx, ry, color) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawVehicleLights(ctx, o, flash, vertical) {
@@ -205,12 +230,6 @@ function drawVehicleLights(ctx, o, flash, vertical) {
   ctx.fillStyle = flash > 0 ? '#ff615c' : '#b66d55';
   ctx.fillRect(o.x + o.w * .20, rearY, 18, 8);
   ctx.fillRect(o.x + o.w * .66, rearY, 18, 8);
-}
-
-function drawVehicleWheels(ctx, o, r) {
-  for (const [x, y] of [[-4, 40], [o.w + 4, 40], [-4, o.h - 48], [o.w + 4, o.h - 48]]) {
-    circle(ctx, o.x + x, o.y + y, r, '#111820');
-  }
 }
 
 function vehicleFlash(state, o) {
