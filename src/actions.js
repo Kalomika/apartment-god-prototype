@@ -229,7 +229,8 @@ export function startOffsite(state, actor, actionId, invitedIds = [], vehicleId 
   const party = buildParty(state, actor, invitedIds, actionId, vehicleId);
   const partyIds = party.map(e => e.id);
   const tripVehicle = vehicleId === 'auto' && ['bike_trip', 'motorbike_trip'].includes(actionId) ? actionId === 'bike_trip' ? 'bike' : 'motorbike' : vehicleId;
-  beginVehicleDeparture(state, actionId, partyIds, tripVehicle, actor.id);
+  const began = beginVehicleDeparture(state, actionId, partyIds, tripVehicle, actor.id);
+  if (!began) return false;
   state.objectState.doorOpen = true;
   log(state, `${actor.name} is leaving for ${(destination?.label || actionId.replaceAll('_', ' '))} with ${party.length - 1} guest(s).`);
   return true;
