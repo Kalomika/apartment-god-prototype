@@ -2,6 +2,57 @@
 
 This file tracks meaningful Top Shot repo changes so future AI agents, Codex, Copilot, Grok, or human developers can continue from the repository instead of chat history.
 
+## 2026-07-11, Smoke invalid-state hardening
+
+Tool or person: ChatGPT
+
+Branch: `top-shot-smoke-invalid-state-fix`
+
+Backup branch: `backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
+
+Summary:
+
+- Investigated the PR #5 known smoke blocker: `suit_operative vs survival_commando` failing with `Invalid fighter state`, likely from NaN position, health, or elevation.
+- Inspected `tests/simSmoke.js`, `src/state.js`, `src/systems.js`, `src/explosives.js`, `src/combat.js`, `src/perception.js`, `src/navmesh.js`, `src/stealth.js`, `src/arena.js`, `src/physicality.js`, and `src/prestige.js`.
+- Identified the most likely root cause in `src/explosives.js`: `updateDive()` assumed `diveVx` and `diveVy` were finite whenever `diveT > 0`.
+- Suppression and evasive pose logic can set `diveT` without grenade-dive velocity, so `f.x + f.diveVx * dt` and `f.y + f.diveVy * dt` can produce `NaN` before later systems run.
+- Hardened dive movement to finite-safe velocity and position math.
+- Hardened grenade update and explosion math to sanitize fuse, ttl, velocity, position, blast, and damage.
+
+Files changed:
+
+- `top-shot/src/explosives.js`
+- `top-shot/docs/HANDOFF.md`
+- `top-shot/docs/DEVELOPMENT_LOG.md`
+- `top-shot/docs/COVERAGE_MATRIX.md`
+
+Systems affected:
+
+- Grenade and dive movement simulation.
+- Smoke-test state integrity path.
+- Documentation and matrix tracking.
+
+What was preserved:
+
+- Existing Top Shot runtime structure.
+- Existing CQC, AI, match, grenade, and dive behavior intent.
+- Existing branch isolation.
+
+Testing:
+
+- Local full repo tests were not run because the local container could not resolve GitHub and could not clone the repository.
+- Performed a local syntax check on the patched `explosives.js` content with `node --check`, which passed.
+
+Known risks:
+
+- `npm run smoke` still needs to be run in a real repo checkout or CI to verify the PR #5 blocker is fully resolved.
+- The patch addresses the most likely invalid-state source found by inspection, but other runtime NaN paths could still exist until smoke is rerun.
+- Browser behavior remains unverified.
+
+Next recommended step:
+
+Run `npm run check`, `npm run smoke`, and `npm run build` from `top-shot/` on `top-shot-smoke-invalid-state-fix`. If smoke passes, update PR #5 and the coverage matrix blocker status.
+
 ## 2026-07-11, Coverage matrix control board
 
 Tool or person: ChatGPT
