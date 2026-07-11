@@ -118,16 +118,37 @@ export function resolveArrival(state, entity) {
 }
 
 function queuePartnerForSharedAction(state, entity, actionId, obj) {
-  const partner = state.entities.find(e => e.id !== entity.id && e.type === 'person' && !e.hidden && e.floor === entity.floor);
+  const candidates = state.entities
+    .filter(e => e.id !== entity.id && e.type === 'person' && !e.hidden && e.floor === entity.floor)
+    .sort((a, b) => Math.hypot(a.x - entity.x, a.y - entity.y) - Math.hypot(b.x - entity.x, b.y - entity.y));
+  const partner = candidates.find(candidate => canInviteeJoin(state, entity, candidate).ok) || candidates[0];
   if (!partner) { say(entity, 'rn?'); log(state, `${entity.name} needs someone nearby for ${actionId.replaceAll('_', ' ')}.`); return false; }
   const decision = canInviteeJoin(state, entity, partner);
-  if (!decision.ok) { if (decision.heard) say(partner, 'not rn'); say(entity, 'rn?'); log(state, `${partner.name} declined ${obj.label}: ${decision.reason}.`); return false; }
+  if (!decision.ok) {
+    if (decision.heard) say(partner, 'not rn');
+    say(entity, 'rn?');
+    log(state, decision.heard
+      ? `${partner.name} declined ${obj.label}: ${decision.reason}.`
+      : `${partner.name} did not hear ${entity.name}'s request for ${obj.label}.`);
+    return false;
+  }
   say(partner, 'yeah'); entity.action = `Waiting for ${partner.name}`; entity.actionT = 0; entity.pose = 'stand'; commandSocial(partner, entity, actionId); log(state, `${partner.name} agreed to join ${entity.name} at ${obj.label}.`); return true;
 }
 
-function canInviteeJoin(state, actor, invitee) {
-  if (invitee.floor !== actor.floor) return { ok: false, heard: false, reason: 'too far away' };
+function canInviteeJoin(state, actor, invitee, options = {}) {
+  if (!actor || !invitee) return { ok: false, heard: false, reason: 'unavailable' };
+  const viaPhone = Boolean(options.viaPhone);
   const current = String(invitee.action || '').toLowerCase();
+  const actorRoom = roomAt(actor.x, actor.y, actor.floor)?.id || '';
+  const inviteeRoom = roomAt(invitee.x, invitee.y, invitee.floor)?.id || '';
+  const distance = Math.hypot((invitee.x || 0) - (actor.x || 0), (invitee.y || 0) - (actor.y || 0));
+  const privateAction = current.includes('shower') || current.includes('toilet');
+  const sameFloor = invitee.floor === actor.floor;
+  const sameRoom = sameFloor && actorRoom && actorRoom === inviteeRoom;
+  const hearingRange = privateAction ? 85 : sameRoom ? 260 : 135;
+  const heard = viaPhone || (sameFloor && distance <= hearingRange);
+
+  if (!heard) return { ok: false, heard: false, reason: 'out of hearing range' };
   if (invitee.path?.length || invitee.actionT > 0) return { ok: false, heard: true, reason: 'busy' };
   if (current.includes('shower')) return { ok: false, heard: true, reason: 'showering' };
   if (current.includes('toilet')) return { ok: false, heard: true, reason: 'in the bathroom' };
@@ -244,7 +265,7 @@ function buildParty(state, actor, invitedIds, actionId, vehicleId = 'auto') {
     if (limitedVehicle && e.type === 'dog') { log(state, `${e.name} cannot ride on ${vehicleId}.`); continue; }
     if (limitedVehicle && party.length >= (vehicleId === 'bike' ? 1 : 2)) { log(state, `${vehicleId} has limited passenger space.`); continue; }
     if (e.type === 'dog' && !['errand', 'mall', 'date', 'movies', 'dog_park', 'vacation_camping', 'vacation_beach'].includes(actionId)) { log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}: not allowed for that destination.`); continue; }
-    const decision = canInviteeJoin(state, actor, e);
+    const decision = canInviteeJoin(state, actor, e, { viaPhone: e.type === 'person' });
     if (!decision.ok) { if (decision.heard) say(e, 'not rn'); log(state, `${e.name} declined ${actionId.replaceAll('_', ' ')}: ${decision.reason}.`); continue; }
     say(e, 'yeah'); party.push(e);
   }
