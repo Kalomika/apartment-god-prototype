@@ -1,4 +1,5 @@
 import { ARENA_H, ARENA_W } from '../config.js';
+import { createStarshotDebugSnapshot, findActorSnapshot, formatActorDebugLine, formatTimingDebugLine } from '../starshot/debugSnapshot.js';
 
 const MAP_W = 34;
 const MAP_D = 25.5;
@@ -40,6 +41,7 @@ class TopShotDebugOverlay3D {
     this.THREE = world.THREE;
     this.enabled = false;
     this.refreshT = DEBUG_UPDATE_INTERVAL;
+    this.starshotSnapshot = null;
     this.root = new this.THREE.Group();
     this.root.name = 'top-shot-debug-telemetry-root';
     this.root.visible = false;
@@ -69,6 +71,7 @@ class TopShotDebugOverlay3D {
     this.refreshT = 0;
     clearGroup(this.dynamicRoot);
     if (!state) return;
+    this.starshotSnapshot = createStarshotDebugSnapshot(state, this.world);
     this.drawHeader(state);
     this.drawArenaBounds();
     for (const fighter of state.fighters || []) this.drawFighter(state, fighter);
@@ -93,6 +96,9 @@ class TopShotDebugOverlay3D {
       ? `DEBUG CQC | ${formatClock(state.clock)} | ${state.lab?.auto ? 'AUTO' : 'MANUAL'} | ${state.lab?.slowMo ? 'SLOW' : 'REAL TIME'} | ${DEBUG_UPDATE_HZ}HZ`
       : `DEBUG MATCH | ${formatClock(state.clock)} | ${String(state.matchState || 'ready').toUpperCase()} | ${DEBUG_UPDATE_HZ}HZ`;
     this.dynamicRoot.add(this.label(label, 44, 40, '#9dffd1', 1.5));
+    if (this.starshotSnapshot) {
+      this.dynamicRoot.add(this.label(formatTimingDebugLine(this.starshotSnapshot), 44, 84, '#d9c8ff', 0.98));
+    }
   }
 
   drawArenaBounds() {
@@ -133,6 +139,8 @@ class TopShotDebugOverlay3D {
     if (fighter.cqc?.mountedBy) status.push('mounted');
     this.dynamicRoot.add(this.label(status.join(' | '), fighter.x + 24, fighter.y - 32, color, 0.9));
     this.dynamicRoot.add(this.label(aiStatusFor(state, fighter), fighter.x + 24, fighter.y + 38, '#c9f7ff', 0.72));
+    const starshotActor = findActorSnapshot(this.starshotSnapshot, fighter.id);
+    if (starshotActor) this.dynamicRoot.add(this.label(formatActorDebugLine(starshotActor), fighter.x + 24, fighter.y + 70, '#d9c8ff', 0.64));
   }
 
   drawCqcHitboxes(fighter, color) {
