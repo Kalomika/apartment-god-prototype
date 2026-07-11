@@ -5,6 +5,7 @@ import { formatTime } from './renderHelpers.js';
 export function drawAfterEntityOverlays(ctx, state) {
   drawWardrobeOverlays(ctx, state);
   drawShowerPrivacyOverlays(ctx, state);
+  drawSeatedFacingOverlays(ctx, state);
   drawVehicleContrastLabels(ctx, state);
   drawCalendarSkipRecap(ctx, state);
 }
@@ -113,6 +114,56 @@ function drawHangingTowel(ctx, x, y, female) {
   ctx.fillText('TOWEL', x, y + 28);
   ctx.textAlign = 'left';
   ctx.restore();
+}
+
+function drawSeatedFacingOverlays(ctx, state) {
+  for (const actor of state.entities || []) {
+    if (actor.hidden || actor.floor !== state.floor || actor.type !== 'person') continue;
+    const target = seatedFacingTarget(actor, state);
+    if (!target) continue;
+    const tx = target.x + target.w / 2;
+    const ty = target.y + target.h / 2;
+    const angle = Math.atan2(ty - actor.y, tx - actor.x);
+    ctx.save();
+    ctx.translate(actor.x, actor.y);
+    ctx.rotate(angle + Math.PI / 2);
+    ctx.globalAlpha = .9;
+    ctx.fillStyle = 'rgba(116,230,255,.12)';
+    ctx.beginPath();
+    ctx.moveTo(0, -18);
+    ctx.lineTo(-22, -48);
+    ctx.lineTo(22, -48);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#05070a';
+    ctx.strokeStyle = '#071018';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, -29, 15, 10, 0, Math.PI, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#f1c66a';
+    ctx.font = '900 7px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('VIEW', 0, -49);
+    ctx.restore();
+  }
+}
+
+function seatedFacingTarget(actor, state) {
+  const action = String(actor.action || '').toLowerCase();
+  const pose = String(actor.pose || '').toLowerCase();
+  const seated = pose === 'sit' || action.includes('watch') || action.includes('tv') || action.includes('couch') || action.includes('relax') || action.includes('console') || action.includes('game') || action.includes('desk') || action.includes('read') || action.includes('eat');
+  if (!seated) return null;
+  if (action.includes('watch') || action.includes('tv') || action.includes('couch') || action.includes('relax')) return firstObject(state.floor, ['bedroom_tv', 'tv', 'lab_motion_screen', 'game_console']);
+  if (action.includes('console') || action.includes('game')) return firstObject(state.floor, ['game_console', 'lab_game_console', 'arcade_machine']);
+  if (action.includes('desk') || action.includes('read') || action.includes('study')) return firstObject(state.floor, ['desk', 'lab_laptop_desk', 'bookshelf']);
+  if (action.includes('eat')) return firstObject(state.floor, ['dining_table']);
+  return null;
+}
+
+function firstObject(floor, ids) {
+  return ids.map(id => objects.find(o => o.id === id && o.floor === floor)).find(Boolean) || null;
 }
 
 function drawVehicleContrastLabels(ctx, state) {
