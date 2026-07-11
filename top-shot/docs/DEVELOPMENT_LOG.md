@@ -2,6 +2,63 @@
 
 This file tracks meaningful Top Shot repo changes so future AI agents, Codex, Copilot, Grok, or human developers can continue from the repository instead of chat history.
 
+## 2026-07-11, Smoke suite split and invalid-state diagnostics
+
+Tool or person: ChatGPT
+
+Branch: `top-shot-smoke-invalid-state-fix`
+
+Backup branch: `backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
+
+Summary:
+
+- Kept `npm run smoke` as the full safety gate instead of deleting or weakening it.
+- Split the smoke suite into named scripts: `smoke:sim`, `smoke:cqc`, `smoke:stealth`, and `smoke:model`.
+- Reworked `tests/simSmoke.js` to print detailed failure context for invalid state failures, including matchup, phase, tick, clock, match state, fighter snapshots, projectile snapshots, and recent log lines.
+- Added a direct regression path for the suspected failure class: a fighter with `diveT > 0` but missing `diveVx` and `diveVy`.
+- Preserved the existing matchup coverage instead of skipping the failing suit operative versus survival commando path.
+
+Files changed:
+
+- `top-shot/tests/simSmoke.js`
+- `top-shot/package.json`
+- `top-shot/docs/HANDOFF.md`
+- `top-shot/docs/DEVELOPMENT_LOG.md`
+- `top-shot/docs/QA_CHECKLIST.md`
+- `top-shot/docs/COVERAGE_MATRIX.md`
+
+Systems affected:
+
+- Smoke-test diagnostics and test command ergonomics.
+- No gameplay runtime code changed in this pass.
+- The previous runtime hardening in `src/explosives.js` remains the mitigation for the invalid-state bug.
+
+What was preserved:
+
+- Full `npm run smoke` still runs simulation, CQC, stealth, and model smoke checks.
+- All existing sim smoke matchups remain covered.
+- Stable branch remains untouched.
+
+Testing:
+
+- Not run in this connector environment.
+- The new commands need to be run from a real checkout:
+  - `npm run smoke:sim`
+  - `npm run smoke:cqc`
+  - `npm run smoke:stealth`
+  - `npm run smoke:model`
+  - `npm run smoke`
+
+Known risks:
+
+- The diagnostics may expose a second invalid-state source after the grenade/dive hardening. If so, use the printed context instead of guessing.
+- Full smoke has not been verified green yet.
+- Browser behavior remains unverified.
+
+Next recommended step:
+
+Run `npm run smoke:sim` first on `top-shot-smoke-invalid-state-fix`. If it passes, run `npm run check`, full `npm run smoke`, and `npm run build`. If it fails, use the printed state context to patch the exact corrupt field.
+
 ## 2026-07-11, Smoke invalid-state hardening
 
 Tool or person: ChatGPT
