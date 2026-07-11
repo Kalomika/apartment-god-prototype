@@ -58,7 +58,9 @@ Implemented:
 - Root cause addressed: `updateDive()` assumed any fighter with `diveT > 0` also had finite `diveVx` and `diveVy`. Suppression and evasive pose logic can set `diveT` without grenade-dive velocity, which can produce `NaN` positions before later systems run.
 - Added finite guards for grenade fuse, ttl, position, velocity, blast, and damage.
 - Added finite guards for grenade dive effects and explosion midpoint math.
-- Runtime code changed. This branch still needs a real `npm run smoke` run from a local or CI environment with repo access.
+- Upgraded `top-shot/tests/simSmoke.js` with richer invalid-state diagnostics, fighter/projectile context dumps, and a direct regression check for `diveT` without `diveVx` or `diveVy`.
+- Split `top-shot/package.json` smoke scripts into `smoke:sim`, `smoke:cqc`, `smoke:stealth`, and `smoke:model` so the failing area can be rerun directly.
+- Runtime and test code changed. This branch still needs a real `npm run smoke` run from a local or CI environment with repo access.
 
 ## Previous documentation pass
 
@@ -121,6 +123,7 @@ From `top-shot/`:
 
 ```bash
 npm run check
+npm run smoke:sim
 npm run smoke
 npm run build
 ```
