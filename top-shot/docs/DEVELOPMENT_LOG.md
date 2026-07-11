@@ -99,16 +99,17 @@ Testing:
 
 - Local full repo tests were not run because the local container could not resolve GitHub and could not clone the repository.
 - Performed a local syntax check on the patched `explosives.js` content with `node --check`, which passed.
+- Checked GitHub workflow runs for the current PR head commit through the connector and found none, so there are no CI logs to inspect yet.
 
 Known risks:
 
-- `npm run smoke` still needs to be run in a real repo checkout or CI to verify the PR #5 blocker is fully resolved.
+- `npm run smoke:sim`, `npm run smoke`, `npm run check`, and `npm run build` still need to be run in a real repo checkout or CI to verify the PR #5 blocker is fully resolved.
 - The patch addresses the most likely invalid-state source found by inspection, but other runtime NaN paths could still exist until smoke is rerun.
 - Browser behavior remains unverified.
 
 Next recommended step:
 
-Run `npm run check`, `npm run smoke`, and `npm run build` from `top-shot/` on `top-shot-smoke-invalid-state-fix`. If smoke passes, update PR #5 and the coverage matrix blocker status.
+Run `npm run check`, `npm run smoke:sim`, `npm run smoke`, and `npm run build` from `top-shot/` on `top-shot-smoke-invalid-state-fix`. If smoke passes, update PR #5 and the coverage matrix blocker status.
 
 ## 2026-07-11, Coverage matrix control board
 
