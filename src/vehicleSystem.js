@@ -141,6 +141,14 @@ function routeHumansToPack(state, v) { const pack = getObject('bed'); if (!pack)
 function routeDogsToVehicle(state, v) { routePartyToVehicle(state, v); }
 
 export function beginVehicleDeparture(state, actionId, partyIds = [], vehicleId = 'auto', actorId = '') {
+  if (state.vehicleDeparture || state.vehicleReturn || state.objectState?.vehicleInUse) {
+    log(state, 'A vehicle trip is already active. Wait for the current vehicle sequence to finish.');
+    return false;
+  }
+  if (state.offsite && (partyIds || []).some(id => state.offsite.actors?.includes(id))) {
+    log(state, 'That traveler is already offsite.');
+    return false;
+  }
   const vehicle = parkedVehicle(vehicleId, actorId, partyIds);
   if (!vehicle) { log(state, 'No usable parked vehicle was found.'); return false; }
   const seats = assignSeats(state, vehicle, partyIds);
@@ -181,12 +189,12 @@ function updateVehicleLeaving(state, dt) {
   if (v.phase === 'walking_to_pack') { const packPoint = getObject('bed') ? approachPoint(getObject('bed'), 'pack_luggage') : { x: 170, y: 240 }; const humanIds = humansInParty(state, v.partyIds).map(e => e.id); if (allAtPoint(state, humanIds, PACK_FLOOR, packPoint, 115) || v.t > 12) { v.phase = 'packing'; v.t = 0; for (const e of humansInParty(state, v.partyIds)) { e.path = []; e.target = null; clearTimedAction(e); e.action = 'Packing luggage'; e.pose = 'packing'; e.carrying = null; say(e, 'PACK'); } log(state, 'Travelers are packing upstairs.'); } return; }
   if (v.phase === 'packing' && v.t > 2.4) { for (const item of v.luggage || []) { const e = byId(state, item.entityId); if (e) { clearTimedAction(e); e.carrying = luggageLabel(item.count); e.action = 'Carrying luggage'; e.pose = 'carry'; } } v.phase = 'walking_to_vehicle'; v.t = 0; v.rerouteT = 0; routePartyToVehicle(state, v); log(state, 'Packed bags are being carried to the garage.'); return; }
   if (v.phase === 'walking_to_vehicle') { if (allAtVehicle(state, v)) { v.phase = 'remote_unlock'; v.t = 0; setRemoteFlash(v, 'UNLOCK'); setPartyAction(state, v, 'Unlocking vehicle', 'stand'); log(state, 'Remote unlock flashed the front and rear lights.'); return; } if (v.t > 6 && v.rerouteT <= 0) { routePartyToVehicle(state, v); v.rerouteT = 2.5; } return; }
-  if (v.phase === 'remote_unlock' && v.t > 0.85) { v.phase = v.vacation && v.luggage?.length ? 'trunk_opening' : 'door_opening'; v.t = 0; if (v.phase === 'trunk_opening') { v.trunkOpen = true; log(state, 'Trunk opened for luggage.'); } else { v.open = true; log(state, 'Vehicle doors opening.'); } return; }
+  if (v.phase === 'remote_unlock' && v.t > 0.85) { v.phase = v.vacation && v.luggage?.length ? 'trunk_opening' : 'door_opening'; v.t = 0; if (v.phase === 'trunk_opening') { v.trunkOpen = true; log(state, 'Trunk opened for luggage.'); } else { v.open = true; log(state, vehicleDoorText(v)); } return; }
   if (v.phase === 'trunk_opening' && v.t > 0.75) { v.phase = 'loading_luggage'; v.t = 0; for (const item of v.luggage || []) { const e = byId(state, item.entityId); if (e) { clearTimedAction(e); e.action = 'Loading luggage'; e.pose = 'loading_trunk'; say(e, 'BAG'); } } return; }
   if (v.phase === 'loading_luggage' && v.t > 1.25) { for (const item of v.luggage || []) { item.loaded = true; const e = byId(state, item.entityId); if (e) e.carrying = null; } v.luggageLoaded = true; v.phase = 'trunk_closing'; v.t = 0; log(state, 'Luggage loaded into trunk.'); return; }
-  if (v.phase === 'trunk_closing' && v.t > 0.65) { v.trunkOpen = false; v.phase = 'door_opening'; v.open = true; v.t = 0; log(state, 'Trunk closed. Vehicle doors opening.'); return; }
-  if (v.phase === 'door_opening' && v.t > 0.75) { v.phase = 'boarding'; v.t = 0; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; clearTimedAction(e); e.action = 'Entering assigned seat'; e.pose = 'entering_vehicle'; say(e, 'IN'); } log(state, 'Party is boarding assigned seats.'); return; }
-  if (v.phase === 'boarding' && v.t > 0.85) { for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; e.hidden = true; e.action = v.actionId; clearTimedAction(e); e.path = []; e.target = null; e.pending = null; e.carrying = null; } selectVisiblePerson(state); v.phase = 'door_closing'; v.open = false; v.t = 0; log(state, 'All selected travelers are seated. Vehicle doors closed.'); return; }
+  if (v.phase === 'trunk_closing' && v.t > 0.65) { v.trunkOpen = false; v.phase = 'door_opening'; v.open = true; v.t = 0; log(state, vehicleDoorText(v)); return; }
+  if (v.phase === 'door_opening' && v.t > 0.75) { v.phase = 'boarding'; v.t = 0; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; clearTimedAction(e); e.action = vehicleMountText(v); e.pose = 'entering_vehicle'; say(e, 'IN'); } log(state, vehicleBoardText(v)); return; }
+  if (v.phase === 'boarding' && v.t > 0.85) { for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; e.hidden = true; e.action = v.actionId; clearTimedAction(e); e.path = []; e.target = null; e.pending = null; e.carrying = null; } selectVisiblePerson(state); v.phase = 'door_closing'; v.open = false; v.t = 0; log(state, vehicleCloseText(v)); return; }
   if (v.phase === 'door_closing' && v.t > 0.45) { v.phase = 'remote_lock'; v.t = 0; setRemoteFlash(v, 'LOCK'); log(state, 'Remote lock flashed the lights.'); return; }
   if (v.phase === 'remote_lock' && v.t > 0.8) { v.phase = 'garage_opening'; v.t = 0; state.objectState.garageDoorOpen = true; log(state, 'Garage door opening.'); return; }
   if (v.phase === 'garage_opening' && v.t > 0.75) { v.phase = 'leaving'; v.t = 0; log(state, 'Vehicle leaving downward through the garage exit.'); return; }
@@ -199,7 +207,7 @@ function updateVehicleReturning(state, dt) {
   const v = state.vehicleReturn; if (!v) return; v.t += dt; if (v.remoteFlashT > 0) v.remoteFlashT = Math.max(0, v.remoteFlashT - dt);
   if (v.phase === 'arriving') { v.x = approach(v.x, v.parkX, dt * 150); v.y = approach(v.y, v.parkY, dt * 150); if (Math.abs(v.x - v.parkX) < 1 && Math.abs(v.y - v.parkY) < 1) { v.x = v.parkX; v.y = v.parkY; v.phase = 'parking'; v.t = 0; log(state, 'The same vehicle parked in the garage.'); } return; }
   if (v.phase === 'parking' && v.t > 0.65) { v.phase = 'remote_unlock'; v.t = 0; setRemoteFlash(v, 'UNLOCK'); log(state, 'Remote unlock flashed on return.'); return; }
-  if (v.phase === 'remote_unlock' && v.t > 0.8) { v.phase = 'door_opening'; v.t = 0; v.open = true; log(state, 'Vehicle doors opening for unload.'); return; }
+  if (v.phase === 'remote_unlock' && v.t > 0.8) { v.phase = 'door_opening'; v.t = 0; v.open = true; log(state, vehicleDoorText(v)); return; }
   if (v.phase === 'door_opening' && v.t > 0.7) { v.phase = v.vacation && v.luggage?.length ? 'trunk_opening' : 'walking_in'; v.t = 0; spawnPartyAtSeats(state, v); if (v.phase === 'trunk_opening') { v.trunkOpen = true; log(state, 'Trunk opened to unload luggage.'); } else log(state, 'Party exited the vehicle and is walking through the garage entry.'); return; }
   if (v.phase === 'trunk_opening' && v.t > 0.75) { v.phase = 'unloading_luggage'; v.t = 0; for (const item of v.luggage || []) { const e = byId(state, item.entityId); if (e) { clearTimedAction(e); e.action = 'Unloading luggage'; e.pose = 'loading_trunk'; e.carrying = luggageLabel(item.count); say(e, 'BAG'); } } return; }
   if (v.phase === 'unloading_luggage' && v.t > 1.2) { for (const item of v.luggage || []) item.unloaded = true; v.phase = 'trunk_closing'; v.t = 0; log(state, 'Luggage unloaded from trunk.'); return; }
@@ -208,6 +216,10 @@ function updateVehicleReturning(state, dt) {
   if (v.phase === 'remote_lock' && v.t > 0.75) finishVehicleReturn(state, v);
 }
 
+function vehicleDoorText(v) { return ['bike', 'motorbike', 'atv'].includes(v.vehicleKind) ? 'Rider is lining up with the handlebars.' : 'Vehicle doors opening.'; }
+function vehicleMountText(v) { return ['bike', 'motorbike', 'atv'].includes(v.vehicleKind) ? 'Mounting vehicle' : 'Entering assigned seat'; }
+function vehicleBoardText(v) { return ['bike', 'motorbike', 'atv'].includes(v.vehicleKind) ? 'Rider is mounting the vehicle.' : 'Party is boarding assigned seats.'; }
+function vehicleCloseText(v) { return ['bike', 'motorbike', 'atv'].includes(v.vehicleKind) ? 'Rider is mounted and ready.' : 'All selected travelers are seated. Vehicle doors closed.'; }
 function spawnPartyAtSeats(state, v) { const vehicle = { x: v.parkX, y: v.parkY, w: v.w, h: v.h }; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; const seat = v.seatAssignments?.find(s => s.entityId === id); const p = seat ? seatPoint(vehicle, seat.seatId) : { x: v.parkX + v.w + 24, y: v.parkY + v.h * .62 }; clearTimedAction(e); e.hidden = false; e.floor = GARAGE_FLOOR; e.x = p.x; e.y = p.y; e.path = []; e.target = null; e.pending = null; e.action = 'Exiting vehicle'; e.pose = 'exiting_vehicle'; e.vehicleTrip = null; say(e, 'BACK'); } selectVisiblePerson(state); }
 function routePartyInsideFromGarage(state, v) { const stairs = getObject('garage_entry_door'); const exit = stairs ? approachPoint(stairs, 'use_stairs') : { x: 872, y: 504 }; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; clearTimedAction(e); if (stairs) commandObject(e, stairs, 'use_stairs'); else commandMove(e, exit.x, exit.y); e.action = 'Walking in from garage'; e.pose = 'walk'; } }
 function approach(value, target, step) { if (value < target) return Math.min(target, value + step); if (value > target) return Math.max(target, value - step); return value; }
