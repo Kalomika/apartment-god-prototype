@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED
 Branch: phaser-migration
-Commit: matrix law a1e20cc3f0f4143174c7055087a518438b6317b3, sidecar log current commit
+Commit: matrix law a1e20cc3f0f4143174c7055087a518438b6317b3, sidecar log a24e06782ad98a7ba7cae4053637997a3617039a
 Files changed:
 apartment-god-production/DEVELOPMENT_MATRIX.md
 apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-11_TRUE_TOP_DOWN_CHARACTER_ANIMATION_LAW.md
