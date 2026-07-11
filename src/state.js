@@ -18,8 +18,21 @@ function skillCaps(id, type) {
   return { strength: 8, cooking: 6, intellect: 7, learning: 7, money: 6, handy: 6 };
 }
 
-function entity(id, name, type, floor, x, y, color) {
+function defaultWardrobe(id) {
+  if (id === 'girlfriend') return {
+    currentDay: 1,
+    outfits: ['Rose lounge', 'Cyan streetwear', 'Black workout set', 'Gold casual', 'Purple date fit', 'Teal weekend', 'Ivory sleep set'],
+    colors: ['#17131b', '#26526f', '#1c1d25', '#8a6230', '#4a2f5f', '#2f665d', '#7d6f63']
+  };
   return {
+    currentDay: 1,
+    outfits: ['Black tee', 'Blue hoodie', 'Grey joggers', 'Green utility', 'Red graphic tee', 'Cream weekend', 'Navy sleep set'],
+    colors: ['#111820', '#24324a', '#2f333a', '#263f32', '#4a1f26', '#665744', '#172235']
+  };
+}
+
+function entity(id, name, type, floor, x, y, color) {
+  const e = {
     id, name, type, floor, x, y, color,
     vx: 0, vy: 0, speed: type === 'dog' ? 120 : 92,
     path: [], target: null, action: null, actionT: 0, pending: null,
@@ -29,6 +42,8 @@ function entity(id, name, type, floor, x, y, color) {
     memory: { favorites: [], dislikes: [], activities: [], movies: [], foods: [] },
     traits: id === 'girlfriend' ? { frugal: true, spender: false, social: true, meticulous: true } : { frugal: false, spender: false, social: false }
   };
+  if (type === 'person' && !id.includes('lab')) e.wardrobe = defaultWardrobe(id);
+  return e;
 }
 
 function morningEntity(id, name, type, floor, x, y, color, bubble = '') {
