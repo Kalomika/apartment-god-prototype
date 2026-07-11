@@ -8,6 +8,7 @@ From `top-shot/`:
 
 ```bash
 npm run check
+npm run starshot-smoke
 npm run smoke
 npm run build
 ```
@@ -67,6 +68,8 @@ Do not claim these passed unless they were actually run.
 - Debug overlay does not change gameplay logic.
 - Debug overlay does not create obvious frame collapse during normal use.
 - AI or animation labels are readable and not misleading.
+- Starshot timing line appears when debug overlay is visible.
+- Per-fighter Starshot animation, motion, combat, and AI telemetry appears when debug overlay is visible.
 
 ## Starshot checks
 
@@ -78,6 +81,11 @@ For experimental Starshot work, also verify:
 - New systems are modular.
 - Known broken items are listed.
 - Branch is clearly marked experimental if not merge-ready.
+- `npm run starshot-smoke` passes before using Starshot scaffold as a dependency for larger systems.
+
+## Known current smoke warning
+
+PR #5 documents a known Top Shot smoke issue: `suit_operative vs survival_commando` can fail with `Invalid fighter state`. Do not claim full `npm run smoke` health until that known issue is verified fixed.
 
 ## Merge rule
 
