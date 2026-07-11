@@ -37,35 +37,41 @@ Branch:
 
 Implemented:
 
-- Added `top-shot/docs/STARSHOT_META_SYSTEM.md`.
-- Added the Starshot event bus scaffold.
-- Added the Starshot timing controller scaffold.
-- Added a unified actor runtime state derivation module.
-- Added a debug snapshot layer that can normalize actor state for overlays and tools.
-- Added an actor update pipeline scaffold with explicit profile, AI, combat, motion, animation, rendering, and debug stages.
+- Hardened the Starshot Phase 0 Meta-System scaffold.
+- Corrected the earlier connector confusion and used direct file fetches before patching.
+- Wired `debugOverlay3D.js` to the Starshot debug snapshot layer.
+- Added `npm run starshot-smoke` and `top-shot/tests/starshotSmoke.js`.
+- Updated the canonical `top-shot/docs/DEVELOPMENT_LOG.md` with the Starshot hardening pass.
 
-Files added in this pass:
+Files changed in latest pass:
 
-- `top-shot/docs/STARSHOT_META_SYSTEM.md`
 - `top-shot/src/starshot/eventBus.js`
 - `top-shot/src/starshot/timingController.js`
 - `top-shot/src/starshot/actorRuntimeState.js`
 - `top-shot/src/starshot/debugSnapshot.js`
 - `top-shot/src/starshot/actorUpdatePipeline.js`
+- `top-shot/src/three/debugOverlay3D.js`
+- `top-shot/tests/starshotSmoke.js`
+- `top-shot/package.json`
+- `top-shot/docs/DEVELOPMENT_LOG.md`
+- `top-shot/docs/HANDOFF.md`
+- `top-shot/docs/ARCHITECTURE.md`
+- `top-shot/docs/QA_CHECKLIST.md`
+- `top-shot/docs/FEATURE_INVENTORY.md`
 
 What changed in gameplay:
 
-- Nothing yet. This is a safe Phase 0 scaffold.
-- Existing match logic and CQC Lab were not intentionally modified.
-- The debug overlay has not yet been wired to the snapshot layer because existing runtime files were not updated in this pass.
+- No core gameplay decisions were intentionally changed.
+- The debug overlay now builds and displays Starshot snapshot telemetry when toggled with `D`.
+- Match logic and CQC Lab were preserved.
 
 ## Current Starshot state
 
 `top-shot-starshot-engine` is intended for ambitious engine work.
 
-It inherits the debug overlay branch and has begun two major foundations:
+It now has two foundations:
 
-1. Phase 0 Meta-System scaffold.
+1. Phase 0 Meta-System scaffold and debug visibility.
 2. First motion/animation scaffold files.
 
 Existing first Starshot slice files:
@@ -107,6 +113,7 @@ From `top-shot/`:
 
 ```bash
 npm run check
+npm run starshot-smoke
 npm run smoke
 npm run build
 ```
@@ -121,6 +128,8 @@ npm run build
 - Projectiles and effects render.
 - Debug overlay toggles with `D`.
 - Collision debug toggles with `C`.
+- Starshot debug line appears in the overlay.
+- Per-fighter Starshot animation/motion/combat telemetry is readable.
 - No console errors on start.
 - No obvious visual squashing.
 
@@ -129,7 +138,8 @@ npm run build
 - PR #5 notes a known smoke issue: `suit_operative vs survival_commando` can fail with `Invalid fighter state`.
 - PR #23, the debug overlay PR, remains open.
 - This environment did not run local `npm` checks.
-- Existing runtime files were not modified after the connector began returning PR payloads instead of target file contents, to avoid blind overwrites.
+- Starshot timing is visible in debug snapshots but is not yet a gameplay timing source.
+- Starshot actor update pipeline is scaffolded but is not yet the main actor presentation pipeline.
 
 ## Do not touch without explicit reason
 
