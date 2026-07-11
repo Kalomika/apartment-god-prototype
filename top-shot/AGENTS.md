@@ -17,9 +17,10 @@ Before every Top Shot task, read these in order:
 5. `top-shot/docs/FEATURE_INVENTORY.md`
 6. `top-shot/docs/ARCHITECTURE.md`
 7. `top-shot/docs/QA_CHECKLIST.md`
-8. Recent commits on the active branch
-9. Open PRs related to Top Shot
-10. The exact files you will edit
+8. `top-shot/docs/COVERAGE_MATRIX.md`
+9. Recent commits on the active branch
+10. Open PRs related to Top Shot
+11. The exact files you will edit
 
 If any required doc is missing, create or update it before or during the task.
 
@@ -27,11 +28,17 @@ If any required doc is missing, create or update it before or during the task.
 
 Stable base branch: `top-shot-v0-1`
 
-Current backup branch: `backup/top-shot-v0-1-2026-07-10`
+Current backup branch for this matrix pass: `backup/top-shot-v0-1-2026-07-11-coverage-matrix`
 
 Current experimental Starshot branch: `top-shot-starshot-engine`
 
 For risky changes, create or confirm a backup branch first. For large changes, work on a development or experimental branch. Keep the stable branch safe and deployable.
+
+## Coverage matrix rule
+
+Before editing runtime code, check `top-shot/docs/COVERAGE_MATRIX.md` for the feature, file ownership, test expectations, risk level, and next action.
+
+If a task touches a feature, system, branch status, known issue, PR status, or test expectation that is not covered by the matrix, update the matrix during the same pass.
 
 ## Starshot Mode
 
@@ -57,6 +64,10 @@ Every meaningful coding pass must update:
 
 - `top-shot/docs/DEVELOPMENT_LOG.md`
 - `top-shot/docs/HANDOFF.md`
+
+If features, file ownership, branch status, known issues, PR status, risk, or test expectations changed, update:
+
+- `top-shot/docs/COVERAGE_MATRIX.md`
 
 If features changed, update:
 
