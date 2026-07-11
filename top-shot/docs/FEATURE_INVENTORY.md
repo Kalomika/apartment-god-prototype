@@ -68,6 +68,18 @@ Every change must be additive, corrective, or an explicitly approved replacement
 - Collision debug toggles with `C` where implemented.
 - Debug overlay toggles with `D` where implemented.
 - Debug tools must be dev-only and must not alter gameplay logic.
+- Starshot debug overlay telemetry now includes a timing/snapshot line and per-fighter animation, motion, combat, and AI snapshot lines on the experimental branch.
+
+## Starshot Meta-System baseline
+
+Current experimental scaffold:
+
+- Event bus for inspectable cross-system messages.
+- Timing controller for real time, slow motion, impact pause, and cinematic slow snapshots.
+- Actor runtime state derivation from existing fighter/actor data.
+- Debug snapshot formatter for overlays and tooling.
+- Actor update pipeline scaffold with profile, AI, combat, motion, animation, rendering, and debug stages.
+- Standalone `npm run starshot-smoke` test path.
 
 ## Long term Starshot target features
 
