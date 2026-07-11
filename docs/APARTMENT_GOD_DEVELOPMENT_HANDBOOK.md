@@ -59,14 +59,20 @@ Before meaningful work, read:
 
 ```txt
 docs/APARTMENT_GOD_DEVELOPMENT_HANDBOOK.md
+docs/APARTMENT_GOD_BACKUP_POLICY.md
 apartment-god-production/ONGOING_DESIGN_LOG.md
+apartment-god-production/DEVELOPMENT_MATRIX.md
 ```
 
 The handbook is the standing rulebook.
 
+The backup policy defines when restore branches are required, how routine and milestone backups should be treated, and what must happen before any Render playable branch update.
+
 The ongoing log is the dated work history. It records what was done, what was planned, what was reverted, what is risky, what still needs testing, and what another AI should not accidentally overwrite.
 
-If the log is missing from the current branch, check whether it exists on a production or manager branch, then copy or update it safely on the active runtime branch if needed.
+The development matrix is the living production control board. It tracks system status, object interactions, animation needs, test scenarios, branch and Render rules, and risk areas.
+
+If the log or matrix is missing from the current branch, check whether it exists on a production or manager branch, then copy or update it safely on the active runtime branch if needed.
 
 ---
 
@@ -537,7 +543,7 @@ Before editing:
 
 1. Verify repo.
 2. Verify branch.
-3. Read handbook and log.
+3. Read handbook, backup policy, ongoing log, and development matrix.
 4. Inspect relevant files.
 5. Create backup for major work.
 
