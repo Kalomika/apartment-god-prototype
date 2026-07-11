@@ -15,6 +15,8 @@ import { log, resumeEntity, selected, stopEntity } from './state.js';
 import { floors, objectAt, objects } from './world.js';
 import { formatTime } from './renderHelpers.js';
 
+const TRAVEL_ACTIONS = ['work', 'errand', 'mall', 'movies', 'date'];
+
 export function createUi(state, surface, options = {}) {
   const menu = document.getElementById('interaction-menu');
   const selectedName = document.getElementById('selected-name');
@@ -177,9 +179,9 @@ export function createUi(state, surface, options = {}) {
 
   function useObject(actor, obj, actionId) {
     if (actionId === 'meal') return guidedCooking(actor);
-    if ((obj.kind === 'door' || obj.kind === 'car') && ['work', 'errand', 'mall', 'movies', 'date'].includes(actionId)) return guidedOffsite(actor, actionId, [], obj.kind === 'car' ? obj.id : 'auto');
-    if (obj.kind === 'bike' && actionId === 'bike_trip') return guidedOffsite(actor, actionId, [], 'bike');
-    if (obj.kind === 'motorbike' && actionId === 'motorbike_trip') return guidedOffsite(actor, actionId, [], 'motorbike');
+    if ((obj.kind === 'door' || obj.kind === 'car') && TRAVEL_ACTIONS.includes(actionId)) return guidedOffsite(actor, actionId, [], obj.kind === 'car' ? obj.id : 'auto');
+    if (obj.kind === 'bike' && TRAVEL_ACTIONS.includes(actionId)) return guidedOffsite(actor, actionId, [], 'bike');
+    if (obj.kind === 'motorbike' && TRAVEL_ACTIONS.includes(actionId)) return guidedOffsite(actor, actionId, [], 'motorbike');
     guidedObject(actor, obj, actionId);
   }
   function setFloor(floor) { jumpArea(floor, floors[floor]?.name || 'area'); }
