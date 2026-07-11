@@ -28,13 +28,31 @@ Top Shot is a lightweight browser game using JavaScript modules and Three.js. It
 - `src/three/topShot3D.js`: Three.js world, terrain, camera, actor sync, markers, and collision debug.
 - `src/three/actors3D.js`: segmented placeholder actors, poses, weapons, limb volumes, and body zones.
 - `src/three/effects3D.js`: effects, parachutes, tracers, impact visuals, CQC actor stabilization.
-- `src/three/debugOverlay3D.js`: debug telemetry where present.
+- `src/three/debugOverlay3D.js`: debug telemetry and Starshot snapshot display where present.
 
 ## Current architecture principle
 
 Simulation state is the source of truth. The 3D world presents that state.
 
-Visual smoothing, animation layering, micro-motion, and debug rendering should not mutate gameplay decisions unless a system is explicitly designed to do so.
+Visual smoothing, animation layering, micro-motion, timing views, and debug rendering should not mutate gameplay decisions unless a system is explicitly designed to do so.
+
+## Starshot Phase 0 Meta-System
+
+The Starshot Meta-System is an orchestration spine, not a God controller.
+
+Current Phase 0 files:
+
+- `src/starshot/eventBus.js`: lightweight inspectable event bus for cross-system messages.
+- `src/starshot/timingController.js`: debug-safe timing profile controller for real time, slow motion, impact pause, and cinematic slow.
+- `src/starshot/actorRuntimeState.js`: derives a normalized actor runtime state from existing fighter and optional 3D actor data.
+- `src/starshot/debugSnapshot.js`: converts actor runtime state into compact debug overlay/tooling snapshots.
+- `src/starshot/actorUpdatePipeline.js`: scaffold for staged profile, AI, combat, motion, animation, rendering, and debug updates.
+
+Current integration:
+
+- `src/three/debugOverlay3D.js` reads Starshot debug snapshots and displays timing plus per-fighter animation, motion, combat, and AI telemetry.
+- The Starshot timing controller is not yet the gameplay timing source.
+- The Starshot actor update pipeline is not yet the main actor presentation pipeline.
 
 ## Starshot architecture target
 
@@ -57,6 +75,7 @@ Future systems should prefer modular additions:
 - Keep debug overlays read-only.
 - Keep stable branch runtime safe.
 - Do risky rewrites only on experimental branches.
+- Integrate Starshot systems by wrapping and deriving from existing state before replacing any working gameplay system.
 
 ## Render and build constraints
 
@@ -64,6 +83,7 @@ Top Shot is a static site. From `top-shot/`:
 
 ```bash
 npm run check
+npm run starshot-smoke
 npm run smoke
 npm run build
 ```
