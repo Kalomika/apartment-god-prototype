@@ -546,3 +546,53 @@ This does not fix the current runtime visual bugs by itself. It prevents the pro
 
 Follow ups:
 Run a focused runtime correction pass that moves the dining table down and right, removes or corrects side view vehicle wheel logic, restores or improves the older car readability, adds real vehicle boarding and exiting states, adds mounted bike and motorbike rider poses, hides dog soccer mini game UI, fixes camera snapping, and fixes parked vehicle redraw during departure.
+
+---
+
+## 2026-07-11 06:05 AM CT, Visual Runtime Correction First Pass
+
+Status: NEEDS_TESTING
+Branch: phaser-migration
+Commit: dining 319689a42fa2e67a30019839306a6d0eb81a046c, active vehicle hiding 4258883caf77fa5cb127b3e83d2904949233c4fe, parked vehicle overlays fc3b9106775f5b27f80e3590d8d32ef601db1289, active vehicle rendering 7dedf59ba70fb064d6b327b0348931bb319afeb1, dog soccer containment 52ec2f88912dae1603c5f3ee20aec52f745bead1, duplicate vehicle guard 97cb36cdbaebb50e24e3e6a1693eea44ea170690, action guard fa4b2bc7410c2b9d7090030b1e7575c33fc94740, matrix sync 2127b825744e90630fffb0c7d1167fa4bad40cad, log sync current commit
+Files changed:
+src/world.js
+src/renderObjects.js
+src/objectCorrectiveOverlays.js
+src/renderDynamic.js
+src/soccerSystem.js
+src/vehicleSystem.js
+src/actions.js
+apartment-god-production/DEVELOPMENT_MATRIX.md
+apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: yes
+Render playable branch updated: no
+Backup branch:
+backup/phaser-migration-before-visual-runtime-correction-2026-07-11
+
+Summary:
+Performed the first focused runtime correction pass for Kam's mobile review notes. The pass addressed dining table placement, top down vehicle contamination, active vehicle redraw conflicts, dog soccer UI containment, dog soccer camera behavior, vehicle duplicate trip guarding, and the action layer's handling of refused vehicle departures.
+
+Implementation details:
+
+- Moved the dining table down and slightly right so it is less crowded against kitchen fixtures.
+- Changed active vehicle hiding so parked cars, bicycles, motorbikes, and ATVs are all hidden while they are the active travel vehicle, preventing the parked object from redrawing over an active departure or return.
+- Reworked parked garage vehicle corrective overlays to remove obvious side view wheel contamination and toy wheel dot logic.
+- Reworked active vehicle rendering to use the same top down rules, including car door panels during open phases and mounted rider silhouettes for bike, motorbike, and ATV travel phases.
+- Removed the dog soccer play label overlay so dog ball play stays ambient in the world instead of looking like a visible mini game screen.
+- Slowed dog soccer chase behavior and removed repeated bark spam during the dog chase loop.
+- Changed dog soccer camera behavior so the camera only moves to the soccer field when the dog is the selected actor.
+- Added a duplicate vehicle trip guard so another vehicle departure cannot begin while a departure, return, or vehicle in use state is active.
+- Updated `startOffsite` so a refused vehicle departure returns false and does not fake a door open or leaving log.
+- Updated the development matrix so affected systems are marked NEEDS_TESTING instead of pretending browser approval has happened.
+
+Testing performed:
+GitHub code inspection only. Verified the committed source references for dining placement, active vehicle hiding, top down vehicle render changes, dog soccer containment, duplicate vehicle guard, and action level guard behavior. No local npm build, no browser test, and no Render test were performed in this chat.
+
+Testing requested:
+Do not call this complete until it is tested in browser. On a browser build of `phaser-migration`, test boot, reset, main floor dining table placement and pathing, garage parked vehicle appearance, vehicle departure and return with the SUV and red convertible, bicycle and motorbike travel with mounted rider visible, no parked vehicle redraw during active departure, no duplicate departure loop, car door open and close phases, dog soccer with no overlay or scoreboard, no camera hijack during dog soccer unless the dog is selected, and no recurring room snap after several minutes of idle play.
+
+Known risks:
+This touches render objects, corrective overlays, dynamic rendering, vehicle state, action routing, soccer runtime, and world placement. Browser boot must be verified. Vehicle visuals are still procedural fallback and should eventually be replaced by approved top down sprites or image assets. The camera snap issue may have had more than one cause; this pass removed the dog soccer camera hijack path but still needs live confirmation.
+
+Follow ups:
+If this pass behaves correctly in browser, mirror to `main` only when Kam explicitly wants Render testing. Then continue with proper reference backed vehicle sprites, deeper boarding and exiting animation states, final mounted rider poses, and a larger visual asset pipeline pass.
