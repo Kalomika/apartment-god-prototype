@@ -1,9 +1,11 @@
 import { objects } from './world.js';
 import { drawStyledObject } from './renderHouseStyle.js';
 
+const VEHICLE_KINDS = new Set(['car', 'bike', 'motorbike', 'atv']);
+
 export function drawObjects(ctx, state) {
   for (const obj of objects.filter(o => o.floor === state.floor)) {
-    if (obj.kind === 'car' && state.objectState.vehicleInUse === obj.id) continue;
+    if (VEHICLE_KINDS.has(obj.kind) && state.objectState.vehicleInUse === obj.id) continue;
     if (obj.kind === 'soccer_field') continue;
     const active = isObjectActive(state, obj);
     ctx.save();
