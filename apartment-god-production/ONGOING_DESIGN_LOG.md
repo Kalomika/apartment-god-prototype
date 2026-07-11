@@ -8,6 +8,7 @@ Required reading before work:
 docs/APARTMENT_GOD_DEVELOPMENT_HANDBOOK.md
 docs/APARTMENT_GOD_BACKUP_POLICY.md
 apartment-god-production/ONGOING_DESIGN_LOG.md
+apartment-god-production/DEVELOPMENT_MATRIX.md
 ```
 
 Entry format:
@@ -391,3 +392,37 @@ This touches renderEntities and actions tick, so browser boot must be verified. 
 
 Follow ups:
 Add more personality traits, explicit apology actions, relationship driven command resistance, dog loyalty, favorite object irritation, relationship history cards, and non symbol custom emotional animation sets.
+
+---
+
+## 2026-07-11 04:55 AM CT, Development Matrix Required Reading Sync
+
+Status: IMPLEMENTED
+Branch: phaser-migration
+Commit: matrix creation c4f79a042bbf29a2c71a524b25fc91b2e43bb24f, handbook sync 3e8e04946b1f080fcf3e2bec1593cedfe9ec4db8, log sync current commit
+Files changed:
+apartment-god-production/DEVELOPMENT_MATRIX.md
+docs/APARTMENT_GOD_DEVELOPMENT_HANDBOOK.md
+apartment-god-production/ONGOING_DESIGN_LOG.md
+Runtime files changed: no
+Render playable branch updated: no
+Backup branch:
+backup/phaser-migration-before-development-matrix-2026-07-11
+
+Summary:
+Added and synchronized the Apartment God development matrix as a required production control document.
+
+Implementation details:
+The matrix tracks system status, object interactions, animation needs, test scenarios, branch and Render rules, and risk areas. The handbook and ongoing log now point future agents to the matrix during required preflight reading.
+
+Testing performed:
+Documentation only. Verified file references and required reading lists.
+
+Testing requested:
+None for runtime. Future development runs should use the matrix before touching gameplay systems.
+
+Known risks:
+The matrix must be kept honest and current. If future agents update features without updating the matrix, it can drift from the real game state.
+
+Follow ups:
+During the next real gameplay review, compare src/world.js, src/config.js, src/actions.js, src/autonomy.js, src/movement.js, src/vehicleSystem.js, src/saveSystem.js, src/appMenu.js, and render files against the matrix and fill in missing objects, actions, animations, and tests.
