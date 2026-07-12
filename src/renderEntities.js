@@ -107,7 +107,12 @@ function drawSeatedPose(ctx, female, cloth, accent, action) {
     arm(ctx, -17, -6, -27, 15, cloth); arm(ctx, 17, -6, 25, 8, cloth); hand(ctx, -27, 15, accent); phone(ctx, 25, 8); glowQuad(ctx, 1, -22, 35, -18, 48, 22, 13, 24, accent, .16);
   } else if (action.includes('eat') || action.includes('table')) {
     const bite = Math.max(0, Math.sin(performance.now() / 170));
-    arm(ctx, -17, -6, -24, 27, cloth); arm(ctx, 17, -6, 18, 20 - bite * 9, cloth); hand(ctx, -24, 27, accent); hand(ctx, 18, 20 - bite * 9, accent); plate(ctx, 0, 34);
+    const diningTable = action.includes('dining table') || action.includes('eat at table') || action.includes('table: eat') || action.includes('table');
+    arm(ctx, -17, -6, diningTable ? -25 : -24, diningTable ? 17 : 27, cloth);
+    arm(ctx, 17, -6, 18, diningTable ? 16 - bite * 4 : 20 - bite * 9, cloth);
+    hand(ctx, diningTable ? -25 : -24, diningTable ? 17 : 27, accent);
+    hand(ctx, 18, diningTable ? 16 - bite * 4 : 20 - bite * 9, accent);
+    if (!diningTable) plate(ctx, 0, 34);
   } else {
     arm(ctx, -17, -6, -25, 16, cloth); arm(ctx, 17, -6, 25, 16, cloth); hand(ctx, -25, 16, accent); hand(ctx, 25, 16, accent);
   }
