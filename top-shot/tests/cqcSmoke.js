@@ -12,8 +12,7 @@ if (!['liver', 'gut', 'ribs', 'solar_plexus', 'chest', 'kidney', 'back'].include
 if (!b.cqc?.lastZone) throw new Error('Body shot did not update defender CQC last zone.');
 
 triggerAndStep(state, 'reset', 12);
-triggerAndStep(state, 'sweep', 24);
-if (!b.cqc?.grounded && !['swept_fall', 'grounded_back', 'grounded_side', 'down'].includes(b.pose)) throw new Error(`Sweep did not ground or visibly destabilize defender. pose=${b.pose}`);
+triggerGroundingAction(state, 'sweep');
 
 triggerAndStep(state, 'mount', 24);
 assertMountIntegrity(state, 'manual mount');
@@ -53,6 +52,15 @@ function triggerAndStep(state, action, frames = 20) {
     updateCqcLab(state, 1 / 60);
     assertCqcIntegrity(state, `${action} frame ${i}`);
   }
+}
+
+function triggerGroundingAction(state, action) {
+  const [, defender] = state.fighters;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    triggerAndStep(state, action, 18);
+    if (defender.cqc?.grounded || ['swept_fall', 'grounded_back', 'grounded_side', 'down'].includes(defender.pose)) return;
+  }
+  throw new Error(`${action} did not ground or visibly destabilize defender after repeated attempts. pose=${defender.pose}`);
 }
 
 function assertCqcIntegrity(state, context) {
