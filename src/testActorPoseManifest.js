@@ -68,12 +68,13 @@ export function resolveTestActorPose(entity) {
   const actionId = String(entity.currentActionId || '').toLowerCase();
   const pose = String(entity.pose || '').toLowerCase();
   const action = String(entity.action || '').toLowerCase();
-  const mapped = activityPoseForAction(actionId);
-  const moving = Boolean(entity.path?.length) || pose === 'walk' || action.includes('heading');
+  const moving = Boolean(entity.path?.length) || Boolean(entity.target) || pose === 'walk' || action.includes('heading') || action.includes('walking to');
 
+  if (moving && !entity.actionT) return withMeta('walk', 'movement');
+
+  const mapped = activityPoseForAction(actionId);
   if (mapped) return withMeta(mapped, 'currentActionId');
   if (TEST_ACTOR_POSE_LIBRARY[pose]) return withMeta(pose, 'pose');
-  if (moving && !entity.actionT) return withMeta('walk', 'path');
 
   if (action.includes('lift')) return withMeta('lift_weights', 'action');
   if (action.includes('heavy bag') || action.includes('punch')) return withMeta('heavy_bag', 'action');
