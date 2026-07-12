@@ -89,6 +89,8 @@ export function createState() {
     calendar: { bookings: [], history: [] },
     books: { loose: [], returned: 0 },
     tidiness: { rooms: {} },
+    lifeControl: { mode: 'semi_auto', pendingChoices: [] },
+    lifeQuality: { lastMonthIndex: null, lastYearIndex: null, reviews: [], yearReviews: [] },
     careers: {
       workHours: 0,
       movieTheaterHours: 0,
