@@ -4,6 +4,7 @@ import { drawStyledObject } from './renderHouseStyle.js';
 const VEHICLE_KINDS = new Set(['car', 'bike', 'motorbike', 'atv']);
 
 export function drawObjects(ctx, state) {
+  drawCrumbs(ctx, state);
   for (const obj of objects.filter(o => o.floor === state.floor)) {
     if (VEHICLE_KINDS.has(obj.kind) && state.objectState.vehicleInUse === obj.id) continue;
     if (obj.kind === 'soccer_field') continue;
@@ -19,6 +20,7 @@ export function drawObjects(ctx, state) {
     if (obj.kind === 'swim_pool') drawPoolDepthDetail(ctx, obj, state);
     ctx.restore();
   }
+  drawRobotVacuum(ctx, state);
 }
 
 function isObjectActive(state, obj) {
@@ -53,6 +55,9 @@ function drawLivedInObjectDetails(ctx, obj, state, active) {
   if (obj.kind === 'coffee_maker') drawCoffeeMaker(ctx, obj, state, active);
   if (obj.kind === 'tv') drawTvGlow(ctx, obj, state);
   if (obj.kind === 'game_console') drawConsoleGlow(ctx, obj, state, active);
+  if (obj.kind === 'cleaning_closet') drawCleaningCloset(ctx, obj, state, active);
+  if (obj.kind === 'vacuum_cleaner') drawVacuumCleaner(ctx, obj, state, active);
+  if (obj.kind === 'robot_vacuum') drawRobotDock(ctx, obj, state, active);
 }
 
 function drawBedOverlay(ctx, o, state) {
@@ -127,16 +132,10 @@ function drawDogBath(ctx, o, state, active) {
   rounded(ctx, o.x - 3, o.y - 3, o.w + 6, o.h + 6, 18, true, false, '#5f6c6d');
   rounded(ctx, o.x + 6, o.y + 7, o.w - 12, o.h - 14, 17, true, false, '#dbe5e4');
   rounded(ctx, o.x + 14, o.y + 14, o.w - 28, o.h - 26, 14, true, false, washing ? '#99d4de' : '#a8cbd1');
-  for (let i = 0; i < 4; i++) {
-    line(ctx, o.x + 22, o.y + 24 + i * 7, o.x + o.w - 20, o.y + 22 + i * 7 + water, 'rgba(255,255,255,.55)', 1.5);
-  }
+  for (let i = 0; i < 4; i++) line(ctx, o.x + 22, o.y + 24 + i * 7, o.x + o.w - 20, o.y + 22 + i * 7 + water, 'rgba(255,255,255,.55)', 1.5);
   line(ctx, o.x + o.w - 12, o.y + 8, o.x + o.w + 13, o.y - 7, '#8f897f', 3);
   circle(ctx, o.x + o.w + 15, o.y - 8, 5, '#bcc5c4');
-  if (washing) {
-    ctx.fillStyle = '#f1c66a';
-    ctx.font = '900 8px system-ui';
-    ctx.fillText('DOG BATH', o.x + 8, o.y - 8);
-  }
+  if (washing) { ctx.fillStyle = '#f1c66a'; ctx.font = '900 8px system-ui'; ctx.fillText('DOG BATH', o.x + 8, o.y - 8); }
   ctx.restore();
 }
 
@@ -193,10 +192,16 @@ function drawPoolGameState(ctx, o, game) {
 function drawWeightBenchOverlay(ctx, o, state, active) { const lift = active || hasAction(state, 'lift weights', o.floor); const rep = lift ? Math.sin((state.time || 0) * .28) : 0; const barY = o.y + 2 - Math.max(0, rep) * 18; ctx.save(); ctx.shadowColor = 'transparent'; rounded(ctx, o.x + 18, o.y + 17, o.w - 36, 20, 8, true, false, '#20252f'); rounded(ctx, o.x + 28, o.y + 20, o.w - 56, 14, 7, true, false, '#4f5d6b'); line(ctx, o.x + 20, o.y + 40, o.x + 8, o.y + 52, '#9aa2aa', 3); line(ctx, o.x + o.w - 20, o.y + 40, o.x + o.w - 8, o.y + 52, '#9aa2aa', 3); line(ctx, o.x + 7, barY, o.x + o.w - 7, barY, '#f1e9de', 4); drawPlateStack(ctx, o.x + 3, barY, -1); drawPlateStack(ctx, o.x + o.w - 3, barY, 1); if (lift) { ctx.fillStyle = '#f1c66a'; ctx.font = '900 8px system-ui'; ctx.fillText('REP', o.x + o.w / 2 - 10, o.y - 8); } ctx.restore(); }
 function drawPlateStack(ctx, x, y, dir) { for (let i = 0; i < 3; i++) rounded(ctx, x + dir * i * 5 - 4, y - 13, 8, 26, 3, true, false, i % 2 ? '#343b46' : '#596575'); }
 function drawHeavyBagOverlay(ctx, o, state, active) { const punching = active || hasAction(state, 'heavy bag', o.floor); const sway = punching ? Math.sin((state.time || 0) * .42) * 5 : 0; ctx.save(); ctx.shadowColor = 'transparent'; ctx.clearRect(o.x + 2, o.y + 10, o.w - 4, o.h - 10); line(ctx, o.x + o.w / 2, o.y, o.x + o.w / 2 + sway * .35, o.y + 17, '#b99d70', 2); rounded(ctx, o.x + 6 + sway, o.y + 16, o.w - 12, o.h - 20, 16, true, false, '#7b4e46'); rounded(ctx, o.x + 10 + sway, o.y + 22, o.w - 20, 18, 9, true, false, 'rgba(255,255,255,.12)'); if (punching) { ctx.strokeStyle = '#f1c66a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(o.x + o.w / 2 + sway + 22, o.y + 42, 10, -0.9, 0.9); ctx.stroke(); } ctx.restore(); }
-function drawDiningTable(ctx, o, state, active) { ctx.save(); ctx.shadowColor = 'transparent'; rounded(ctx, o.x, o.y, o.w, o.h, 18, true, false, '#8f6844'); rounded(ctx, o.x + 10, o.y + 10, o.w - 20, o.h - 20, 14, true, false, '#b78556'); for (const [x, y] of [[18,18], [o.w - 18,18], [18,o.h - 18], [o.w - 18,o.h - 18]]) circle(ctx, o.x + x, o.y + y, 10, '#e8decf'); if (active || hasAction(state, ['eat', 'meal'], o.floor)) { ctx.fillStyle = '#071018'; ctx.font = '900 9px system-ui'; ctx.fillText('EATING', o.x + 12, o.y + o.h / 2 + 4); } ctx.restore(); }
+function drawDiningTable(ctx, o, state, active) { ctx.save(); ctx.shadowColor = 'transparent'; rounded(ctx, o.x, o.y, o.w, o.h, 18, true, false, '#8f6844'); rounded(ctx, o.x + 10, o.y + 10, o.w - 20, o.h - 20, 14, true, false, '#b78556'); for (const [x, y] of [[18,18], [o.w - 18,18], [18,o.h - 18], [o.w - 18,o.h - 18]]) circle(ctx, o.x + x, o.y + y, 10, '#e8decf'); drawTablePlates(ctx, o, state); if (active || hasAction(state, ['eat', 'meal'], o.floor)) { ctx.fillStyle = '#071018'; ctx.font = '900 9px system-ui'; ctx.fillText('EATING', o.x + 12, o.y + o.h / 2 + 4); } ctx.restore(); }
+function drawTablePlates(ctx, o, state) { const plates = (state.meals?.tablePlates || []).filter(p => p.tableId === o.id); for (const p of plates) { const px = p.x || o.x + o.w / 2; const py = p.y || o.y + o.h / 2; circle(ctx, px, py, 13, '#efe7dc'); circle(ctx, px + 2, py, 5, p.food === 'snack' ? '#d2a46f' : '#b66d55'); line(ctx, px - 15, py + 11, px + 15, py + 11, 'rgba(7,16,24,.32)', 1); } }
 function drawCoffeeMaker(ctx, o, state, active) { const brewing = active || hasAction(state, 'coffee', o.floor); const steam = Math.sin((state.time || 0) * .35); ctx.save(); ctx.shadowColor = 'transparent'; rounded(ctx, o.x, o.y, o.w, o.h, 7, true, false, '#343b46'); rounded(ctx, o.x + 8, o.y + 8, o.w - 16, o.h - 12, 4, true, false, '#141a22'); ctx.fillStyle = brewing ? '#f1c66a' : '#7ea4a0'; ctx.fillRect(o.x + o.w - 12, o.y + 8, 5, 5); rounded(ctx, o.x + 12, o.y + o.h - 2, 18, 12, 5, true, false, '#6f4e37'); if (brewing) { ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.lineWidth = 1.5; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(o.x + 14 + i * 7, o.y - 2); ctx.quadraticCurveTo(o.x + 10 + i * 7 + steam * 2, o.y - 13, o.x + 16 + i * 7, o.y - 22); ctx.stroke(); } } ctx.restore(); }
 function drawTvGlow(ctx, o, state) { if (!state.tv?.on) return; ctx.save(); ctx.shadowColor = 'transparent'; const pulse = .22 + Math.abs(Math.sin((state.time || 0) * .22)) * .18; ctx.globalAlpha = pulse; ctx.fillStyle = '#74e6ff'; ctx.beginPath(); ctx.moveTo(o.x - 18, o.y + o.h + 4); ctx.lineTo(o.x + o.w + 18, o.y + o.h + 4); ctx.lineTo(o.x + o.w + 74, o.y + 156); ctx.lineTo(o.x - 74, o.y + 156); ctx.closePath(); ctx.fill(); ctx.restore(); }
 function drawConsoleGlow(ctx, o, state, active) { if (!active && !hasAction(state, ['console', 'game'], o.floor)) return; ctx.save(); ctx.shadowColor = 'transparent'; const pulse = Math.abs(Math.sin((state.time || 0) * .24)); ctx.strokeStyle = `rgba(116,230,255,${.32 + pulse * .42})`; ctx.lineWidth = 3; rounded(ctx, o.x + 14, o.y + 8, o.w - 28, o.h - 16, 8, false, true); ctx.restore(); }
+function drawCleaningCloset(ctx, o, state, active) { ctx.save(); ctx.shadowColor = 'transparent'; rounded(ctx, o.x, o.y, o.w, o.h, 6, true, false, '#5d4d42'); rounded(ctx, o.x + 6, o.y + 8, o.w - 12, o.h - 16, 5, true, false, '#2b2522'); line(ctx, o.x + o.w - 10, o.y + 12, o.x + o.w - 10, o.y + o.h - 12, '#f1c66a', 1.5); ctx.fillStyle = active ? '#f1c66a' : '#d8c4a4'; ctx.font = '900 7px system-ui'; ctx.fillText('CLEAN', o.x + 4, o.y - 4); ctx.restore(); }
+function drawVacuumCleaner(ctx, o, state, active) { ctx.save(); ctx.shadowColor = 'transparent'; const pulse = active || hasAction(state, 'vacuum', o.floor) ? Math.sin((state.time || 0) * .5) * 3 : 0; line(ctx, o.x + o.w / 2, o.y + 8, o.x + o.w / 2 + pulse, o.y + o.h - 12, '#263241', 5); rounded(ctx, o.x + 4 + pulse, o.y + o.h - 18, o.w - 8, 18, 6, true, false, '#74e6ff'); circle(ctx, o.x + 9 + pulse, o.y + o.h - 2, 3, '#071018'); circle(ctx, o.x + o.w - 9 + pulse, o.y + o.h - 2, 3, '#071018'); ctx.restore(); }
+function drawRobotDock(ctx, o, state, active) { ctx.save(); ctx.shadowColor = 'transparent'; rounded(ctx, o.x - 4, o.y - 3, o.w + 8, o.h + 6, 10, true, false, 'rgba(7,16,24,.18)'); circle(ctx, o.x + o.w / 2, o.y + o.h / 2, 14, active ? '#f1c66a' : '#79838f'); circle(ctx, o.x + o.w / 2, o.y + o.h / 2, 7, '#202833'); ctx.restore(); }
+function drawCrumbs(ctx, state) { const crumbs = (state.cleaning?.crumbs || []).filter(c => c.floor === state.floor); if (!crumbs.length) return; ctx.save(); ctx.shadowColor = 'transparent'; for (const c of crumbs) { circle(ctx, c.x, c.y, 2.5, '#8a6230'); circle(ctx, c.x + 5, c.y - 2, 1.8, '#b78556'); circle(ctx, c.x - 4, c.y + 3, 1.6, '#d2a46f'); } ctx.restore(); }
+function drawRobotVacuum(ctx, state) { const robot = state.cleaning?.robotVacuum; if (!robot || robot.floor !== state.floor) return; ctx.save(); ctx.shadowColor = 'transparent'; const active = robot.active && (state.cleaning?.crumbs || []).some(c => c.floor === robot.floor); circle(ctx, robot.x, robot.y, 15, active ? '#74e6ff' : '#56606c'); circle(ctx, robot.x, robot.y, 8, '#101820'); ctx.strokeStyle = active ? '#f1c66a' : 'rgba(255,255,255,.28)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(robot.x, robot.y, 18, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
 function drawPortalMarker(ctx, o) { if (!o.styleAs && o.id !== 'garage_door') return; ctx.save(); ctx.shadowColor = 'transparent'; const doorColor = o.id.includes('garage') ? '#8ea3b7' : '#8b654c'; rounded(ctx, o.x, o.y, o.w, o.h, 5, true, false, doorColor); rounded(ctx, o.x + 4, o.y + 4, Math.max(8, o.w - 8), Math.max(8, o.h - 8), 4, true, false, 'rgba(20,25,31,.45)'); ctx.strokeStyle = '#f1c66a'; ctx.lineWidth = 2; rounded(ctx, o.x, o.y, o.w, o.h, 5, false, true); ctx.fillStyle = '#f8fbff'; ctx.font = '900 8px system-ui'; ctx.textAlign = 'center'; const label = o.id.includes('garage') ? 'GARAGE' : o.id.includes('back') || o.id.includes('yard') ? 'YARD' : 'DOOR'; ctx.fillText(label, o.x + o.w / 2, o.y - 4); ctx.textAlign = 'left'; ctx.restore(); }
 function drawPetFlap(ctx, o) { ctx.save(); ctx.shadowColor = 'transparent'; ctx.fillStyle = '#5a4032'; rounded(ctx, o.x, o.y, o.w, o.h, 7, true, false); ctx.fillStyle = '#1f2933'; rounded(ctx, o.x + 5, o.y + 5, o.w - 10, o.h - 7, 6, true, false); ctx.strokeStyle = '#d8c4a4'; ctx.lineWidth = 2; rounded(ctx, o.x + 4, o.y + 4, o.w - 8, o.h - 6, 6, false, true); ctx.fillStyle = '#f1c66a'; ctx.font = '900 9px system-ui'; ctx.textAlign = 'center'; ctx.fillText('DOG', o.x + o.w / 2, o.y - 3); ctx.textAlign = 'left'; ctx.restore(); }
 function drawPoolDepthDetail(ctx, o, state) { ctx.save(); ctx.shadowColor = 'transparent'; const inner = { x: o.x + 19, y: o.y + 19, w: o.w - 38, h: o.h - 38 }; rounded(ctx, inner.x, inner.y, inner.w, inner.h, 22, true, false, '#70c7d4'); const bands = [{ inset: 13, color: 'rgba(52,151,179,.30)' }, { inset: 33, color: 'rgba(32,117,158,.36)' }, { inset: 56, color: 'rgba(14,73,132,.45)' }]; for (const band of bands) rounded(ctx, inner.x + band.inset, inner.y + band.inset, inner.w - band.inset * 2, inner.h - band.inset * 2, 18, true, false, band.color); ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2; const swimming = hasAction(state, 'swim', o.floor); const offset = swimming ? Math.sin((state.time || 0) * .32) * 9 : 0; for (let y = inner.y + 24; y < inner.y + inner.h - 12; y += 26) { ctx.beginPath(); ctx.moveTo(inner.x + 14, y); ctx.quadraticCurveTo(inner.x + inner.w / 2, y - 13 + offset, inner.x + inner.w - 14, y); ctx.stroke(); } ctx.strokeStyle = 'rgba(9,36,65,.40)'; ctx.lineWidth = 3; rounded(ctx, inner.x, inner.y, inner.w, inner.h, 22, false, true); drawPoolSteps(ctx, inner.x + 16, inner.y + inner.h - 48); ctx.restore(); }
