@@ -5,6 +5,8 @@ import { bookCalendarTravel, bookingCostLabel, bookingTimeLabel, calendarDateLab
 import { canSkipToBooking, skipToBookingPrep } from './calendarSkipSystem.js';
 import { startCookingFlow } from './cooking.js';
 import { orderFood, buyWorkoutGear } from './economy.js';
+import { buyInvestment, investmentSummary, INVESTMENTS } from './investmentSystem.js';
+import { lifeControlLabel, lifeQualityMenuRows, toggleLifeControlMode } from './lifeQualitySystem.js';
 import { relationshipLabel, relationshipSummary } from './reactionSystem.js';
 import { startMusic } from './music.js';
 import { objects } from './world.js';
@@ -30,6 +32,17 @@ export function openDeviceHome(state, actor, openMenu) {
     { label: 'Dart Board', run: () => handleBuildRequest(state, actor, 'dart board') }
   ]);
   const musicMenu = () => cell('Music Apps', ['rap', 'jazz', 'cyberpunk', 'ambient', 'rock', 'dance'].map(genre => ({ label: `Play ${genre}`, run: () => startMusic(state, actor, genre) })));
+  const lifeMenu = () => {
+    const rows = lifeQualityMenuRows(state, actor).map(row => ({ label: row.label, run: lifeMenu }));
+    cell('Life Review', [
+      { label: `Control: ${lifeControlLabel(state)}`, run: () => { toggleLifeControlMode(state); lifeMenu(); } },
+      ...rows
+    ]);
+  };
+  const investmentMenu = () => cell('Investments', [
+    { label: investmentSummary(state).replaceAll('<br>', ' | '), run: investmentMenu },
+    ...INVESTMENTS.map(item => ({ label: `Buy ${item.label}: $${item.buyIn}`, run: () => buyInvestment(state, item.id) }))
+  ]);
   const careerMenu = () => {
     const career = careerFor(state, actor);
     const track = trackForCareer(career);
@@ -135,8 +148,10 @@ export function openDeviceHome(state, actor, openMenu) {
   openMenu(660, 86, 'Cell', [
     { label: 'Food / Delivery', run: foodMenu },
     { label: 'Calendar', run: calendarMenu },
+    { label: 'Life Review', run: lifeMenu },
     { label: 'Career / Work', run: careerMenu },
     { label: 'Relationships', run: relationshipMenu },
+    { label: 'Investments / Magic Fund', run: investmentMenu },
     { label: 'Shop / Build Items', run: shopMenu },
     { label: 'Music Apps', run: musicMenu }
   ]);
