@@ -3,6 +3,7 @@ import { careerHudLine } from './careerSystem.js';
 import { calendarHudLine } from './calendarSystem.js';
 import { ACTIONS, DOG_SOCIAL_ACTIONS, DOUBLE_TAP_MS, NEEDS, SOCIAL_ACTIONS } from './config.js';
 import { startObjectAction, startOffsite, startSocialAction, throwFetchBall } from './actions.js';
+import { interruptBookIfNeeded } from './bookSystem.js';
 import { placeBuildRequest } from './buildRequests.js';
 import { startCookingFlow } from './cooking.js';
 import { openDeviceHome } from './appMenu.js';
@@ -10,7 +11,6 @@ import { beginMoveObject, placeMoveObject } from './objectMove.js';
 import { commandMove } from './movement.js';
 import { navigateView } from './cameraNavigation.js';
 import { clearRefreshState, loadGame, saveGame, slotSummary } from './saveSystem.js';
-import { startBook } from './training.js';
 import { log, resumeEntity, selected, stopEntity } from './state.js';
 import { floors, objectAt, objects } from './world.js';
 import { formatTime } from './renderHelpers.js';
@@ -56,6 +56,7 @@ export function createUi(state, surface, options = {}) {
 
   function guidedInterrupt(actor) {
     if (!actor) return;
+    interruptBookIfNeeded(state, actor, 'interrupted by a player command');
     actor.path = [];
     actor.target = null;
     actor.pending = null;
@@ -173,7 +174,7 @@ export function createUi(state, surface, options = {}) {
   function objectItems(actor, obj) {
     const actions = ACTIONS[obj.kind] || [['use', 'Use']];
     const items = actions.map(([id, label]) => ({ label: `${actor.name}: ${label}`, run: () => useObject(actor, obj, id) }));
-    if (obj.kind === 'bookshelf') items.push({ label: `${actor.name}: Pull Book / Read`, run: () => { guidedInterrupt(actor); startBook(state, actor, obj); } });
+    if (obj.kind === 'bookshelf') items.push({ label: `${actor.name}: Pull Book / Read`, run: () => guidedObject(actor, obj, 'read') });
     if (obj.kind === 'desk' || obj.kind === 'stereo') items.push({ label: `${actor.name}: Open Cell`, run: () => cell(actor) });
     items.push({ label: 'Move', run: () => beginMoveObject(state, actor, obj) });
     items.push({ label: 'Assign this object...', run: () => { state.assign = { objectId: obj.id, actionId: actions[0][0] }; log(state, `Tap who should use ${obj.label}.`); } });
