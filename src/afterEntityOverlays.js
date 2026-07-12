@@ -5,8 +5,7 @@ import { formatTime } from './renderHelpers.js';
 export function drawAfterEntityOverlays(ctx, state) {
   drawWardrobeOverlays(ctx, state);
   drawShowerPrivacyOverlays(ctx, state);
-  drawSeatedFacingOverlays(ctx, state);
-  drawVehicleContrastLabels(ctx, state);
+  drawCorrectSeatedPoseOverlays(ctx, state);
   drawCalendarSkipRecap(ctx, state);
 }
 
@@ -86,38 +85,85 @@ function drawHangingTowel(ctx, x, y, female) {
   ctx.restore();
 }
 
-function drawSeatedFacingOverlays(ctx, state) {
+function drawCorrectSeatedPoseOverlays(ctx, state) {
   for (const actor of state.entities || []) {
     if (actor.hidden || actor.floor !== state.floor || actor.type !== 'person' || actorIsMoving(actor)) continue;
     const target = seatedFacingTarget(actor, state);
     if (!target) continue;
-    const tx = target.x + target.w / 2;
-    const ty = target.y + target.h / 2;
-    const angle = Math.atan2(ty - actor.y, tx - actor.x);
-    ctx.save();
-    ctx.translate(actor.x, actor.y);
-    ctx.rotate(angle + Math.PI / 2);
-    ctx.globalAlpha = .9;
-    ctx.fillStyle = 'rgba(116,230,255,.12)';
-    ctx.beginPath();
-    ctx.moveTo(0, -18);
-    ctx.lineTo(-22, -48);
-    ctx.lineTo(22, -48);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#05070a';
-    ctx.strokeStyle = '#071018';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.ellipse(0, -29, 15, 10, 0, Math.PI, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#f1c66a';
-    ctx.font = '900 7px system-ui';
-    ctx.textAlign = 'center';
-    ctx.fillText('VIEW', 0, -49);
-    ctx.restore();
+    const action = String(actor.action || '').toLowerCase();
+    if (action.includes('couch') || action.includes('relax') || action.includes('watch') || action.includes('tv')) {
+      drawBackFacingSeatedActor(ctx, actor, target);
+    } else {
+      drawFacingGuide(ctx, actor, target);
+    }
   }
+}
+
+function drawBackFacingSeatedActor(ctx, actor, target) {
+  const tx = target.x + target.w / 2;
+  const ty = target.y + target.h / 2;
+  const angle = Math.atan2(ty - actor.y, tx - actor.x) + Math.PI / 2;
+  const female = actor.id === 'girlfriend';
+  const cloth = female ? '#17131b' : '#111820';
+  const accent = female ? '#ff75df' : '#74e6ff';
+  ctx.save();
+  ctx.translate(actor.x, actor.y);
+  ctx.rotate(angle);
+
+  ctx.globalAlpha = .98;
+  ctx.fillStyle = 'rgba(0,0,0,.36)';
+  ctx.beginPath();
+  ctx.ellipse(0, 16, 34, 28, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = cloth;
+  ctx.strokeStyle = '#071018';
+  ctx.lineWidth = 3;
+  roundRect(ctx, -19, -8, 38, 42, 14, cloth, true);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 1.6;
+  line(ctx, -8, -2, -8, 26, accent, 1.6);
+  line(ctx, 8, -2, 8, 26, accent, 1.6);
+
+  bentLeg(ctx, -12, 18, -28, 38, cloth, -.25);
+  bentLeg(ctx, 12, 18, 28, 38, cloth, .25);
+  arm(ctx, -17, -3, -31, 18, cloth);
+  arm(ctx, 17, -3, 31, 18, cloth);
+
+  ctx.fillStyle = '#05070a';
+  ctx.strokeStyle = '#071018';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.ellipse(0, -25, female ? 16 : 17, female ? 18 : 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(116,230,255,.16)';
+  ctx.beginPath();
+  ctx.moveTo(0, -21);
+  ctx.lineTo(-24, -52);
+  ctx.lineTo(24, -52);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawFacingGuide(ctx, actor, target) {
+  const tx = target.x + target.w / 2;
+  const ty = target.y + target.h / 2;
+  const angle = Math.atan2(ty - actor.y, tx - actor.x);
+  ctx.save();
+  ctx.translate(actor.x, actor.y);
+  ctx.rotate(angle + Math.PI / 2);
+  ctx.globalAlpha = .42;
+  ctx.fillStyle = 'rgba(116,230,255,.12)';
+  ctx.beginPath();
+  ctx.moveTo(0, -18);
+  ctx.lineTo(-22, -48);
+  ctx.lineTo(22, -48);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 }
 
 function seatedFacingTarget(actor, state) {
@@ -133,40 +179,6 @@ function seatedFacingTarget(actor, state) {
 }
 
 function firstObject(floor, ids) { return ids.map(id => objects.find(o => o.id === id && o.floor === floor)).find(Boolean) || null; }
-
-function drawVehicleContrastLabels(ctx, state) {
-  if (state.floor !== 3) return;
-  for (const vehicle of objects.filter(o => o.floor === 3 && ['car', 'bike', 'motorbike', 'atv'].includes(o.kind))) {
-    if (state.objectState?.vehicleInUse === vehicle.id) continue;
-    drawVehicleTag(ctx, vehicle.x + vehicle.w / 2, vehicle.y + vehicle.h / 2, vehicleShortLabel(vehicle));
-  }
-  const active = state.vehicleDeparture || state.vehicleReturn;
-  if (active) drawVehicleTag(ctx, active.x + active.w / 2, active.y + active.h / 2, vehicleShortLabel(active));
-}
-
-function vehicleShortLabel(vehicle) {
-  if (vehicle.vehicleId === 'car_1' || vehicle.id === 'car_1') return 'SUV';
-  if (vehicle.vehicleId === 'car_2' || vehicle.id === 'car_2') return 'CONV';
-  if (vehicle.vehicleKind === 'bike' || vehicle.kind === 'bike') return 'BIKE';
-  if (vehicle.vehicleKind === 'motorbike' || vehicle.kind === 'motorbike') return 'MOTO';
-  if (vehicle.vehicleKind === 'atv' || vehicle.kind === 'atv') return 'ATV';
-  return 'CAR';
-}
-
-function drawVehicleTag(ctx, x, y, text) {
-  ctx.save();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = '900 10px system-ui';
-  const w = Math.max(40, text.length * 9 + 18);
-  roundRect(ctx, x - w / 2, y - 11, w, 22, 7, '#f1c66a');
-  ctx.strokeStyle = '#071018';
-  ctx.lineWidth = 3;
-  roundRect(ctx, x - w / 2, y - 11, w, 22, 7, '', true);
-  ctx.fillStyle = '#071018';
-  ctx.fillText(text, x, y + 1);
-  ctx.restore();
-}
 
 function drawCalendarSkipRecap(ctx, state) {
   const recap = state.skipRecap;
@@ -200,6 +212,32 @@ function drawCalendarSkipRecap(ctx, state) {
   ctx.restore();
 }
 
+function bentLeg(ctx, x1, y1, x2, y2, color, lean = 0) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 9;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.quadraticCurveTo((x1 + x2) / 2 + lean * 18, (y1 + y2) / 2, x2, y2);
+  ctx.stroke();
+  ctx.strokeStyle = '#071018';
+  ctx.lineWidth = 2.2;
+  ctx.stroke();
+}
+
+function arm(ctx, x1, y1, x2, y2, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 7;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.strokeStyle = '#071018';
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+}
+
 function blob(ctx, x, y, rx, ry, fill) {
   ctx.beginPath();
   ctx.ellipse(x, y, rx, ry, Math.sin(x + y) * .2, 0, Math.PI * 2);
@@ -217,4 +255,14 @@ function roundRect(ctx, x, y, w, h, r, fill = '', stroke = false) {
   else ctx.rect(x, y, Math.max(1, w), Math.max(1, h));
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
+}
+
+function line(ctx, x1, y1, x2, y2, color, width = 2) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
 }
