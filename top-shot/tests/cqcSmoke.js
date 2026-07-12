@@ -55,7 +55,10 @@ function triggerAndStep(state, action, frames = 20) {
 }
 
 function triggerGroundingAction(state, action) {
-  const [, defender] = state.fighters;
+  const [attacker, defender] = state.fighters;
+  attacker.stamina = 100;
+  defender.stamina = Math.min(defender.stamina, 8);
+  defender.dodge = Math.min(defender.dodge, 8);
   for (let attempt = 0; attempt < 6; attempt++) {
     triggerAndStep(state, action, 18);
     if (defender.cqc?.grounded || ['swept_fall', 'grounded_back', 'grounded_side', 'down'].includes(defender.pose)) return;
