@@ -113,15 +113,41 @@ function uniquePoints(points) {
   });
 }
 
-export function commandMove(entity, x, y, run = false, allowId = '') {
-  const to = clampToPlay(x, y);
-  entity.moveAllowId = allowId || '';
-  entity.path = routeAround({ x: entity.x, y: entity.y }, to, entity.floor, entity.moveAllowId);
-  if (!entity.path.length && legClear({ x: entity.x, y: entity.y }, to, entity.floor, entity.moveAllowId)) entity.path = [to];
+function nearbyOpenTargets(to, floor, allowId = '') {
+  const offsets = [[0, 0], [-24, 0], [24, 0], [0, -24], [0, 24], [-36, -36], [36, -36], [-36, 36], [36, 36], [-54, 0], [54, 0], [0, -54], [0, 54]];
+  const solids = solidObjects(floor, allowId);
+  return uniquePoints(offsets.map(([dx, dy]) => clampToPlay(to.x + dx, to.y + dy))).filter(p => {
+    if (!roomAt(p.x, p.y, floor)) return false;
+    return !solids.some(o => pointInRect(p.x, p.y, expandedRect(o, ROUTE_CLEAR_PAD + 2)));
+  });
+}
+
+function findRouteToNearestOpen(from, to, floor, allowId = '') {
+  for (const candidate of nearbyOpenTargets(to, floor, allowId)) {
+    const route = routeAround(from, candidate, floor, allowId);
+    if (route.length) return route;
+    if (legClear(from, candidate, floor, allowId)) return [candidate];
+  }
+  return [];
+}
+
+function clearManualAction(entity) {
   entity.target = null;
   entity.pending = null;
+  entity.queuedTask = null;
+  entity.actionT = 0;
+  entity.actionTotal = 0;
+  entity.currentActionId = null;
   entity.blockedT = 0;
   entity.recoveryCount = 0;
+}
+
+export function commandMove(entity, x, y, run = false, allowId = '') {
+  const to = clampToPlay(x, y);
+  const from = { x: entity.x, y: entity.y };
+  clearManualAction(entity);
+  entity.moveAllowId = allowId || '';
+  entity.path = findRouteToNearestOpen(from, to, entity.floor, entity.moveAllowId);
   entity.action = entity.path.length ? (run ? 'Running' : 'Walking') : 'No route';
   entity.speed = (entity.type === 'dog' ? 125 : 92) * (run ? 1.6 : 1);
   entity.pose = entity.path.length ? 'walk' : 'stand';
