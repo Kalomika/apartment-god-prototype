@@ -38,6 +38,7 @@ function entity(id, name, type, floor, x, y, color) {
     path: [], target: null, action: null, actionT: 0, pending: null,
     pose: 'stand', mood: type === 'dog' ? 'dog' : 'neutral', bubble: '', bubbleT: 0,
     idleT: 0, stopped: false, hidden: false, trainingSkill: null, carrying: null,
+    bookReading: false, bookTask: null,
     needs: baseNeeds(), skills: baseSkills(id, type), skillCaps: skillCaps(id, type),
     memory: { favorites: [], dislikes: [], activities: [], movies: [], foods: [] },
     traits: id === 'girlfriend' ? { frugal: true, spender: false, social: true, meticulous: true } : { frugal: false, spender: false, social: false }
@@ -86,6 +87,8 @@ export function createState() {
     rewards: { freeTickets: {}, messages: [] },
     secretLog: { used: {}, lastRewardAt: 0 },
     calendar: { bookings: [], history: [] },
+    books: { loose: [], returned: 0 },
+    tidiness: { rooms: {} },
     careers: {
       workHours: 0,
       movieTheaterHours: 0,
