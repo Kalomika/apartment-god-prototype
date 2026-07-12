@@ -1,7 +1,7 @@
 import { changeNeed, log, say } from './state.js';
 import { roomAt } from './world.js';
 
-const DEFAULT_REL = { vibe: 50, beef: 0, annoyance: 0, privacyComfort: 35, lastReason: '' };
+const DEFAULT_REL = { vibe: 50, beef: 0, annoyance: 0, romance: 45, patience: 70, privacyComfort: 35, status: 'dating', lastReason: '' };
 const DIRECT_REACTION_TYPES = new Set(['anger', 'privacy', 'noise']);
 const NOISE_ACTIONS = ['tv', 'music', 'stereo', 'treadmill', 'heavy bag', 'game', 'console', 'arcade'];
 const PRIVATE_ACTIONS = ['shower', 'toilet', 'intimacy'];
@@ -33,14 +33,15 @@ export function relationshipSummary(state, actor) {
   const rels = state.relationships?.[actor.id] || {};
   const rows = Object.entries(rels).map(([id, rel]) => ({ id, ...normalizeRel(rel) }));
   const vibing = rows.filter(r => r.vibe >= 60 && r.beef < 35).sort((a, b) => b.vibe - a.vibe);
-  const beefing = rows.filter(r => r.beef >= 20 || r.annoyance >= 25).sort((a, b) => (b.beef + b.annoyance) - (a.beef + a.annoyance));
+  const beefing = rows.filter(r => r.beef >= 20 || r.annoyance >= 25 || r.patience < 45).sort((a, b) => (b.beef + b.annoyance + (100 - b.patience)) - (a.beef + a.annoyance + (100 - a.patience)));
   return { vibing, beefing };
 }
 
 export function relationshipLabel(state, actor, otherId) {
   const other = state.entities.find(e => e.id === otherId);
   const rel = relationshipBetween(state, actor.id, otherId);
-  return `${other?.name || otherId}: vibe ${Math.round(rel.vibe)}, beef ${Math.round(rel.beef)}, annoyed ${Math.round(rel.annoyance)}${rel.lastReason ? `, ${rel.lastReason}` : ''}`;
+  const symbol = rel.status === 'married' ? 'ring' : 'heart';
+  return `${other?.name || otherId}: vibe ${Math.round(rel.vibe)}, ${symbol} ${Math.round(rel.romance)}, patience ${Math.round(rel.patience)}, beef ${Math.round(rel.beef)}, annoyed ${Math.round(rel.annoyance)}${rel.lastReason ? `, ${rel.lastReason}` : ''}`;
 }
 
 export function updateReactionWorld(state, dt) {
@@ -101,6 +102,7 @@ function privacyComfort(state, actor, other) {
   const rel = relationshipBetween(state, actor.id, other.id);
   let comfort = rel.privacyComfort || 35;
   if (rel.vibe > 70 && rel.beef < 20) comfort += 40;
+  if ((rel.romance ?? 45) > 70 && rel.beef < 30) comfort += 15;
   if (rel.beef > 40 || rel.annoyance > 45) comfort -= 30;
   if (actor.id === 'resident' && other.id === 'girlfriend') comfort += 25;
   if (actor.id === 'girlfriend' && other.id === 'resident') comfort += 25;
@@ -116,8 +118,8 @@ function reactToIntrusion(state, actor, intruder, reason) {
     text: style === 'thought' ? 'privacy thought' : 'privacy burst',
     reason
   });
-  adjustRelationship(state, actor.id, intruder.id, { vibe: -2, beef: style === 'speech' ? 5 : 2, annoyance: 9, reason });
-  if (style === 'speech') adjustRelationship(state, intruder.id, actor.id, { vibe: -1, beef: 1, annoyance: 2, reason: 'got called out' });
+  adjustRelationship(state, actor.id, intruder.id, { vibe: -2, romance: -1, beef: style === 'speech' ? 5 : 2, annoyance: 9, patience: -3, reason });
+  if (style === 'speech') adjustRelationship(state, intruder.id, actor.id, { vibe: -1, beef: 1, annoyance: 2, patience: -1, reason: 'got called out' });
   changeNeed(actor, 'social', style === 'speech' ? -5 : -2);
   log(state, `${actor.name} reacted to ${intruder.name} crossing ${reason}.`);
 }
@@ -131,7 +133,7 @@ function reactToNoise(state, listener, maker) {
     text: style === 'thought' ? 'noise thought' : 'noise burst',
     reason: 'noise annoyance'
   });
-  adjustRelationship(state, listener.id, maker.id, { vibe: -1, beef: style === 'speech' ? 3 : 1, annoyance: 5, reason: 'noise annoyance' });
+  adjustRelationship(state, listener.id, maker.id, { vibe: -1, romance: -1, beef: style === 'speech' ? 3 : 1, annoyance: 5, patience: -2, reason: 'noise annoyance' });
   changeNeed(listener, 'fun', -2);
   log(state, `${listener.name} was annoyed by ${maker.name}'s noise.`);
 }
@@ -170,6 +172,9 @@ export function adjustRelationship(state, actorId, otherId, delta = {}) {
   rel.vibe = clamp((rel.vibe || 50) + (delta.vibe || 0), 0, 100);
   rel.beef = clamp((rel.beef || 0) + (delta.beef || 0), 0, 100);
   rel.annoyance = clamp((rel.annoyance || 0) + (delta.annoyance || 0), 0, 100);
+  rel.romance = clamp((rel.romance ?? 45) + (delta.romance || 0), 0, 100);
+  rel.patience = clamp((rel.patience ?? 70) + (delta.patience || 0), 0, 100);
+  rel.status = delta.status || rel.status || 'dating';
   rel.lastReason = delta.reason || rel.lastReason || '';
   state.relationships[actorId][otherId] = rel;
   return rel;
