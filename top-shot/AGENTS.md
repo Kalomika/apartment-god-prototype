@@ -30,6 +30,8 @@ Stable base branch: `top-shot-v0-1`
 
 Current backup branch for this matrix pass: `backup/top-shot-v0-1-2026-07-11-coverage-matrix`
 
+Current smoke-fix backup branch: `backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
+
 Current experimental Starshot branch: `top-shot-starshot-engine`
 
 For risky changes, create or confirm a backup branch first. For large changes, work on a development or experimental branch. Keep the stable branch safe and deployable.
@@ -52,9 +54,15 @@ From `top-shot/`, run when possible:
 
 ```bash
 npm run check
+npm run smoke:sim
+npm run smoke:cqc
+npm run smoke:stealth
+npm run smoke:model
 npm run smoke
 npm run build
 ```
+
+`npm run smoke` remains the full safety gate. Use split smoke scripts only to isolate failures.
 
 Never claim tests passed unless they were actually run.
 
@@ -81,6 +89,17 @@ If test expectations changed, update:
 
 - `top-shot/docs/QA_CHECKLIST.md`
 
+## Playable link rule
+
+Every Top Shot completion report must include clickable playable links, not code-block-only URLs.
+
+Include:
+
+- Live app link, usually `[Top Shot live app](https://top-shot-prototype.onrender.com/)`.
+- PR link or branch link for the work.
+- Local playable command.
+- Clear deployment status, for example whether the live app is verified or whether it may still show the previous deployed branch.
+
 ## Completion report
 
 Every completion report must include:
@@ -95,5 +114,6 @@ Every completion report must include:
 - Known risks
 - Exact next step
 - PR link or branch link
+- Clickable playable links
 
 Do not end with only "done."
