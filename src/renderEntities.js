@@ -5,16 +5,11 @@ import { drawTestActorSprite } from './testActorSpriteRenderer.js';
 const INK = '#071018';
 const SKIN = '#3a241f';
 const SKIN_LIT = '#5a372f';
-const CLOTH_M = '#111820';
-const CLOTH_F = '#17131b';
-const PAJAMA_M = '#24324a';
-const PAJAMA_F = '#3a2438';
-const SWIM_M = '#1b5b82';
-const SWIM_F = '#6b2a70';
 const CYAN = '#74e6ff';
 const MAGENTA = '#ff75df';
 const DOG_COAT = '#f6f2e8';
 const DOG_SHADE = '#d8d0c0';
+const CLOTH = { resident: '#111820', girlfriend: '#17131b', pjResident: '#24324a', pjGirlfriend: '#3a2438' };
 
 export function drawEntities(ctx, state) {
   for (const e of state.entities.filter(e => !e.hidden && e.floor === state.floor)) drawEntity(ctx, e, state.selectedId === e.id);
@@ -23,7 +18,6 @@ export function drawEntities(ctx, state) {
 function drawEntity(ctx, e, selected) {
   ctx.save();
   ctx.translate(e.x, e.y);
-
   if (selected) {
     ctx.strokeStyle = COLORS.active;
     ctx.lineWidth = 3;
@@ -31,17 +25,10 @@ function drawEntity(ctx, e, selected) {
     ctx.arc(0, 4, e.type === 'dog' ? 30 : 34, 0, Math.PI * 2);
     ctx.stroke();
   }
-
   ctx.save();
-  if (e.type === 'dog') {
-    ctx.rotate(heading(e));
-    drawDog(ctx, e);
-  } else if (!drawTestActorSprite(ctx, e)) {
-    ctx.rotate(heading(e));
-    drawPerson(ctx, e);
-  }
+  if (e.type === 'dog') { ctx.rotate(heading(e)); drawDog(ctx, e); }
+  else if (!drawTestActorSprite(ctx, e)) { ctx.rotate(heading(e)); drawPerson(ctx, e); }
   ctx.restore();
-
   if (e.actionT > 0) drawActionBar(ctx, e);
   if (e.reaction?.t > 0) drawReactionBubble(ctx, e.reaction, e.type);
   if (e.bubble && e.bubbleT > 0) drawBubble(ctx, e.bubble, e.reaction?.style || 'speech');
@@ -51,10 +38,7 @@ function drawEntity(ctx, e, selected) {
 function heading(e) {
   const action = String(e.action || '').toLowerCase();
   const pose = String(e.pose || '').toLowerCase();
-  if (action.includes('tv') || action.includes('couch') || action.includes('watch')) return 0;
-  if (action.includes('fridge') || action.includes('snack') || action.includes('meal')) return 0;
-  if (action.includes('desk') || action.includes('study') || action.includes('read')) return 0;
-  if (['sleep', 'nap', 'shower', 'swim', 'heavy bag', 'lift weights', 'treadmill'].some(t => action.includes(t) || pose.includes(t))) return e.lastHeading ?? 0;
+  if (['tv', 'couch', 'watch', 'desk', 'study', 'read', 'eat', 'table', 'sleep', 'nap', 'shower', 'wash dog'].some(t => action.includes(t) || pose.includes(t))) return 0;
   const dx = e.vx || (e.target ? e.target.x - e.x : 0);
   const dy = e.vy || (e.target ? e.target.y - e.y : 0);
   if (Math.abs(dx) + Math.abs(dy) < 0.01) return e.lastHeading ?? 0;
@@ -65,406 +49,140 @@ function heading(e) {
 function drawPerson(ctx, e) {
   const action = String(e.action || '').toLowerCase();
   const pose = String(e.pose || '').toLowerCase();
-  const moving = Boolean(e.path?.length) || pose === 'walk' || action.includes('walk') || action.includes('run');
-  const step = moving ? [-1, .45, 1, -.45][Math.floor(performance.now() / 120) % 4] : Math.sin(performance.now() / 700) * .12;
   const female = e.id === 'girlfriend';
   const accent = female ? MAGENTA : CYAN;
-  const cloth = female ? CLOTH_F : CLOTH_M;
-
-  if (pose === 'shower' || action.includes('shower')) return drawShowerPrivacy(ctx, female, accent);
-  if (pose.includes('swim') || action.includes('swim')) return drawSwimPose(ctx, female, accent);
-  if (pose === 'heavy_bag' || action.includes('heavy bag')) return drawBoxingPose(ctx, female, cloth, accent);
-  if (pose === 'lift_weights' || action.includes('lift weights')) return drawLiftPose(ctx, female, cloth, accent);
-  if (pose === 'treadmill' || action.includes('treadmill')) return drawTreadmillPose(ctx, female, cloth, accent);
-
-  if (pose === 'sleep' || action.includes('sleep') || action.includes('nap') || action.includes('waking up')) {
-    ctx.save();
-    ctx.rotate(-Math.PI / 2 + .08);
-    drawHumanBody(ctx, female, female ? PAJAMA_F : PAJAMA_M, accent, 0, true, true);
-    drawSleepCover(ctx, female, action.includes('waking'));
-    ctx.restore();
-    drawZs(ctx, accent);
-    return;
-  }
-
-  if (pose === 'sit' || action.includes('tv') || action.includes('desk') || action.includes('phone') || action.includes('game') || action.includes('ordering') || action.includes('read') || action.includes('study') || action.includes('eat')) {
-    if (action.includes('tv') || action.includes('watch')) drawSeatedBackPose(ctx, female, cloth, accent);
-    else drawHumanBody(ctx, female, cloth, accent, step * .25, true, false);
-    if (action.includes('desk') || action.includes('study')) drawTypingHands(ctx, accent);
-    if (action.includes('eat')) drawSmallPlate(ctx);
-    if (action.includes('read')) drawBook(ctx);
-    if (action.includes('phone')) drawPhoneGlow(ctx, accent);
-    return;
-  }
-
-  drawHumanBody(ctx, female, cloth, accent, step, false, false);
-
-  if (action.includes('dance') || action.includes('music')) {
-    ctx.fillStyle = accent;
-    ctx.font = '900 15px system-ui';
-    ctx.fillText('♪', 25, -35);
-  }
+  const cloth = female ? CLOTH.girlfriend : CLOTH.resident;
+  if (pose === 'shower' || action.includes('shower')) return drawShowerSequence(ctx, e, female, accent);
+  if (pose === 'wash_dog' || action.includes('wash dog')) return drawWashDogPose(ctx, female, cloth, accent);
+  if (pose === 'sleep' || action.includes('sleep') || action.includes('nap') || action.includes('waking up')) return drawSleepPose(ctx, e, female, accent);
+  if (isSitting(action, pose)) return drawSeatedPose(ctx, female, cloth, accent, action);
+  if (Boolean(e.path?.length) || pose === 'walk' || action.includes('walk') || action.includes('heading')) return drawWalkPose(ctx, female, cloth, accent);
+  return drawIdlePose(ctx, female, cloth, accent);
 }
 
-function drawHumanBody(ctx, female, cloth, accent, step, seated, pajama = false) {
-  const shoulder = female ? 29 : 34;
-  const hip = female ? 24 : 28;
-  const torsoH = seated ? female ? 36 : 40 : female ? 42 : 46;
+function isSitting(action, pose) {
+  return pose === 'sit' || ['tv', 'watch', 'desk', 'study', 'read', 'phone', 'game', 'shop', 'eat', 'table', 'relax'].some(t => action.includes(t));
+}
 
-  ell(ctx, 0, 8, 34, 45, 'rgba(0,0,0,.22)', '', 0);
+function drawIdlePose(ctx, female, cloth, accent) {
+  const b = Math.sin(performance.now() / 620) * .65;
+  humanCore(ctx, female, cloth, accent, b, false);
+}
 
-  limb(ctx, -hip * .28, 15, -12 - step * 4, seated ? 28 : 35 + Math.abs(step) * 3, 8, cloth);
-  limb(ctx, hip * .28, 15, 12 + step * 4, seated ? 28 : 35 - Math.abs(step) * 2, 8, cloth);
-  shoe(ctx, -12 - step * 4, seated ? 31 : 39 + Math.abs(step) * 3, -.08);
-  shoe(ctx, 12 + step * 4, seated ? 31 : 39 - Math.abs(step) * 2, .08);
+function drawWalkPose(ctx, female, cloth, accent) {
+  const step = [-1, .45, 1, -.45][Math.floor(performance.now() / 115) % 4];
+  ell(ctx, 0, 10, 34, 43, 'rgba(0,0,0,.22)');
+  leg(ctx, -8, 13, -12 - step * 5, 36 + Math.max(step, 0) * 4, cloth, -.08);
+  leg(ctx, 8, 13, 12 + step * 5, 36 + Math.max(-step, 0) * 4, cloth, .08);
+  torso(ctx, female, cloth, accent, 42);
+  arm(ctx, -16, -8, -28 + step * 5, 10 - step * 6, cloth);
+  arm(ctx, 16, -8, 28 - step * 5, 10 + step * 6, cloth);
+  hand(ctx, -28 + step * 5, 10 - step * 6, accent);
+  hand(ctx, 28 - step * 5, 10 + step * 6, accent);
+  head(ctx, female, 0, -37);
+}
 
-  torso(ctx, shoulder, hip, torsoH, cloth, accent);
-
-  limb(ctx, -shoulder * .47, -8, -28, 10 - step * 5, 7, cloth);
-  limb(ctx, shoulder * .47, -8, 28, 10 + step * 5, 7, cloth);
-  hand(ctx, -29, 12 - step * 5, accent);
-  hand(ctx, 29, 12 + step * 5, accent);
-
-  ell(ctx, 0, -24, 8, 7, SKIN, INK, 2);
-  ell(ctx, 0, -37, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5);
-  ell(ctx, 0, -34, female ? 10 : 11, female ? 11 : 10, SKIN_LIT, '', 0);
-  hair(ctx, female);
-
-  ctx.strokeStyle = '#f0d7bd';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(-4, -34);
-  ctx.lineTo(4, -34);
-  ctx.stroke();
-
-  if (pajama) {
-    ctx.fillStyle = accent;
-    ctx.font = '900 7px system-ui';
-    ctx.textAlign = 'center';
-    ctx.fillText('PJ', 0, 11);
-    ctx.textAlign = 'left';
+function drawSeatedPose(ctx, female, cloth, accent, action) {
+  const tap = Math.sin(performance.now() / 95);
+  ell(ctx, 0, 12, 36, 32, 'rgba(0,0,0,.20)');
+  bentLeg(ctx, -10, 12, -23, 31, cloth, -.18);
+  bentLeg(ctx, 10, 12, 23, 31, cloth, .18);
+  torso(ctx, female, cloth, accent, 36);
+  if (action.includes('tv') || action.includes('watch')) {
+    arm(ctx, -17, -6, -30, 14, cloth); arm(ctx, 17, -6, 30, 14, cloth); hand(ctx, -30, 14, accent); hand(ctx, 30, 14, accent); glowQuad(ctx, -42, -50, 42, -50, 26, 12, -26, 12, accent, .18);
+  } else if (action.includes('desk') || action.includes('study') || action.includes('game') || action.includes('shop')) {
+    arm(ctx, -17, -6, -23, 24 + tap, cloth); arm(ctx, 17, -6, 23, 24 - tap, cloth); hand(ctx, -23, 24 + tap, accent); hand(ctx, 23, 24 - tap, accent); laptop(ctx, 0, 35, accent);
+  } else if (action.includes('read')) {
+    arm(ctx, -17, -6, -25, 23, cloth); arm(ctx, 17, -6, 25, 23, cloth); hand(ctx, -25, 23, accent); hand(ctx, 25, 23, accent); book(ctx, 0, 31);
+  } else if (action.includes('phone')) {
+    arm(ctx, -17, -6, -27, 15, cloth); arm(ctx, 17, -6, 25, 8, cloth); hand(ctx, -27, 15, accent); phone(ctx, 25, 8); glowQuad(ctx, 1, -22, 35, -18, 48, 22, 13, 24, accent, .16);
+  } else if (action.includes('eat') || action.includes('table')) {
+    const bite = Math.max(0, Math.sin(performance.now() / 170));
+    arm(ctx, -17, -6, -24, 27, cloth); arm(ctx, 17, -6, 18, 20 - bite * 9, cloth); hand(ctx, -24, 27, accent); hand(ctx, 18, 20 - bite * 9, accent); plate(ctx, 0, 34);
+  } else {
+    arm(ctx, -17, -6, -25, 16, cloth); arm(ctx, 17, -6, 25, 16, cloth); hand(ctx, -25, 16, accent); hand(ctx, 25, 16, accent);
   }
+  head(ctx, female, 0, -35);
 }
 
-function drawSeatedBackPose(ctx, female, cloth, accent) {
-  ell(ctx, 0, 10, 34, 31, 'rgba(0,0,0,.20)', '', 0);
-  limb(ctx, -11, 12, -20, 33, 8, cloth);
-  limb(ctx, 11, 12, 20, 33, 8, cloth);
-  shoe(ctx, -21, 36, -.2);
-  shoe(ctx, 21, 36, .2);
-  roundRect(ctx, -19, -12, 38, 42, 14, cloth);
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 3;
-  roundRect(ctx, -19, -12, 38, 42, 14, false, true);
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(-10, -5);
-  ctx.lineTo(-10, 24);
-  ctx.moveTo(10, -5);
-  ctx.lineTo(10, 24);
-  ctx.stroke();
-  limb(ctx, -20, 0, -30, 18, 7, cloth);
-  limb(ctx, 20, 0, 30, 18, 7, cloth);
-  ell(ctx, 0, -28, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5);
-  hair(ctx, female);
-  ctx.fillStyle = 'rgba(255,255,255,.12)';
-  ctx.fillRect(-13, -7, 26, 3);
-}
-
-function drawSleepCover(ctx, female, waking = false) {
+function drawSleepPose(ctx, e, female, accent) {
+  ctx.save();
+  ctx.rotate(-Math.PI / 2 + .08);
+  humanCore(ctx, female, female ? CLOTH.pjGirlfriend : CLOTH.pjResident, accent, 0, false);
+  const waking = String(e.action || '').toLowerCase().includes('waking');
   const blanket = female ? '#9f6b8e' : '#60718f';
-  ctx.save();
-  ctx.globalAlpha = .94;
-  if (waking) {
-    roundRect(ctx, -14, -6, 58, 33, 13, blanket);
-    ctx.fillStyle = 'rgba(255,255,255,.22)';
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(22, -10, 44, 8);
-    ctx.quadraticCurveTo(22, 14, 4, 19);
-    ctx.fill();
-  } else {
-    roundRect(ctx, -18, -8, 62, 38, 14, blanket);
-    ctx.strokeStyle = 'rgba(255,255,255,.18)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-8, -4);
-    ctx.quadraticCurveTo(10, 5, 30, -2);
-    ctx.moveTo(-3, 16);
-    ctx.quadraticCurveTo(14, 22, 38, 16);
-    ctx.stroke();
-  }
+  ctx.globalAlpha = .96;
+  roundRect(ctx, waking ? -10 : -12, waking ? -10 : -11, waking ? 66 : 70, waking ? 42 : 48, 16, blanket);
+  ctx.strokeStyle = 'rgba(255,255,255,.20)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-2, -4); ctx.quadraticCurveTo(20, 5, 47, -3); ctx.moveTo(4, 16); ctx.quadraticCurveTo(24, 25, 50, 16); ctx.stroke();
   ctx.restore();
+  drawZs(ctx, accent);
 }
 
-function drawPhoneGlow(ctx, accent) {
-  ctx.save();
-  ctx.fillStyle = 'rgba(116,230,255,.18)';
-  ctx.beginPath();
-  ctx.moveTo(-20, -20);
-  ctx.lineTo(20, -20);
-  ctx.lineTo(36, 28);
-  ctx.lineTo(-36, 28);
-  ctx.closePath();
-  ctx.fill();
-  roundRect(ctx, 14, 4, 16, 28, 4, '#10141b');
-  roundRect(ctx, 17, 7, 10, 20, 3, '#a8e9ff');
-  ctx.fillStyle = accent;
-  ctx.fillRect(18, 29, 8, 2);
-  ctx.restore();
+function drawShowerSequence(ctx, e, female, accent) {
+  const total = Math.max(1, e.actionTotal || e.actionT || 1);
+  const pct = Math.max(0, Math.min(1, 1 - (e.actionT || 0) / total));
+  clothesPile(ctx, female, Math.min(1, pct * 5));
+  const open = pct < .18 ? pct / .18 : pct > .82 ? (1 - pct) / .18 : 1;
+  roundRect(ctx, -34, -46, 68, 86, 10, 'rgba(16,22,31,.94)');
+  roundRect(ctx, -28, -39, 56, 71, 8, 'rgba(128,185,194,.42)');
+  roundRect(ctx, -28 + open * 32, -39, 25, 71, 6, 'rgba(231,244,247,.82)');
+  if (pct < .18) { arm(ctx, -12, -15, 31, -22, female ? CLOTH.girlfriend : CLOTH.resident); hand(ctx, 31, -22, accent); }
+  ctx.fillStyle = accent; ctx.font = '900 7px system-ui'; ctx.fillText(pct < .18 ? 'SLIDE OPEN' : pct > .82 ? 'SLIDE SHUT' : 'SHOWERING', -28, -51);
 }
 
-function drawShowerPrivacy(ctx, female, accent) {
-  const t = performance.now() / 300;
-  drawClothesPile(ctx, female);
-  for (let i = 0; i < 7; i++) {
-    const x = Math.sin(t + i) * 18 + (i % 2 ? 6 : -6);
-    const y = -8 + i * 5 + Math.cos(t * .7 + i) * 4;
-    ell(ctx, x, y, 20 + i * 1.5, 13, `rgba(235,250,255,${.30 - i * .018})`, '', 0);
-  }
-  for (let y = -20; y <= 18; y += 13) for (let x = -18; x <= 18; x += 13) roundRect(ctx, x, y, 10, 10, 2, accent);
-  ctx.globalAlpha = 1;
-  ctx.strokeStyle = 'rgba(255,255,255,.75)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(0, -5, 28, .25, Math.PI * 1.75);
-  ctx.stroke();
+function drawWashDogPose(ctx, female, cloth, accent) {
+  const scrub = Math.sin(performance.now() / 95) * 4;
+  roundRect(ctx, 24, 10, 60, 34, 16, 'rgba(125,164,160,.50)');
+  ell(ctx, 52, 27, 22, 13, DOG_COAT, INK, 1.8); ell(ctx, 69, 21, 11, 8, DOG_COAT, INK, 1.5); ell(ctx, 78, 20, 4, 3, INK, INK, 1);
+  for (let i = 0; i < 5; i++) ell(ctx, 39 + i * 6, 12 + Math.sin(i) * 3, 5, 4, 'rgba(235,250,255,.75)');
+  bentLeg(ctx, -13, 13, -30, 29, cloth, -.35); bentLeg(ctx, 8, 13, 20, 31, cloth, .18); torso(ctx, female, cloth, accent, 35);
+  arm(ctx, -17, -7, -28, 12, cloth); arm(ctx, 17, -7, 46 + scrub, 19, cloth); hand(ctx, -28, 12, accent); hand(ctx, 46 + scrub, 19, accent); head(ctx, female, 0, -34);
 }
 
-function drawClothesPile(ctx, female) {
-  const cloth = female ? CLOTH_F : CLOTH_M;
-  ell(ctx, -33, 32, 13, 7, cloth, INK, 1.5);
-  ell(ctx, -22, 28, 10, 6, female ? MAGENTA : CYAN, INK, 1);
-  ell(ctx, -38, 24, 7, 5, '#05070a', INK, 1);
+function humanCore(ctx, female, cloth, accent, step, seated) {
+  ell(ctx, 0, 8, 34, 45, 'rgba(0,0,0,.22)');
+  leg(ctx, -8, 14, -12 - step * 3, seated ? 28 : 38 + Math.abs(step) * 2, cloth, -.08);
+  leg(ctx, 8, 14, 12 + step * 3, seated ? 28 : 38 - Math.abs(step) * 2, cloth, .08);
+  torso(ctx, female, cloth, accent, seated ? 36 : 44);
+  arm(ctx, -16, -8, -28, 10 - step * 4, cloth); arm(ctx, 16, -8, 28, 10 + step * 4, cloth); hand(ctx, -29, 12 - step * 4, accent); hand(ctx, 29, 12 + step * 4, accent);
+  head(ctx, female, 0, -37);
 }
 
-function drawSwimPose(ctx, female, accent) {
-  const suit = female ? SWIM_F : SWIM_M;
-  const kick = Math.sin(performance.now() / 110);
-  ell(ctx, 0, 11, 42, 28, 'rgba(60,170,210,.28)', '', 0);
-  limb(ctx, -8, 10, -26, 26 + kick * 5, 7, SKIN);
-  limb(ctx, 8, 10, 26, 26 - kick * 5, 7, SKIN);
-  limb(ctx, -13, -6, -32, -14 - kick * 8, 6, SKIN);
-  limb(ctx, 13, -6, 32, -14 + kick * 8, 6, SKIN);
-  torso(ctx, female ? 27 : 32, female ? 23 : 27, 36, suit, accent);
-  ell(ctx, 0, -33, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5);
-  hair(ctx, female);
-  ctx.strokeStyle = 'rgba(255,255,255,.55)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(0, 2, 35, .2, Math.PI * 1.1);
-  ctx.stroke();
+function torso(ctx, female, cloth, accent, h) {
+  const shoulder = female ? 29 : 34, hip = female ? 24 : 28;
+  ctx.beginPath(); ctx.moveTo(-shoulder / 2, -11); ctx.quadraticCurveTo(-shoulder * .48, 0, -hip / 2, h * .45); ctx.lineTo(hip / 2, h * .45); ctx.quadraticCurveTo(shoulder * .48, 0, shoulder / 2, -11); ctx.closePath(); ctx.fillStyle = cloth; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.stroke(); ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-shoulder * .30, -7); ctx.lineTo(-hip * .23, h * .34); ctx.moveTo(shoulder * .30, -7); ctx.lineTo(hip * .23, h * .34); ctx.stroke();
 }
 
-function drawBoxingPose(ctx, female, cloth, accent) {
-  const jab = Math.max(0, Math.sin(performance.now() / 105));
-  drawHumanBodyBaseShadow(ctx);
-  limb(ctx, -10, 18, -18, 42, 8, cloth);
-  limb(ctx, 10, 18, 17, 40, 8, cloth);
-  shoe(ctx, -18, 46, -.2);
-  shoe(ctx, 17, 44, .2);
-  torso(ctx, female ? 29 : 34, female ? 24 : 28, female ? 40 : 44, cloth, accent);
-  limb(ctx, -15, -8, -34, -6, 7, cloth);
-  limb(ctx, 15, -8, 30 + jab * 18, -12, 7, cloth);
-  glove(ctx, -36, -6, accent);
-  glove(ctx, 34 + jab * 18, -12, accent);
-  ell(ctx, 0, -37, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5);
-  hair(ctx, female);
+function head(ctx, female, x, y) {
+  ell(ctx, x, y + 12, 8, 7, SKIN, INK, 2); ell(ctx, x, y, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5); ell(ctx, x, y + 2, female ? 10 : 11, female ? 11 : 10, SKIN_LIT); hair(ctx, female, x, y); line(ctx, x - 4, y + 4, x + 4, y + 4, '#f0d7bd', 1);
 }
-
-function drawLiftPose(ctx, female, cloth, accent) {
-  const rep = Math.max(0, Math.sin(performance.now() / 180));
-  drawHumanBodyBaseShadow(ctx);
-  limb(ctx, -10, 18, -20, 35, 8, cloth);
-  limb(ctx, 10, 18, 20, 35, 8, cloth);
-  torso(ctx, female ? 28 : 33, female ? 24 : 28, 36, cloth, accent);
-  const y = -34 - rep * 18;
-  line(ctx, -42, y, 42, y, '#dfe6ea', 4);
-  circle(ctx, -47, y, 8, '#343b46');
-  circle(ctx, 47, y, 8, '#343b46');
-  limb(ctx, -14, -8, -34, y, 7, cloth);
-  limb(ctx, 14, -8, 34, y, 7, cloth);
-  hand(ctx, -34, y, accent);
-  hand(ctx, 34, y, accent);
-  ell(ctx, 0, -37, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5);
-  hair(ctx, female);
-}
-
-function drawTreadmillPose(ctx, female, cloth, accent) {
-  const step = [-1, .45, 1, -.45][Math.floor(performance.now() / 95) % 4];
-  roundRect(ctx, -33, 24, 66, 18, 8, 'rgba(20,24,31,.65)');
-  drawHumanBody(ctx, female, cloth, accent, step * 1.4, false, false);
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(-30, 20);
-  ctx.lineTo(30, 20);
-  ctx.stroke();
-}
-
-function drawTypingHands(ctx, accent) { ctx.fillStyle = accent; ctx.fillRect(-18, 25, 10, 3); ctx.fillRect(8, 25, 10, 3); }
-function drawSmallPlate(ctx) { ell(ctx, 0, 31, 13, 6, '#efe7dc', INK, 1); ell(ctx, 2, 31, 5, 3, '#b66d55', '', 0); }
-function drawBook(ctx) { roundRect(ctx, -21, 24, 42, 18, 4, '#efe7dc'); line(ctx, 0, 25, 0, 41, '#8b6f53', 1); }
-function drawZs(ctx, accent) { ctx.fillStyle = accent; ctx.font = '900 12px system-ui'; ctx.fillText('Z', 24, -46); ctx.font = '900 9px system-ui'; ctx.fillText('z', 38, -58); }
-function drawHumanBodyBaseShadow(ctx) { ell(ctx, 0, 8, 34, 45, 'rgba(0,0,0,.22)', '', 0); }
-function glove(ctx, x, y, accent) { ell(ctx, x, y, 7, 6, accent, INK, 1.5); }
-
-function drawDog(ctx, e) {
-  const action = String(e.action || '').toLowerCase();
-  const resting = action.includes('dog bed') || action.includes('dog rest') || String(e.pose || '').includes('dog_rest');
-  const moving = Boolean(e.path?.length) || action.includes('fetch');
-  const step = resting ? 0 : moving ? [-1, .5, 1, -.5][Math.floor(performance.now() / 110) % 4] : Math.sin(performance.now() / 600) * .15;
-  ell(ctx, 1, 6, 36, resting ? 20 : 23, 'rgba(0,0,0,.22)', '', 0);
-  if (resting) {
-    ell(ctx, 0, 1, 28, 17, DOG_COAT, INK, 2);
-    ell(ctx, 18, -8, 12, 9, DOG_COAT, INK, 2);
-    ell(ctx, 29, -9, 5, 4, INK, INK, 1);
-    ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(-15, 4, 13, .2, Math.PI * 1.3); ctx.stroke();
-    return;
-  }
-  limb(ctx, -12, 8, -17 - step * 3, 25, 5.5, DOG_COAT);
-  limb(ctx, 9, 8, 14 + step * 3, 25, 5.5, DOG_COAT);
-  limb(ctx, -14, -7, -22 + step * 4, -20, 5, DOG_COAT);
-  limb(ctx, 14, -7, 22 - step * 4, -20, 5, DOG_COAT);
-  ell(ctx, 0, 0, 24, 15, DOG_COAT, INK, 2);
-  ell(ctx, 18, -10, 13, 10, DOG_COAT, INK, 2);
-  ell(ctx, 29, -11, 6, 4, INK, INK, 1);
-  ell(ctx, 12, -17, 5, 10, DOG_SHADE, INK, 1.5);
-  ell(ctx, 23, -19, 5, 9, DOG_SHADE, INK, 1.5);
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 3.5;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(-20, -3);
-  ctx.quadraticCurveTo(-37, -17 - step * 5, -42, -4 - step * 2);
-  ctx.stroke();
-  ctx.fillStyle = CYAN;
-  ctx.fillRect(-10, -17, 20, 3);
-}
-
-function torso(ctx, shoulder, hip, torsoH, cloth, accent) {
-  ctx.beginPath();
-  ctx.moveTo(-shoulder / 2, -11);
-  ctx.lineTo(shoulder / 2, -11);
-  ctx.lineTo(hip / 2, torsoH * .45);
-  ctx.lineTo(-hip / 2, torsoH * .45);
-  ctx.closePath();
-  ctx.fillStyle = cloth;
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(-shoulder * .32, -7);
-  ctx.lineTo(-hip * .25, torsoH * .34);
-  ctx.moveTo(shoulder * .32, -7);
-  ctx.lineTo(hip * .25, torsoH * .34);
-  ctx.stroke();
-}
-
-function hair(ctx, female) {
-  ctx.fillStyle = '#05070a';
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  if (female) {
-    ctx.ellipse(0, -41, 19, 20, 0, Math.PI * .85, Math.PI * 2.15);
-    ctx.fill(); ctx.stroke(); ell(ctx, -15, -34, 5, 9, '#05070a', INK, 1); ell(ctx, 15, -34, 5, 9, '#05070a', INK, 1);
-  } else {
-    ctx.ellipse(0, -43, 16, 11, 0, Math.PI, Math.PI * 2);
-    ctx.fill(); ctx.stroke();
-  }
-}
-
+function hair(ctx, female, x, y) { ctx.fillStyle = '#05070a'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); if (female) { ctx.ellipse(x, y - 4, 19, 20, 0, Math.PI * .85, Math.PI * 2.15); ctx.fill(); ctx.stroke(); ell(ctx, x - 15, y + 3, 5, 9, '#05070a', INK, 1); ell(ctx, x + 15, y + 3, 5, 9, '#05070a', INK, 1); } else { ctx.ellipse(x, y - 6, 16, 11, 0, Math.PI, Math.PI * 2); ctx.fill(); ctx.stroke(); } }
+function arm(ctx, x1, y1, x2, y2, fill) { limb(ctx, x1, y1, x2, y2, 7, fill); }
+function leg(ctx, x1, y1, x2, y2, fill, rot = 0) { limb(ctx, x1, y1, x2, y2, 8, fill); shoe(ctx, x2, y2 + 3, rot); }
+function bentLeg(ctx, x1, y1, x2, y2, fill, rot) { limb(ctx, x1, y1, x2, y2 - 6, 8, fill); limb(ctx, x2 - Math.sign(x2 || 1) * 3, y2 - 6, x2, y2 + 7, 8, '#27313b'); shoe(ctx, x2, y2 + 10, rot); }
 function limb(ctx, x1, y1, x2, y2, width, fill) { ctx.strokeStyle = INK; ctx.lineWidth = width + 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.strokeStyle = fill; ctx.lineWidth = width; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
 function hand(ctx, x, y, accent) { ell(ctx, x, y, 4.5, 4.5, SKIN, INK, 1.5); ctx.fillStyle = accent; ctx.fillRect(x - 2, y - 2, 4, 1); }
 function shoe(ctx, x, y, rot) { ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ell(ctx, 0, 0, 5, 8, '#05070a', INK, 1); ctx.restore(); }
+function clothesPile(ctx, female, alpha = 1) { ctx.save(); ctx.translate(-38, 36); ctx.globalAlpha = .25 + alpha * .75; ell(ctx, 0, 2, 16, 7, 'rgba(0,0,0,.22)'); ctx.save(); ctx.rotate(-.32); roundRect(ctx, -17, -7, 31, 14, 6, female ? CLOTH.girlfriend : CLOTH.resident); roundRect(ctx, -1, -12, 20, 12, 5, female ? MAGENTA : CYAN); ctx.restore(); ctx.save(); ctx.rotate(.48); roundRect(ctx, -9, 2, 28, 10, 5, '#242b34'); ctx.restore(); ell(ctx, -16, -2, 7, 4, '#05070a', INK, 1); ell(ctx, 18, 5, 8, 5, '#05070a', INK, 1); ctx.restore(); }
+function laptop(ctx, x, y, accent) { roundRect(ctx, x - 21, y - 11, 42, 21, 4, '#121821'); roundRect(ctx, x - 17, y - 8, 34, 12, 3, accent); roundRect(ctx, x - 24, y + 8, 48, 6, 2, '#dfe6ea'); }
+function book(ctx, x, y) { roundRect(ctx, x - 21, y - 9, 42, 18, 4, '#efe7dc'); line(ctx, x, y - 8, x, y + 8, '#8b6f53', 1); }
+function phone(ctx, x, y) { roundRect(ctx, x - 6, y - 11, 12, 22, 3, '#10141b'); roundRect(ctx, x - 4, y - 8, 8, 15, 2, '#a8e9ff'); }
+function plate(ctx, x, y) { ell(ctx, x, y, 13, 6, '#efe7dc', INK, 1); ell(ctx, x + 2, y, 5, 3, '#b66d55'); }
+function glowQuad(ctx, x1, y1, x2, y2, x3, y3, x4, y4, color, alpha) { ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x4, y4); ctx.closePath(); ctx.fill(); ctx.restore(); }
+function drawZs(ctx, accent) { ctx.fillStyle = accent; ctx.font = '900 12px system-ui'; ctx.fillText('Z', 24, -46); ctx.font = '900 9px system-ui'; ctx.fillText('z', 38, -58); }
 
-function drawActionBar(ctx, e) {
-  if (!e.actionTotal || e.actionTotal < e.actionT) e.actionTotal = e.actionT;
-  const pct = Math.max(0, Math.min(1, 1 - e.actionT / Math.max(1, e.actionTotal)));
-  roundRect(ctx, -42, 42, 84, 10, 5, 'rgba(10,12,18,.86)');
-  roundRect(ctx, -40, 44, 80 * pct, 6, 4, '#f1c66a');
-  const label = String(e.action || 'Working').slice(0, 20);
-  const w = Math.max(76, label.length * 6.2 + 18);
-  roundRect(ctx, -w / 2, 55, w, 18, 7, 'rgba(248,251,255,.88)');
-  ctx.strokeStyle = 'rgba(7,16,24,.38)';
-  ctx.lineWidth = 1;
-  roundRect(ctx, -w / 2, 55, w, 18, 7, false, true);
-  ctx.fillStyle = '#071018';
-  ctx.font = '900 9px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText(label, 0, 68);
-  ctx.textAlign = 'left';
+function drawDog(ctx, e) {
+  const action = String(e.action || '').toLowerCase(); const pose = String(e.pose || '').toLowerCase(); const washing = action.includes('washed') || action.includes('wash') || pose.includes('wash'); const resting = !washing && (action.includes('dog bed') || action.includes('dog rest') || pose.includes('dog_rest')); const moving = Boolean(e.path?.length) || action.includes('fetch'); const step = resting || washing ? 0 : moving ? [-1, .5, 1, -.5][Math.floor(performance.now() / 110) % 4] : Math.sin(performance.now() / 600) * .15;
+  ell(ctx, 1, 6, 36, resting ? 20 : 23, 'rgba(0,0,0,.22)');
+  if (washing) { roundRect(ctx, -31, -10, 68, 37, 18, 'rgba(125,164,160,.46)'); for (let i = 0; i < 6; i++) ell(ctx, -19 + i * 11, -15 + Math.sin(i) * 3, 5, 4, 'rgba(235,250,255,.78)'); }
+  if (resting) { ell(ctx, 0, 1, 28, 17, DOG_COAT, INK, 2); ell(ctx, 18, -8, 12, 9, DOG_COAT, INK, 2); ell(ctx, 29, -9, 5, 4, INK, INK, 1); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(-15, 4, 13, .2, Math.PI * 1.3); ctx.stroke(); return; }
+  limb(ctx, -12, 8, -17 - step * 3, 25, 5.5, DOG_COAT); limb(ctx, 9, 8, 14 + step * 3, 25, 5.5, DOG_COAT); limb(ctx, -14, -7, -22 + step * 4, -20, 5, DOG_COAT); limb(ctx, 14, -7, 22 - step * 4, -20, 5, DOG_COAT); ell(ctx, 0, 0, 24, 15, DOG_COAT, INK, 2); ell(ctx, 18, -10, 13, 10, DOG_COAT, INK, 2); ell(ctx, 29, -11, 6, 4, INK, INK, 1); ell(ctx, 12, -17, 5, 10, DOG_SHADE, INK, 1.5); ell(ctx, 23, -19, 5, 9, DOG_SHADE, INK, 1.5); ctx.strokeStyle = INK; ctx.lineWidth = 3.5; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-20, -3); ctx.quadraticCurveTo(-37, -17 - step * 5, -42, -4 - step * 2); ctx.stroke(); ctx.fillStyle = CYAN; ctx.fillRect(-10, -17, 20, 3);
 }
 
-function drawReactionBubble(ctx, reaction, entityType) {
-  const t = performance.now() / 1000;
-  const style = reaction.style || 'speech';
-  const type = reaction.type || 'emotion';
-  const pulse = Math.sin(t * 12) * 3;
-  const bob = Math.sin(t * 6) * 4;
-  const y = entityType === 'dog' ? -82 : -100;
-  const fill = style === 'thought' ? 'rgba(245,248,255,.90)' : 'rgba(255,248,225,.96)';
-  const stroke = type === 'privacy' ? '#ff75df' : type === 'noise' ? '#f1c66a' : '#74e6ff';
-  const symbols = type === 'privacy' || type === 'noise' ? ['#', '!', '@', '%', '?'] : ['!', '?', '…'];
-  ctx.save();
-  ctx.translate(0, y + bob);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = stroke;
-  ctx.fillStyle = fill;
-  if (style === 'thought') drawThoughtCloud(ctx, pulse);
-  else drawJaggedBurst(ctx, pulse);
-  ctx.fillStyle = '#10141b';
-  ctx.font = '900 16px system-ui';
-  ctx.textAlign = 'center';
-  symbols.forEach((symbol, index) => {
-    const x = -24 + index * 12 + Math.sin(t * 10 + index) * 2;
-    const yy = 5 + Math.cos(t * 8 + index) * 3;
-    ctx.fillText(symbol, x, yy);
-  });
-  ctx.textAlign = 'left';
-  ctx.restore();
-}
-
-function drawJaggedBurst(ctx, pulse) {
-  ctx.beginPath();
-  const points = 16;
-  for (let i = 0; i < points; i++) {
-    const a = (i / points) * Math.PI * 2;
-    const r = (i % 2 ? 29 : 42) + pulse;
-    const x = Math.cos(a) * r;
-    const y = Math.sin(a) * r * .62;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-}
-
-function drawThoughtCloud(ctx, pulse) {
-  ell(ctx, -22, -1, 18 + pulse * .25, 13, 'rgba(245,248,255,.92)', '#74e6ff', 2);
-  ell(ctx, 0, -7, 22 + pulse * .25, 16, 'rgba(245,248,255,.92)', '#74e6ff', 2);
-  ell(ctx, 23, 0, 17 + pulse * .25, 13, 'rgba(245,248,255,.92)', '#74e6ff', 2);
-  ell(ctx, -17, 29, 5, 4, 'rgba(245,248,255,.85)', '#74e6ff', 1.5);
-  ell(ctx, -30, 40, 3.5, 3, 'rgba(245,248,255,.80)', '#74e6ff', 1);
-}
-
-function drawBubble(ctx, text, style = 'speech') {
-  const w = Math.max(72, text.length * 12 + 24);
-  const fill = style === 'thought' ? '#eef7ff' : '#f8fbff';
-  roundRect(ctx, -w / 2, -86, w, 34, 12, fill);
-  ctx.fillStyle = '#10141b';
-  ctx.font = '900 16px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText(text, 0, -64);
-  ctx.textAlign = 'left';
-}
-
-function ell(ctx, x, y, rx, ry, fill, stroke, lineWidth) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke && lineWidth > 0) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth; ctx.stroke(); } }
+function drawActionBar(ctx, e) { if (!e.actionTotal || e.actionTotal < e.actionT) e.actionTotal = e.actionT; const pct = Math.max(0, Math.min(1, 1 - e.actionT / Math.max(1, e.actionTotal))); roundRect(ctx, -42, 42, 84, 10, 5, 'rgba(10,12,18,.86)'); roundRect(ctx, -40, 44, 80 * pct, 6, 4, '#f1c66a'); const label = String(e.action || 'Working').slice(0, 20); const w = Math.max(76, label.length * 6.2 + 18); roundRect(ctx, -w / 2, 55, w, 18, 7, 'rgba(248,251,255,.88)'); ctx.strokeStyle = 'rgba(7,16,24,.38)'; ctx.lineWidth = 1; roundRect(ctx, -w / 2, 55, w, 18, 7, false, true); ctx.fillStyle = '#071018'; ctx.font = '900 9px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, 0, 68); ctx.textAlign = 'left'; }
+function drawReactionBubble(ctx, reaction, entityType) { const t = performance.now() / 1000; const pulse = Math.sin(t * 12) * 3; const bob = Math.sin(t * 6) * 4; const y = entityType === 'dog' ? -82 : -100; ctx.save(); ctx.translate(0, y + bob); ctx.lineWidth = 3; ctx.strokeStyle = reaction.type === 'privacy' ? '#ff75df' : reaction.type === 'noise' ? '#f1c66a' : '#74e6ff'; ctx.fillStyle = reaction.style === 'thought' ? 'rgba(245,248,255,.90)' : 'rgba(255,248,225,.96)'; drawJaggedBurst(ctx, pulse); ctx.fillStyle = '#10141b'; ctx.font = '900 16px system-ui'; ctx.textAlign = 'center'; ['!', '?', '…'].forEach((s, i) => ctx.fillText(s, -12 + i * 12, 5)); ctx.textAlign = 'left'; ctx.restore(); }
+function drawJaggedBurst(ctx, pulse) { ctx.beginPath(); for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; const r = (i % 2 ? 29 : 42) + pulse; const x = Math.cos(a) * r; const y = Math.sin(a) * r * .62; if (!i) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.closePath(); ctx.fill(); ctx.stroke(); }
+function drawBubble(ctx, text, style = 'speech') { const w = Math.max(72, text.length * 12 + 24); roundRect(ctx, -w / 2, -86, w, 34, 12, style === 'thought' ? '#eef7ff' : '#f8fbff'); ctx.fillStyle = '#10141b'; ctx.font = '900 16px system-ui'; ctx.textAlign = 'center'; ctx.fillText(text, 0, -64); ctx.textAlign = 'left'; }
+function ell(ctx, x, y, rx, ry, fill, stroke = '', lineWidth = 0) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke && lineWidth > 0) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth; ctx.stroke(); } }
 function line(ctx, x1, y1, x2, y2, color, width = 2) { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
-function circle(ctx, x, y, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
