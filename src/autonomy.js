@@ -1,5 +1,6 @@
 import { startObjectAction, startSocialAction, startOffsite } from './actions.js';
 import { shouldAutoStartWork } from './careerSystem.js';
+import { shouldAvoidActivityForNow } from './lifeQualitySystem.js';
 import { byId, say, setMood } from './state.js';
 import { getObject, roomAt } from './world.js';
 import { commandMove } from './movement.js';
@@ -272,6 +273,10 @@ function tryAnyObject(state, actor, choices) {
 }
 
 function tryObjectAction(state, actor, obj, actionId) {
+  if (shouldAvoidActivityForNow(state, actor, actionId)) {
+    rememberFailure(actor, obj.id, actionId);
+    return false;
+  }
   const snapshot = movementSnapshot(actor);
   const ok = startObjectAction(state, actor, obj, actionId);
   const routed = ok && !noRoute(actor) && (actor.path.length || actor.target || actor.pending || actor.actionT > 0 || obj.kind === 'stairs');
@@ -418,9 +423,6 @@ function smartWander(actor) {
   const cy = room ? room.y + room.h / 2 : 360;
   const jitter = actor.type === 'dog' ? 55 : 78;
   commandMove(actor, cx + (Math.random() - .5) * jitter, cy + (Math.random() - .5) * jitter, false);
-  actor.action = actor.path.length ? 'Wandering' : 'Idle';
 }
 
-function gameHour(state) {
-  return Math.floor(((state.time || 0) % 1440) / 60);
-}
+function gameHour(state) { return Math.floor((state.time % 1440) / 60); }
