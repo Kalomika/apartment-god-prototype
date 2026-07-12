@@ -2,6 +2,70 @@
 
 This file tracks meaningful Top Shot repo changes so future AI agents, Codex, Copilot, Grok, or human developers can continue from the repository instead of chat history.
 
+## 2026-07-12, Anomaly audit and CQC preservation coverage
+
+Tool or person: ChatGPT
+
+Branch: `top-shot-anomaly-audit-2026-07-12`
+
+Base branch: `top-shot-smoke-invalid-state-fix`
+
+Backup branch: `backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
+
+Summary:
+
+- Created a separate audit branch from the current smoke-fix work so the broad audit does not destabilize stable or overwrite PR #25 directly.
+- Audited Top Shot repo rules, current handoff, development log, feature inventory, architecture, QA checklist, coverage matrix, open Top Shot PR state, core runtime entry points, smoke tests, CQC Lab, Three.js actor/world files, and Render config.
+- Added `top-shot/docs/AUDIT_REPORT_2026-07-12.md` to record the audit scope, fixed anomalies, deferred checks, risks, and playable links.
+- Fixed a process anomaly: playable clickable links are now required in Top Shot completion reports.
+- Fixed stale instruction docs: `AGENTS.md` and the handbook now list split smoke commands plus the full smoke gate.
+- Strengthened `tests/cqcSmoke.js` so it protects Kam's CQC preservation targets more directly: body-shot zone recording, sweep grounding attempts, mount spacing, ground attacks from mount, escape integrity, CQC numeric validity, and hitbox numeric validity.
+- Updated QA and coverage matrix expectations for the stronger CQC smoke.
+
+Files changed:
+
+- `top-shot/AGENTS.md`
+- `top-shot/docs/TOP_SHOT_HANDBOOK.md`
+- `top-shot/docs/AUDIT_REPORT_2026-07-12.md`
+- `top-shot/docs/COVERAGE_MATRIX.md`
+- `top-shot/docs/QA_CHECKLIST.md`
+- `top-shot/docs/DEVELOPMENT_LOG.md`
+- `top-shot/tests/cqcSmoke.js`
+
+Systems affected:
+
+- Documentation and workflow discipline.
+- CQC smoke coverage.
+- No gameplay runtime code was intentionally changed in this pass.
+
+What was preserved:
+
+- Stable branch untouched.
+- Smoke-fix branch preserved as PR #25's focused branch.
+- Full `npm run smoke` remains the gate.
+- Existing CQC actions remain covered, with stricter preservation assertions.
+
+Testing:
+
+- Not run in this connector environment.
+- The audit branch must be tested in a local or CI checkout.
+
+Known risks:
+
+- Strengthened `npm run smoke:cqc` may reveal true CQC regressions the old test missed.
+- The audit did not verify browser rendering or the live Render deployment.
+- Starshot presentation quality remains planned on `top-shot-starshot-engine`, not implemented on this audit branch.
+
+Next recommended step:
+
+Run `npm run smoke:cqc` and `npm run smoke:sim` first on `top-shot-anomaly-audit-2026-07-12`. If both pass, run `npm run check`, full `npm run smoke`, and `npm run build`. If `smoke:cqc` fails, patch the CQC behavior rather than weakening the new preservation assertions.
+
+Playable links:
+
+- [Top Shot live app](https://top-shot-prototype.onrender.com/)
+- [Audit branch](https://github.com/Kalomika/apartment-god-prototype/tree/top-shot-anomaly-audit-2026-07-12/top-shot)
+- [Smoke fix PR #25](https://github.com/Kalomika/apartment-god-prototype/pull/25)
+
 ## 2026-07-11, Smoke suite split and invalid-state diagnostics
 
 Tool or person: ChatGPT
