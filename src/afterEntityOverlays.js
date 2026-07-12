@@ -10,6 +10,12 @@ export function drawAfterEntityOverlays(ctx, state) {
   drawCalendarSkipRecap(ctx, state);
 }
 
+function actorIsMoving(actor) {
+  const action = String(actor.action || '').toLowerCase();
+  const pose = String(actor.pose || '').toLowerCase();
+  return Boolean(actor.path?.length) || Boolean(actor.target) || pose === 'walk' || action.includes('heading') || action.includes('walking to');
+}
+
 function drawWardrobeOverlays(ctx, state) {
   const day = Math.floor((state.time || 0) / 1440) % 7;
   for (const actor of state.entities || []) {
@@ -19,23 +25,17 @@ function drawWardrobeOverlays(ctx, state) {
     const color = wardrobe.colors[wardrobe.currentDay ?? day] || wardrobe.colors[day] || '#74e6ff';
     ctx.save();
     ctx.globalAlpha = .72;
-    ctx.fillStyle = color;
-    ctx.strokeStyle = 'rgba(7,16,24,.72)';
-    ctx.lineWidth = 1.5;
     roundRect(ctx, actor.x - 14, actor.y - 8, 28, 10, 5, color, true);
     ctx.restore();
   }
 }
 
 function drawShowerPrivacyOverlays(ctx, state) {
-  const showering = (state.entities || []).filter(e => !e.hidden && e.floor === state.floor && isShowering(e));
+  const showering = (state.entities || []).filter(e => !e.hidden && e.floor === state.floor && isShowering(e) && !actorIsMoving(e));
   for (const actor of showering) {
     const shower = nearestShower(actor, state.floor);
     if (!shower || !isNearObject(actor, shower, 92)) continue;
-    const x = actor.x;
-    const y = actor.y;
     ctx.save();
-    drawVideoCensorMosaic(ctx, x, y);
     drawFloorClothesPile(ctx, shower.x + shower.w + 22, shower.y + shower.h - 18, actor.id === 'girlfriend');
     drawHangingTowel(ctx, shower.x - 18, shower.y + shower.h - 18, actor.id === 'girlfriend');
     ctx.restore();
@@ -55,38 +55,8 @@ function nearestShower(actor, floor) {
   return showers.sort((a, b) => distanceToObject(actor, a) - distanceToObject(actor, b))[0];
 }
 
-function isNearObject(actor, obj, radius) {
-  return distanceToObject(actor, obj) <= radius;
-}
-
-function distanceToObject(actor, obj) {
-  return Math.hypot(actor.x - (obj.x + obj.w / 2), actor.y - (obj.y + obj.h / 2));
-}
-
-function drawVideoCensorMosaic(ctx, x, y) {
-  ctx.save();
-  ctx.globalAlpha = .96;
-  const cols = 5;
-  const rows = 4;
-  const size = 14;
-  const startX = x - cols * size / 2;
-  const startY = y - rows * size / 2 - 4;
-  const colors = ['#d9e6ef', '#b9cbd8', '#eef6fb', '#8aa2b4', '#f8fbff'];
-  ctx.strokeStyle = 'rgba(8,14,20,.82)';
-  ctx.lineWidth = 2;
-  roundRect(ctx, startX - 4, startY - 4, cols * size + 8, rows * size + 8, 5, 'rgba(7,16,24,.35)');
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      ctx.fillStyle = colors[(row * 2 + col) % colors.length];
-      ctx.fillRect(startX + col * size, startY + row * size, size, size);
-    }
-  }
-  ctx.strokeRect(startX - 1, startY - 1, cols * size + 2, rows * size + 2);
-  ctx.globalAlpha = .35;
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(startX, startY, cols * size, 5);
-  ctx.restore();
-}
+function isNearObject(actor, obj, radius) { return distanceToObject(actor, obj) <= radius; }
+function distanceToObject(actor, obj) { return Math.hypot(actor.x - (obj.x + obj.w / 2), actor.y - (obj.y + obj.h / 2)); }
 
 function drawFloorClothesPile(ctx, x, y, female) {
   ctx.save();
@@ -118,7 +88,7 @@ function drawHangingTowel(ctx, x, y, female) {
 
 function drawSeatedFacingOverlays(ctx, state) {
   for (const actor of state.entities || []) {
-    if (actor.hidden || actor.floor !== state.floor || actor.type !== 'person') continue;
+    if (actor.hidden || actor.floor !== state.floor || actor.type !== 'person' || actorIsMoving(actor)) continue;
     const target = seatedFacingTarget(actor, state);
     if (!target) continue;
     const tx = target.x + target.w / 2;
@@ -162,9 +132,7 @@ function seatedFacingTarget(actor, state) {
   return null;
 }
 
-function firstObject(floor, ids) {
-  return ids.map(id => objects.find(o => o.id === id && o.floor === floor)).find(Boolean) || null;
-}
+function firstObject(floor, ids) { return ids.map(id => objects.find(o => o.id === id && o.floor === floor)).find(Boolean) || null; }
 
 function drawVehicleContrastLabels(ctx, state) {
   if (state.floor !== 3) return;
@@ -208,8 +176,7 @@ function drawCalendarSkipRecap(ctx, state) {
   const w = 360;
   const h = Math.min(230, 92 + (recap.days?.length || 0) * 24);
   ctx.save();
-  ctx.fillStyle = 'rgba(8,10,15,.88)';
-  roundRect(ctx, x, y, w, h, 14);
+  roundRect(ctx, x, y, w, h, 14, 'rgba(8,10,15,.88)');
   ctx.strokeStyle = 'rgba(116,230,255,.68)';
   ctx.lineWidth = 2;
   roundRect(ctx, x, y, w, h, 14, '', true);
@@ -219,12 +186,6 @@ function drawCalendarSkipRecap(ctx, state) {
   ctx.fillStyle = '#f1c66a';
   ctx.font = '800 12px system-ui';
   ctx.fillText(`${recap.message || 'Skipped time'} • now ${formatTime(state.time)}`, x + 16, y + 44);
-  const barX = x + 16;
-  const barY = y + 58;
-  const barW = w - 32;
-  roundRect(ctx, barX, barY, barW, 10, 5, 'rgba(248,251,255,.18)');
-  const pulse = .65 + Math.sin(performance.now() / 140) * .18;
-  roundRect(ctx, barX, barY, barW * pulse, 10, 5, '#f1c66a');
   let yy = y + 88;
   for (const day of (recap.days || []).slice(0, 5)) {
     ctx.fillStyle = day.checked ? '#90d68c' : '#b6c1d2';
@@ -233,12 +194,7 @@ function drawCalendarSkipRecap(ctx, state) {
     ctx.fillStyle = '#f8fbff';
     ctx.font = '800 12px system-ui';
     ctx.fillText(day.label, x + 42, yy);
-    if (day.events?.length) {
-      ctx.fillStyle = '#f1c66a';
-      ctx.font = '700 10px system-ui';
-      ctx.fillText(day.events.slice(0, 2).join(', '), x + 42, yy + 14);
-      yy += 10;
-    }
+    if (day.events?.length) { ctx.fillStyle = '#f1c66a'; ctx.font = '700 10px system-ui'; ctx.fillText(day.events.slice(0, 2).join(', '), x + 42, yy + 14); yy += 10; }
     yy += 24;
   }
   ctx.restore();
