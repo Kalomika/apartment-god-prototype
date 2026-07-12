@@ -65,7 +65,6 @@ export const objects = [
   { id: 'bed', label: 'King Bed', kind: 'bed', floor: 1, room: 'bedroom', x: 66, y: 92, w: 264, h: 132, facing: 'east', headboard: 'west', solid: true, enterable: true },
   { id: 'bedroom_tv', label: 'Bedroom Wall TV', kind: 'tv', floor: 1, room: 'bedroom', x: 424, y: 124, w: 30, h: 116, facing: 'west', wallMounted: true, solid: true },
   { id: 'closet', label: 'Walk In Closet Door', kind: 'closet', floor: 1, room: 'bedroom', x: 72, y: 362, w: 80, h: 26, solid: false, enterable: true, closetEntrance: 'south' },
-  { id: 'closet_divider_wall', label: 'Closet Divider Wall', kind: 'wall_marker', floor: 1, room: 'walkin_closet', x: 180, y: 392, w: 8, h: 126, solid: true },
   { id: 'desk', label: 'Laptop Desk', kind: 'desk', floor: 1, room: 'office', x: 552, y: 96, w: 122, h: 66, solid: true },
   { id: 'shower2', label: 'Upstairs Shower', kind: 'shower', floor: 1, room: 'bath2', x: 798, y: 72, w: 62, h: 90, solid: true, enterable: true },
   { id: 'toilet2', label: 'Upstairs Toilet', kind: 'toilet', floor: 1, room: 'bath2', x: 880, y: 222, w: 44, h: 54, solid: true, enterable: true },
