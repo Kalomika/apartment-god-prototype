@@ -45,6 +45,7 @@ function drawLivedInObjectDetails(ctx, obj, state, active) {
   if (obj.kind === 'bed') drawBedOverlay(ctx, obj, state, active);
   if (obj.kind === 'fridge') drawSouthFacingFridge(ctx, obj, state, active);
   if (obj.kind === 'dog_bed') drawDogBed(ctx, obj, state, active);
+  if (obj.kind === 'dog_bath') drawDogBath(ctx, obj, state, active);
   if (obj.kind === 'pool_table') drawPlayablePoolOverlay(ctx, obj, state, active);
   if (obj.kind === 'weight_bench') drawWeightBenchOverlay(ctx, obj, state, active);
   if (obj.kind === 'heavy_bag') drawHeavyBagOverlay(ctx, obj, state, active);
@@ -57,13 +58,14 @@ function drawLivedInObjectDetails(ctx, obj, state, active) {
 function drawBedOverlay(ctx, o, state) {
   ctx.save();
   ctx.shadowColor = 'transparent';
-  rounded(ctx, o.x - 4, o.y - 6, o.w + 8, 28, 10, true, false, '#7f654f');
-  rounded(ctx, o.x + 12, o.y + 10, o.w - 24, 28, 12, true, false, '#f7efe6');
-  rounded(ctx, o.x + 24, o.y + 16, 64, 26, 10, true, false, '#fffaf2');
-  rounded(ctx, o.x + o.w - 88, o.y + 16, 64, 26, 10, true, false, '#fffaf2');
-  rounded(ctx, o.x + 16, o.y + 48, o.w / 2 - 24, o.h - 62, 13, true, false, '#cdbda9');
-  rounded(ctx, o.x + o.w / 2 + 8, o.y + 48, o.w / 2 - 24, o.h - 62, 13, true, false, '#c8b7a1');
-  line(ctx, o.x + o.w / 2, o.y + 50, o.x + o.w / 2, o.y + o.h - 16, 'rgba(92,75,61,.20)', 2);
+  rounded(ctx, o.x - 4, o.y - 6, o.w + 8, o.h + 12, 16, true, false, '#7f654f');
+  rounded(ctx, o.x + 8, o.y + 8, 42, o.h - 16, 13, true, false, '#6f5947');
+  rounded(ctx, o.x + 42, o.y + 12, o.w - 56, o.h - 24, 15, true, false, '#f1e7d8');
+  rounded(ctx, o.x + 52, o.y + 20, 48, 38, 12, true, false, '#fffaf2');
+  rounded(ctx, o.x + 52, o.y + o.h - 58, 48, 38, 12, true, false, '#fffaf2');
+  rounded(ctx, o.x + 106, o.y + 18, o.w - 124, o.h / 2 - 22, 12, true, false, '#60718f');
+  rounded(ctx, o.x + 106, o.y + o.h / 2 + 6, o.w - 124, o.h / 2 - 22, 12, true, false, '#9f6b8e');
+  line(ctx, o.x + 103, o.y + o.h / 2, o.x + o.w - 15, o.y + o.h / 2, 'rgba(92,75,61,.22)', 2);
   if (state.objectState?.bedMade === false) drawMessyBed(ctx, o);
   ctx.restore();
 }
@@ -71,22 +73,18 @@ function drawBedOverlay(ctx, o, state) {
 function drawMessyBed(ctx, o) {
   ctx.fillStyle = 'rgba(96,113,143,.88)';
   ctx.beginPath();
-  ctx.moveTo(o.x + 18, o.y + 58);
-  ctx.quadraticCurveTo(o.x + 58, o.y + 42, o.x + 102, o.y + 66);
-  ctx.quadraticCurveTo(o.x + 84, o.y + 102, o.x + 22, o.y + 108);
+  ctx.moveTo(o.x + 98, o.y + 18);
+  ctx.quadraticCurveTo(o.x + 162, o.y + 2, o.x + o.w - 28, o.y + 34);
+  ctx.quadraticCurveTo(o.x + o.w - 40, o.y + 75, o.x + 110, o.y + 64);
   ctx.closePath();
   ctx.fill();
   ctx.fillStyle = 'rgba(159,107,142,.86)';
   ctx.beginPath();
-  ctx.moveTo(o.x + o.w - 22, o.y + 60);
-  ctx.quadraticCurveTo(o.x + o.w - 74, o.y + 44, o.x + o.w - 110, o.y + 75);
-  ctx.quadraticCurveTo(o.x + o.w - 80, o.y + 112, o.x + o.w - 18, o.y + 106);
+  ctx.moveTo(o.x + 100, o.y + o.h - 24);
+  ctx.quadraticCurveTo(o.x + 172, o.y + o.h + 2, o.x + o.w - 22, o.y + o.h - 36);
+  ctx.quadraticCurveTo(o.x + o.w - 62, o.y + o.h - 73, o.x + 112, o.y + o.h - 62);
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.22)';
-  ctx.lineWidth = 2;
-  line(ctx, o.x + 34, o.y + 70, o.x + 94, o.y + 84, 'rgba(255,255,255,.22)', 2);
-  line(ctx, o.x + o.w - 34, o.y + 72, o.x + o.w - 96, o.y + 90, 'rgba(255,255,255,.22)', 2);
 }
 
 function drawSouthFacingFridge(ctx, o, state) {
@@ -117,6 +115,27 @@ function drawDogBed(ctx, o, state, active) {
     ctx.fillStyle = '#f1c66a';
     ctx.font = '900 8px system-ui';
     ctx.fillText('REST', o.x + 17, o.y - 4);
+  }
+  ctx.restore();
+}
+
+function drawDogBath(ctx, o, state, active) {
+  const washing = active || hasAction(state, 'wash dog', o.floor);
+  const water = washing ? Math.sin((state.time || 0) * .42) * 4 : 0;
+  ctx.save();
+  ctx.shadowColor = 'transparent';
+  rounded(ctx, o.x - 3, o.y - 3, o.w + 6, o.h + 6, 18, true, false, '#5f6c6d');
+  rounded(ctx, o.x + 6, o.y + 7, o.w - 12, o.h - 14, 17, true, false, '#dbe5e4');
+  rounded(ctx, o.x + 14, o.y + 14, o.w - 28, o.h - 26, 14, true, false, washing ? '#99d4de' : '#a8cbd1');
+  for (let i = 0; i < 4; i++) {
+    line(ctx, o.x + 22, o.y + 24 + i * 7, o.x + o.w - 20, o.y + 22 + i * 7 + water, 'rgba(255,255,255,.55)', 1.5);
+  }
+  line(ctx, o.x + o.w - 12, o.y + 8, o.x + o.w + 13, o.y - 7, '#8f897f', 3);
+  circle(ctx, o.x + o.w + 15, o.y - 8, 5, '#bcc5c4');
+  if (washing) {
+    ctx.fillStyle = '#f1c66a';
+    ctx.font = '900 8px system-ui';
+    ctx.fillText('DOG BATH', o.x + 8, o.y - 8);
   }
   ctx.restore();
 }
