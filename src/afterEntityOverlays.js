@@ -93,7 +93,8 @@ function drawCorrectSeatedPoseOverlays(ctx, state) {
     const action = String(actor.action || '').toLowerCase();
     const tableMode = action.includes('eat') || action.includes('table') || action.includes('dining table');
     const seatedAction = tableMode || action.includes('couch') || action.includes('relax') || action.includes('watch') || action.includes('tv') || action.includes('desk') || action.includes('read') || action.includes('study') || action.includes('console') || action.includes('game');
-    if (seatedAction) drawBackFacingSeatedActor(ctx, actor, target, { tableMode });
+    const targetNorth = target.y + target.h / 2 < actor.y - 4;
+    if (seatedAction && targetNorth) drawBackFacingSeatedActor(ctx, actor, target, { tableMode });
     else drawFacingGuide(ctx, actor, target);
   }
 }
