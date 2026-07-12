@@ -91,15 +91,14 @@ function drawCorrectSeatedPoseOverlays(ctx, state) {
     const target = seatedFacingTarget(actor, state);
     if (!target) continue;
     const action = String(actor.action || '').toLowerCase();
-    if (action.includes('couch') || action.includes('relax') || action.includes('watch') || action.includes('tv')) {
-      drawBackFacingSeatedActor(ctx, actor, target);
-    } else {
-      drawFacingGuide(ctx, actor, target);
-    }
+    const tableMode = action.includes('eat') || action.includes('table') || action.includes('dining table');
+    const seatedAction = tableMode || action.includes('couch') || action.includes('relax') || action.includes('watch') || action.includes('tv') || action.includes('desk') || action.includes('read') || action.includes('study') || action.includes('console') || action.includes('game');
+    if (seatedAction) drawBackFacingSeatedActor(ctx, actor, target, { tableMode });
+    else drawFacingGuide(ctx, actor, target);
   }
 }
 
-function drawBackFacingSeatedActor(ctx, actor, target) {
+function drawBackFacingSeatedActor(ctx, actor, target, options = {}) {
   const tx = target.x + target.w / 2;
   const ty = target.y + target.h / 2;
   const angle = Math.atan2(ty - actor.y, tx - actor.x) + Math.PI / 2;
@@ -127,8 +126,15 @@ function drawBackFacingSeatedActor(ctx, actor, target) {
 
   bentLeg(ctx, -12, 18, -28, 38, cloth, -.25);
   bentLeg(ctx, 12, 18, 28, 38, cloth, .25);
-  arm(ctx, -17, -3, -31, 18, cloth);
-  arm(ctx, 17, -3, 31, 18, cloth);
+  if (options.tableMode) {
+    arm(ctx, -17, -3, -23, -20, cloth);
+    arm(ctx, 17, -3, 23, -20, cloth);
+    tableHand(ctx, -23, -20, accent);
+    tableHand(ctx, 23, -20, accent);
+  } else {
+    arm(ctx, -17, -3, -31, 18, cloth);
+    arm(ctx, 17, -3, 31, 18, cloth);
+  }
 
   ctx.fillStyle = '#05070a';
   ctx.strokeStyle = '#071018';
@@ -138,7 +144,7 @@ function drawBackFacingSeatedActor(ctx, actor, target) {
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = 'rgba(116,230,255,.16)';
+  ctx.fillStyle = options.tableMode ? 'rgba(241,198,106,.13)' : 'rgba(116,230,255,.16)';
   ctx.beginPath();
   ctx.moveTo(0, -21);
   ctx.lineTo(-24, -52);
@@ -146,6 +152,18 @@ function drawBackFacingSeatedActor(ctx, actor, target) {
   ctx.closePath();
   ctx.fill();
   ctx.restore();
+}
+
+function tableHand(ctx, x, y, accent) {
+  ctx.fillStyle = '#3a241f';
+  ctx.strokeStyle = '#071018';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.ellipse(x, y, 4.5, 4.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = accent;
+  ctx.fillRect(x - 2, y - 2, 4, 1);
 }
 
 function drawFacingGuide(ctx, actor, target) {
@@ -169,12 +187,12 @@ function drawFacingGuide(ctx, actor, target) {
 function seatedFacingTarget(actor, state) {
   const action = String(actor.action || '').toLowerCase();
   const pose = String(actor.pose || '').toLowerCase();
-  const seated = pose === 'sit' || action.includes('watch') || action.includes('tv') || action.includes('couch') || action.includes('relax') || action.includes('console') || action.includes('game') || action.includes('desk') || action.includes('read') || action.includes('eat');
+  const seated = pose === 'sit' || action.includes('watch') || action.includes('tv') || action.includes('couch') || action.includes('relax') || action.includes('console') || action.includes('game') || action.includes('desk') || action.includes('read') || action.includes('eat') || action.includes('table');
   if (!seated) return null;
+  if (action.includes('eat') || action.includes('table') || action.includes('dining table')) return firstObject(state.floor, ['dining_table']);
   if (action.includes('watch') || action.includes('tv') || action.includes('couch') || action.includes('relax')) return firstObject(state.floor, ['bedroom_tv', 'tv', 'lab_motion_screen', 'game_console']);
   if (action.includes('console') || action.includes('game')) return firstObject(state.floor, ['game_console', 'lab_game_console', 'arcade_machine']);
   if (action.includes('desk') || action.includes('read') || action.includes('study')) return firstObject(state.floor, ['desk', 'lab_laptop_desk', 'bookshelf']);
-  if (action.includes('eat')) return firstObject(state.floor, ['dining_table']);
   return null;
 }
 
