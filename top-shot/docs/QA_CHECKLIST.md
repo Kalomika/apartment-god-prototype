@@ -28,6 +28,7 @@ Do not claim these passed unless they were actually run.
 - `top-shot/docs/FEATURE_INVENTORY.md` is updated if player-facing feature behavior changed.
 - `top-shot/docs/ARCHITECTURE.md` is updated if module ownership or architecture changed.
 - This QA checklist is updated if test expectations changed.
+- Completion reports include clickable playable links, not only code-block URLs.
 
 ## Startup checks
 
@@ -57,12 +58,13 @@ Do not claim these passed unless they were actually run.
 - Manual actions trigger.
 - Auto mode works.
 - Slow motion works.
-- Body shots work.
-- Sweeps or trips can ground a fighter.
+- Body shots work and record a body zone.
+- Sweeps or trips can ground or visibly destabilize a fighter.
 - Mounting places the top fighter on the body without clipping through it.
 - Mounted fighter can attempt escape.
 - Ground attacks or mounted attacks display correctly.
-- Hitbox debug data remains coherent.
+- Hitbox debug data remains coherent and finite.
+- `npm run smoke:cqc` stays aligned with these preservation targets.
 
 ## 3D checks
 
@@ -88,7 +90,8 @@ Do not claim these passed unless they were actually run.
 - If `npm run smoke:sim` fails, read the printed smoke context before patching.
 - The smoke context should include matchup, phase, tick, clock, match state, cinematic phase, fighter snapshots, projectile snapshots, and recent log lines.
 - The direct regression for `diveT` without `diveVx` or `diveVy` must stay in `tests/simSmoke.js` until the invalid-state blocker is fully closed.
-- Do not remove or skip matchups just to make smoke green.
+- If `npm run smoke:cqc` fails, treat it as a real CQC preservation issue until proven otherwise.
+- Do not remove or skip matchups/actions just to make smoke green.
 
 ## Coverage matrix checks
 
@@ -109,6 +112,15 @@ For experimental Starshot work, also verify:
 - New systems are modular.
 - Known broken items are listed.
 - Branch is clearly marked experimental if not merge-ready.
+
+## Playable links
+
+Every Top Shot completion report must include clickable links for:
+
+- Live app.
+- PR or branch.
+- Local run command.
+- Deployment status if the live link is not confirmed to show the branch.
 
 ## Merge rule
 
