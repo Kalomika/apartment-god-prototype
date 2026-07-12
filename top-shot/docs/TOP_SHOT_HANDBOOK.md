@@ -36,6 +36,10 @@ Current backup branch for this matrix pass:
 
 `backup/top-shot-v0-1-2026-07-11-coverage-matrix`
 
+Current smoke-fix backup branch:
+
+`backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
+
 Current experimental branch:
 
 `top-shot-starshot-engine`
@@ -127,9 +131,15 @@ From `top-shot/`:
 
 ```bash
 npm run check
+npm run smoke:sim
+npm run smoke:cqc
+npm run smoke:stealth
+npm run smoke:model
 npm run smoke
 npm run build
 ```
+
+`npm run smoke` remains the full safety gate. The split smoke scripts exist to isolate failures, not to replace the full suite.
 
 Never claim tests passed unless they were actually run.
 
@@ -196,7 +206,18 @@ If a feature is not represented in the matrix, add it during the same pass that 
 
 The matrix does not replace the handbook, handoff, feature inventory, architecture doc, or QA checklist. It cross-links them so future agents can see how all of the work is connected.
 
-## 13. Required completion report
+## 13. Playable link rule
+
+Every completion report must include clickable playable links, not only block-code URLs.
+
+Include:
+
+- Live app link, usually `[Top Shot live app](https://top-shot-prototype.onrender.com/)`.
+- PR link or branch link for the work.
+- Local playable command.
+- Deployment status, including whether the live app was verified or may still show the previous deployed branch.
+
+## 14. Required completion report
 
 Every coding pass must report:
 
@@ -210,8 +231,9 @@ Every coding pass must report:
 - Known risks
 - Exact next step
 - PR link or branch link
+- Clickable playable links
 
-## 14. Preferred Starshot implementation order
+## 15. Preferred Starshot implementation order
 
 Phase 1: Motion, animation state, visual inertia, micro-motion, and debug visibility.
 
@@ -227,7 +249,7 @@ Phase 6: Tournament mode, simulation logs, repeated fight stats, and balance dia
 
 Phase 7: Polish pass, sound hooks, camera drama, performance, UI clarity, and public build readiness.
 
-## 15. No fake confidence
+## 16. No fake confidence
 
 Do not say tests passed if they were not run.
 
@@ -247,7 +269,7 @@ Acceptable language:
 - Experimental branch, not merge ready.
 - Needs local run.
 
-## 16. Final principle
+## 17. Final principle
 
 Top Shot is allowed to become a monster.
 
@@ -258,5 +280,3 @@ Create a wild experimental branch.
 Build ambitious systems in recoverable slices.
 Document every pass.
 Keep the live branch safe.
-Test aggressively.
-Merge only when the monster becomes stable.
