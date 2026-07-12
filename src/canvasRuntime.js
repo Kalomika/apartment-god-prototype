@@ -6,6 +6,7 @@ import { resolveArrival, updateActions } from './actions.js';
 import { updateAutoHooks } from './autoHooks.js';
 import { updateAutonomy } from './autonomy.js';
 import { updateCalendarRuntime } from './calendarRuntime.js';
+import { updateLifeQualitySystem } from './lifeQualitySystem.js';
 import { installCameraSwipeNavigation, updateCameraTransition } from './cameraNavigation.js';
 import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
 
@@ -35,6 +36,8 @@ function sanitizeRuntimeState(state) {
   state.objectState ??= {};
   state.roomLights ??= {};
   state.notifications = Array.isArray(state.notifications) ? state.notifications : [];
+  state.lifeControl ??= { mode: 'semi_auto', pendingChoices: [] };
+  state.lifeQuality ??= { lastMonthIndex: null, lastYearIndex: null, reviews: [], yearReviews: [] };
   for (const entity of state.entities) {
     entity.path = Array.isArray(entity.path) ? entity.path : [];
     entity.needs ??= {};
@@ -124,6 +127,7 @@ export function bootCanvasGame() {
         updateAutoHooks(state, dt);
         updateAutonomy(state, dt);
         state.time += dt * 0.6;
+        updateLifeQualitySystem(state);
         updateRefreshAutosave(state, rawDt);
       }
 
