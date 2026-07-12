@@ -2,6 +2,7 @@ import './fit.js';
 import { PLAY_H, PLAY_W, COLORS } from './config.js';
 import { drawWorld } from './renderWorld.js';
 import { drawObjects } from './renderObjects.js';
+import { drawBookWorld } from './bookRender.js';
 import { drawObjectCorrectiveOverlays } from './objectCorrectiveOverlays.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
@@ -55,6 +56,7 @@ function drawScene(ctx, state) {
   drawWorld(ctx, state);
   drawSoccer(ctx, state);
   drawObjects(ctx, state);
+  drawBookWorld(ctx, state);
   drawObjectCorrectiveOverlays(ctx, state);
   drawVehicleSpriteOverlays(ctx, state);
   drawDynamicProps(ctx, state);
@@ -258,7 +260,6 @@ function drawOverlay(ctx, state) {
   ctx.fillText(`Off site: ${label}`, x + 54, y + 25);
   ctx.font = '700 11px system-ui';
   const stage = state.offsite.stage === 'plane' ? 'Outbound flight' : state.offsite.stage === 'return_plane' ? 'Return flight' : 'Activity';
-  const time = Math.ceil((state.offsite.stage?.includes('plane') ? state.offsite.planeT : state.offsite.t) || 0);
-  ctx.fillText(`${stage} • ${time}s left`, x + 54, y + 45);
+  ctx.fillText(stage, x + 54, y + 47);
   ctx.restore();
 }
