@@ -177,7 +177,7 @@ export function toggleWindow(state, actor, win) {
 }
 
 export function updateFreshAir(state, dt) {
-  const open = Object.values(state.objectState.openWindows || {}).some(Boolean;
+  const open = Object.values(state.objectState.openWindows || {}).some(Boolean);
   if (!open) return;
   for (const e of state.entities) if (!e.hidden) changeNeed(e, 'freshness', dt * .035);
 }
