@@ -16,6 +16,7 @@ actions meal flow 80d9418b5847bd0b45adf2c7d259c7ea73564a4f
 render objects 294813587fbdd4a3ce7141c5477428ea3d863ea5
 seated orientation c5dc589304701b228b7d8b4199f490e15f299f48
 lap plate removal 732d9dd5048dc6ff3170e361f37be2151965a01f
+north-facing seat guard be170e65cc4cc899bb593196ce7c87b1f4cef14e
 ```
 
 ## Files changed
@@ -56,6 +57,7 @@ Implemented the first correction pass for dining table eating, seated object ori
 - Added table plate rendering from `state.meals.tablePlates` so food appears on the dining table rather than being treated as a lap prop.
 - Removed the lap plate during dining table eating in the base entity renderer.
 - Added a seated orientation overlay so actors face their target object while seated, including dining table and screen facing states.
+- Restricted the back facing seated overlay to north facing seats so south facing seats can still use the normal front view.
 - Added crumb rendering and crumbs after snacks or meals.
 - Added manual vacuum cleanup and an autonomous robot vacuum that hunts crumbs on the same floor.
 
@@ -74,6 +76,7 @@ Confirm the actor then routes to the dining table and eats.
 Confirm food appears on the dining table, not in the lap.
 Confirm the actor visually faces the table while eating.
 Confirm seated TV, console, desk, reading, and dining poses do not face random directions.
+Confirm south facing seats still show the actor front instead of a forced back view.
 Confirm crumbs appear after snacks and dining meals.
 Tap Vacuum Cleaner > Vacuum Crumbs and confirm nearby crumbs are removed.
 Tap Robot Vacuum > Start Robot Vacuum and confirm it moves toward crumbs and clears them.
