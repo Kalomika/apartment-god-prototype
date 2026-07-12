@@ -59,6 +59,9 @@ export const objects = [
   { id: 'dog_bed', label: 'Dog Bed', kind: 'dog_bed', floor: 0, room: 'entry', x: 600, y: 476, w: 64, h: 42, solid: false, enterable: true },
   { id: 'dog_bowl', label: 'Dog Bowl', kind: 'dog_bowl', floor: 0, room: 'entry', x: 674, y: 486, w: 36, h: 26, solid: false },
   { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'kitchen', x: 466, y: 246, w: 160, h: 54, solid: true },
+  { id: 'service_closet', label: 'Service Cleaning Closet', kind: 'cleaning_closet', floor: 0, room: 'stairs', x: 724, y: 462, w: 44, h: 76, facing: 'east', solid: false },
+  { id: 'vacuum_cleaner', label: 'Vacuum Cleaner', kind: 'vacuum_cleaner', floor: 0, room: 'stairs', x: 778, y: 492, w: 28, h: 66, solid: false },
+  { id: 'robot_vacuum', label: 'Robot Vacuum', kind: 'robot_vacuum', floor: 0, room: 'entry', x: 680, y: 444, w: 30, h: 30, solid: false },
   { id: 'light_living', label: 'Living Light', kind: 'light', floor: 0, room: 'living', x: 408, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_down', label: 'Upstairs Stairs', kind: 'stairs', floor: 0, room: 'stairs', x: 780, y: 554, w: 118, h: 84, solid: false, toFloor: 1, exitId: 'stairs_up' },
 
@@ -157,7 +160,10 @@ export function approachPoint(obj, action = '') {
   if (obj.kind === 'fridge') return clampToPlay(cx, obj.y + obj.h + 42);
   if (['stove', 'sink'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36);
   if (obj.kind === 'coffee_maker') return clampToPlay(cx, obj.y + obj.h + 28);
-  if (obj.kind === 'dining_table') return clampToPlay(obj.x - 30, cy);
+  if (obj.kind === 'dining_table') return clampToPlay(cx, obj.y + obj.h + 34);
+  if (obj.kind === 'cleaning_closet') return clampToPlay(obj.x + obj.w + 34, cy);
+  if (obj.kind === 'vacuum_cleaner') return clampToPlay(cx + 34, cy + 6);
+  if (obj.kind === 'robot_vacuum') return clampToPlay(cx + 30, cy + 4);
   if (obj.kind === 'bookshelf') return clampToPlay(obj.x + obj.w + 36, cy);
   if (obj.kind === 'desk') return clampToPlay(cx, obj.y + obj.h + 42);
   if (obj.kind === 'pool_table') return clampToPlay(cx, obj.y + obj.h + 48);
