@@ -35,12 +35,23 @@ function drawEntity(ctx, e, selected) {
   ctx.restore();
 }
 
-function heading(e) {
+function isMoving(e) {
   const action = String(e.action || '').toLowerCase();
   const pose = String(e.pose || '').toLowerCase();
-  if (['tv', 'couch', 'watch', 'desk', 'study', 'read', 'eat', 'table', 'sleep', 'nap', 'shower', 'wash dog'].some(t => action.includes(t) || pose.includes(t))) return 0;
+  return Boolean(e.path?.length) || Boolean(e.target) || pose === 'walk' || action.includes('heading') || action.includes('walking to');
+}
+
+function heading(e) {
+  const moving = isMoving(e) && !e.actionT;
+  const action = String(e.action || '').toLowerCase();
+  const pose = String(e.pose || '').toLowerCase();
   const dx = e.vx || (e.target ? e.target.x - e.x : 0);
   const dy = e.vy || (e.target ? e.target.y - e.y : 0);
+  if (moving && Math.abs(dx) + Math.abs(dy) >= 0.01) {
+    e.lastHeading = Math.atan2(dy, dx) + Math.PI / 2;
+    return e.lastHeading;
+  }
+  if (!moving && ['tv', 'couch', 'watch', 'desk', 'study', 'read', 'eat', 'table', 'sleep', 'nap', 'shower', 'wash dog'].some(t => action.includes(t) || pose.includes(t))) return 0;
   if (Math.abs(dx) + Math.abs(dy) < 0.01) return e.lastHeading ?? 0;
   e.lastHeading = Math.atan2(dy, dx) + Math.PI / 2;
   return e.lastHeading;
@@ -52,11 +63,12 @@ function drawPerson(ctx, e) {
   const female = e.id === 'girlfriend';
   const accent = female ? MAGENTA : CYAN;
   const cloth = female ? CLOTH.girlfriend : CLOTH.resident;
+
+  if (isMoving(e) && !e.actionT) return drawWalkPose(ctx, female, cloth, accent);
   if (pose === 'shower' || action.includes('shower')) return drawShowerSequence(ctx, e, female, accent);
   if (pose === 'wash_dog' || action.includes('wash dog')) return drawWashDogPose(ctx, female, cloth, accent);
   if (pose === 'sleep' || action.includes('sleep') || action.includes('nap') || action.includes('waking up')) return drawSleepPose(ctx, e, female, accent);
   if (isSitting(action, pose)) return drawSeatedPose(ctx, female, cloth, accent, action);
-  if (Boolean(e.path?.length) || pose === 'walk' || action.includes('walk') || action.includes('heading')) return drawWalkPose(ctx, female, cloth, accent);
   return drawIdlePose(ctx, female, cloth, accent);
 }
 
@@ -64,10 +76,7 @@ function isSitting(action, pose) {
   return pose === 'sit' || ['tv', 'watch', 'desk', 'study', 'read', 'phone', 'game', 'shop', 'eat', 'table', 'relax'].some(t => action.includes(t));
 }
 
-function drawIdlePose(ctx, female, cloth, accent) {
-  const b = Math.sin(performance.now() / 620) * .65;
-  humanCore(ctx, female, cloth, accent, b, false);
-}
+function drawIdlePose(ctx, female, cloth, accent) { humanCore(ctx, female, cloth, accent, Math.sin(performance.now() / 620) * .65, false); }
 
 function drawWalkPose(ctx, female, cloth, accent) {
   const step = [-1, .45, 1, -.45][Math.floor(performance.now() / 115) % 4];
@@ -106,17 +115,13 @@ function drawSeatedPose(ctx, female, cloth, accent, action) {
 }
 
 function drawSleepPose(ctx, e, female, accent) {
-  ctx.save();
-  ctx.rotate(-Math.PI / 2 + .08);
-  humanCore(ctx, female, female ? CLOTH.pjGirlfriend : CLOTH.pjResident, accent, 0, false);
+  ctx.save(); ctx.rotate(-Math.PI / 2 + .08); humanCore(ctx, female, female ? CLOTH.pjGirlfriend : CLOTH.pjResident, accent, 0, false);
   const waking = String(e.action || '').toLowerCase().includes('waking');
   const blanket = female ? '#9f6b8e' : '#60718f';
   ctx.globalAlpha = .96;
   roundRect(ctx, waking ? -10 : -12, waking ? -10 : -11, waking ? 66 : 70, waking ? 42 : 48, 16, blanket);
-  ctx.strokeStyle = 'rgba(255,255,255,.20)'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(-2, -4); ctx.quadraticCurveTo(20, 5, 47, -3); ctx.moveTo(4, 16); ctx.quadraticCurveTo(24, 25, 50, 16); ctx.stroke();
-  ctx.restore();
-  drawZs(ctx, accent);
+  ctx.strokeStyle = 'rgba(255,255,255,.20)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-2, -4); ctx.quadraticCurveTo(20, 5, 47, -3); ctx.moveTo(4, 16); ctx.quadraticCurveTo(24, 25, 50, 16); ctx.stroke();
+  ctx.restore(); drawZs(ctx, accent);
 }
 
 function drawShowerSequence(ctx, e, female, accent) {
@@ -145,18 +150,10 @@ function humanCore(ctx, female, cloth, accent, step, seated) {
   leg(ctx, -8, 14, -12 - step * 3, seated ? 28 : 38 + Math.abs(step) * 2, cloth, -.08);
   leg(ctx, 8, 14, 12 + step * 3, seated ? 28 : 38 - Math.abs(step) * 2, cloth, .08);
   torso(ctx, female, cloth, accent, seated ? 36 : 44);
-  arm(ctx, -16, -8, -28, 10 - step * 4, cloth); arm(ctx, 16, -8, 28, 10 + step * 4, cloth); hand(ctx, -29, 12 - step * 4, accent); hand(ctx, 29, 12 + step * 4, accent);
-  head(ctx, female, 0, -37);
+  arm(ctx, -16, -8, -28, 10 - step * 4, cloth); arm(ctx, 16, -8, 28, 10 + step * 4, cloth); hand(ctx, -29, 12 - step * 4, accent); hand(ctx, 29, 12 + step * 4, accent); head(ctx, female, 0, -37);
 }
-
-function torso(ctx, female, cloth, accent, h) {
-  const shoulder = female ? 29 : 34, hip = female ? 24 : 28;
-  ctx.beginPath(); ctx.moveTo(-shoulder / 2, -11); ctx.quadraticCurveTo(-shoulder * .48, 0, -hip / 2, h * .45); ctx.lineTo(hip / 2, h * .45); ctx.quadraticCurveTo(shoulder * .48, 0, shoulder / 2, -11); ctx.closePath(); ctx.fillStyle = cloth; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.stroke(); ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-shoulder * .30, -7); ctx.lineTo(-hip * .23, h * .34); ctx.moveTo(shoulder * .30, -7); ctx.lineTo(hip * .23, h * .34); ctx.stroke();
-}
-
-function head(ctx, female, x, y) {
-  ell(ctx, x, y + 12, 8, 7, SKIN, INK, 2); ell(ctx, x, y, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5); ell(ctx, x, y + 2, female ? 10 : 11, female ? 11 : 10, SKIN_LIT); hair(ctx, female, x, y); line(ctx, x - 4, y + 4, x + 4, y + 4, '#f0d7bd', 1);
-}
+function torso(ctx, female, cloth, accent, h) { const shoulder = female ? 29 : 34, hip = female ? 24 : 28; ctx.beginPath(); ctx.moveTo(-shoulder / 2, -11); ctx.quadraticCurveTo(-shoulder * .48, 0, -hip / 2, h * .45); ctx.lineTo(hip / 2, h * .45); ctx.quadraticCurveTo(shoulder * .48, 0, shoulder / 2, -11); ctx.closePath(); ctx.fillStyle = cloth; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.stroke(); ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-shoulder * .30, -7); ctx.lineTo(-hip * .23, h * .34); ctx.moveTo(shoulder * .30, -7); ctx.lineTo(hip * .23, h * .34); ctx.stroke(); }
+function head(ctx, female, x, y) { ell(ctx, x, y + 12, 8, 7, SKIN, INK, 2); ell(ctx, x, y, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5); ell(ctx, x, y + 2, female ? 10 : 11, female ? 11 : 10, SKIN_LIT); hair(ctx, female, x, y); line(ctx, x - 4, y + 4, x + 4, y + 4, '#f0d7bd', 1); }
 function hair(ctx, female, x, y) { ctx.fillStyle = '#05070a'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); if (female) { ctx.ellipse(x, y - 4, 19, 20, 0, Math.PI * .85, Math.PI * 2.15); ctx.fill(); ctx.stroke(); ell(ctx, x - 15, y + 3, 5, 9, '#05070a', INK, 1); ell(ctx, x + 15, y + 3, 5, 9, '#05070a', INK, 1); } else { ctx.ellipse(x, y - 6, 16, 11, 0, Math.PI, Math.PI * 2); ctx.fill(); ctx.stroke(); } }
 function arm(ctx, x1, y1, x2, y2, fill) { limb(ctx, x1, y1, x2, y2, 7, fill); }
 function leg(ctx, x1, y1, x2, y2, fill, rot = 0) { limb(ctx, x1, y1, x2, y2, 8, fill); shoe(ctx, x2, y2 + 3, rot); }
@@ -171,16 +168,8 @@ function phone(ctx, x, y) { roundRect(ctx, x - 6, y - 11, 12, 22, 3, '#10141b');
 function plate(ctx, x, y) { ell(ctx, x, y, 13, 6, '#efe7dc', INK, 1); ell(ctx, x + 2, y, 5, 3, '#b66d55'); }
 function glowQuad(ctx, x1, y1, x2, y2, x3, y3, x4, y4, color, alpha) { ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x4, y4); ctx.closePath(); ctx.fill(); ctx.restore(); }
 function drawZs(ctx, accent) { ctx.fillStyle = accent; ctx.font = '900 12px system-ui'; ctx.fillText('Z', 24, -46); ctx.font = '900 9px system-ui'; ctx.fillText('z', 38, -58); }
-
-function drawDog(ctx, e) {
-  const action = String(e.action || '').toLowerCase(); const pose = String(e.pose || '').toLowerCase(); const washing = action.includes('washed') || action.includes('wash') || pose.includes('wash'); const resting = !washing && (action.includes('dog bed') || action.includes('dog rest') || pose.includes('dog_rest')); const moving = Boolean(e.path?.length) || action.includes('fetch'); const step = resting || washing ? 0 : moving ? [-1, .5, 1, -.5][Math.floor(performance.now() / 110) % 4] : Math.sin(performance.now() / 600) * .15;
-  ell(ctx, 1, 6, 36, resting ? 20 : 23, 'rgba(0,0,0,.22)');
-  if (washing) { roundRect(ctx, -31, -10, 68, 37, 18, 'rgba(125,164,160,.46)'); for (let i = 0; i < 6; i++) ell(ctx, -19 + i * 11, -15 + Math.sin(i) * 3, 5, 4, 'rgba(235,250,255,.78)'); }
-  if (resting) { ell(ctx, 0, 1, 28, 17, DOG_COAT, INK, 2); ell(ctx, 18, -8, 12, 9, DOG_COAT, INK, 2); ell(ctx, 29, -9, 5, 4, INK, INK, 1); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(-15, 4, 13, .2, Math.PI * 1.3); ctx.stroke(); return; }
-  limb(ctx, -12, 8, -17 - step * 3, 25, 5.5, DOG_COAT); limb(ctx, 9, 8, 14 + step * 3, 25, 5.5, DOG_COAT); limb(ctx, -14, -7, -22 + step * 4, -20, 5, DOG_COAT); limb(ctx, 14, -7, 22 - step * 4, -20, 5, DOG_COAT); ell(ctx, 0, 0, 24, 15, DOG_COAT, INK, 2); ell(ctx, 18, -10, 13, 10, DOG_COAT, INK, 2); ell(ctx, 29, -11, 6, 4, INK, INK, 1); ell(ctx, 12, -17, 5, 10, DOG_SHADE, INK, 1.5); ell(ctx, 23, -19, 5, 9, DOG_SHADE, INK, 1.5); ctx.strokeStyle = INK; ctx.lineWidth = 3.5; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-20, -3); ctx.quadraticCurveTo(-37, -17 - step * 5, -42, -4 - step * 2); ctx.stroke(); ctx.fillStyle = CYAN; ctx.fillRect(-10, -17, 20, 3);
-}
-
-function drawActionBar(ctx, e) { if (!e.actionTotal || e.actionTotal < e.actionT) e.actionTotal = e.actionT; const pct = Math.max(0, Math.min(1, 1 - e.actionT / Math.max(1, e.actionTotal))); roundRect(ctx, -42, 42, 84, 10, 5, 'rgba(10,12,18,.86)'); roundRect(ctx, -40, 44, 80 * pct, 6, 4, '#f1c66a'); const label = String(e.action || 'Working').slice(0, 20); const w = Math.max(76, label.length * 6.2 + 18); roundRect(ctx, -w / 2, 55, w, 18, 7, 'rgba(248,251,255,.88)'); ctx.strokeStyle = 'rgba(7,16,24,.38)'; ctx.lineWidth = 1; roundRect(ctx, -w / 2, 55, w, 18, 7, false, true); ctx.fillStyle = '#071018'; ctx.font = '900 9px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, 0, 68); ctx.textAlign = 'left'; }
+function drawDog(ctx, e) { const action = String(e.action || '').toLowerCase(); const pose = String(e.pose || '').toLowerCase(); const washing = action.includes('washed') || action.includes('wash') || pose.includes('wash'); const resting = !washing && (action.includes('dog bed') || action.includes('dog rest') || pose.includes('dog_rest')); const moving = Boolean(e.path?.length) || Boolean(e.target) || action.includes('fetch'); const step = resting || washing ? 0 : moving ? [-1, .5, 1, -.5][Math.floor(performance.now() / 110) % 4] : Math.sin(performance.now() / 600) * .15; ell(ctx, 1, 6, 36, resting ? 20 : 23, 'rgba(0,0,0,.22)'); if (washing) { roundRect(ctx, -31, -10, 68, 37, 18, 'rgba(125,164,160,.46)'); for (let i = 0; i < 6; i++) ell(ctx, -19 + i * 11, -15 + Math.sin(i) * 3, 5, 4, 'rgba(235,250,255,.78)'); } if (resting) { ell(ctx, 0, 1, 28, 17, DOG_COAT, INK, 2); ell(ctx, 18, -8, 12, 9, DOG_COAT, INK, 2); ell(ctx, 29, -9, 5, 4, INK, INK, 1); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(-15, 4, 13, .2, Math.PI * 1.3); ctx.stroke(); return; } limb(ctx, -12, 8, -17 - step * 3, 25, 5.5, DOG_COAT); limb(ctx, 9, 8, 14 + step * 3, 25, 5.5, DOG_COAT); limb(ctx, -14, -7, -22 + step * 4, -20, 5, DOG_COAT); limb(ctx, 14, -7, 22 - step * 4, -20, 5, DOG_COAT); ell(ctx, 0, 0, 24, 15, DOG_COAT, INK, 2); ell(ctx, 18, -10, 13, 10, DOG_COAT, INK, 2); ell(ctx, 29, -11, 6, 4, INK, INK, 1); ell(ctx, 12, -17, 5, 10, DOG_SHADE, INK, 1.5); ell(ctx, 23, -19, 5, 9, DOG_SHADE, INK, 1.5); ctx.strokeStyle = INK; ctx.lineWidth = 3.5; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-20, -3); ctx.quadraticCurveTo(-37, -17 - step * 5, -42, -4 - step * 2); ctx.stroke(); ctx.fillStyle = CYAN; ctx.fillRect(-10, -17, 20, 3); }
+function drawActionBar(ctx, e) { if (!e.actionTotal || e.actionTotal < e.actionT) e.actionTotal = e.actionT; const pct = Math.max(0, Math.min(1, 1 - e.actionT / Math.max(1, e.actionTotal))); roundRect(ctx, -42, 42, 84, 10, 5, 'rgba(10,12,18,.86)'); roundRect(ctx, -40, 44, 80 * pct, 6, 4, '#f1c66a'); const label = String(e.action || 'Working').slice(0, 20); const w = Math.max(76, label.length * 6.2 + 18); roundRect(ctx, -w / 2, 55, w, 18, 7, 'rgba(248,251,255,.88)'); ctx.strokeStyle = 'rgba(7,16,24,.38)'; ctx.lineWidth = 1; roundRect(ctx, -w / 2, 55, w, 18, 7, '', true); ctx.fillStyle = '#071018'; ctx.font = '900 9px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, 0, 68); ctx.textAlign = 'left'; }
 function drawReactionBubble(ctx, reaction, entityType) { const t = performance.now() / 1000; const pulse = Math.sin(t * 12) * 3; const bob = Math.sin(t * 6) * 4; const y = entityType === 'dog' ? -82 : -100; ctx.save(); ctx.translate(0, y + bob); ctx.lineWidth = 3; ctx.strokeStyle = reaction.type === 'privacy' ? '#ff75df' : reaction.type === 'noise' ? '#f1c66a' : '#74e6ff'; ctx.fillStyle = reaction.style === 'thought' ? 'rgba(245,248,255,.90)' : 'rgba(255,248,225,.96)'; drawJaggedBurst(ctx, pulse); ctx.fillStyle = '#10141b'; ctx.font = '900 16px system-ui'; ctx.textAlign = 'center'; ['!', '?', '…'].forEach((s, i) => ctx.fillText(s, -12 + i * 12, 5)); ctx.textAlign = 'left'; ctx.restore(); }
 function drawJaggedBurst(ctx, pulse) { ctx.beginPath(); for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; const r = (i % 2 ? 29 : 42) + pulse; const x = Math.cos(a) * r; const y = Math.sin(a) * r * .62; if (!i) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.closePath(); ctx.fill(); ctx.stroke(); }
 function drawBubble(ctx, text, style = 'speech') { const w = Math.max(72, text.length * 12 + 24); roundRect(ctx, -w / 2, -86, w, 34, 12, style === 'thought' ? '#eef7ff' : '#f8fbff'); ctx.fillStyle = '#10141b'; ctx.font = '900 16px system-ui'; ctx.textAlign = 'center'; ctx.fillText(text, 0, -64); ctx.textAlign = 'left'; }
