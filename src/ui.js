@@ -4,6 +4,7 @@ import { calendarHudLine } from './calendarSystem.js';
 import { ACTIONS, DOG_SOCIAL_ACTIONS, DOUBLE_TAP_MS, NEEDS, SOCIAL_ACTIONS } from './config.js';
 import { startObjectAction, startOffsite, startSocialAction, throwFetchBall } from './actions.js';
 import { interruptBookIfNeeded } from './bookSystem.js';
+import { lifeControlLabel, lifeQualityHudLine, toggleLifeControlMode } from './lifeQualitySystem.js';
 import { placeBuildRequest } from './buildRequests.js';
 import { startCookingFlow } from './cooking.js';
 import { openDeviceHome } from './appMenu.js';
@@ -160,6 +161,12 @@ export function createUi(state, surface, options = {}) {
     log(state, 'Developer test money refilled to $50000.');
   }
 
+  function toggleLifeAuto() {
+    const mode = toggleLifeControlMode(state);
+    state.autonomyMode = mode === 'auto' ? 'free' : 'guided';
+    log(state, `${lifeControlLabel(state)}. Autonomy: ${state.autonomyMode}.`);
+  }
+
   function selfItems(actor) { return [
     { label: 'Cell', run: () => cell(actor) }, { label: 'Stop', run: () => stopEntity(actor) }, { label: 'Resume / Auto', run: () => resumeEntity(actor) },
     { label: 'Get food', run: () => guidedObject(actor, objects.find(o => o.id === 'fridge'), 'snack') }, { label: 'Cook meal', run: () => guidedCooking(actor) },
@@ -198,15 +205,15 @@ export function createUi(state, surface, options = {}) {
     document.getElementById('pause').onclick = () => { state.paused = !state.paused; };
     document.getElementById('reset').onclick = () => { clearRefreshState(state); location.reload(); };
     commandPanel.innerHTML = '';
-    const buttons = [['Map', () => openCompoundMap()], ['Up', () => changeVertical(1)], ['Down', () => changeVertical(-1)], ['Dev $', () => refillDevMoney()], ['Cell', () => cell(selected(state))], ['Save', () => saveGame(state, 1)], ['Load', () => loadGame(state, 1)], ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))], ['Auto Mode', () => { state.autonomyMode = state.autonomyMode === 'free' ? 'guided' : 'free'; log(state, `Autonomy: ${state.autonomyMode}.`); }]];
+    const buttons = [['Map', () => openCompoundMap()], ['Up', () => changeVertical(1)], ['Down', () => changeVertical(-1)], ['Dev $', () => refillDevMoney()], ['Cell', () => cell(selected(state))], ['Save', () => saveGame(state, 1)], ['Load', () => loadGame(state, 1)], ['Stop', () => stopEntity(selected(state))], ['Resume', () => resumeEntity(selected(state))], ['Life Auto', () => toggleLifeAuto()]];
     for (const [label, run] of buttons) { const b = document.createElement('button'); b.textContent = label; b.onclick = run; commandPanel.appendChild(b); }
   }
 
   function renderHud() {
     const actor = selected(state); selectedName.textContent = actor.name; currentAction.textContent = actor.action || 'Idle';
     needs.innerHTML = NEEDS.map(([key, label]) => { const value = Math.round(actor.needs[key] ?? 0); return `<div class="need-row"><span>${label}</span><div class="need-bar"><div class="need-fill" style="width:${value}%"></div></div><span>${value}</span></div>`; }).join('');
-    const music = state.music ? `<br>Music: ${state.music.genre}` : ''; const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : ''; const delivery = state.delivery ? `<br>Delivery: ${state.delivery.phase}` : ''; const save = state.saveStatus?.message ? `<br>Save: ${state.saveStatus.message}` : `<br>Slot 1: ${slotSummary(1)}`; const trash = state.garbage ? `<br>Trash: ${Math.round(state.garbage.kitchen || 0)}%` : ''; const career = actor.type === 'person' ? `<br>${careerHudLine(state, actor)}` : '';
-    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>${calendarHudLine(state)}<br>Area: ${floors[state.floor]?.name || state.floor}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}${career}${music}${build}${delivery}${trash}${save}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
+    const music = state.music ? `<br>Music: ${state.music.genre}` : ''; const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : ''; const delivery = state.delivery ? `<br>Delivery: ${state.delivery.phase}` : ''; const save = state.saveStatus?.message ? `<br>Save: ${state.saveStatus.message}` : `<br>Slot 1: ${slotSummary(1)}`; const trash = state.garbage ? `<br>Trash: ${Math.round(state.garbage.kitchen || 0)}%` : ''; const career = actor.type === 'person' ? `<br>${careerHudLine(state, actor)}` : ''; const life = actor.type === 'person' ? `<br>${lifeQualityHudLine(state, actor)}` : '';
+    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>${calendarHudLine(state)}<br>Area: ${floors[state.floor]?.name || state.floor}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}<br>${lifeControlLabel(state)}${career}${life}${music}${build}${delivery}${trash}${save}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
     logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
   }
 
