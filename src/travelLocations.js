@@ -2,7 +2,7 @@ import { applyWorkCompletion } from './careerSystem.js';
 import { changeNeed, log, say, setMood } from './state.js';
 
 export const DAILY_DESTINATIONS = [
-  { id: 'work', label: 'Work Shift', cost: 0, duration: 60, hours: [5, 24], scene: 'work', stat: 'money', money: 95, fun: -5, energy: -14 },
+  { id: 'work', label: 'Four Hour Work Shift', cost: 0, duration: 11, hours: [5, 24], scene: 'work', stat: 'money', money: 95, fun: -2, energy: -8 },
   { id: 'errand', label: 'Quick Errand', cost: 20, duration: 30, hours: [7, 23], scene: 'errand', fun: 4, energy: -6 },
   { id: 'mall', label: 'Mall Trip', cost: 55, duration: 60, hours: [10, 22], scene: 'mall', fun: 14, social: 8, energy: -8 },
   { id: 'movies', label: 'Movie Theater', cost: 32, duration: 120, hours: [11, 25], scene: 'theater', fun: 24, social: 10, energy: -7 },
@@ -154,52 +154,16 @@ export function applyOffsiteRewards(state, job) {
     const e = state.entities.find(x => x.id === id);
     if (!e) continue;
     if (action === 'work') {
-      changeNeed(e, 'hunger', -14);
+      changeNeed(e, 'hunger', -8);
       applyWorkCompletion(state, e);
     } else {
       changeNeed(e, 'fun', destination?.fun ?? 22);
-      changeNeed(e, 'hunger', -12);
-      changeNeed(e, 'energy', destination?.energy ?? -12);
-      changeNeed(e, 'freshness', destination?.freshness ?? -3);
-      if (job.vehicleId === 'bike') { changeNeed(e, 'freshness', -7); changeNeed(e, 'energy', -4); }
-      if (job.vehicleId === 'motorbike') { changeNeed(e, 'freshness', -4); changeNeed(e, 'energy', -2); }
-      if (destination?.social) changeNeed(e, 'social', destination.social);
+      changeNeed(e, 'energy', destination?.energy ?? -8);
+      changeNeed(e, 'social', destination?.social ?? 0);
+      changeNeed(e, 'freshness', destination?.freshness ?? 0);
+      if (action === 'movies') { setMood(e, 'happy'); say(e, 'MOVIE'); }
+      if (action === 'date') { setMood(e, 'love'); say(e, 'DATE'); }
+      if (destination?.activities?.length) log(state, `${e.name} enjoyed ${destination.activities.join(', ')} at ${destination.label}.`);
     }
-    if (action === 'movies') e.memory.movies.push(randomMovieTitle(state));
-    if (action.includes('beach') && job.activities?.includes('treasure_search')) maybeFindBeachGold(state, e, job);
-    setMood(e, action === 'work' ? 'tired' : 'happy');
-    say(e, action === 'work' ? 'WORK' : 'TRIP');
   }
-  recordSecretActivity(state, action);
-  maybeAwardSecretTickets(state);
-}
-
-export function recordSecretActivity(state, actionId) {
-  state.secretLog ??= { used: {}, lastRewardAt: 0 };
-  state.secretLog.used[actionId] = (state.secretLog.used[actionId] || 0) + 1;
-}
-
-export function maybeAwardSecretTickets(state) {
-  const usedCount = Object.keys(state.secretLog?.used || {}).length;
-  state.rewards ??= { freeTickets: {}, messages: [] };
-  if (usedCount >= 12 && !state.rewards.messages.includes('feature_explorer')) {
-    state.rewards.freeTickets.vacation_any = (state.rewards.freeTickets.vacation_any || 0) + 1;
-    state.rewards.messages.push('feature_explorer');
-    log(state, 'Email reward: free vacation ticket for exploring the game.');
-  }
-}
-
-function maybeFindBeachGold(state, actor, job) {
-  const chance = 0.18 + ((actor.skills?.learning || 1) * 0.025);
-  if (job.treasureSeed < chance) {
-    const amount = 900 + Math.floor(job.treasureSeed * 5000);
-    state.money += amount;
-    log(state, `${actor.name} found hidden gold near the beach and gained $${amount}.`);
-    say(actor, 'GOLD');
-  }
-}
-
-function randomMovieTitle(state) {
-  const n = Math.floor((state.time + Math.random() * 1000) % 6);
-  return ['Neon Tenants', 'Garage Gods', 'The Midnight Lease', 'Beach Money', 'Apartment Zero', 'Last Train to Render'][n];
 }
