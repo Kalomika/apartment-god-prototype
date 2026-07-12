@@ -10,6 +10,7 @@ import { updateInvestments } from './investmentSystem.js';
 import { updateReactionWorld } from './reactionSystem.js';
 import { startMiniSoccerAtField, startSoccerPracticeAtField } from './soccerSystem.js';
 import { finishBookReading, finishBookReturnAtShelf, startBookReadingAtSeat, startBookReadingRoute, startLooseBookReturnFromSurface } from './bookSystem.js';
+import { recordLifeActivity } from './lifeQualitySystem.js';
 
 function isTimedBusy(actor) {
   return Boolean(actor?.actionT > 0 && !String(actor.action || '').toLowerCase().includes('idle'));
@@ -190,6 +191,7 @@ function shouldFastForwardOffsite(state) {
 function finishAction(state, e) {
   const text = String(e.action || '').toLowerCase();
   const completedActionId = e.currentActionId;
+  if (completedActionId) recordLifeActivity(state, e, completedActionId, text);
   const continued = continueTrashRun(state, e, text); if (continued && text.includes('take trash out')) return;
   if ((completedActionId === 'read_carried_book' || e.bookReading) && finishBookReading(state, e)) return;
   if (text.includes('snack')) { changeNeed(e, 'hunger', 18); setMood(e, 'happy'); addGarbageFromAction(state, 'snack', e); }
