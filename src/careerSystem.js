@@ -4,91 +4,91 @@ export const CAREER_TRACKS = [
   {
     id: 'storyboard_artist',
     label: 'Storyboard Artist',
-    scheduleLabel: 'Mon to Fri, 9 AM to 5 PM',
-    startHour: 9,
-    endHour: 17,
-    days: [1, 2, 3, 4, 5],
+    scheduleLabel: 'Mon, Tue, Thu, Fri, 10 AM to 2 PM',
+    startHour: 10,
+    endHour: 14,
+    days: [1, 2, 4, 5],
     basePay: 165,
     payRaise: 36,
-    xpPerShift: 32,
+    xpPerShift: 24,
     promoXp: 100,
-    staminaCost: 14,
-    energyCost: 16,
-    funCost: 5,
-    freshnessCost: 3,
-    socialCost: 4,
+    staminaCost: 7,
+    energyCost: 8,
+    funCost: 2,
+    freshnessCost: 2,
+    socialCost: 2,
     perk: 'creative'
   },
   {
     id: 'remote_support',
     label: 'Remote Support Lead',
-    scheduleLabel: 'Mon to Fri, 8 AM to 4 PM',
-    startHour: 8,
-    endHour: 16,
-    days: [1, 2, 3, 4, 5],
+    scheduleLabel: 'Mon, Wed, Fri, 9 AM to 1 PM',
+    startHour: 9,
+    endHour: 13,
+    days: [1, 3, 5],
     basePay: 125,
     payRaise: 28,
-    xpPerShift: 28,
+    xpPerShift: 20,
     promoXp: 90,
-    staminaCost: 10,
-    energyCost: 14,
-    funCost: 4,
-    freshnessCost: 2,
-    socialCost: 2,
+    staminaCost: 5,
+    energyCost: 7,
+    funCost: 2,
+    freshnessCost: 1,
+    socialCost: 1,
     perk: 'steady'
   },
   {
     id: 'movie_theater',
     label: 'Movie Theater Crew',
-    scheduleLabel: 'Thu to Sun, 4 PM to 11 PM',
-    startHour: 16,
-    endHour: 23,
+    scheduleLabel: 'Thu to Sun, 6 PM to 10 PM',
+    startHour: 18,
+    endHour: 22,
     days: [0, 4, 5, 6],
     basePay: 92,
     payRaise: 18,
-    xpPerShift: 24,
+    xpPerShift: 18,
     promoXp: 80,
-    staminaCost: 13,
-    energyCost: 12,
-    funCost: -6,
-    freshnessCost: 4,
-    socialCost: -4,
+    staminaCost: 6,
+    energyCost: 6,
+    funCost: -4,
+    freshnessCost: 2,
+    socialCost: -3,
     perk: 'movie_tickets'
   },
   {
     id: 'airline_ground',
     label: 'Airline Ground Crew',
-    scheduleLabel: 'Tue to Sat, 6 AM to 2 PM',
-    startHour: 6,
-    endHour: 14,
-    days: [2, 3, 4, 5, 6],
+    scheduleLabel: 'Tue, Fri, Sat, 8 AM to 12 PM',
+    startHour: 8,
+    endHour: 12,
+    days: [2, 5, 6],
     basePay: 142,
     payRaise: 30,
-    xpPerShift: 30,
+    xpPerShift: 20,
     promoXp: 95,
-    staminaCost: 18,
-    energyCost: 18,
-    funCost: 6,
-    freshnessCost: 6,
-    socialCost: 2,
+    staminaCost: 8,
+    energyCost: 8,
+    funCost: 3,
+    freshnessCost: 3,
+    socialCost: 1,
     perk: 'travel_standby'
   },
   {
     id: 'freelance_animator',
     label: 'Freelance Animator',
-    scheduleLabel: 'Flexible, best between 10 AM and 8 PM',
-    startHour: 10,
-    endHour: 20,
-    days: [0, 1, 2, 3, 4, 5, 6],
+    scheduleLabel: 'Flexible, four hour blocks, three or four days weekly',
+    startHour: 12,
+    endHour: 16,
+    days: [1, 2, 4, 6],
     basePay: 118,
     payRaise: 42,
-    xpPerShift: 35,
+    xpPerShift: 24,
     promoXp: 110,
-    staminaCost: 16,
-    energyCost: 18,
+    staminaCost: 7,
+    energyCost: 8,
     funCost: -3,
-    freshnessCost: 4,
-    socialCost: 8,
+    freshnessCost: 2,
+    socialCost: 4,
     perk: 'creative'
   }
 ];
@@ -214,7 +214,7 @@ export function workDueText(state, actor) {
   const due = isWorkWindow(state, track) && career.lastWorkedDay !== gameDay(state);
   const level = career.level || 1;
   const pay = payForShift(track, level);
-  return `${track.label} L${level}, ${track.scheduleLabel}, $${pay}/shift${due ? ', due now' : ''}`;
+  return `${track.label} L${level}, ${track.scheduleLabel}, max ${shiftHours(track)}h, $${pay}/shift${due ? ', due now' : ''}`;
 }
 
 export function careerHudLine(state, actor) {
@@ -255,8 +255,8 @@ export function applyWorkCompletion(state, actor) {
 
   applyCareerNeeds(actor, track);
   awardCareerPerk(state, actor, track);
-  setMood(actor, 'tired');
-  log(state, `${actor.name} completed a ${track.label} shift and earned $${pay}.`);
+  setMood(actor, 'calm');
+  log(state, `${actor.name} completed a four hour ${track.label} shift and earned $${pay}.`);
   return { pay, promoted };
 }
 
@@ -272,7 +272,7 @@ function awardCareerPerk(state, actor, track) {
   state.rewards ??= { freeTickets: {}, messages: [] };
   if (track.perk === 'movie_tickets') {
     state.careers.movieTheaterHours = (state.careers.movieTheaterHours || 0) + shiftHours(track);
-    if (state.careers.movieTheaterHours >= 14) {
+    if (state.careers.movieTheaterHours >= 12) {
       state.careers.movieTheaterHours = 0;
       state.rewards.freeTickets.movies = (state.rewards.freeTickets.movies || 0) + 1;
       log(state, `${actor.name} earned free movie tickets from theater work.`);
@@ -280,7 +280,7 @@ function awardCareerPerk(state, actor, track) {
   }
   if (track.perk === 'travel_standby') {
     state.careers.airlineHours = (state.careers.airlineHours || 0) + shiftHours(track);
-    if (state.careers.airlineHours >= 24) {
+    if (state.careers.airlineHours >= 16) {
       state.careers.airlineHours = 0;
       state.rewards.freeTickets.vacation_any = (state.rewards.freeTickets.vacation_any || 0) + 1;
       log(state, `${actor.name} earned an airline standby vacation ticket.`);
