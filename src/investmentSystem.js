@@ -5,7 +5,8 @@ export const INVESTMENTS = [
   { id: 'airline_counter', label: 'Airline Customer Service', buyIn: 260, volatility: 0.12, dividend: 6 },
   { id: 'beach_resort', label: 'Beach Resort', buyIn: 320, volatility: 0.1, dividend: 7 },
   { id: 'arcade_brand', label: 'Arcade Brand', buyIn: 140, volatility: 0.14, dividend: 3 },
-  { id: 'gym_franchise', label: 'Gym Franchise', buyIn: 220, volatility: 0.09, dividend: 5 }
+  { id: 'gym_franchise', label: 'Gym Franchise', buyIn: 220, volatility: 0.09, dividend: 5 },
+  { id: 'magic_fund', label: 'Magic Fund', buyIn: 120, volatility: 0.42, dividend: 2, cryptoLike: true }
 ];
 
 export function buyInvestment(state, id) {
@@ -28,9 +29,12 @@ export function updateInvestments(state, dt) {
   for (const item of INVESTMENTS) {
     const shares = state.investments.holdings[item.id] || 0;
     if (!shares) continue;
-    const market = Math.sin((state.time + shares * 17 + item.buyIn) / 47);
-    const shock = Math.sin((state.time + item.buyIn * 3) / 131) < -0.92 ? -1 : 0;
-    const dividend = Math.round(shares * item.dividend * (1 + market * item.volatility) + shock * shares * Math.ceil(item.buyIn * 0.035));
+    const market = Math.sin((state.time + shares * 17 + item.buyIn) / (item.cryptoLike ? 23 : 47));
+    const crashWave = Math.sin((state.time + item.buyIn * 3) / (item.cryptoLike ? 71 : 131));
+    const moonWave = Math.sin((state.time + item.buyIn * 5) / 53);
+    const shock = crashWave < (item.cryptoLike ? -0.82 : -0.92) ? -1 : item.cryptoLike && moonWave > 0.91 ? 1 : 0;
+    const shockValue = shock < 0 ? -shares * Math.ceil(item.buyIn * (item.cryptoLike ? 0.09 : 0.035)) : shares * Math.ceil(item.buyIn * 0.12);
+    const dividend = Math.round(shares * item.dividend * (1 + market * item.volatility) + shockValue);
     net += dividend;
   }
   if (!net) return;
