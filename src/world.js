@@ -58,7 +58,7 @@ export const objects = [
   { id: 'backyard_door', label: 'Kitchen/Living Back Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'living', x: 416, y: 38, w: 54, h: 34, solid: false, toFloor: 4, exitId: 'yard_back_door' },
   { id: 'dog_bed', label: 'Dog Bed', kind: 'dog_bed', floor: 0, room: 'entry', x: 600, y: 476, w: 64, h: 42, solid: false, enterable: true },
   { id: 'dog_bowl', label: 'Dog Bowl', kind: 'dog_bowl', floor: 0, room: 'entry', x: 674, y: 486, w: 36, h: 26, solid: false },
-  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'kitchen', x: 524, y: 204, w: 210, h: 72, solid: true },
+  { id: 'dining_table', label: 'Dining Table', kind: 'dining_table', floor: 0, room: 'kitchen', x: 466, y: 246, w: 160, h: 54, solid: true },
   { id: 'light_living', label: 'Living Light', kind: 'light', floor: 0, room: 'living', x: 408, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_down', label: 'Upstairs Stairs', kind: 'stairs', floor: 0, room: 'stairs', x: 780, y: 554, w: 118, h: 84, solid: false, toFloor: 1, exitId: 'stairs_up' },
 
@@ -157,7 +157,7 @@ export function approachPoint(obj, action = '') {
   if (obj.kind === 'fridge') return clampToPlay(cx, obj.y + obj.h + 42);
   if (['stove', 'sink'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36);
   if (obj.kind === 'coffee_maker') return clampToPlay(cx, obj.y + obj.h + 28);
-  if (obj.kind === 'dining_table') return clampToPlay(cx, obj.y + obj.h + 34);
+  if (obj.kind === 'dining_table') return clampToPlay(obj.x - 30, cy);
   if (obj.kind === 'bookshelf') return clampToPlay(obj.x + obj.w + 36, cy);
   if (obj.kind === 'desk') return clampToPlay(cx, obj.y + obj.h + 42);
   if (obj.kind === 'pool_table') return clampToPlay(cx, obj.y + obj.h + 48);
