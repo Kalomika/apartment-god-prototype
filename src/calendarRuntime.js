@@ -1,4 +1,5 @@
 import { startOffsite } from './actions.js';
+import { startBookReturnChore } from './bookSystem.js';
 import { bookingTimeLabel, canAffordBookingNow, dueCalendarBookings, ensureCalendar, markBookingStatus } from './calendarSystem.js';
 import { byId, log, say } from './state.js';
 
@@ -16,6 +17,21 @@ export function updateCalendarRuntime(state) {
       continue;
     }
     const overdue = (state.time || 0) - booking.startMinute;
+    if (booking.type === 'chore' && booking.actionId === 'return_loose_book') {
+      if (actorBusy(actor)) {
+        handleBlockedBooking(state, actor, booking, overdue, `${actor.name} has ${booking.label} due now but is busy.`);
+        continue;
+      }
+      const ok = startBookReturnChore(state, actor, booking);
+      if (ok) {
+        markBookingStatus(state, booking.id, 'started');
+        say(actor, 'TIDY');
+        log(state, `${actor.name}'s calendar started ${booking.label}.`);
+      } else {
+        markBookingStatus(state, booking.id, 'completed');
+      }
+      continue;
+    }
     if (!canAffordBookingNow(state, booking)) {
       markBookingStatus(state, booking.id, 'missed');
       log(state, `${actor.name} could not start ${booking.label}. Cost $${booking.cost}, available $${Math.floor(state.money || 0)}.`);
