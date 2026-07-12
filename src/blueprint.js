@@ -11,6 +11,7 @@ export const doorways = [
   { floor: 0, a: 'entry', b: 'stairs', x: 704, y: 410, w: 18, h: 62 },
   { floor: 0, a: 'entry', b: 'stairs', x: 642, y: 538, w: 72, h: 54 },
   { floor: 0, a: 'kitchen', b: 'stairs', x: 770, y: 300, w: 68, h: 22 },
+  { floor: 1, a: 'bedroom', b: 'walkin_closet', x: 72, y: 376, w: 80, h: 18 },
   { floor: 1, a: 'bedroom', b: 'hall', x: 226, y: 382, w: 88, h: 18 },
   { floor: 1, a: 'office', b: 'hall', x: 574, y: 382, w: 82, h: 18 },
   { floor: 1, a: 'bath2', b: 'hall', x: 826, y: 382, w: 64, h: 18 },
@@ -176,7 +177,7 @@ export function toggleWindow(state, actor, win) {
 }
 
 export function updateFreshAir(state, dt) {
-  const open = Object.values(state.objectState.openWindows || {}).some(Boolean);
+  const open = Object.values(state.objectState.openWindows || {}).some(Boolean;
   if (!open) return;
   for (const e of state.entities) if (!e.hidden) changeNeed(e, 'freshness', dt * .035);
 }
