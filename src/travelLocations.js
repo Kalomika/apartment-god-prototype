@@ -82,7 +82,7 @@ export function payForTravel(state, destination, vehicleId = 'auto') {
 export function createOffsiteJob(actionId, partyIds, vehicleId = 'car_1') {
   const destination = destinationFor(actionId);
   const vacation = actionId.startsWith('vacation_');
-  const duration = adjustedDuration(destination?.duration ?? 30, vehicleId);
+  const duration = Math.max(1, destination?.duration ?? 30);
   return {
     actionId,
     destinationId: destination?.id || actionId,
@@ -103,12 +103,6 @@ export function createOffsiteJob(actionId, partyIds, vehicleId = 'car_1') {
     activities: destination?.activities || [],
     treasureSeed: Math.random()
   };
-}
-
-function adjustedDuration(duration, vehicleId) {
-  if (vehicleId === 'bike') return Math.max(12, Math.round(duration * .72));
-  if (vehicleId === 'motorbike') return Math.max(10, Math.round(duration * .58));
-  return duration;
 }
 
 export function updateOffsiteJob(state, dt) {
