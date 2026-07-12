@@ -55,15 +55,18 @@ export function createUi(state, surface, options = {}) {
   const cell = actor => openDeviceHome(state, actor, openMenu);
 
   function guidedInterrupt(actor) {
-    if (!actor || state.autonomyMode !== 'guided') return;
+    if (!actor) return;
     actor.path = [];
     actor.target = null;
     actor.pending = null;
     actor.queuedTask = null;
     actor.actionT = 0;
     actor.actionTotal = 0;
+    actor.currentActionId = null;
     actor.stopped = false;
     actor.pose = 'stand';
+    actor.blockedT = 0;
+    actor.recoveryCount = 0;
     if (!actor.carrying || !String(actor.carrying).includes('luggage')) actor.carrying = null;
   }
 
