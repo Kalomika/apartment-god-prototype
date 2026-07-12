@@ -40,6 +40,9 @@ export const ACTIONS = {
   sink: [['clean', 'Clean'], ['wash_dishes', 'Wash Dishes'], ['brush_teeth', 'Brush Teeth'], ['groom', 'Groom']],
   coffee_maker: [['coffee', 'Make Coffee']],
   dining_table: [['eat_meal', 'Eat at Table'], ['sit_table', 'Sit at Table']],
+  cleaning_closet: [['get_cleaning_supplies', 'Get Cleaning Supplies']],
+  vacuum_cleaner: [['vacuum_clean', 'Vacuum Crumbs']],
+  robot_vacuum: [['robot_vacuum_start', 'Start Robot Vacuum']],
   shower: [['shower', 'Take Shower'], ['groom', 'Groom']],
   toilet: [['toilet', 'Use Toilet']],
   door: [['work', 'Work'], ['errand', 'Quick Errand'], ['mall', 'Mall Trip'], ['movies', 'Movie Theater'], ['date', 'Date Night']],
@@ -72,7 +75,7 @@ export const SOCIAL_ACTIONS = [
   ['talk', 'Talk'], ['kiss', 'Kiss'], ['cuddle', 'Cuddle'], ['tickle', 'Tickle'], ['hands', 'Hold Hands'],
   ['watch_together', 'Watch TV Together'], ['bed_together', 'Go To Bed Together'], ['intimacy', 'Private Moment']
 ];
-export const DOG_SOCIAL_ACTIONS = [['pet', 'Pet Dog'], ['train', 'Train Dog'], ['fetch', 'Fetch']];
+export const DOG_SOCIAL_ACTIONS = [['pet', 'Pet Dog'], ['train', 'Train Dog'], ['fetch']];
 
 export const ACTION_TIMES = {
   watch_tv: 60,
@@ -84,6 +87,9 @@ export const ACTION_TIMES = {
   nap: 45,
   snack: 10,
   meal: 24,
+  gather_ingredients: 7,
+  cook_meal: 22,
+  serve_meal: 5,
   bring_food: 12,
   clean: 18,
   wash_dishes: 18,
@@ -97,6 +103,9 @@ export const ACTION_TIMES = {
   intimacy: 40,
   change_clothes: 12,
   plan_week_outfits: 18,
+  get_cleaning_supplies: 8,
+  vacuum_clean: 26,
+  robot_vacuum_start: 4,
   desk_work: 60,
   play_game: 45,
   phone: 18,
