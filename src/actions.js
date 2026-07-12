@@ -11,6 +11,7 @@ import { updateReactionWorld } from './reactionSystem.js';
 import { startMiniSoccerAtField, startSoccerPracticeAtField } from './soccerSystem.js';
 import { finishBookReading, finishBookReturnAtShelf, startBookReadingAtSeat, startBookReadingRoute, startLooseBookReturnFromSurface } from './bookSystem.js';
 import { recordLifeActivity } from './lifeQualitySystem.js';
+import { cleanCrumbsNear, clearTableMealForActor, placeTableMeal, spawnCrumbs, startRobotVacuum, updateRobotVacuum } from './mealCleanupSystem.js';
 
 function isTimedBusy(actor) {
   return Boolean(actor?.actionT > 0 && !String(actor.action || '').toLowerCase().includes('idle'));
@@ -102,6 +103,12 @@ export function resolveArrival(state, entity) {
       else startSoccerPracticeAtField(state, entity);
       return;
     }
+    if (obj.kind === 'fridge' && target.actionId === 'meal') return beginIngredientStage(state, entity, obj);
+    if (obj.kind === 'stove' && ['meal', 'cook_meal'].includes(target.actionId)) return beginCookStage(state, entity, obj);
+    if (obj.kind === 'dining_table' && ['serve_meal', 'eat_meal'].includes(target.actionId)) return beginDiningStage(state, entity, obj);
+    if (obj.kind === 'cleaning_closet' && target.actionId === 'get_cleaning_supplies') return beginCleaningSupplyStage(state, entity, obj);
+    if (obj.kind === 'vacuum_cleaner' && target.actionId === 'vacuum_clean') return beginVacuumStage(state, entity, obj);
+    if (obj.kind === 'robot_vacuum' && target.actionId === 'robot_vacuum_start') return beginRobotVacuumStage(state, entity, obj);
     if (isTogetherAction(target.actionId)) { if (queuePartnerForSharedAction(state, entity, target.actionId, obj)) return; entity.action = 'Idle'; entity.actionT = 0; entity.pose = 'stand'; return; }
     const label = `${obj.label}: ${target.actionId.replaceAll('_', ' ')}`;
     beginTimedAction(entity, label, target.actionId); say(entity, speechFor(target.actionId));
@@ -121,6 +128,51 @@ export function resolveArrival(state, entity) {
     say(entity, speechFor(target.socialId)); say(other, speechFor(target.socialId)); other.mood = entity.type === 'dog' ? 'dog' : 'happy';
     if (target.socialId === 'intimacy') { state.roomLights.bedroom = false; state.roomLights.hall = false; log(state, 'The bedroom lights turn off for privacy.'); }
   }
+}
+
+function beginIngredientStage(state, entity, obj) {
+  beginTimedAction(entity, 'Fridge: gather ingredients', 'gather_ingredients');
+  state.objectState.fridgeOpen = true;
+  state.objectState.fridgeActivity = 'meal';
+  entity.carrying = 'ingredients';
+  entity.queuedTask = { type: 'object', objectId: 'stove', actionId: 'cook_meal' };
+  say(entity, 'PREP');
+  log(state, `${entity.name} grabbed ingredients before cooking.`);
+}
+
+function beginCookStage(state, entity, obj) {
+  beginTimedAction(entity, 'Stove: cook meal', 'cook_meal');
+  state.objectState.stovePan = true;
+  entity.carrying = 'cooking_meal';
+  entity.queuedTask = { type: 'object', objectId: 'dining_table', actionId: 'serve_meal' };
+  say(entity, 'COOK');
+  log(state, `${entity.name} is cooking at the stove before eating.`);
+}
+
+function beginDiningStage(state, entity, obj) {
+  beginTimedAction(entity, 'Dining Table: eat meal', 'eat_meal');
+  placeTableMeal(state, entity, obj);
+  entity.pose = 'sit';
+  say(entity, 'EAT');
+  log(state, `${entity.name} set the meal on the dining table before eating.`);
+}
+
+function beginCleaningSupplyStage(state, entity, obj) {
+  beginTimedAction(entity, `${obj.label}: get cleaning supplies`, 'get_cleaning_supplies');
+  entity.carrying = 'cleaning_supplies';
+  say(entity, 'CLEAN');
+}
+
+function beginVacuumStage(state, entity, obj) {
+  beginTimedAction(entity, `${obj.label}: vacuum crumbs`, 'vacuum_clean');
+  entity.carrying = 'vacuum';
+  say(entity, 'VAC');
+}
+
+function beginRobotVacuumStage(state, entity, obj) {
+  startRobotVacuum(state, obj);
+  beginTimedAction(entity, `${obj.label}: start`, 'robot_vacuum_start');
+  say(entity, 'AUTO');
 }
 
 function syncDogForBath(state, actor, obj) {
@@ -176,6 +228,7 @@ export function updateActions(state, dt) {
   }
   updateReactionWorld(state, dt);
   updateInvestments(state, dt);
+  updateRobotVacuum(state, dt);
   if (state.offsite) {
     if (shouldFastForwardOffsite(state)) state.time += dt * 22;
     if (updateOffsiteJob(state, dt)) finishOffsite(state);
@@ -194,8 +247,12 @@ function finishAction(state, e) {
   if (completedActionId) recordLifeActivity(state, e, completedActionId, text);
   const continued = continueTrashRun(state, e, text); if (continued && text.includes('take trash out')) return;
   if ((completedActionId === 'read_carried_book' || e.bookReading) && finishBookReading(state, e)) return;
-  if (text.includes('snack')) { changeNeed(e, 'hunger', 18); setMood(e, 'happy'); addGarbageFromAction(state, 'snack', e); }
-  if (text.includes('meal')) { changeNeed(e, 'hunger', 30); changeNeed(e, 'fun', 4); setMood(e, 'happy'); addGarbageFromAction(state, 'meal'); }
+  if (completedActionId === 'snack') { changeNeed(e, 'hunger', 18); setMood(e, 'happy'); spawnCrumbs(state, e, 1, 'snack'); addGarbageFromAction(state, 'snack', e); }
+  if (completedActionId === 'gather_ingredients') { setMood(e, 'calm'); }
+  if (completedActionId === 'cook_meal') { state.objectState.stovePan = false; e.carrying = 'plated_meal'; setMood(e, 'happy'); }
+  if (completedActionId === 'eat_meal' || text.includes('eat at table')) { changeNeed(e, 'hunger', 30); changeNeed(e, 'fun', 4); changeNeed(e, 'social', 4); changeNeed(e, 'freshness', -3); setMood(e, 'happy'); spawnCrumbs(state, e, 3, 'meal'); addGarbageFromAction(state, 'meal', e); clearTableMealForActor(state, e); }
+  if (completedActionId === 'vacuum_clean') { cleanCrumbsNear(state, e); changeNeed(e, 'freshness', -1); setMood(e, 'calm'); }
+  if (completedActionId === 'robot_vacuum_start') { setMood(e, 'calm'); }
   if (text.includes('bring food')) { changeNeed(e, 'social', 5); setMood(e, 'happy'); }
   if (text.includes('shower')) { changeNeed(e, 'freshness', 36); setMood(e, 'calm'); e.carrying = 'towel'; }
   if (text.includes('wash dog')) { const dog = byId(state, 'dog'); if (dog) { changeNeed(dog, 'freshness', 42); changeNeed(dog, 'fun', 6); dog.action = 'Idle'; dog.pose = 'stand'; dog.actionT = 0; dog.actionTotal = 0; dog.currentActionId = null; say(dog, 'clean'); } changeNeed(e, 'freshness', -3); changeNeed(e, 'social', 4); setMood(e, 'happy'); }
@@ -216,7 +273,6 @@ function finishAction(state, e) {
   if (text.includes('treadmill') || text.includes('lift weights') || text.includes('heavy bag')) { changeNeed(e, 'stamina', -12); changeNeed(e, 'fun', 8); changeNeed(e, 'freshness', -8); setMood(e, 'hyped'); }
   if (text.includes('swim')) { changeNeed(e, 'stamina', -7); changeNeed(e, 'fun', 18); changeNeed(e, 'freshness', 8); setMood(e, 'happy'); e.carrying = 'towel'; }
   if (text.includes('coffee')) { changeNeed(e, 'energy', 10); setMood(e, 'hyped'); }
-  if (text.includes('eat at table')) { changeNeed(e, 'hunger', 24); changeNeed(e, 'social', 4); changeNeed(e, 'freshness', -3); setMood(e, 'happy'); }
   if (text.includes('phone') || text.includes('talk')) { changeNeed(e, 'social', 18); setMood(e, 'phone'); }
   if (text.includes('kiss') || text.includes('cuddle') || text.includes('hands')) { changeNeed(e, 'social', 22); setMood(e, 'love'); }
   if (text.includes('pet') || text.includes('train') || text.includes('tickle')) { changeNeed(e, 'fun', 14); setMood(e, e.type === 'dog' ? 'dog' : 'happy'); }
@@ -224,8 +280,9 @@ function finishAction(state, e) {
   if (text.includes('feed dog')) { const dog = byId(state, 'dog'); if (dog) changeNeed(dog, 'hunger', 40); }
   if (text.includes('light')) toggleRoomLight(state, e);
   state.objectState.fridgeOpen = false; state.objectState.fridgeActivity = null; state.objectState.doorOpen = false;
+  if (completedActionId !== 'cook_meal') e.carrying = e.carrying === 'plated_meal' ? null : e.carrying;
   e.action = 'Idle'; e.actionT = 0; e.actionTotal = 0; e.pose = 'stand'; e.currentActionId = null; e.idleT = -3;
-  if (e.carrying && ['popcorn', 'snack'].includes(e.carrying)) e.carrying = null;
+  if (e.carrying && ['popcorn', 'snack', 'ingredients', 'cleaning_supplies', 'vacuum'].includes(e.carrying)) e.carrying = null;
   if (e.queuedTask) runQueuedTask(state, e);
 }
 
@@ -284,4 +341,4 @@ function buildParty(state, actor, invitedIds, actionId, vehicleId = 'auto') {
 }
 
 function finishOffsite(state) { const job = state.offsite; if (!job) return; applyOffsiteRewards(state, job); beginVehicleReturn(state, job.actionId, job.actors || [], job.vehicleId || state.objectState.vehicleInUse || 'car_1'); state.offsite = null; state.objectState.doorOpen = false; }
-function speechFor(actionId) { const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'SNACK', meal: 'COOK', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', make_bed: 'BED', change_clothes: 'FIT', plan_week_outfits: 'FIT', wash_dog: 'BATH', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', read: 'READ', read_carried_book: 'READ', study: 'STUDY', eat_meal: 'EAT', coffee: 'COFFEE', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'BED', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
+function speechFor(actionId) { const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'SNACK', meal: 'COOK', gather_ingredients: 'PREP', cook_meal: 'COOK', serve_meal: 'PLATE', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', make_bed: 'BED', change_clothes: 'FIT', plan_week_outfits: 'FIT', get_cleaning_supplies: 'CLEAN', vacuum_clean: 'VAC', robot_vacuum_start: 'AUTO', wash_dog: 'BATH', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', read: 'READ', read_carried_book: 'READ', study: 'STUDY', eat_meal: 'EAT', coffee: 'COFFEE', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'BED', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
