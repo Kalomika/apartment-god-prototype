@@ -1,6 +1,6 @@
 # Apartment God Development Handbook
 
-Last major handbook update: 2026-07-08 04:35 AM CT
+Last major handbook update: 2026-07-12 03:10 AM CT
 
 This is the long form rulebook for Apartment God development. Every AI, scheduled agent, or developer working on the project should read this before touching the repo.
 
@@ -60,6 +60,7 @@ Before meaningful work, read:
 ```txt
 docs/APARTMENT_GOD_DEVELOPMENT_HANDBOOK.md
 docs/APARTMENT_GOD_BACKUP_POLICY.md
+docs/APARTMENT_GOD_NO_BROAD_IMPLEMENTATION_RULE.md
 apartment-god-production/ONGOING_DESIGN_LOG.md
 apartment-god-production/DEVELOPMENT_MATRIX.md
 ```
@@ -67,6 +68,8 @@ apartment-god-production/DEVELOPMENT_MATRIX.md
 The handbook is the standing rulebook.
 
 The backup policy defines when restore branches are required, how routine and milestone backups should be treated, and what must happen before any Render playable branch update.
+
+The no broad implementation rule blocks generic placeholder logic from being treated as a real visual, animation, layout, object, or activity implementation when a specific state is required.
 
 The ongoing log is the dated work history. It records what was done, what was planned, what was reverted, what is risky, what still needs testing, and what another AI should not accidentally overwrite.
 
@@ -503,7 +506,41 @@ Phaser is the future target, but playable clone comes first. Do not replace work
 
 ---
 
-## 18. Repo Map
+## 18. No Broad Implementation Rule
+
+Apartment God must not use broad, generic, or shared placeholder logic as the final implementation when a specific visual, pose, animation, object interaction, room layout, or activity state is required.
+
+Before committing runtime or visual work, check:
+
+```txt
+1. Does the activity resolve to a specific state?
+2. Does the pose or animation match the exact object and action?
+3. Does the object read as its intended real object, not an abstract placeholder?
+4. Does the visual obey true top down presentation?
+5. If a fallback remains, is it named, documented, and not represented as final?
+```
+
+Hard examples:
+
+```txt
+Lifting weights cannot share the same pose as punching a heavy bag.
+Treadmill cannot share the same pose as walking to an object.
+Desk laptop use cannot share the same pose as reading or phone use.
+Bed sleeping under covers cannot share the same visual as lying awake.
+Showering cannot rely on blurry censorship overlays.
+Dog washing cannot share generic petting or shower logic.
+Closets, baths, beds, and furniture must reflect their actual intended physical structure and gameplay use.
+```
+
+The detailed rule file is required reading:
+
+```txt
+docs/APARTMENT_GOD_NO_BROAD_IMPLEMENTATION_RULE.md
+```
+
+---
+
+## 19. Repo Map
 
 Common runtime areas:
 
@@ -535,7 +572,7 @@ assets/manifests/
 
 ---
 
-## 19. Developer Behavior Standards
+## 20. Developer Behavior Standards
 
 Be careful, direct, and honest.
 
@@ -543,7 +580,7 @@ Before editing:
 
 1. Verify repo.
 2. Verify branch.
-3. Read handbook, backup policy, ongoing log, and development matrix.
+3. Read handbook, backup policy, no broad implementation rule, ongoing log, and development matrix.
 4. Inspect relevant files.
 5. Create backup for major work.
 
@@ -555,6 +592,7 @@ While editing:
 - Do not remove working behavior unless replacing it with tested better behavior.
 - Avoid duplicate systems that fight each other.
 - Make failure states visible and recoverable.
+- Reject broad generic implementation before committing runtime changes.
 
 After editing:
 
@@ -566,7 +604,7 @@ After editing:
 
 ---
 
-## 20. Current Known Direction Summary
+## 21. Current Known Direction Summary
 
 Immediate priority is smarter autonomy and reliable movement.
 
