@@ -9,6 +9,7 @@ import { applyOffsiteRewards, canAffordTravel, destinationFor, isDestinationOpen
 import { updateInvestments } from './investmentSystem.js';
 import { updateReactionWorld } from './reactionSystem.js';
 import { startMiniSoccerAtField, startSoccerPracticeAtField } from './soccerSystem.js';
+import { finishBookReading, finishBookReturnAtShelf, startBookReadingAtSeat, startBookReadingRoute, startLooseBookReturnFromSurface } from './bookSystem.js';
 
 function isTimedBusy(actor) {
   return Boolean(actor?.actionT > 0 && !String(actor.action || '').toLowerCase().includes('idle'));
@@ -76,7 +77,7 @@ function beginTimedAction(entity, label, actionId) {
   entity.pose = actionId === 'dog_rest' ? 'dog_rest' :
     actionId === 'wash_dog' ? 'wash_dog' :
     ['sleep', 'nap', 'bed_together', 'intimacy'].includes(actionId) ? 'sleep' :
-    ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together', 'read', 'study', 'eat_meal', 'sit_table', 'change_clothes', 'plan_week_outfits'].includes(actionId) ? 'sit' :
+    ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together', 'read', 'study', 'eat_meal', 'sit_table', 'change_clothes', 'plan_week_outfits', 'read_carried_book'].includes(actionId) ? 'sit' :
     ['treadmill', 'lift_weights', 'heavy_bag', 'swim', 'swim_together', 'shower', 'pool_solo', 'pool_together', 'soccer_practice', 'soccer_match'].includes(actionId) ? actionId : 'stand';
 }
 
@@ -89,8 +90,12 @@ function isTogetherAction(actionId) { return actionId === 'watch_together' || ac
 export function resolveArrival(state, entity) {
   if (!entity.target) return;
   const target = entity.target; entity.target = null;
+  if (target.type === 'bookSeat') return startBookReadingAtSeat(state, entity, target);
+  if (target.type === 'looseBook') return startLooseBookReturnFromSurface(state, entity, target);
+  if (target.type === 'bookShelfReturn') return finishBookReturnAtShelf(state, entity, target);
   if (target.type === 'object') {
     const obj = getObject(target.objectId); if (!obj) return;
+    if (obj.kind === 'bookshelf' && target.actionId === 'read') return startBookReadingRoute(state, entity, obj);
     if (obj.kind === 'soccer_field') {
       if (target.actionId === 'soccer_match') startMiniSoccerAtField(state, entity);
       else startSoccerPracticeAtField(state, entity);
@@ -183,7 +188,10 @@ function shouldFastForwardOffsite(state) {
 }
 
 function finishAction(state, e) {
-  const text = String(e.action || '').toLowerCase(); const continued = continueTrashRun(state, e, text); if (continued && text.includes('take trash out')) return;
+  const text = String(e.action || '').toLowerCase();
+  const completedActionId = e.currentActionId;
+  const continued = continueTrashRun(state, e, text); if (continued && text.includes('take trash out')) return;
+  if ((completedActionId === 'read_carried_book' || e.bookReading) && finishBookReading(state, e)) return;
   if (text.includes('snack')) { changeNeed(e, 'hunger', 18); setMood(e, 'happy'); addGarbageFromAction(state, 'snack', e); }
   if (text.includes('meal')) { changeNeed(e, 'hunger', 30); changeNeed(e, 'fun', 4); setMood(e, 'happy'); addGarbageFromAction(state, 'meal'); }
   if (text.includes('bring food')) { changeNeed(e, 'social', 5); setMood(e, 'happy'); }
@@ -274,4 +282,4 @@ function buildParty(state, actor, invitedIds, actionId, vehicleId = 'auto') {
 }
 
 function finishOffsite(state) { const job = state.offsite; if (!job) return; applyOffsiteRewards(state, job); beginVehicleReturn(state, job.actionId, job.actors || [], job.vehicleId || state.objectState.vehicleInUse || 'car_1'); state.offsite = null; state.objectState.doorOpen = false; }
-function speechFor(actionId) { const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'SNACK', meal: 'COOK', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', make_bed: 'BED', change_clothes: 'FIT', plan_week_outfits: 'FIT', wash_dog: 'BATH', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', read: 'READ', study: 'STUDY', eat_meal: 'EAT', coffee: 'COFFEE', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'BED', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
+function speechFor(actionId) { const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'SNACK', meal: 'COOK', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', make_bed: 'BED', change_clothes: 'FIT', plan_week_outfits: 'FIT', wash_dog: 'BATH', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', read: 'READ', read_carried_book: 'READ', study: 'STUDY', eat_meal: 'EAT', coffee: 'COFFEE', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'BED', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
