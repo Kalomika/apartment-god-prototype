@@ -88,7 +88,9 @@ export function createState() {
     secretLog: { used: {}, lastRewardAt: 0 },
     calendar: { bookings: [], history: [] },
     books: { loose: [], returned: 0 },
+    meals: { tablePlates: [] },
     tidiness: { rooms: {} },
+    cleaning: { crumbs: [], robotVacuum: { active: true, floor: 0, x: 694, y: 460, dockX: 694, dockY: 460, targetId: null, cleaned: 0 } },
     lifeControl: { mode: 'semi_auto', pendingChoices: [] },
     lifeQuality: { lastMonthIndex: null, lastYearIndex: null, reviews: [], yearReviews: [] },
     careers: {
