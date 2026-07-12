@@ -14,7 +14,11 @@ A safety branch was created before the smoke invalid-state fix:
 
 `backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
 
-The current focused runtime fix branch is:
+The current broad audit branch is:
+
+`top-shot-anomaly-audit-2026-07-12`
+
+The focused runtime smoke fix branch is:
 
 `top-shot-smoke-invalid-state-fix`
 
@@ -42,7 +46,46 @@ Read these before any Top Shot task:
 10. Open PRs related to Top Shot
 11. The exact files to edit
 
-## Latest runtime fix pass
+## Latest anomaly audit pass
+
+Branch:
+
+`top-shot-anomaly-audit-2026-07-12`
+
+Base branch:
+
+`top-shot-smoke-invalid-state-fix`
+
+Backup branch:
+
+`backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
+
+Implemented:
+
+- Created a separate audit branch so broad audit work does not overwrite PR #25 directly.
+- Added `top-shot/docs/AUDIT_REPORT_2026-07-12.md`.
+- Updated `top-shot/AGENTS.md` and `top-shot/docs/TOP_SHOT_HANDBOOK.md` so every Top Shot completion report must include clickable playable links.
+- Updated top-level check expectations to include the split smoke commands plus the full smoke gate.
+- Strengthened `top-shot/tests/cqcSmoke.js` to cover body-shot zone recording, sweep grounding attempts, mount spacing, mounted ground attacks, mount escape integrity, CQC numeric validity, and hitbox numeric validity.
+- Updated `top-shot/docs/QA_CHECKLIST.md`, `top-shot/docs/COVERAGE_MATRIX.md`, and `top-shot/docs/DEVELOPMENT_LOG.md`.
+
+Files changed in latest pass:
+
+- `top-shot/AGENTS.md`
+- `top-shot/docs/TOP_SHOT_HANDBOOK.md`
+- `top-shot/docs/AUDIT_REPORT_2026-07-12.md`
+- `top-shot/docs/HANDOFF.md`
+- `top-shot/docs/DEVELOPMENT_LOG.md`
+- `top-shot/docs/QA_CHECKLIST.md`
+- `top-shot/docs/COVERAGE_MATRIX.md`
+- `top-shot/tests/cqcSmoke.js`
+
+What changed in gameplay:
+
+- No gameplay runtime code was intentionally changed in this audit pass.
+- CQC smoke coverage is stricter and may reveal real CQC issues the old smoke did not catch.
+
+## Previous runtime fix pass
 
 Branch:
 
@@ -61,16 +104,6 @@ Implemented:
 - Upgraded `top-shot/tests/simSmoke.js` with richer invalid-state diagnostics, fighter/projectile context dumps, and a direct regression check for `diveT` without `diveVx` or `diveVy`.
 - Split `top-shot/package.json` smoke scripts into `smoke:sim`, `smoke:cqc`, `smoke:stealth`, and `smoke:model` so the failing area can be rerun directly.
 - Runtime and test code changed. This branch still needs a real smoke run from a local or CI environment with repo access.
-
-Files changed in latest pass:
-
-- `top-shot/src/explosives.js`
-- `top-shot/tests/simSmoke.js`
-- `top-shot/package.json`
-- `top-shot/docs/HANDOFF.md`
-- `top-shot/docs/DEVELOPMENT_LOG.md`
-- `top-shot/docs/QA_CHECKLIST.md`
-- `top-shot/docs/COVERAGE_MATRIX.md`
 
 ## Previous documentation pass
 
@@ -110,6 +143,10 @@ Backup for coverage matrix pass:
 Backup for smoke fix pass:
 
 `backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
+
+Audit branch:
+
+`top-shot-anomaly-audit-2026-07-12`
 
 Focused runtime fix branch:
 
@@ -152,11 +189,22 @@ npm run build
 - Mounting and grounded CQC still work.
 - Projectiles and effects render.
 - Grenade throws and suppression dives do not create invalid fighter state.
-- If `npm run smoke:sim` fails, use the printed context before editing again.
+- Body shots record proper zones.
+- Sweeps, trips, mounts, mounted attacks, and mount escapes remain readable and valid.
+- If `npm run smoke:sim` or `npm run smoke:cqc` fails, use the printed context before editing again.
 - Debug overlay toggles with `D`.
 - Collision debug toggles with `C`.
 - No console errors on start.
 - No obvious visual squashing.
+
+## Playable links
+
+Every Top Shot completion report must include clickable links:
+
+- [Top Shot live app](https://top-shot-prototype.onrender.com/)
+- PR link or branch link for the work
+- Local playable command
+- Deployment status if the live app is not verified to show the current branch
 
 ## Coverage matrix focus
 
@@ -193,3 +241,4 @@ Every coding pass must report:
 - Known risks
 - Exact next step
 - PR link or branch link
+- Clickable playable links
