@@ -2,7 +2,7 @@ export const CANVAS_W = 1280;
 export const CANVAS_H = 720;
 export const PLAY_W = 960;
 export const PLAY_H = 720;
-export const ENTITY_RADIUS = 18;
+export const ENTITY_RADIUS = 16;
 export const DOUBLE_TAP_MS = 320;
 
 export const NEEDS = [
@@ -37,7 +37,7 @@ export const ACTIONS = {
   bookshelf: [['read', 'Read Book'], ['study', 'Study']],
   fridge: [['snack', 'Get Snack'], ['meal', 'Cook Meal'], ['bring_food', 'Bring Food']],
   stove: [['meal', 'Cook Meal']],
-  sink: [['clean', 'Clean'], ['wash_dishes', 'Wash Dishes'], ['brush_teeth', 'Brush Teeth'], ['groom', 'Groom']],
+  sink: [['groom', 'Wash Hands / Groom'], ['brush_teeth', 'Brush Teeth'], ['clean', 'Clean Sink'], ['wash_dishes', 'Wash Dishes']],
   coffee_maker: [['coffee', 'Make Coffee']],
   dining_table: [['eat_meal', 'Eat at Table'], ['sit_table', 'Sit at Table']],
   cleaning_closet: [['get_cleaning_supplies', 'Get Cleaning Supplies']],
