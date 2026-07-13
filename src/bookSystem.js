@@ -25,7 +25,7 @@ export function ensureBookState(state) {
 export function startBookReadingRoute(state, actor, shelf) {
   if (!actor || !shelf) return false;
   ensureBookState(state);
-  const seat = chooseReadingSeat(state, actor);
+  const seat = chooseReadingSeat(state, actor, shelf);
   actor.bookReading = false;
   actor.trainingSkill = 'intellect';
   actor.carrying = 'book';
@@ -48,12 +48,56 @@ export function startBookReadingRoute(state, actor, shelf) {
   return true;
 }
 
-function chooseReadingSeat(state, actor) {
+function chooseReadingSeat(state, actor, shelf = null) {
+  if (shelf && shelf.floor !== 0) return sameFloorReadingSeat(shelf.floor, shelf) || fallbackReadingSeatForFloor(shelf.floor, shelf);
   const couchBusy = state.entities?.some(e => e.id !== actor.id && !e.hidden && e.floor === 0 && actorUsingCouch(e));
   if (couchBusy) return LIVING_COUCH_SEATS[1];
   const wantsOutside = (state.time || 0) % 3 > 1.8 && !nextCommitmentSoon(state, actor, 45);
   if (wantsOutside) return OUTSIDE_READING_SEATS[0];
   return LIVING_COUCH_SEATS[0];
+}
+
+function sameFloorReadingSeat(floor, shelf) {
+  const officeCouch = getObject('office_couch');
+  if (floor === 1 && officeCouch?.floor === 1) {
+    return {
+      id: 'office_couch_read',
+      label: 'office couch',
+      floor: 1,
+      x: officeCouch.x + officeCouch.w / 2,
+      y: officeCouch.y + officeCouch.h / 2,
+      surfaceX: officeCouch.x + officeCouch.w / 2,
+      surfaceY: officeCouch.y + 14,
+      surfaceLabel: 'office couch cushion'
+    };
+  }
+  const desk = getObject('desk');
+  if (floor === 1 && desk?.floor === 1) {
+    return {
+      id: 'office_desk_read',
+      label: 'office desk chair',
+      floor: 1,
+      x: desk.x + desk.w / 2,
+      y: desk.y + desk.h + 42,
+      surfaceX: desk.x + desk.w / 2,
+      surfaceY: desk.y + 18,
+      surfaceLabel: 'office desk'
+    };
+  }
+  return null;
+}
+
+function fallbackReadingSeatForFloor(floor, shelf) {
+  return {
+    id: `floor_${floor}_reading_spot`,
+    label: 'nearby reading spot',
+    floor,
+    x: shelf.x + shelf.w + 52,
+    y: shelf.y + shelf.h / 2,
+    surfaceX: shelf.x + shelf.w / 2,
+    surfaceY: shelf.y + 14,
+    surfaceLabel: shelf.label || 'bookshelf'
+  };
 }
 
 function actorUsingCouch(actor) {
@@ -204,6 +248,7 @@ function surfaceForActor(state, actor) {
     { id: 'dining_table', label: 'dining table' },
     { id: 'desk', label: 'desk' },
     { id: 'bed', label: 'bed' },
+    { id: 'office_couch', label: 'office couch cushion' },
     { id: 'bookshelf', label: 'bookshelf ledge' }
   ].map(item => ({ ...item, obj: getObject(item.id) })).filter(item => item.obj && item.obj.floor === actor.floor);
   surfaces.sort((a, b) => distanceToObj(actor, a.obj) - distanceToObj(actor, b.obj));
@@ -291,6 +336,8 @@ export function visibleLooseBooks(state) {
 }
 
 export function readingFurnitureForFloor(floor) {
-  if (floor !== 0) return [];
-  return [...LIVING_COUCH_SEATS, ...OUTSIDE_READING_SEATS];
+  if (floor === 0) return [...LIVING_COUCH_SEATS, ...OUTSIDE_READING_SEATS];
+  const shelf = getObject('bookshelf');
+  if (shelf?.floor === floor) return [sameFloorReadingSeat(floor, shelf) || fallbackReadingSeatForFloor(floor, shelf)];
+  return [];
 }
