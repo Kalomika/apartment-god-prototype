@@ -43,10 +43,10 @@ export const floors = [
 ];
 
 export const objects = [
-  { id: 'couch', label: 'Couch', kind: 'couch', floor: 0, room: 'living', x: 132, y: 188, w: 198, h: 72, facing: 'up', solid: true, enterable: true },
+  { id: 'couch', label: 'Couch', kind: 'couch', floor: 0, room: 'living', x: 108, y: 250, w: 210, h: 62, facing: 'up', solid: true, enterable: true },
   { id: 'tv', label: 'Wall Mounted TV', kind: 'tv', floor: 0, room: 'living', x: 172, y: 54, w: 120, h: 30, wallMounted: true, solid: true },
   { id: 'stereo', label: 'Media Shelf', kind: 'stereo', floor: 0, room: 'living', x: 304, y: 60, w: 58, h: 34, solid: true },
-  { id: 'bookshelf', label: 'Bookshelf', kind: 'bookshelf', floor: 0, room: 'living', x: 42, y: 72, w: 58, h: 150, solid: true },
+  { id: 'bookshelf', label: 'Bookshelf', kind: 'bookshelf', floor: 0, room: 'entry', x: 72, y: 426, w: 42, h: 92, solid: true },
   { id: 'fridge', label: 'Fridge', kind: 'fridge', floor: 0, room: 'kitchen', x: 486, y: 70, w: 70, h: 88, facing: 'down', solid: true },
   { id: 'stove', label: 'Stove', kind: 'stove', floor: 0, room: 'kitchen', x: 598, y: 70, w: 72, h: 64, solid: true },
   { id: 'sink', label: 'Sink', kind: 'sink', floor: 0, room: 'kitchen', x: 690, y: 78, w: 54, h: 48, solid: true },
@@ -58,7 +58,7 @@ export const objects = [
   { id: 'door', label: 'Front Door', kind: 'door', floor: 0, room: 'entry', x: 240, y: 544, w: 96, h: 34, solid: false },
   { id: 'pet_flap_front', label: 'Front Pet Flap', kind: 'door', styleAs: 'door', floor: 0, room: 'entry', x: 354, y: 548, w: 46, h: 24, solid: false },
   { id: 'basement_door', label: 'Basement Door', kind: 'stairs', floor: 0, room: 'stairs', x: 742, y: 386, w: 82, h: 52, solid: false, toFloor: 2, exitId: 'basement_stairs_up' },
-  { id: 'garage_door', label: 'Garage Interior Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'entry', x: 28, y: 418, w: 34, h: 72, solid: false, toFloor: 3, exitId: 'garage_entry_door' },
+  { id: 'garage_door', label: 'Garage Interior Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'entry', x: 28, y: 468, w: 34, h: 72, solid: false, toFloor: 3, exitId: 'garage_entry_door' },
   { id: 'backyard_door', label: 'Kitchen/Living Back Door', kind: 'stairs', styleAs: 'door', floor: 0, room: 'living', x: 416, y: 38, w: 54, h: 34, solid: false, toFloor: 4, exitId: 'yard_back_door' },
   { id: 'dog_bed', label: 'Dog Bed', kind: 'dog_bed', floor: 0, room: 'entry', x: 600, y: 476, w: 64, h: 42, solid: false, enterable: true },
   { id: 'dog_bowl', label: 'Dog Bowl', kind: 'dog_bowl', floor: 0, room: 'entry', x: 674, y: 486, w: 36, h: 26, solid: false },
@@ -166,8 +166,10 @@ export function clampToPlay(x, y) {
 export function approachPoint(obj, action = '') {
   const cx = obj.x + obj.w / 2;
   const cy = obj.y + obj.h / 2;
+  if (obj.kind === 'stairs') return clampToPlay(cx, cy);
   if (obj.kind === 'dog_bath') return clampToPlay(cx, cy);
   if (obj.kind === 'closet') return clampToPlay(cx, obj.y + obj.h + 26);
+  if (obj.kind === 'couch') return clampToPlay(cx, obj.facing === 'up' ? obj.y + obj.h * .48 : obj.y + obj.h - 24);
   if (obj.enterable || ['sleep', 'nap', 'shower', 'toilet', 'swim', 'swim_together', 'soccer_practice', 'soccer_match', 'wash_dog'].includes(action)) return clampToPlay(cx, cy);
   if (obj.kind === 'fridge') return clampToPlay(cx, obj.y + obj.h + 42);
   if (['stove', 'sink'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36);
@@ -193,9 +195,7 @@ export function approachPoint(obj, action = '') {
     const seat = obj.room === 'living' ? getObject('couch') : obj.room === 'bedroom' ? getObject('bed') : obj.room === 'secret_lab' ? getObject('lab_pose_chair') : getObject('basement_couch');
     return seat ? clampToPlay(seat.x + seat.w * .55, seat.y + seat.h / 2) : clampToPlay(cx, obj.y + 150);
   }
-  if (obj.kind === 'couch') return clampToPlay(cx, obj.facing === 'up' ? obj.y + obj.h * .48 : obj.y + obj.h - 24);
   if (obj.kind === 'door') return clampToPlay(cx, obj.y - 28);
-  if (obj.kind === 'stairs') return obj.styleAs === 'door' ? clampToPlay(cx, cy) : clampToPlay(cx, obj.y + obj.h + 28);
   if (obj.kind === 'dog_bowl') return clampToPlay(cx, obj.y + obj.h + 30);
   if (obj.kind === 'light') return clampToPlay(obj.x - 26, obj.y + 10);
   return clampToPlay(cx, obj.y + obj.h + 32);
