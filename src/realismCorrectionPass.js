@@ -1,15 +1,12 @@
 import { floors, objects } from './world.js';
 
-const INK = '#071018';
 const GOLD = '#f1c66a';
 const CYAN = '#74e6ff';
 const WOOD = '#8b5f3b';
 const FLOOR_MAIN = '#d8c4a4';
-const FLOOR_UP = '#d4c2a4';
 const GRASS = '#536f52';
 
-export function applyRealismRuntimeCorrections(state) {
-  if (state.realismCorrectionPassVersion === 3) return;
+export function applyRealismRuntimeCorrections(state = {}) {
   state.realismCorrectionPassVersion = 3;
   setObject('couch', { x: 96, y: 184, w: 238, h: 124, facing: 'up', enterable: true });
   setObject('dining_table', { x: 494, y: 286, w: 196, h: 62 });
