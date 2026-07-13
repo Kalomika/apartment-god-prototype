@@ -1,32 +1,37 @@
 {
-  "version": 1,
+  "version": 2,
   "pass_id": "anime-visual-pass-01",
   "camera": "orthographic_true_overhead",
   "style_standard": "docs/APARTMENT_GOD_TRUE_TOP_DOWN_ANIME_VISUAL_STANDARD.md",
-  "approved": [
+  "runtime_enabled": false,
+  "status": "reverted",
+  "reverted_on": "2026-07-13",
+  "revert_reason": "Live garage QA showed the metallic/anime garage underlay and production vehicle PNGs were only partially integrated. Idle/default garage and interaction/open garage states diverged visually, and the garage read as not truly top down. Runtime now falls back to the pre-metallic procedural garage and vehicle renderer until a full consistent true-top-down garage replacement exists.",
+  "disabled_runtime_modules": [
+    "src/animeVisualAssets.js",
+    "src/animeVisualLayer.js"
+  ],
+  "retained_for_audit_only": [
     {
       "id": "garage_family_suv_anime_01",
       "file": "assets/sprites/vehicles/anime-pass-01/family-suv/garage_suv_anime_top_512.png",
       "sha256": "d1591c2f61174c71ed3c392dac15fdc5d82d1491d7e06ee6df644dbf19dcdc44",
-      "runtime_state": "closed",
-      "fallback": "src/vehicleSpriteRenderer.js"
+      "former_runtime_state": "closed"
     },
     {
       "id": "garage_sports_convertible_anime_01",
       "file": "assets/sprites/vehicles/anime-pass-01/sports-convertible/garage_convertible_anime_top_512.png",
       "sha256": "eff3c81dad2fb33980ca8552b607f893e0fcfe5da4bd8b6499d05200ee7da503",
-      "runtime_state": "closed",
-      "fallback": "src/vehicleSpriteRenderer.js"
+      "former_runtime_state": "closed"
     },
     {
       "id": "garage_floor_anime_01",
       "file": "assets/sprites/environments/anime-pass-01/garage/garage_floor_anime_painterly_960x720.png",
       "sha256": "396ac75281602727d00284209ec73ad4bfc963425f25889211145812611b5362",
-      "runtime_state": "garage_underlay",
-      "fallback": "src/renderWorld.js"
+      "former_runtime_state": "garage_underlay"
     }
   ],
-  "rejected": [
+  "previously_rejected": [
     {
       "category": "human_character",
       "reason": "Generated poses retained front-facing facial and torso construction instead of strict overhead anatomy."
@@ -36,12 +41,9 @@
       "reason": "Generated pose read as lying on its back instead of standing upright on four feet from above."
     }
   ],
-  "deferred": [
-    "open SUV door and trunk production frames",
-    "open convertible door and trunk production frames",
-    "complete true-overhead 2D human sprite sheet and animation set",
-    "complete true-overhead 2D dog sprite sheet and animation set",
-    "bike, motorbike, and ATV production sprites",
-    "remaining room environment plates and object set"
+  "follow_up_required": [
+    "Keep the pre-metallic garage renderer active for all garage states.",
+    "Do not re-enable anime-pass-01 garage assets without matching default, selected, open, closed, interaction, departure, return, and mobile states.",
+    "Future garage replacement must be true top down and state complete before runtime integration."
   ]
 }
