@@ -60,7 +60,7 @@ function isWatchingTv(state) {
 }
 
 function drawCleanPorch(ctx) {
-  clearFloor(ctx, 136, 570, 360, 114, PORCH_WOOD, PORCH_LINE);
+  clearFloor(ctx, 80, 558, 520, 142, FLOOR, FLOOR_LINE);
   round(ctx, 136, 570, 360, 114, 0, PORCH_WOOD);
   for (let y = 582; y < 674; y += 18) line(ctx, 146, y, 486, y, PORCH_LINE, 1);
   round(ctx, 136, 570, 360, 9, 0, '#61482f');
