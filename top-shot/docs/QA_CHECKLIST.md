@@ -65,6 +65,17 @@ Do not claim these passed unless they were actually run.
 - Ground attacks or mounted attacks display correctly.
 - Hitbox debug data remains coherent and finite.
 - `npm run smoke:cqc` stays aligned with these preservation targets.
+- Grounding smoke expectations should use deterministic setup, not random luck.
+
+## Stealth checks
+
+- `npm run smoke:stealth` validates legal stealth phase transitions instead of requiring the first update to remain hard-coded to `infiltration`.
+- Shadow crouch detection should not become too strong.
+- Noise should build suspicion.
+- Clear sight should store last known position.
+- Alert phase should require hard visual confirmation or equivalent strong evidence.
+- Stealth search planning should produce a destination.
+- If PR #26 or another visual branch still fails on the old fixed-phase expectation, port or rebase the corrected smoke test.
 
 ## 3D checks
 
@@ -91,6 +102,7 @@ Do not claim these passed unless they were actually run.
 - The smoke context should include matchup, phase, tick, clock, match state, cinematic phase, fighter snapshots, projectile snapshots, and recent log lines.
 - The direct regression for `diveT` without `diveVx` or `diveVy` must stay in `tests/simSmoke.js` until the invalid-state blocker is fully closed.
 - If `npm run smoke:cqc` fails, treat it as a real CQC preservation issue until proven otherwise.
+- If `npm run smoke:stealth` fails, check whether the runtime behavior is invalid or whether the test expectation became stale again.
 - Do not remove or skip matchups/actions just to make smoke green.
 
 ## Coverage matrix checks
