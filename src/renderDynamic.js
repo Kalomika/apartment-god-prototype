@@ -2,6 +2,7 @@ import { objects } from './world.js';
 import { roundRect } from './renderHelpers.js';
 import { drawVehicleSprite } from './vehicleSpriteRenderer.js';
 import { drawBikeMountOverlay, isBikeLikeVehicle } from './bikeMountRenderer.js';
+import { drawCarSeatBoardingOverlay, isCarLikeVehicle } from './carSeatBoardingRenderer.js';
 
 export function drawDynamicProps(ctx, state) {
   drawPulledBook(ctx, state);
@@ -168,13 +169,15 @@ function drawAnimatedVehicle(ctx, v) {
   const flash = v.remoteFlashT > 0 && Math.floor(v.remoteFlashT * 12) % 2 === 0;
   const rider = riderShouldShow(v);
   const bikeLike = isBikeLikeVehicle(v);
+  const carLike = isCarLikeVehicle(v);
   const drawn = drawVehicleSprite(ctx, v, null, {
-    open: v.open,
+    open: carLike ? false : v.open,
     trunkOpen: v.trunkOpen,
     flash,
     rider: bikeLike ? false : rider
   });
   if (!drawn) fallbackVehicleBlock(ctx, v, flash);
+  if (carLike) drawCarSeatBoardingOverlay(ctx, v);
   drawBikeMountOverlay(ctx, v, null, { rider });
   drawStoredLuggage(ctx, v, v.x, v.y, v.w || 116, v.h || 230);
   if (v.remoteFlashT > 0) drawVehicleBubble(ctx, (v.x || 0) + (v.w || 80) / 2, (v.y || 0) - 18, v.remoteLabel || 'REMOTE');
