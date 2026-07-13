@@ -170,51 +170,72 @@ export function drawStyledObject(ctx, o, state) {
   return false;
 }
 
-function drawCouch(ctx, o) { const up = o.facing !== 'down'; rounded(ctx, o.x, o.y, o.w, o.h, 18, true, false, STYLE.teal); rounded(ctx, o.x + 3, up ? o.y + o.h - 20 : o.y + 3, o.w - 6, 17, 10, true, false, '#4e6662'); rounded(ctx, o.x + 8, up ? o.y + 9 : o.y + 21, o.w * .42, o.h - 30, 13, true, false, '#93b8b3'); rounded(ctx, o.x + o.w * .52, up ? o.y + 9 : o.y + 21, o.w * .40, o.h - 30, 13, true, false, '#93b8b3'); rounded(ctx, o.x + 4, o.y + 13, 15, o.h - 24, 10, true, false, '#6f8f8a'); rounded(ctx, o.x + o.w - 19, o.y + 13, 15, o.h - 24, 10, true, false, '#6f8f8a'); ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(o.x + 24, up ? o.y + 9 : o.y + o.h - 15, o.w - 48, 4); stroke(ctx, o, '#4e6662', 2, 18); }
+function drawCouch(ctx, o) {
+  if (o.facing === 'west' || o.facing === 'east') {
+    const west = o.facing === 'west';
+    rounded(ctx, o.x, o.y, o.w, o.h, 18, true, false, STYLE.teal);
+    rounded(ctx, west ? o.x + o.w - 20 : o.x + 3, o.y + 3, 17, o.h - 6, 10, true, false, '#4e6662');
+    rounded(ctx, west ? o.x + 9 : o.x + 21, o.y + 8, o.w - 30, o.h * .42, 13, true, false, '#93b8b3');
+    rounded(ctx, west ? o.x + 9 : o.x + 21, o.y + o.h * .52, o.w - 30, o.h * .40, 13, true, false, '#93b8b3');
+    rounded(ctx, o.x + 13, o.y + 4, o.w - 24, 15, 10, true, false, '#6f8f8a');
+    rounded(ctx, o.x + 13, o.y + o.h - 19, o.w - 24, 15, 10, true, false, '#6f8f8a');
+    ctx.fillStyle = 'rgba(255,255,255,.28)';
+    ctx.fillRect(west ? o.x + 9 : o.x + o.w - 15, o.y + 24, 4, o.h - 48);
+    stroke(ctx, o, '#4e6662', 2, 18);
+    return;
+  }
+  const up = o.facing !== 'down';
+  rounded(ctx, o.x, o.y, o.w, o.h, 18, true, false, STYLE.teal);
+  rounded(ctx, o.x + 3, up ? o.y + o.h - 20 : o.y + 3, o.w - 6, 17, 10, true, false, '#4e6662');
+  rounded(ctx, o.x + 8, up ? o.y + 9 : o.y + 21, o.w * .42, o.h - 30, 13, true, false, '#93b8b3');
+  rounded(ctx, o.x + o.w * .52, up ? o.y + 9 : o.y + 21, o.w * .40, o.h - 30, 13, true, false, '#93b8b3');
+  rounded(ctx, o.x + 4, o.y + 13, 15, o.h - 24, 10, true, false, '#6f8f8a');
+  rounded(ctx, o.x + o.w - 19, o.y + 13, 15, o.h - 24, 10, true, false, '#6f8f8a');
+  ctx.fillStyle = 'rgba(255,255,255,.28)';
+  ctx.fillRect(o.x + 24, up ? o.y + 9 : o.y + o.h - 15, o.w - 48, 4);
+  stroke(ctx, o, '#4e6662', 2, 18);
+}
+
 function drawTv(ctx, o, state) { rounded(ctx, o.x, o.y, o.w, o.h, o.wallMounted ? 3 : 5, true, false, '#3a3531'); rounded(ctx, o.x + 7, o.y + 5, o.w - 14, o.h - 10, 3, true, false, state.tv.on ? '#83bfc8' : '#262320'); if (o.wallMounted) { ctx.fillStyle = '#6b6258'; ctx.fillRect(o.x + o.w * .15, o.y - 4, o.w * .70, 4); } }
 function drawStereo(ctx, o, state) { rounded(ctx, o.x, o.y, o.w, o.h, 8, true, false, '#574b44'); circle(ctx, o.x + 14, o.y + 17, 9, '#2a2826'); circle(ctx, o.x + o.w - 14, o.y + 17, 9, '#2a2826'); ctx.fillStyle = state.music ? '#e5bc58' : '#c8bdad'; ctx.font = '900 13px system-ui'; ctx.fillText(state.music ? '♪' : 'ST', o.x + 24, o.y + 22); }
 function drawFridge(ctx, o, state) { rounded(ctx, o.x, o.y, o.w, o.h, 8, true, false, STYLE.cream); stroke(ctx, o, '#c6beb3', 2, 8); ctx.strokeStyle = '#d5c9bc'; ctx.beginPath(); ctx.moveTo(o.x + 8, o.y + o.h * .42); ctx.lineTo(o.x + o.w - 8, o.y + o.h * .42); ctx.stroke(); ctx.fillStyle = STYLE.glass; ctx.fillRect(o.x + 9, o.y + 20, 5, 44); if (state.objectState.fridgeOpen) rounded(ctx, o.x + o.w - 2, o.y + 10, 38, o.h - 20, 4, true, false, '#fffdf6'); }
 function drawStove(ctx, o, state) { rounded(ctx, o.x, o.y, o.w, o.h, 7, true, false, '#b9b4aa'); for (let i = 0; i < 4; i++) circle(ctx, o.x + 18 + (i % 2) * 34, o.y + 17 + Math.floor(i / 2) * 26, 9, '#655f59', false); if (state.objectState.stovePan) { ellipse(ctx, o.x + 39, o.y + 35, 22, 13, '#3c3835'); line(ctx, o.x + 56, o.y + 34, o.x + 78, o.y + 28, '#3c3835', 3); } }
-function drawSink(ctx, o) { rounded(ctx, o.x, o.y, o.w, o.h, 8, true, false, '#c7c4bd'); rounded(ctx, o.x + 9, o.y + 8, o.w - 18, o.h - 16, 10, true, false, '#b6d3d7'); circle(ctx, o.x + o.w / 2, o.y + 15, 3, '#7f7870'); }
+function drawSink(ctx, o) {
+  if (o.vanity) {
+    const vertical = o.h > o.w;
+    rounded(ctx, o.x, o.y, o.w, o.h, 7, true, false, '#a87955');
+    rounded(ctx, o.x + 5, o.y + 5, o.w - 10, o.h - 10, 5, true, false, '#d8c7b4');
+    ctx.fillStyle = '#7b5638';
+    if (vertical) {
+      ctx.fillRect(o.x + o.w - 7, o.y + 8, 3, o.h - 16);
+      const basins = o.vanity === 'double' ? [o.y + o.h * .33, o.y + o.h * .67] : [o.y + o.h / 2];
+      for (const by of basins) {
+        rounded(ctx, o.x + 10, by - 12, o.w - 18, 24, 9, true, false, '#f8f2e8');
+        rounded(ctx, o.x + 14, by - 8, o.w - 26, 16, 7, true, false, '#b6d3d7');
+        circle(ctx, o.x + o.w - 9, by, 2.5, '#7f7870');
+      }
+    } else {
+      ctx.fillRect(o.x + 8, o.y + 4, o.w - 16, 3);
+      const basins = o.vanity === 'double' ? [o.x + o.w * .33, o.x + o.w * .67] : [o.x + o.w / 2];
+      for (const bx of basins) {
+        rounded(ctx, bx - 18, o.y + 10, 36, o.h - 18, 9, true, false, '#f8f2e8');
+        rounded(ctx, bx - 12, o.y + 15, 24, o.h - 28, 7, true, false, '#b6d3d7');
+        circle(ctx, bx, o.y + 9, 2.5, '#7f7870');
+      }
+    }
+    stroke(ctx, o, '#7b5638', 1.6, 7);
+    return;
+  }
+  rounded(ctx, o.x, o.y, o.w, o.h, 8, true, false, '#c7c4bd');
+  rounded(ctx, o.x + 9, o.y + 8, o.w - 18, o.h - 16, 10, true, false, '#b6d3d7');
+  circle(ctx, o.x + o.w / 2, o.y + 15, 3, '#7f7870');
+}
 function drawTrash(ctx, o, level) { rounded(ctx, o.x, o.y, o.w, o.h, 7, true, false, level > 80 ? '#a26b5c' : '#8e968d'); rounded(ctx, o.x + 5, o.y + 4, o.w - 10, 8, 4, true, false, '#6f756e'); }
 function drawShower(ctx, o) { rounded(ctx, o.x, o.y, o.w, o.h, 8, true, false, '#d7e4e2'); rounded(ctx, o.x + 8, o.y + 8, o.w - 16, o.h - 16, 6, true, false, '#9fcbd3'); stroke(ctx, { x: o.x + 8, y: o.y + 8, w: o.w - 16, h: o.h - 16 }, '#f8f2e8', 2, 6); }
 function drawBathtub(ctx, o) { rounded(ctx, o.x, o.y, o.w, o.h, 18, true, false, '#d7e4e2'); rounded(ctx, o.x + 8, o.y + 8, o.w - 16, o.h - 16, 15, true, false, '#f8f2e8'); rounded(ctx, o.x + 18, o.y + 15, o.w - 36, o.h - 30, 12, true, false, '#a8d3db'); circle(ctx, o.x + o.w - 16, o.y + 16, 4, '#7f7870'); line(ctx, o.x + o.w - 22, o.y + 14, o.x + o.w - 10, o.y + 14, '#9f9890', 2); stroke(ctx, o, '#b7c6c5', 2, 18); }
 function drawToilet(ctx, o) { rounded(ctx, o.x + 4, o.y, o.w - 8, 20, 5, true, false, STYLE.cream); ellipse(ctx, o.x + o.w / 2, o.y + 39, 19, 16, STYLE.cream); ellipse(ctx, o.x + o.w / 2, o.y + 39, 10, 8, '#cbd7d6'); }
 function drawDoor(ctx, o, state) { rounded(ctx, o.x, o.y, o.w, o.h, 2, true, false, STYLE.wood); if (state.objectState.doorOpen) rounded(ctx, o.x + o.w, o.y + 8, 15, o.h - 16, 2, true, false, STYLE.wood2); }
-function drawStairs(ctx, o) {
-  const label = o.toFloor === 2 ? 'BASE' : o.toFloor === 1 ? 'UP' : o.toFloor === 0 ? 'MAIN' : 'GO';
-  const down = label === 'BASE' || label === 'MAIN';
-  ctx.save();
-  rounded(ctx, o.x, o.y, o.w, o.h, 10, true, false, '#8c7d69');
-  rounded(ctx, o.x + 6, o.y + 6, o.w - 12, o.h - 12, 8, true, false, '#c1ad8e');
-  rounded(ctx, o.x + 13, o.y + 12, o.w - 26, o.h - 24, 5, true, false, '#6d6257');
-  const stepCount = Math.max(5, Math.floor(o.h / 13));
-  const top = o.y + 14;
-  const usableH = o.h - 30;
-  const stepH = usableH / stepCount;
-  for (let i = 0; i < stepCount; i++) {
-    const y = down ? top + i * stepH : top + (stepCount - 1 - i) * stepH;
-    const shade = i / Math.max(1, stepCount - 1);
-    const tread = shadeColor('#d7c6a7', -shade * 46);
-    const riser = shadeColor('#8d7a62', -shade * 34);
-    rounded(ctx, o.x + 18, y, o.w - 36, stepH + 2, 3, true, false, tread);
-    ctx.fillStyle = riser;
-    ctx.fillRect(o.x + 18, y + stepH - 3, o.w - 36, 4);
-    ctx.fillStyle = 'rgba(255,255,255,.20)';
-    ctx.fillRect(o.x + 20, y + 2, o.w - 40, 2);
-  }
-  ctx.fillStyle = 'rgba(30,24,18,.32)';
-  rounded(ctx, o.x + 22, down ? o.y + o.h - 20 : o.y + 14, o.w - 44, 14, 5, true, false);
-  line(ctx, o.x + 12, o.y + 10, o.x + 12, o.y + o.h - 10, '#e7d9bf', 3);
-  line(ctx, o.x + o.w - 12, o.y + 10, o.x + o.w - 12, o.y + o.h - 10, '#705f4b', 3);
-  ctx.strokeStyle = '#4b4035';
-  ctx.lineWidth = 2;
-  rounded(ctx, o.x + 13, o.y + 12, o.w - 26, o.h - 24, 5, false, true);
-  ctx.fillStyle = STYLE.ink;
-  ctx.font = '900 9px system-ui';
-  ctx.fillText(label, o.x + 10, o.y + o.h - 10);
-  ctx.restore();
-}
+function drawStairs(ctx, o) { const label = o.toFloor === 2 ? 'BASE' : o.toFloor === 1 ? 'UP' : o.toFloor === 0 ? 'MAIN' : 'GO'; const down = label === 'BASE' || label === 'MAIN'; ctx.save(); rounded(ctx, o.x, o.y, o.w, o.h, 10, true, false, '#8c7d69'); rounded(ctx, o.x + 6, o.y + 6, o.w - 12, o.h - 12, 8, true, false, '#c1ad8e'); rounded(ctx, o.x + 13, o.y + 12, o.w - 26, o.h - 24, 5, true, false, '#6d6257'); const stepCount = Math.max(5, Math.floor(o.h / 13)); const top = o.y + 14; const usableH = o.h - 30; const stepH = usableH / stepCount; for (let i = 0; i < stepCount; i++) { const y = down ? top + i * stepH : top + (stepCount - 1 - i) * stepH; const shade = i / Math.max(1, stepCount - 1); const tread = shadeColor('#d7c6a7', -shade * 46); const riser = shadeColor('#8d7a62', -shade * 34); rounded(ctx, o.x + 18, y, o.w - 36, stepH + 2, 3, true, false, tread); ctx.fillStyle = riser; ctx.fillRect(o.x + 18, y + stepH - 3, o.w - 36, 4); ctx.fillStyle = 'rgba(255,255,255,.20)'; ctx.fillRect(o.x + 20, y + 2, o.w - 40, 2); } ctx.fillStyle = 'rgba(30,24,18,.32)'; rounded(ctx, o.x + 22, down ? o.y + o.h - 20 : o.y + 14, o.w - 44, 14, 5, true, false); line(ctx, o.x + 12, o.y + 10, o.x + 12, o.y + o.h - 10, '#e7d9bf', 3); line(ctx, o.x + o.w - 12, o.y + 10, o.x + o.w - 12, o.y + o.h - 10, '#705f4b', 3); ctx.strokeStyle = '#4b4035'; ctx.lineWidth = 2; rounded(ctx, o.x + 13, o.y + 12, o.w - 26, o.h - 24, 5, false, true); ctx.fillStyle = STYLE.ink; ctx.font = '900 9px system-ui'; ctx.fillText(label, o.x + 10, o.y + o.h - 10); ctx.restore(); }
 function drawBed(ctx, o) { rounded(ctx, o.x, o.y, o.w, o.h, 17, true, false, '#b9a287'); rounded(ctx, o.x + 14, o.y + 10, o.w - 28, o.h - 20, 15, true, false, STYLE.linen); rounded(ctx, o.x + 18, o.y + 12, Math.min(54, o.w * .26), Math.min(34, o.h * .32), 12, true, false, '#fffaf2'); rounded(ctx, o.x + Math.min(78, o.w * .34), o.y + 18, o.w - Math.min(96, o.w * .44), o.h - 34, 14, true, false, '#d6c7b5'); }
 function drawNightstand(ctx, o) { rounded(ctx, o.x, o.y, o.w, o.h, 6, true, false, '#9d704d'); rounded(ctx, o.x + 5, o.y + 7, o.w - 10, Math.max(8, o.h - 18), 4, true, false, '#7b5638'); circle(ctx, o.x + o.w / 2, o.y + 12, Math.max(5, Math.min(o.w, o.h) * .18), '#e8c35a'); line(ctx, o.x + o.w / 2, o.y + 15, o.x + o.w / 2, o.y + o.h - 7, '#3d3028', 1.5); }
 function drawDesk(ctx, o) { rounded(ctx, o.x, o.y, o.w, o.h, 7, true, false, '#b78556'); rounded(ctx, o.x + 32, o.y + 9, Math.max(30, o.w - 68), Math.min(36, o.h - 18), 4, true, false, '#4b4641'); rounded(ctx, o.x + 39, o.y + 15, Math.max(24, o.w - 82), 17, 2, true, false, '#b9d4d8'); line(ctx, o.x + 48, o.y + Math.min(o.h - 16, 39), o.x + Math.min(o.w - 30, 74), o.y + Math.min(o.h - 16, 39), '#ede4d7', 2); rounded(ctx, o.x + o.w * .36, o.y + o.h + 9, Math.min(42, o.w * .35), 32, 12, true, false, '#6f6157'); rounded(ctx, o.x + o.w * .40, o.y + o.h + 14, Math.min(32, o.w * .26), 16, 8, true, false, '#8c7a6d'); }
