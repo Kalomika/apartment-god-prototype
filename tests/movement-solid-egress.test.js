@@ -3,34 +3,35 @@ import { commandMove, updateMovement } from '../src/movement.js';
 import { getObject, pointInRect, expandedRect } from '../src/world.js';
 
 describe('movement solid footprint egress', () => {
-  it('lets an actor route out after an activity leaves them inside a couch footprint', () => {
-    const couch = getObject('basement_couch');
+  it('lets an actor route out after a bad activity placement leaves them inside a non-enterable solid footprint', () => {
+    const consoleSetup = getObject('game_console');
     const actor = {
       id: 'resident',
       name: 'Resident',
       type: 'person',
-      floor: 2,
+      floor: consoleSetup.floor,
       hidden: false,
       stopped: false,
-      x: couch.x + couch.w / 2,
-      y: couch.y + couch.h / 2,
+      x: consoleSetup.x + consoleSetup.w / 2,
+      y: consoleSetup.y + consoleSetup.h / 2,
       path: [],
       speed: 92,
       action: 'Blocked',
       pose: 'stand'
     };
-    const state = { floor: 2, selectedId: 'resident', viewHoldT: 0 };
+    const state = { floor: consoleSetup.floor, selectedId: 'resident', viewHoldT: 0 };
 
-    expect(pointInRect(actor.x, actor.y, expandedRect(couch, 4))).toBe(true);
+    expect(consoleSetup.enterable).not.toBe(true);
+    expect(pointInRect(actor.x, actor.y, expandedRect(consoleSetup, 4))).toBe(true);
 
-    commandMove(actor, couch.x - 96, couch.y + couch.h + 76, false);
+    commandMove(actor, consoleSetup.x - 96, consoleSetup.y + consoleSetup.h + 76, false);
 
     expect(actor.action).not.toBe('No route');
     expect(actor.path.length).toBeGreaterThan(0);
 
-    for (let i = 0; i < 160 && actor.path.length; i += 1) updateMovement(state, actor, 1 / 30);
+    for (let i = 0; i < 180 && actor.path.length; i += 1) updateMovement(state, actor, 1 / 30);
 
     expect(actor.action).not.toBe('Blocked');
-    expect(pointInRect(actor.x, actor.y, expandedRect(couch, 4))).toBe(false);
+    expect(pointInRect(actor.x, actor.y, expandedRect(consoleSetup, 4))).toBe(false);
   });
 });
