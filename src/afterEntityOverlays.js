@@ -95,7 +95,6 @@ function drawCorrectSeatedPoseOverlays(ctx, state) {
     const seatedAction = tableMode || action.includes('couch') || action.includes('relax') || action.includes('watch') || action.includes('tv') || action.includes('desk') || action.includes('read') || action.includes('study') || action.includes('console') || action.includes('game');
     const targetNorth = target.y + target.h / 2 < actor.y - 4;
     if (seatedAction && targetNorth) drawBackFacingSeatedActor(ctx, actor, target, { tableMode });
-    else drawFacingGuide(ctx, actor, target);
   }
 }
 
@@ -109,13 +108,11 @@ function drawBackFacingSeatedActor(ctx, actor, target, options = {}) {
   ctx.save();
   ctx.translate(actor.x, actor.y);
   ctx.rotate(angle);
-
   ctx.globalAlpha = .98;
   ctx.fillStyle = 'rgba(0,0,0,.36)';
   ctx.beginPath();
   ctx.ellipse(0, 16, 34, 28, 0, 0, Math.PI * 2);
   ctx.fill();
-
   ctx.fillStyle = cloth;
   ctx.strokeStyle = '#071018';
   ctx.lineWidth = 3;
@@ -124,7 +121,6 @@ function drawBackFacingSeatedActor(ctx, actor, target, options = {}) {
   ctx.lineWidth = 1.6;
   line(ctx, -8, -2, -8, 26, accent, 1.6);
   line(ctx, 8, -2, 8, 26, accent, 1.6);
-
   bentLeg(ctx, -12, 18, -28, 38, cloth, -.25);
   bentLeg(ctx, 12, 18, 28, 38, cloth, .25);
   if (options.tableMode) {
@@ -136,7 +132,6 @@ function drawBackFacingSeatedActor(ctx, actor, target, options = {}) {
     arm(ctx, -17, -3, -31, 18, cloth);
     arm(ctx, 17, -3, 31, 18, cloth);
   }
-
   ctx.fillStyle = '#05070a';
   ctx.strokeStyle = '#071018';
   ctx.lineWidth = 2.5;
@@ -144,14 +139,6 @@ function drawBackFacingSeatedActor(ctx, actor, target, options = {}) {
   ctx.ellipse(0, -25, female ? 16 : 17, female ? 18 : 16, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
-
-  ctx.fillStyle = options.tableMode ? 'rgba(241,198,106,.13)' : 'rgba(116,230,255,.16)';
-  ctx.beginPath();
-  ctx.moveTo(0, -21);
-  ctx.lineTo(-24, -52);
-  ctx.lineTo(24, -52);
-  ctx.closePath();
-  ctx.fill();
   ctx.restore();
 }
 
@@ -165,24 +152,6 @@ function tableHand(ctx, x, y, accent) {
   ctx.stroke();
   ctx.fillStyle = accent;
   ctx.fillRect(x - 2, y - 2, 4, 1);
-}
-
-function drawFacingGuide(ctx, actor, target) {
-  const tx = target.x + target.w / 2;
-  const ty = target.y + target.h / 2;
-  const angle = Math.atan2(ty - actor.y, tx - actor.x);
-  ctx.save();
-  ctx.translate(actor.x, actor.y);
-  ctx.rotate(angle + Math.PI / 2);
-  ctx.globalAlpha = .42;
-  ctx.fillStyle = 'rgba(116,230,255,.12)';
-  ctx.beginPath();
-  ctx.moveTo(0, -18);
-  ctx.lineTo(-22, -48);
-  ctx.lineTo(22, -48);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
 }
 
 function seatedFacingTarget(actor, state) {
