@@ -7,6 +7,7 @@ import { drawBookWorld } from './bookRender.js';
 import { drawObjectCorrectiveOverlays } from './objectCorrectiveOverlays.js';
 import { drawVisualReplacementClears } from './visualReplacementClears.js';
 import { drawRequestedAfterEntityVisualCorrections, drawRequestedVisualCorrections } from './requestedVisualCorrections.js';
+import { drawVisualRegressionFixes } from './visualRegressionFixes.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
@@ -65,6 +66,7 @@ function drawScene(ctx, state) {
   drawObjectCorrectiveOverlays(ctx, state);
   drawVisualReplacementClears(ctx, state);
   drawRequestedVisualCorrections(ctx, state);
+  drawVisualRegressionFixes(ctx, state);
   drawVehicleSpriteOverlays(ctx, state);
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
