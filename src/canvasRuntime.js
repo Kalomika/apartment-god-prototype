@@ -10,6 +10,7 @@ import { updateLifeQualitySystem } from './lifeQualitySystem.js';
 import { installCameraSwipeNavigation, updateCameraTransition } from './cameraNavigation.js';
 import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
 import { applyRuntimeRegressionGuards } from './runtimeRegressionGuards.js';
+import { updatePoolActivity } from './poolActivitySystem.js';
 
 const REFRESH_SAVE_KEY = 'apartment_god_test_refresh_state_v3';
 let frameErrorCount = 0;
@@ -121,6 +122,7 @@ export function bootCanvasGame() {
       updateCameraTransition(state, rawDt);
 
       if (dt > 0) {
+        updatePoolActivity(state, dt);
         for (const entity of state.entities) {
           const arrived = updateMovement(state, entity, dt);
           if (arrived) resolveArrival(state, entity);
