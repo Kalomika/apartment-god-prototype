@@ -39,6 +39,8 @@ Visual direction is now explicit in code: no outlines, color and lighting separa
 
 The asset audit and visual smoke are implemented. Browser capture, profiling, batch analytics, verified preview automation, texture atlas support, and production rig importing remain next slices.
 
+Remote publishing: `top-shot-studio-pipeline` was published through the authenticated GitHub connector after ordinary HTTPS push failed for lack of checkout credentials. Backup branch: `backup/top-shot-studio-pipeline-2026-07-13`. This branch is intended for a separate Render preview, not replacement of stable.
+
 Branch:
 
 `top-shot-starshot-engine`
