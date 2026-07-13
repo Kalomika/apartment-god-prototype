@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createState } from '../src/state.js';
 import { beginMoveObject, placeMoveObject, updateMoveJob } from '../src/objectMove.js';
 import { updateMovement } from '../src/movement.js';
-import { objects, getObject } from '../src/world.js';
+import { getObject } from '../src/world.js';
 
 function tickMoveJob(state, actor, seconds = 8) {
   const steps = Math.ceil(seconds * 30);
@@ -34,7 +34,7 @@ describe('object move workflow', () => {
     const actor = state.entities.find(e => e.id === 'resident');
     const couch = getObject('basement_couch');
     const original = { x: couch.x, y: couch.y };
-    const target = { x: 92, y: 472 };
+    const target = { x: 652, y: 414 };
 
     actor.floor = couch.floor;
     actor.x = 780;
