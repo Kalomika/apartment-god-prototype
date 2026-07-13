@@ -8,6 +8,7 @@ From `top-shot/`:
 
 ```bash
 npm run check
+npm run assets:check
 npm run starshot-smoke
 npm run smoke
 npm run build
@@ -60,6 +61,10 @@ Do not claim these passed unless they were actually run.
 - Pickup markers render.
 - Terrain and cover remain visible.
 - Camera follows the action without losing fighters.
+- Actors have no drawn or geometry outline pass.
+- Toon color bands separate forms through light and color.
+- Character poses visibly step at 8 FPS without reducing camera, input, collision, or simulation rate.
+- Muzzle and impact flashes face the camera as 2D cards.
 
 ## Debug checks
 

@@ -1,3 +1,5 @@
+import { createOutlineFreeToonMaterial, createToonRampTexture, steppedAnimationTime } from './visualStyle3D.js';
+
 const HUMAN_HEIGHT = 1.78;
 let Vector3Ctor = null;
 
@@ -357,7 +359,7 @@ class Actor3D {
       if (child.material?.transparent) return;
       if (child.material) child.material.opacity = fighter.preview ? 0.86 : fighter.shadowHidden ? 0.64 : 1;
     });
-    this.applyPose(stateName, this.clock, fighter);
+    this.applyPose(stateName, steppedAnimationTime(this.clock), fighter);
   }
 
   applyPose(stateName, t, fighter) {
@@ -619,9 +621,10 @@ function dimensionsFor(style) {
 }
 
 function makeMaterials(THREE, style) {
-  const make = color => new THREE.MeshStandardMaterial({ color, roughness: 0.78, metalness: 0.04, flatShading: true });
-  const cloth = color => new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0.02, flatShading: true });
-  const metal = color => new THREE.MeshStandardMaterial({ color, roughness: 0.54, metalness: 0.42, flatShading: true });
+  const gradientMap = createToonRampTexture(THREE);
+  const make = color => createOutlineFreeToonMaterial(THREE, color, { gradientMap });
+  const cloth = color => createOutlineFreeToonMaterial(THREE, color, { gradientMap });
+  const metal = color => createOutlineFreeToonMaterial(THREE, color, { gradientMap });
   return {
     skin: make(style.skin), skinShadow: make(style.skinShadow), hair: cloth(style.hair),
     jacket: cloth(style.jacket), jacket2: cloth(style.jacket2), shirt: cloth(style.shirt), shirtLight: cloth(style.shirtLight),

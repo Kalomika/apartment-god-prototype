@@ -1,6 +1,7 @@
 import { ARENA_H, ARENA_W } from '../config.js';
 import { ARCHETYPES } from '../archetypes.js';
 import { createPlaceholderActor, updateActor } from './actors3D.js';
+import { applyActorPresentationMotion3D } from './actorMotion3D.js';
 
 const THREE_MODULE_URLS = [
   '../../vendor/three.module.js',
@@ -549,7 +550,9 @@ class TopShot3D {
         this.actors.set(entity.id, actor);
         this.actorRoot.add(actor.group);
       }
-      updateActor(actor, entity, dt, arenaToWorld(entity.x, entity.y));
+      const target = arenaToWorld(entity.x, entity.y);
+      updateActor(actor, entity, dt, target);
+      applyActorPresentationMotion3D(this, actor, entity, dt, { target: { x: target.x, y: actor.group.position.y, z: target.z } });
     }
 
     for (const [id, actor] of this.actors) {

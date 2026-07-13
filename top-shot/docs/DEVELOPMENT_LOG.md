@@ -2,6 +2,20 @@
 
 This file tracks meaningful Top Shot repo changes so future AI agents, Codex, Copilot, Grok, or human developers can continue from the repository instead of chat history.
 
+## 2026-07-13, Studio pipeline visual foundation
+
+Branch: `top-shot-studio-pipeline`
+
+Backup branch: `backup/top-shot-v0-1-2026-07-11-coverage-matrix`
+
+Implemented the first recoverable studio pipeline slice: outline free toon materials, three band lighting separation, 8 FPS stepped actor poses over smooth simulation, Starshot presentation motion integration, camera facing 2D flash cards, binary asset auditing, a visual style smoke test, and the missing coverage matrix. Applied the focused grenade and dive finite state hardening from PR 25, then added the required `finiteOr` utility support. The previously reproduced `shadow_ninja vs field_agent` invalid state did not recur after hardening.
+
+Automated results: `npm run check`, `npm run assets:check`, and `npm run starshot-smoke` passed before finite state hardening. The first full smoke run failed on `shadow_ninja vs field_agent`. After hardening, `node tests/simSmoke.js` passed all six matchups. Full smoke and build must be rerun after final documentation edits.
+
+Deferred: browser automation, screenshot and video comparison, performance collector, expanded batch analytics, verified PR previews, texture atlas ingestion, GLTF production rig import, and browser visual QA.
+
+Publishing update: local HTTPS push was unavailable because the checkout had no GitHub credentials. The authenticated GitHub connector created `top-shot-studio-pipeline` from `top-shot-starshot-engine` and published the exact 15 file implementation set. A remote backup branch named `backup/top-shot-studio-pipeline-2026-07-13` is created from the final published head. Stable remains untouched.
+
 ## 2026-07-11, Starshot Meta-System hardening and debug overlay snapshot wiring
 
 Tool or person: ChatGPT

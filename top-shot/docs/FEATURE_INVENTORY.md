@@ -61,6 +61,7 @@ Every change must be additive, corrective, or an explicitly approved replacement
 - `effects3D.js` handles effects and CQC pose stabilization.
 - `debugOverlay3D.js` handles dev visualization on branches where it exists.
 - Top down camera remains the primary view.
+- Experimental presentation uses outline free toon materials, 8 FPS stepped poses over smooth world updates, and camera facing 2D impact cards.
 - Terrain, cover, shadow zones, collision visuals, markers, and actors must remain readable.
 
 ## Debug baseline
@@ -83,8 +84,8 @@ Current experimental scaffold:
 
 ## Long term Starshot target features
 
-- Visual motion smoothing and inertia.
-- Animation state machine.
+- Visual motion smoothing and inertia, first presentation integration implemented on `top-shot-studio-pipeline`.
+- Animation state machine with 8 FPS pose sampling, first presentation integration implemented.
 - Micro-motion layer.
 - Combat timing profiles.
 - Hit frames and impact pauses.

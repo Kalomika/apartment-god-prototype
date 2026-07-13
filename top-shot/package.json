@@ -7,8 +7,9 @@
     "start": "node scripts/dev-server.js",
     "build": "node scripts/build.js",
     "check": "node scripts/check.js",
+    "assets:check": "node scripts/audit-assets.js",
     "smoke": "node tests/simSmoke.js && node tests/cqcSmoke.js && node tests/stealthSmoke.js && node tests/modelSmoke.js",
-    "starshot-smoke": "node tests/starshotSmoke.js"
+    "starshot-smoke": "node tests/starshotSmoke.js && node tests/visualStyleSmoke.js"
   },
   "devDependencies": {}
 }

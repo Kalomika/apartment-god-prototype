@@ -1,5 +1,12 @@
+export function finiteOr(value, fallback = 0) {
+  return Number.isFinite(value) ? value : fallback;
+}
+
 export function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
+  const safeMin = Number.isFinite(min) ? min : 0;
+  const safeMax = Number.isFinite(max) ? max : safeMin;
+  const safeValue = Number.isFinite(value) ? value : safeMin;
+  return Math.max(safeMin, Math.min(safeMax, safeValue));
 }
 
 export function rand(min = 0, max = 1) {
@@ -11,7 +18,8 @@ export function chance(probability) {
 }
 
 export function dist(a, b) {
-  return Math.hypot(a.x - b.x, a.y - b.y);
+  if (!a || !b) return Infinity;
+  return Math.hypot(finiteOr(a.x, 0) - finiteOr(b.x, 0), finiteOr(a.y, 0) - finiteOr(b.y, 0));
 }
 
 export function angleTo(a, b) {

@@ -29,6 +29,7 @@ Top Shot is a lightweight browser game using JavaScript modules and Three.js. It
 - `src/three/actors3D.js`: segmented placeholder actors, poses, weapons, limb volumes, and body zones.
 - `src/three/effects3D.js`: effects, parachutes, tracers, impact visuals, CQC actor stabilization.
 - `src/three/debugOverlay3D.js`: debug telemetry and Starshot snapshot display where present.
+- `src/three/visualStyle3D.js`: canonical outline free toon, 8 FPS pose sampling, and 2D effects presentation policy.
 
 ## Current architecture principle
 
@@ -53,6 +54,9 @@ Current integration:
 - `src/three/debugOverlay3D.js` reads Starshot debug snapshots and displays timing plus per-fighter animation, motion, combat, and AI telemetry.
 - The Starshot timing controller is not yet the gameplay timing source.
 - The Starshot actor update pipeline is not yet the main actor presentation pipeline.
+- `actorMotion3D.js` is now called after simulation actor sync on the studio pipeline branch. Simulation remains authoritative while presentation position and facing ease toward it.
+- Rig poses sample at 8 FPS while rendering, input, simulation, camera, and collision continue at the normal update rate.
+- Impact and muzzle flashes use camera facing planes as the first 2D effects slice.
 
 ## Starshot architecture target
 

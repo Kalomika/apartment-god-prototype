@@ -169,7 +169,7 @@ function createEffect(world, effect) {
   }
   const color = effect.type === 'muzzle_flash' ? '#fff1a3' : effect.type === 'impact_flash' ? '#fff6d8' : '#f0d36a';
   return new THREE.Mesh(
-    new THREE.SphereGeometry(0.22, 16, 10),
+    new THREE.PlaneGeometry(0.62, 0.62),
     new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1, depthWrite: false })
   );
 }
@@ -191,6 +191,8 @@ function updateEffect(world, mesh, effect) {
   const lift = effect.type === 'muzzle_flash' ? 1.08 : effect.type === 'impact_flash' ? 0.74 : 0.22;
   const scale = effect.type === 'landing_flash' ? 2.2 : effect.type === 'impact_flash' ? 1.45 : 1.0;
   mesh.position.set(p.x, lift, p.z);
+  mesh.quaternion.copy(world.camera.quaternion);
+  mesh.rotation.z += effect.type === 'muzzle_flash' ? Math.PI * 0.25 : 0;
   mesh.scale.setScalar(Math.max(0.08, alpha * scale));
   mesh.material.opacity = alpha;
 }
