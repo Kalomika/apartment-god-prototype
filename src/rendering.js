@@ -5,11 +5,13 @@ import { drawAnimeEnvironmentUnderlay } from './animeVisualLayer.js';
 import { drawObjects } from './renderObjects.js';
 import { drawBookWorld } from './bookRender.js';
 import { drawObjectCorrectiveOverlays } from './objectCorrectiveOverlays.js';
+import { drawVisualReplacementClears } from './visualReplacementClears.js';
 import { drawRequestedAfterEntityVisualCorrections, drawRequestedVisualCorrections } from './requestedVisualCorrections.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
 import { drawAfterEntityOverlays } from './afterEntityOverlays.js';
+import { drawAnimeTimeLighting } from './animeTimeLighting.js';
 import { drawOffsiteScene } from './offsiteScenes.js';
 import { drawSoccer } from './soccerSystem.js';
 import { syncPhoneUi } from './phoneUI.js';
@@ -61,6 +63,7 @@ function drawScene(ctx, state) {
   drawObjects(ctx, state);
   drawBookWorld(ctx, state);
   drawObjectCorrectiveOverlays(ctx, state);
+  drawVisualReplacementClears(ctx, state);
   drawRequestedVisualCorrections(ctx, state);
   drawVehicleSpriteOverlays(ctx, state);
   drawDynamicProps(ctx, state);
@@ -70,6 +73,7 @@ function drawScene(ctx, state) {
   drawAfterEntityOverlays(ctx, state);
   drawPoolFx(ctx, state);
   drawCarriedItems(ctx, state);
+  drawAnimeTimeLighting(ctx, state);
 }
 
 function drawTransitioningScene(ctx, state) {
