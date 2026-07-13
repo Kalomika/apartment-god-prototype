@@ -1,4 +1,4 @@
-import { approachPoint, clampToPlay, getObject } from './world.js';
+import { approachPoint, clampToPlay, getObject, objects } from './world.js';
 import { commandObject } from './movement.js';
 
 const COUCH_CLEARANCE = 38;
@@ -10,6 +10,7 @@ export function applyRuntimeRegressionGuards(state) {
     if (!entity || entity.hidden || entity.type !== 'person') continue;
     guardBadCookingContact(state, entity);
     guardDiningSeatAlignment(state, entity);
+    guardStairExitPlacement(entity);
     guardIdleCouchTrap(entity);
   }
 }
@@ -71,6 +72,29 @@ function diningSeatFor(entity, table, state) {
   const index = Math.max(0, eaters.findIndex(e => e.id === entity.id));
   const seat = seats[index % seats.length];
   return clampToPlay(seat.x, seat.y);
+}
+
+function guardStairExitPlacement(entity) {
+  if (Number(entity.actionT || 0) > 0 || entity.target || entity.pending || entity.path?.length) return;
+  const text = actionKey(entity);
+  if (!text.includes('using passage') && !text.includes('changed floor')) return;
+  const stair = nearestStair(entity);
+  if (!stair) return;
+  const cx = stair.x + stair.w / 2;
+  const cy = stair.y + stair.h / 2;
+  if (Math.hypot(entity.x - cx, entity.y - cy) > 128) return;
+  entity.x = cx;
+  entity.y = cy;
+  entity.lastHeading = 0;
+}
+
+function nearestStair(entity) {
+  const stairList = objects.filter(o => o.floor === entity.floor && o.kind === 'stairs');
+  if (!stairList.length) return null;
+  return stairList.reduce((best, stair) => {
+    const d = Math.hypot(entity.x - (stair.x + stair.w / 2), entity.y - (stair.y + stair.h / 2));
+    return !best || d < best.d ? { stair, d } : best;
+  }, null)?.stair || null;
 }
 
 function guardIdleCouchTrap(entity) {
