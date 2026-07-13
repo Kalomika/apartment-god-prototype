@@ -4,6 +4,12 @@ Status: active production rule
 
 Applies to: environments, characters, animals, vehicles, props, effects, animation, and UI art that appears inside the game world
 
+## Project Separation Rule
+
+Apartment God and Top Shot are different games with different production pipelines.
+
+Apartment God is a true top down 2D sprite game. Top Shot is the project that uses 3D models. Never import Top Shot model, rig, renderer, or animation pipeline instructions into Apartment God.
+
 ## Target
 
 Apartment God should feel like a mature late 1990s science fiction anime production viewed from directly overhead. `Ghost in the Shell` and `Cowboy Bebop` are mood, lighting, costume, vehicle, and production-design references only. Do not copy characters, locations, logos, frames, or protected designs.
@@ -45,16 +51,17 @@ If any answer is no, the asset stays out of the production manifest.
 
 ## Character And Animal Production Direction
 
-The long-term character and animal pipeline is a shared, rigged 3D foundation rendered into a 2D anime presentation. Human rigs use real joint structure, consistent body scale, reusable wardrobe, and action-specific animation. The dog uses a quadruped rig. The renderer should provide:
+The long-term character and animal pipeline is a shared modular 2D sprite system. Humans use consistent adult anatomy, identity sheets, reusable wardrobe layers, stable scale, and action-specific animation. The dog uses a consistent quadruped sprite base. The sprite pipeline should provide:
 
-1. Orthographic overhead cameras.
+1. True overhead 2D anatomy turnarounds.
 2. Color and light separation without heavy outlines.
 3. Controlled frame sampling for anime timing.
-4. Stable anchors and collision footprints.
-5. Directional clips from one consistent model and rig.
-6. 2D effect layers and painterly environment integration.
+4. Stable anchors, frame dimensions, and collision footprints.
+5. Directional clips derived from one approved identity sheet per character.
+6. Modular clothing and prop layers that stay aligned across actions.
+7. 2D effect layers and painterly environment integration.
 
-PNG sprites remain valid for approved environment plates, vehicles, props, tests, and transitional slices. Do not build the full cast as unrelated single-frame PNG guesses when a shared rig is the safer consistency tool.
+PNG sprite sheets are the primary runtime character and animal format. Do not build the full cast as unrelated single-frame guesses. Use approved master character sheets, consistent proportions, shared frame rules, modular layers, and coherent action sets.
 
 ## Animation Contract
 
@@ -94,4 +101,4 @@ Anime visual pass 01 approves only:
 2. Family SUV, closed state.
 3. Sports convertible, closed state.
 
-The current human and dog image attempts are rejected for camera or posture errors. Existing procedural renderers remain as safe fallbacks until a rigged overhead asset passes review.
+The current human and dog image attempts are rejected for camera or posture errors. Existing procedural renderers remain as safe fallbacks until approved overhead 2D sprite sets pass review.

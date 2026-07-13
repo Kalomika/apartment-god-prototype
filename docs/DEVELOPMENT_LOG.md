@@ -14,7 +14,7 @@ Summary:
 
 - Added `docs/APARTMENT_GOD_TRUE_TOP_DOWN_ANIME_VISUAL_STANDARD.md` as the active visual contract.
 - Set the target to mature science fiction anime production design under a strict overhead camera, using painterly environments and color or light separation instead of heavy generic outlines.
-- Recorded the long-term character and animal direction as shared rigged 3D foundations rendered into a 2D anime presentation.
+- Recorded the long-term character and animal direction as modular true top down 2D sprite sheets with consistent identity, wardrobe, scale, anchors, and action-specific animation.
 - Added approved Photoshop assets for the garage floor, closed family SUV, and closed sports convertible.
 - Added safe cached image loading and retained prior renderers when an asset is missing or a vehicle door or trunk is open.
 - Added facing rotation for production vehicle PNGs.
@@ -37,7 +37,12 @@ Known limits:
 
 Next recommended step:
 
-Review the garage in a local browser at mobile scale. If crop, facing, layering, and state fallbacks pass, create an orthographic rig proof for one adult and the dog before broad character replacement.
+Review the garage in a local browser at mobile scale. If crop, facing, layering, and state fallbacks pass, create one complete true top down 2D sprite proof for an adult and the dog before broad character replacement.
+
+Correction:
+
+- Apartment God must not inherit Top Shot's 3D model direction. Top Shot is the separate 3D project. Apartment God remains a true top down 2D sprite game.
+- The repository audit confirmed that active and backup Top Shot branches are still hosted inside `Kalomika/apartment-god-prototype`. Added a repository separation plan and root `AGENTS.md` boundary rule. No branches were moved or deleted.
 
 ## 2026-06-27, Repo memory scaffold
 

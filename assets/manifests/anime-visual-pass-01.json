@@ -39,8 +39,8 @@
   "deferred": [
     "open SUV door and trunk production frames",
     "open convertible door and trunk production frames",
-    "rigged human overhead model and animation set",
-    "rigged dog overhead model and animation set",
+    "complete true-overhead 2D human sprite sheet and animation set",
+    "complete true-overhead 2D dog sprite sheet and animation set",
     "bike, motorbike, and ATV production sprites",
     "remaining room environment plates and object set"
   ]

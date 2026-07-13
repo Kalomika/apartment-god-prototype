@@ -613,7 +613,7 @@ Reviewed current visual rules, recent project context, the active renderer, spri
 
 Implementation details:
 
-- Added a strict overhead anime visual standard with upright-object checks, adult anatomy rules, no heavy-outline direction, painterly environment guidance, anime timing guidance, and a long-term rigged 3D to 2D character and animal pipeline.
+- Added a strict overhead anime visual standard with upright-object checks, adult anatomy rules, no heavy-outline direction, painterly environment guidance, anime timing guidance, and a long-term modular 2D sprite pipeline for characters and animals.
 - Generated and inspected multiple Photoshop assets.
 - Rejected human attempts because they retained front-facing face and torso construction.
 - Rejected the dog attempt because it read as lying on its back instead of standing from above.
@@ -635,7 +635,11 @@ Testing performed:
 - Playwright browser smoke could not start because the environment has no browser binary. The browser download endpoint returned an invalid empty archive. No Render test was run.
 
 Known limits:
-This is a garage vertical slice, not an across-the-game conversion. Bikes, motorbike, ATV, characters, dog, objects, other rooms, activity-specific animation, and open vehicle frames remain on safe fallbacks. The existing Canvas runtime remains active while the rigged overhead renderer foundation is designed and proven.
+This is a garage vertical slice, not an across-the-game conversion. Bikes, motorbike, ATV, characters, dog, objects, other rooms, activity-specific animation, and open vehicle frames remain on safe fallbacks. The existing Canvas runtime remains active while the production 2D sprite foundation is designed and proven.
 
 Exact next step:
-Run local checks and browser review of the garage. If it passes, create one orthographic rig proof for an adult human and one quadruped proof for the dog before any broad character replacement.
+Run local checks and browser review of the garage. If it passes, create one complete true top down 2D sprite proof for an adult human and one for the dog before any broad character replacement.
+
+Correction recorded 2026-07-13: Apartment God and Top Shot are separate projects. Apartment God is the true top down 2D sprite game. Top Shot is the 3D model game. Do not mix their model, rig, renderer, asset, or animation pipeline instructions.
+
+Repository audit follow up: the project mix-up was enabled by Top Shot active, development, diagnostic, and backup branches being hosted inside `Kalomika/apartment-god-prototype`. Added a root `AGENTS.md` boundary rule and `docs/APARTMENT_GOD_TOP_SHOT_REPOSITORY_SEPARATION.md`. No branch was moved, rewritten, or deleted. Safe separation is blocked only on confirmation of the destination Top Shot repository and explicit migration authorization.

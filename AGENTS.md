@@ -6,6 +6,17 @@ This repository is the source of truth for Apartment God Prototype work. Do not 
 
 Work only in `Kalomika/apartment-god-prototype` unless Kam explicitly says otherwise. Do not touch `Kalomika/ai-rpg-engine`.
 
+## Project identity boundary
+
+This repository currently contains legacy Top Shot branches as well as Apartment God branches. That shared hosting does not make them one game.
+
+- Apartment God is the true top down 2D sprite game.
+- Top Shot is the separate 3D model game.
+- When working on Apartment God, do not read Top Shot branches as Apartment God requirements and do not import Top Shot model, rig, renderer, combat, camera, or animation pipeline instructions.
+- Branches beginning with `top-shot`, `backup/top-shot`, `codex-wip/top-shot`, or `diag/top-shot` belong to Top Shot unless Kam explicitly says otherwise.
+- Confirm the game name, active branch, and destination repository before every visual or engine pass.
+- Follow `docs/APARTMENT_GOD_TOP_SHOT_REPOSITORY_SEPARATION.md` for the eventual repository split. Do not move or delete shared history without Kam's explicit approval.
+
 ## Required workflow
 
 1. Create or confirm a backup branch before risky changes.

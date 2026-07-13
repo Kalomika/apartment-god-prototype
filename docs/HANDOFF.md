@@ -60,7 +60,7 @@ Implemented:
 - Local syntax, unit, asset validation, and build checks pass. Full lint remains blocked by pre-existing empty catch blocks. Playwright could not obtain a browser binary in the current environment.
 - Characters and dog remain procedural because the generated attempts failed the overhead camera or posture test.
 - Bike, motorbike, ATV, other rooms, props, activity animation, and open vehicle PNG frames remain future work.
-- The Canvas runtime remains active while an orthographic rigged model to 2D anime renderer is proven.
+- The Canvas runtime remains active while production quality true top down 2D sprite sheets are created and proven.
 
 ## Next recommended test pass
 
@@ -75,7 +75,11 @@ On a local browser build, verify:
 7. Garage lights and room transitions remain readable.
 8. Mobile frame rate remains acceptable.
 
-If these pass, create one adult human orthographic rig proof and one dog quadruped rig proof. Do not mass-produce character PNGs from camera-incorrect generations.
+If these pass, create one complete adult human overhead 2D sprite proof and one dog overhead 2D sprite proof. Do not mass-produce character PNGs from camera-incorrect generations.
+
+Project separation rule: Apartment God is the 2D sprite game. Top Shot is the separate 3D model game. Never mix their production instructions.
+
+Repository root cause: Top Shot active and backup branches are still hosted inside `Kalomika/apartment-god-prototype`. Read `docs/APARTMENT_GOD_TOP_SHOT_REPOSITORY_SEPARATION.md`. No migration or branch deletion is authorized until Kam confirms the destination Top Shot repository.
 
 ## Required completion report
 

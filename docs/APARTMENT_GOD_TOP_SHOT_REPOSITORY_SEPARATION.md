@@ -1,0 +1,70 @@
+# Apartment God And Top Shot Repository Separation
+
+Status: migration required, no destructive migration authorized yet
+
+## Root Cause
+
+Apartment God and Top Shot were hosted as branches inside `Kalomika/apartment-god-prototype`. This made branch history, backups, handoff context, and production rules appear related even though they belong to different games.
+
+This shared hosting caused a real production error on 2026-07-13 when Top Shot's 3D model direction was written into Apartment God's visual standard. That error was corrected immediately.
+
+## Permanent Game Boundary
+
+| Game | Visual Pipeline | Current Repository Situation |
+|---|---|---|
+| Apartment God | True top down 2D sprites, 2D effects, painterly 2D environments, anime timing | Active development remains in `Kalomika/apartment-god-prototype` on Apartment God branches. |
+| Top Shot | 3D models, human joint rigs, 3D gameplay and camera systems, 2D styled rendering and effects where directed | Legacy active and backup branches are still hosted inside the Apartment God repository and need a separate repository. |
+
+## Confirmed Top Shot Branch Families In This Repository
+
+The 2026-07-13 audit found these branch families:
+
+```txt
+top-shot-*
+backup/top-shot-*
+codex-wip/top-shot-*
+diag/top-shot-*
+```
+
+Confirmed active or development branches include:
+
+```txt
+top-shot-anomaly-audit-2026-07-12
+top-shot-combat-pose-states
+top-shot-coverage-matrix
+top-shot-debug-overlay
+top-shot-grok-debug-overlay
+top-shot-smoke-invalid-state-fix
+top-shot-starshot-engine
+top-shot-studio-pipeline
+top-shot-v0-1
+top-shot-v0-2-test-board
+codex-wip/top-shot-nav-movement-cqc-pass
+diag/top-shot-connector-block-test
+```
+
+There are also many `backup/top-shot-*` restore branches. They must be preserved until the new repository has been verified.
+
+## Safe Separation Plan
+
+1. Kam confirms the destination Top Shot repository name and owner.
+2. Create the new repository without changing Apartment God.
+3. Mirror the Top Shot active branches and backup branches into the new repository while preserving commit history.
+4. Inventory Top Shot Actions, deployment settings, binary assets, documentation, secrets, and external links.
+5. Run build and smoke tests from the new Top Shot repository.
+6. Add a Top Shot specific `AGENTS.md`, handbook, handoff, backup policy, and project identity marker.
+7. Freeze Top Shot branches in the Apartment God repository during a verification period.
+8. Only after Kam approves the verified migration, archive or delete the old Top Shot branches from the Apartment God repository.
+
+## Safety Rules
+
+- Do not delete or rewrite Top Shot branches during the inventory phase.
+- Do not move Apartment God branches into the Top Shot repository.
+- Do not change `main`, Render settings, deployments, repository visibility, Actions secrets, or protected branches without explicit approval.
+- Preserve backup branches and commit history.
+- Compare branch heads before and after migration.
+- Record every migrated branch and its original and destination commit SHA.
+
+## Immediate Enforcement
+
+Until separation is complete, every agent working in this repository must identify the game before reading branch history or production rules. Apartment God work must ignore Top Shot branch requirements. Top Shot work must not alter Apartment God branches.
