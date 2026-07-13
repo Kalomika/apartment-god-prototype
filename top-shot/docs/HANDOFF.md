@@ -31,6 +31,14 @@ Read these before any Top Shot task:
 
 ## Latest Starshot pass
 
+### 2026-07-13 studio pipeline slice
+
+Active branch: `top-shot-studio-pipeline`, based on `top-shot-starshot-engine`.
+
+Visual direction is now explicit in code: no outlines, color and lighting separate forms, 8 FPS stepped character poses, smooth simulation and camera, 2D camera facing effects, detailed human proportioned 3D characters, painterly environment target, and future anatomically rich GLTF rigs. This pass is experimental and requires browser QA before any stable merge.
+
+The asset audit and visual smoke are implemented. Browser capture, profiling, batch analytics, verified preview automation, texture atlas support, and production rig importing remain next slices.
+
 Branch:
 
 `top-shot-starshot-engine`
