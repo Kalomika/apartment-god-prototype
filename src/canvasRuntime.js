@@ -11,6 +11,7 @@ import { installCameraSwipeNavigation, updateCameraTransition } from './cameraNa
 import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
 import { applyRuntimeRegressionGuards } from './runtimeRegressionGuards.js';
 import { updatePoolActivity } from './poolActivitySystem.js';
+import { updateMoveJob } from './objectMove.js';
 
 const REFRESH_SAVE_KEY = 'apartment_god_test_refresh_state_v3';
 let frameErrorCount = 0;
@@ -127,6 +128,7 @@ export function bootCanvasGame() {
           const arrived = updateMovement(state, entity, dt);
           if (arrived) resolveArrival(state, entity);
         }
+        updateMoveJob(state, dt);
         updateActions(state, dt);
         updateCalendarRuntime(state);
         updateAutoHooks(state, dt);
