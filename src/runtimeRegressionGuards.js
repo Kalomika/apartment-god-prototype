@@ -9,12 +9,13 @@ export function applyRuntimeRegressionGuards(state) {
   for (const entity of state.entities) {
     if (!entity || entity.hidden || entity.type !== 'person') continue;
     guardBadCookingContact(state, entity);
+    guardDiningSeatAlignment(state, entity);
     guardIdleCouchTrap(entity);
   }
 }
 
 function guardBadCookingContact(state, entity) {
-  const text = `${entity.currentActionId || ''} ${entity.action || ''} ${entity.pose || ''}`.toLowerCase();
+  const text = actionKey(entity);
   if (!(Number(entity.actionT || 0) > 0)) return;
   if (!text.includes('cook') && !text.includes('stove')) return;
   const stove = getObject('stove');
@@ -33,6 +34,45 @@ function guardBadCookingContact(state, entity) {
   state.saveStatus = { message: 'Corrected stove position' };
 }
 
+function guardDiningSeatAlignment(state, entity) {
+  if (entity.floor !== 0 || !(Number(entity.actionT || 0) > 0)) return;
+  const text = actionKey(entity);
+  if (!text.includes('eat') && !text.includes('dining table') && !text.includes('serve_meal')) return;
+  const table = getObject('dining_table');
+  if (!table) return;
+
+  const seat = diningSeatFor(entity, table, state);
+  const distance = Math.hypot(entity.x - seat.x, entity.y - seat.y);
+  if (distance < 4) return;
+  entity.x = seat.x;
+  entity.y = seat.y;
+  entity.pose = 'sit';
+  entity.lastHeading = 0;
+  entity.path = [];
+  entity.target = null;
+  entity.pending = null;
+  entity.blockedT = 0;
+  entity.recoveryCount = 0;
+}
+
+function diningSeatFor(entity, table, state) {
+  const seats = [
+    { x: table.x + 42, y: table.y + table.h + 28 },
+    { x: table.x + table.w - 42, y: table.y + table.h + 28 },
+    { x: table.x + 42, y: table.y - 28 },
+    { x: table.x + table.w - 42, y: table.y - 28 }
+  ];
+  if (entity.id === 'resident') return clampToPlay(seats[0].x, seats[0].y);
+  if (entity.id === 'girlfriend') return clampToPlay(seats[1].x, seats[1].y);
+
+  const eaters = (state.entities || [])
+    .filter(e => e?.type === 'person' && e.floor === 0 && Number(e.actionT || 0) > 0 && actionKey(e).includes('eat'))
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  const index = Math.max(0, eaters.findIndex(e => e.id === entity.id));
+  const seat = seats[index % seats.length];
+  return clampToPlay(seat.x, seat.y);
+}
+
 function guardIdleCouchTrap(entity) {
   if (entity.floor !== 0) return;
   if (Number(entity.actionT || 0) > 0 || entity.target || entity.pending || entity.path?.length) return;
@@ -48,4 +88,8 @@ function guardIdleCouchTrap(entity) {
   entity.lastHeading = 0;
   entity.blockedT = 0;
   entity.recoveryCount = 0;
+}
+
+function actionKey(entity) {
+  return `${entity.currentActionId || ''} ${entity.action || ''} ${entity.pose || ''}`.toLowerCase();
 }
