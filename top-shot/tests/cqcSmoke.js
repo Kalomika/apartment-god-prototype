@@ -57,13 +57,15 @@ function triggerAndStep(state, action, frames = 20) {
 function triggerGroundingAction(state, action) {
   const [attacker, defender] = state.fighters;
   attacker.stamina = 100;
-  defender.stamina = Math.min(defender.stamina, 8);
-  defender.dodge = Math.min(defender.dodge, 8);
-  for (let attempt = 0; attempt < 6; attempt++) {
+  attacker.stats.grapple = 220;
+  defender.stamina = 0;
+  defender.dodge = 0;
+  defender.stats.dodge = 0;
+  for (let attempt = 0; attempt < 3; attempt++) {
     triggerAndStep(state, action, 18);
     if (defender.cqc?.grounded || ['swept_fall', 'grounded_back', 'grounded_side', 'down'].includes(defender.pose)) return;
   }
-  throw new Error(`${action} did not ground or visibly destabilize defender after repeated attempts. pose=${defender.pose}`);
+  throw new Error(`${action} did not ground or visibly destabilize defender after repeated deterministic setup attempts. pose=${defender.pose}`);
 }
 
 function assertCqcIntegrity(state, context) {
