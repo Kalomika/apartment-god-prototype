@@ -1,6 +1,6 @@
 # Apartment God Backup Policy
 
-Last update: 2026-07-08 04:45 AM CT
+Last update: 2026-07-13 backup retention increased to 10 routine backups
 
 Purpose: keep Apartment God safe during development without filling the repo with endless backup branches.
 
@@ -67,7 +67,7 @@ Do not delete milestone backups unless Kam explicitly approves it.
 
 ## Retention Rule
 
-Keep the latest 5 routine backups per major work stream.
+Keep the latest 10 routine backups per major work stream.
 
 A major work stream means a category like:
 
@@ -77,22 +77,23 @@ phaser-migration-pathfinding
 phaser-migration-ui
 phaser-migration-save-system
 phaser-migration-renderer
+phaser-migration-vehicle-system
 main-render-access
 ```
 
-When creating a 6th routine backup in the same work stream, prune or replace the oldest routine backup in that stream, unless Kam says to keep it.
+When creating an 11th routine backup in the same work stream, prune or replace the oldest routine backup in that stream, unless Kam says to keep it.
 
 Do not prune milestone backups as part of routine cleanup.
 
-If a backup is connected to a scary regression, blank screen fix, save corruption fix, or Render recovery, keep it until Kam confirms it can be deleted.
+If a backup is connected to a scary regression, blank screen fix, save corruption fix, vehicle/garage regression, routing regression, or Render recovery, keep it until Kam confirms it can be deleted.
 
 ---
 
-## Why 5 Backups
+## Why 10 Backups
 
-Five routine backups gives enough rollback depth for active development without cluttering the branch list forever.
+Ten routine backups gives safer rollback depth for Apartment God because even a small-looking gameplay change can expose or stack with a separate regression somewhere else. Four or five backups can rotate out too quickly when multiple agents are touching runtime, visuals, vehicles, routing, and documentation in the same week.
 
-Git branches are lightweight because Git shares underlying objects, but too many backup branches make the repo harder for future AIs and humans to understand.
+Git branches are lightweight because Git shares underlying objects. The branch list can still become cluttered, so the rule is not infinite backups. It is a deeper 10-backup safety window per major work stream, with milestone backups protected separately.
 
 ---
 
