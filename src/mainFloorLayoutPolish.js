@@ -4,6 +4,7 @@ const FLOOR = '#d8c4a4';
 const FLOOR_LINE = 'rgba(124,103,75,.15)';
 const PORCH_WOOD = '#8b6a48';
 const PORCH_LINE = 'rgba(36,28,20,.24)';
+const WALL = '#6f6556';
 const COUCH_DARK = '#172834';
 const COUCH_MID = '#263f48';
 const COUCH_LIGHT = '#5f828c';
@@ -15,23 +16,55 @@ const CYAN = '#74e6ff';
 const GOLD = '#f1c66a';
 
 export function applyMainFloorLayoutPolish() {
-  patchObject('couch', { x: 72, y: 232, w: 260, h: 118, facing: 'up', enterable: true, solid: true });
+  patchObject('couch', { x: 72, y: 222, w: 260, h: 86, facing: 'up', enterable: true, solid: true });
   patchObject('dining_table', { x: 494, y: 274, w: 190, h: 64, solid: true });
   patchObject('coffee_maker', { x: 720, y: 74, w: 44, h: 32, solid: false });
+  patchObject('dog_bed', { x: 540, y: 594, w: 58, h: 38, room: 'entry', solid: false, enterable: true });
+  patchObject('dog_bowl', { x: 610, y: 604, w: 34, h: 24, room: 'entry', solid: false });
+  patchObject('robot_vacuum', { x: 660, y: 602, w: 30, h: 30, room: 'entry', solid: false });
 }
 
 export function drawMainFloorLayoutPolish(ctx, state) {
   if (state.floor !== 0) return;
   ctx.save();
   ctx.shadowColor = 'transparent';
+  drawTvStateAndLivingClear(ctx, state);
   drawCleanPorch(ctx);
+  drawPetRobotNook(ctx, state);
   drawCleanLivingCouch(ctx);
   drawCleanDiningSet(ctx, state);
   ctx.restore();
 }
 
+function drawTvStateAndLivingClear(ctx, state) {
+  clearFloor(ctx, 92, 82, 310, 154, FLOOR);
+  round(ctx, 172, 54, 120, 30, 5, '#1a2028');
+  round(ctx, 180, 60, 104, 18, 3, '#52626a');
+  if (!isWatchingTv(state)) return;
+  ctx.save();
+  ctx.globalAlpha = 0.30 + Math.abs(Math.sin((state.time || 0) * .22)) * 0.12;
+  ctx.fillStyle = CYAN;
+  ctx.beginPath();
+  ctx.moveTo(132, 88);
+  ctx.lineTo(322, 88);
+  ctx.lineTo(382, 236);
+  ctx.lineTo(74, 236);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function isWatchingTv(state) {
+  return (state.entities || []).some(entity => {
+    if (entity.hidden || entity.floor !== 0 || entity.type !== 'person') return false;
+    const action = String(entity.action || '').toLowerCase();
+    const pose = String(entity.pose || '').toLowerCase();
+    if (action.includes('sleep') || action.includes('nap') || action.includes('waking')) return false;
+    return action.includes('tv') || action.includes('watch') || action.includes('movie') || action.includes('sports') || pose.includes('watch');
+  });
+}
+
 function drawCleanPorch(ctx) {
-  clearFloor(ctx, 496, 552, 226, 132, FLOOR);
   clearFloor(ctx, 136, 570, 360, 114, PORCH_WOOD, PORCH_LINE);
   round(ctx, 136, 570, 360, 114, 0, PORCH_WOOD);
   for (let y = 582; y < 674; y += 18) line(ctx, 146, y, 486, y, PORCH_LINE, 1);
@@ -50,7 +83,50 @@ function drawCleanPorch(ctx) {
   round(ctx, 305, 629, 28, 20, 10, '#5e4934');
   circle(ctx, 319, 638, 5, '#5f7c55');
   line(ctx, 319, 638, 321, 632, '#a5c27f', 1);
+}
+
+function drawPetRobotNook(ctx, state) {
+  clearFloor(ctx, 496, 552, 226, 132, FLOOR);
+  round(ctx, 508, 566, 194, 100, 6, '#cbb996');
+  round(ctx, 508, 566, 194, 8, 2, WALL);
+  round(ctx, 508, 658, 194, 8, 2, WALL);
+  round(ctx, 508, 566, 8, 100, 2, WALL);
+  round(ctx, 694, 566, 8, 100, 2, WALL);
+  ctx.fillStyle = 'rgba(7,16,24,.56)';
+  ctx.font = '900 9px system-ui';
+  ctx.fillText('PET + ROBOT NOOK', 526, 584);
+  drawDogBedSprite(ctx, object('dog_bed'));
+  drawDogBowlSprite(ctx, object('dog_bowl'));
+  drawRobotVacuumSprite(ctx, object('robot_vacuum'), state);
   drawStairWell(ctx, 780, 554, 118, 84);
+}
+
+function drawDogBedSprite(ctx, bed) {
+  if (!bed) return;
+  round(ctx, bed.x, bed.y, bed.w, bed.h, 16, '#8f765f');
+  round(ctx, bed.x + 7, bed.y + 6, bed.w - 14, bed.h - 12, 13, '#c8b7a1');
+  round(ctx, bed.x + 16, bed.y + 12, bed.w - 32, bed.h - 22, 10, '#e1d1bd');
+}
+
+function drawDogBowlSprite(ctx, bowl) {
+  if (!bowl) return;
+  round(ctx, bowl.x - 2, bowl.y - 2, bowl.w + 4, bowl.h + 4, 10, '#4e5964');
+  round(ctx, bowl.x + 4, bowl.y + 4, bowl.w - 8, bowl.h - 8, 8, '#a9c6ce');
+  circle(ctx, bowl.x + bowl.w / 2, bowl.y + bowl.h / 2, 6, '#5f7c55');
+}
+
+function drawRobotVacuumSprite(ctx, robot, state) {
+  if (!robot) return;
+  const active = state.cleaning?.robotVacuum?.active;
+  circle(ctx, robot.x + robot.w / 2, robot.y + robot.h / 2, 15, active ? CYAN : '#79838f');
+  circle(ctx, robot.x + robot.w / 2, robot.y + robot.h / 2, 7, '#202833');
+  if (active) {
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(robot.x + robot.w / 2, robot.y + robot.h / 2, 18, 0, Math.PI * 2);
+    ctx.stroke();
+  }
 }
 
 function drawPorchChairFacingOut(ctx, x, y) {
@@ -72,25 +148,25 @@ function drawCleanLivingCouch(ctx) {
   const x = couch.x;
   const y = couch.y;
   const w = couch.w;
-  round(ctx, x - 6, y + 6, w + 12, 90, 25, 'rgba(0,0,0,.20)');
-  round(ctx, x, y, w, 78, 24, COUCH_MID);
-  round(ctx, x, y - 54, 84, 132, 24, COUCH_MID);
-  round(ctx, x + 15, y + 12, 64, 46, 15, COUCH_LIGHT);
-  round(ctx, x + 86, y + 12, 64, 46, 15, '#6a8d96');
-  round(ctx, x + 157, y + 12, 64, 46, 15, '#587b86');
-  round(ctx, x + 12, y - 39, 56, 84, 18, '#628793');
-  round(ctx, x + 6, y + 57, w - 12, 24, 12, COUCH_DARK);
-  round(ctx, x + 3, y - 50, 24, 126, 12, COUCH_DARK);
-  line(ctx, x + 82, y + 17, x + 82, y + 56, 'rgba(255,255,255,.20)', 1.5);
-  line(ctx, x + 153, y + 17, x + 153, y + 56, 'rgba(255,255,255,.20)', 1.5);
+  round(ctx, x - 6, y + 16, w + 12, 90, 25, 'rgba(0,0,0,.20)');
+  round(ctx, x, y + 10, w, 78, 24, COUCH_MID);
+  round(ctx, x, y - 54, 84, 142, 24, COUCH_MID);
+  round(ctx, x + 15, y + 22, 64, 46, 15, COUCH_LIGHT);
+  round(ctx, x + 86, y + 22, 64, 46, 15, '#6a8d96');
+  round(ctx, x + 157, y + 22, 64, 46, 15, '#587b86');
+  round(ctx, x + 12, y - 39, 56, 94, 18, '#628793');
+  round(ctx, x + 6, y + 67, w - 12, 24, 12, COUCH_DARK);
+  round(ctx, x + 3, y - 50, 24, 136, 12, COUCH_DARK);
+  line(ctx, x + 82, y + 27, x + 82, y + 66, 'rgba(255,255,255,.20)', 1.5);
+  line(ctx, x + 153, y + 27, x + 153, y + 66, 'rgba(255,255,255,.20)', 1.5);
   line(ctx, x + 23, y - 30, x + 65, y - 30, 'rgba(255,255,255,.18)', 1.5);
-  round(ctx, x + 22, y + 61, w - 50, 9, 6, 'rgba(7,16,24,.35)');
+  round(ctx, x + 22, y + 71, w - 50, 9, 6, 'rgba(7,16,24,.35)');
 }
 
 function drawCleanDiningSet(ctx, state) {
   const table = object('dining_table');
   if (!table) return;
-  clearFloor(ctx, table.x - 70, table.y - 55, table.w + 140, table.h + 112, FLOOR);
+  clearFloor(ctx, table.x - 90, table.y - 70, table.w + 180, table.h + 140, FLOOR);
   const chairPositions = [
     [table.x + table.w / 2, table.y - 28, 0],
     [table.x + table.w / 2, table.y + table.h + 28, Math.PI],
