@@ -185,7 +185,7 @@ Also say exactly what to test. Do not say complete unless the thing was actually
 | Branch Or Target | Role | Current Rule | Update Permission |
 |---|---|---|---|
 | `phaser-migration` | Active development branch | New work starts here. | Safe for normal development after required reading. |
-| `main` | Render playable branch | Browser playable currently follows main. | Update only when Kam explicitly wants Render access updated. |
+| `main` | Render playable branch | Fast-forwarded to the tested anime garage pass on 2026-07-13. `main` and `phaser-migration` point to the same release commit. | Update after successful checks when Kam needs each completed pass available for browser testing. Back up current `main` first and provide the verified cache-busted link. |
 | Backup branches | Restore points | Create before major overhauls. | Do not delete milestone backups without Kam approval. |
 | Render settings | Deployment configuration | Do not touch. | No changes unless Kam explicitly asks and environment allows it. |
 | `Kalomika/ai-rpg-engine` | Protected separate repo | Never touch. | No permission. |

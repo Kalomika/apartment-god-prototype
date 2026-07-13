@@ -643,3 +643,34 @@ Run local checks and browser review of the garage. If it passes, create one comp
 Correction recorded 2026-07-13: Apartment God and Top Shot are separate projects. Apartment God is the true top down 2D sprite game. Top Shot is the hybrid game with highly rigged 3D models and intentional 2D presentation elements. Do not mix their model, rig, renderer, asset, or animation pipeline instructions, and do not weaken Top Shot's 2D rules.
 
 Repository audit follow up: the project mix-up was enabled by Top Shot active, development, diagnostic, and backup branches being hosted inside `Kalomika/apartment-god-prototype`. Added a root `AGENTS.md` boundary rule and `docs/APARTMENT_GOD_TOP_SHOT_REPOSITORY_SEPARATION.md`. Top Shot remains a hybrid pipeline with highly rigged 3D models, intentional 2D effects, painterly 2D backgrounds, outline-free color and lighting separation, and anime timing. No Top Shot rule was removed or weakened. No branch was moved, rewritten, or deleted. Safe separation is blocked only on confirmation of the destination Top Shot repository and explicit migration authorization.
+
+---
+
+## 2026-07-13, Main Browser Testing Publication Correction
+
+Status: DEPLOYED_NEEDS_VISUAL_REVIEW
+Source branch: phaser-migration
+Playable branch: main
+Release source commit: f39079b63e8965306b43725006ee4c4364d6e1b3
+Main backup: backup/main-before-anime-visual-test-update-2026-07-13
+Render settings changed: no
+
+Kam corrected the handoff rule: a completed pass must be available through the playable link so it can actually be tested. Confirmed `main` was the direct ancestor of `phaser-migration`, created the required backup, reran tests and build, then safely fast-forwarded `main` without force.
+
+Checks passed:
+
+- `npm test`, 3 tests.
+- `npm run check`, 64 source files and sprite schema.
+- `npm run assets:validate`, 13 sprite specifications and all production files.
+- `npm run build`, both static output directories.
+- Live page HTTP 200.
+- Live environment and vehicle source imports present.
+- Live SUV SHA-256 matched `d1591c2f61174c71ed3c392dac15fdc5d82d1491d7e06ee6df644dbf19dcdc44`.
+- Live convertible SHA-256 matched `eff3c81dad2fb33980ca8552b607f893e0fcfe5da4bd8b6499d05200ee7da503`.
+- Live garage floor SHA-256 matched `396ac75281602727d00284209ec73ad4bfc963425f25889211145812611b5362`.
+
+Playable test link:
+
+`https://apartment-god-prototype.onrender.com/?v=f39079b6`
+
+Kam should inspect the garage floor, closed SUV, closed convertible, facing direction, collision and click alignment, door and trunk fallback states, vehicle departure and return, lighting, mobile readability, and frame rate. Browser visual approval remains required.

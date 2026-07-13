@@ -34,11 +34,13 @@ https://github.com/Kalomika/apartment-god-prototype/issues/1
 
 Branch:
 
-`phaser-migration`
+`phaser-migration`, fast-forwarded to `main` for browser testing
 
 Backup:
 
 `backup/phaser-migration-before-anime-visual-overhaul-2026-07-13`
+
+`backup/main-before-anime-visual-test-update-2026-07-13`
 
 Implemented:
 
@@ -55,7 +57,8 @@ Implemented:
 
 ## Known limitations
 
-- `main` and Render settings were not changed.
+- `main` was safely fast-forwarded after checks so the pass can be tested. Render settings were not changed.
+- Live deployment was verified by HTTP 200 responses, updated source imports, and exact SHA-256 matches for the SUV, convertible, and garage floor assets.
 - Browser visual approval is still required for the garage crop, scale, layering, and state transitions.
 - Local syntax, unit, asset validation, and build checks pass. Full lint remains blocked by pre-existing empty catch blocks. Playwright could not obtain a browser binary in the current environment.
 - Characters and dog remain procedural because the generated attempts failed the overhead camera or posture test.
@@ -64,7 +67,9 @@ Implemented:
 
 ## Next recommended test pass
 
-On a local browser build, verify:
+On the live cache-busted browser build, verify:
+
+`https://apartment-god-prototype.onrender.com/?v=f39079b6`
 
 1. The garage floor plate loads inside the room walls.
 2. The closed SUV and convertible use the new art.

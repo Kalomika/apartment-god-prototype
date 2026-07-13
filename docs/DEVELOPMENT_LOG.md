@@ -2,6 +2,31 @@
 
 This file tracks meaningful repo changes so any future tool or developer can continue without depending on chat history.
 
+## 2026-07-13, Anime garage pass published for browser testing
+
+Branch: `main` and `phaser-migration`
+
+Release source commit: `f39079b63e8965306b43725006ee4c4364d6e1b3`
+
+Backup branch: `backup/main-before-anime-visual-test-update-2026-07-13`
+
+Summary:
+
+- Confirmed `main` was the direct ancestor of `phaser-migration`, with zero divergent main-only commits.
+- Reran unit tests, source checks, production asset validation, and static build successfully.
+- Fast-forwarded `main` to the tested development commit without force or conflict resolution.
+- Left Render settings unchanged and allowed the existing main deployment to rebuild.
+- Verified the live page and updated source modules.
+- Downloaded all three live production images and matched them to the committed SHA-256 values.
+
+Testing link:
+
+`https://apartment-god-prototype.onrender.com/?v=f39079b6`
+
+Required visual test:
+
+Open the garage and inspect the painterly floor, closed SUV, closed convertible, facing direction, object alignment, door and trunk fallback transitions, departure, return, lights, mobile readability, and frame rate.
+
 ## 2026-07-13, True top down anime foundation and garage pass 01
 
 Tool or person: Codex with connected Photoshop
