@@ -78,11 +78,6 @@ function drawMountedRider(ctx, x, y, size, kind) {
   line(ctx, x + size * .22, y - size * .20, x + handReach, handY, '#2f1f1b', Math.max(2.4, size * .10));
   line(ctx, x - size * .18, y + size * .25, x - size * .52, y + size * .62, '#111820', Math.max(2.3, size * .09));
   line(ctx, x + size * .18, y + size * .25, x + size * .52, y + size * .62, '#111820', Math.max(2.3, size * .09));
-  ctx.fillStyle = '#f1c66a';
-  ctx.font = `900 ${Math.max(6, size * .18)}px system-ui`;
-  ctx.textAlign = 'center';
-  ctx.fillText('MOUNTED', x, y - size * 1.08);
-  ctx.textAlign = 'left';
   ctx.restore();
 }
 
