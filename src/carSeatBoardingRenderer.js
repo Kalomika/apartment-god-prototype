@@ -1,6 +1,24 @@
 const CAR_KINDS = new Set(['car']);
-const DOOR_PHASES = new Set(['door_opening', 'boarding', 'door_closing', 'walking_in']);
-const SEAT_PHASES = new Set(['boarding', 'door_closing']);
+const DOOR_PHASES = new Set([
+  'car_assigned_doors_opening',
+  'car_popout_seats_extending',
+  'car_travelers_sitting_on_popout_seats',
+  'car_popout_seats_retracting',
+  'car_assigned_doors_closing',
+  'car_return_assigned_doors_opening',
+  'car_return_popout_seats_extending',
+  'car_return_travelers_step_out',
+  'car_return_popout_seats_retracting',
+  'car_return_assigned_doors_closing'
+]);
+const SEAT_PHASES = new Set([
+  'car_popout_seats_extending',
+  'car_travelers_sitting_on_popout_seats',
+  'car_popout_seats_retracting',
+  'car_return_popout_seats_extending',
+  'car_return_travelers_step_out',
+  'car_return_popout_seats_retracting'
+]);
 
 export function isCarLikeVehicle(vehicle) {
   return Boolean(vehicle && CAR_KINDS.has(vehicle.vehicleKind || vehicle.kind));
@@ -24,7 +42,6 @@ export function drawCarSeatBoardingOverlay(ctx, vehicle) {
 
 function activeSeatAssignments(vehicle) {
   const seats = Array.isArray(vehicle.seatAssignments) ? vehicle.seatAssignments : [];
-  if (vehicle.phase === 'walking_in') return seats;
   return seats.filter(seat => seat && seat.seatId);
 }
 
@@ -87,15 +104,15 @@ function seatRowY(seatId = '', h = 220) {
 }
 
 function doorOpenAmount(phase, t) {
-  if (phase === 'door_opening') return clamp(t / .7, 0, 1);
-  if (phase === 'boarding' || phase === 'walking_in') return 1;
-  if (phase === 'door_closing') return clamp(1 - t / .45, 0, 1);
-  return 0;
+  if (phase === 'car_assigned_doors_opening' || phase === 'car_return_assigned_doors_opening') return clamp(t / .55, 0, 1);
+  if (phase === 'car_assigned_doors_closing' || phase === 'car_return_assigned_doors_closing') return clamp(1 - t / .45, 0, 1);
+  return 1;
 }
 
 function seatPopAmount(phase, t) {
-  if (phase === 'boarding') return clamp(t / .35, 0, 1);
-  if (phase === 'door_closing') return clamp(1 - t / .45, 0, 1);
+  if (phase === 'car_popout_seats_extending' || phase === 'car_return_popout_seats_extending') return clamp(t / .45, 0, 1);
+  if (phase === 'car_travelers_sitting_on_popout_seats' || phase === 'car_return_travelers_step_out') return 1;
+  if (phase === 'car_popout_seats_retracting' || phase === 'car_return_popout_seats_retracting') return clamp(1 - t / .45, 0, 1);
   return 0;
 }
 
