@@ -2,6 +2,72 @@
 
 This file tracks meaningful Top Shot repo changes so future AI agents, Codex, Copilot, Grok, or human developers can continue from the repository instead of chat history.
 
+## 2026-07-12, Full Top Shot code audit follow-up
+
+Tool or person: ChatGPT
+
+Branch: `top-shot-anomaly-audit-2026-07-12`
+
+Base branch: `top-shot-smoke-invalid-state-fix`
+
+Backup branch: `backup/top-shot-coverage-matrix-2026-07-11-smoke-fix`
+
+Summary:
+
+- Corrected the audit scope after Kam clarified that the full Top Shot game code needed review, not only `tests/cqcSmoke.js`.
+- Expanded the audit to cover Top Shot docs, scripts, tests, runtime state, systems, AI, stealth, perception, movement, CQC Lab, combat, explosives, wounds, vitality, physicality, prestige, requests, navmesh, camera controls, Three.js world/actors/effects, package scripts, index, and Render config.
+- Found PR #26's relevant blocker: `stealthSmoke.js` had a stale fixed expectation that the first stealth update must remain `infiltration`, while runtime conditions can validly advance the phase immediately.
+- Fixed `tests/stealthSmoke.js` so it validates legal stealth phases, awareness initialization, quiet shadow behavior, sound suspicion, hard-sight gating for alert, last-known position storage, and search-plan generation without rejecting valid immediate phase transitions.
+- Fixed `tests/cqcSmoke.js` again so sweep grounding verification is deterministic instead of depending on a lucky random roll.
+- Expanded `docs/AUDIT_REPORT_2026-07-12.md` to record the full code audit scope, fixed anomalies, runtime findings, deferred verification, and PR #26 relationship.
+- Updated `docs/ARCHITECTURE.md` with fuller current module ownership and split smoke check commands.
+- Updated `docs/COVERAGE_MATRIX.md` with the full audit branch, deterministic CQC coverage, corrected stealth smoke expectation, and PR #26 blocker/rebase note.
+
+Files changed in this follow-up:
+
+- `top-shot/tests/cqcSmoke.js`
+- `top-shot/tests/stealthSmoke.js`
+- `top-shot/docs/AUDIT_REPORT_2026-07-12.md`
+- `top-shot/docs/ARCHITECTURE.md`
+- `top-shot/docs/COVERAGE_MATRIX.md`
+- `top-shot/docs/DEVELOPMENT_LOG.md`
+
+Systems affected:
+
+- Test coverage and smoke expectations.
+- Documentation and handoff accuracy.
+- No gameplay runtime code was intentionally changed in this follow-up.
+
+What was preserved:
+
+- Stable branch untouched.
+- Smoke-fix branch and PR #25 remain separate.
+- Full `npm run smoke` remains the gate.
+- CQC and stealth smoke coverage were made stricter/more accurate, not removed.
+
+Testing:
+
+- Not run in this connector environment.
+- No GitHub workflow runs were found for the audit branch commits checked during this pass.
+
+Known risks:
+
+- `npm run smoke:cqc` may reveal real CQC issues now that the test is stricter and deterministic.
+- `npm run smoke:stealth` must be run locally or in CI to confirm the corrected expectation is green.
+- PR #26 may need a rebase or port of the corrected `tests/stealthSmoke.js` expectation.
+- Browser behavior and live Render deployment remain unverified.
+
+Next recommended step:
+
+Run `npm run smoke:cqc`, `npm run smoke:stealth`, and `npm run smoke:sim` first on `top-shot-anomaly-audit-2026-07-12`. If they pass, run `npm run check`, full `npm run smoke`, and `npm run build`. If any fail, patch the exact failure rather than weakening coverage.
+
+Playable links:
+
+- [Top Shot live app](https://top-shot-prototype.onrender.com/)
+- [Audit branch](https://github.com/Kalomika/apartment-god-prototype/tree/top-shot-anomaly-audit-2026-07-12/top-shot)
+- [Smoke fix PR #25](https://github.com/Kalomika/apartment-god-prototype/pull/25)
+- [Studio visual pipeline PR #26](https://github.com/Kalomika/apartment-god-prototype/pull/26)
+
 ## 2026-07-12, Anomaly audit and CQC preservation coverage
 
 Tool or person: ChatGPT
