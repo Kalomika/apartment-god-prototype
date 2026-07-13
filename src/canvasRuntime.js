@@ -9,6 +9,7 @@ import { updateCalendarRuntime } from './calendarRuntime.js';
 import { updateLifeQualitySystem } from './lifeQualitySystem.js';
 import { installCameraSwipeNavigation, updateCameraTransition } from './cameraNavigation.js';
 import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
+import { applyRuntimeRegressionGuards } from './runtimeRegressionGuards.js';
 
 const REFRESH_SAVE_KEY = 'apartment_god_test_refresh_state_v3';
 let frameErrorCount = 0;
@@ -102,6 +103,7 @@ export function bootCanvasGame() {
   const state = createState();
   loadRefreshStateSafely(state);
   sanitizeRuntimeState(state);
+  applyRuntimeRegressionGuards(state);
   installCameraSwipeNavigation(state, canvas);
   const ui = createUi(state, canvas);
 
@@ -111,6 +113,7 @@ export function bootCanvasGame() {
   function frame(now) {
     try {
       sanitizeRuntimeState(state);
+      applyRuntimeRegressionGuards(state);
       const rawDt = Math.min(0.05, (now - last) / 1000);
       last = now;
       const dt = state.paused ? 0 : rawDt * state.speed;
