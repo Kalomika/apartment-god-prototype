@@ -7,9 +7,15 @@ const ROUTE_CORNER_PAD = 22;
 const PERSON_COLLISION_PAD = 4;
 const DOG_COLLISION_PAD = 3;
 const ROUTE_EPSILON = 6;
+const SOLID_EGRESS_EPSILON = 0.75;
 
 function directBlocked(a, b, floor, allowId = '', pad = ROUTE_CLEAR_PAD) {
-  return solidObjects(floor, allowId).some(o => segmentHitsRect(a, b, expandedRect(o, pad)));
+  return solidObjects(floor, allowId).some(o => {
+    const rect = expandedRect(o, pad);
+    if (!segmentHitsRect(a, b, rect)) return false;
+    if (pointInRect(a.x, a.y, rect) && movingAwayFromSolid(a, b, o, pad)) return false;
+    return true;
+  });
 }
 
 function legClear(a, b, floor, allowId = '') {
@@ -128,6 +134,14 @@ function findRouteToNearestOpen(from, to, floor, allowId = '') {
     if (route.length) return route;
     if (legClear(from, candidate, floor, allowId)) return [candidate];
   }
+  const escape = escapeTargetFromSolid(from, floor, allowId);
+  if (escape) {
+    for (const candidate of nearbyOpenTargets(to, floor, allowId)) {
+      const first = routeAround(from, escape, floor, allowId);
+      const second = routeAround(escape, candidate, floor, allowId);
+      if (first.length && second.length) return [...first, ...second];
+    }
+  }
   return [];
 }
 
@@ -216,7 +230,45 @@ export function commandSocial(actor, target, socialId) {
 function blockedStep(entity, from, to) {
   if (!canStepThroughRooms(from, to, entity.floor)) return true;
   const pad = entity.type === 'dog' ? DOG_COLLISION_PAD : PERSON_COLLISION_PAD;
-  return solidObjects(entity.floor, entity.moveAllowId || '').some(o => pointInRect(to.x, to.y, expandedRect(o, pad)));
+  const solids = solidObjects(entity.floor, entity.moveAllowId || '');
+  const toBlockers = solids.filter(o => pointInRect(to.x, to.y, expandedRect(o, pad)));
+  if (!toBlockers.length) return false;
+  return !isLegitimateSolidEgress(from, to, toBlockers, solids, pad);
+}
+
+function isLegitimateSolidEgress(from, to, toBlockers, solids, pad) {
+  const fromSolids = solids.filter(o => pointInRect(from.x, from.y, expandedRect(o, pad)));
+  if (!fromSolids.length) return false;
+  return toBlockers.every(blocker => fromSolids.includes(blocker) && movingAwayFromSolid(from, to, blocker, pad));
+}
+
+function movingAwayFromSolid(from, to, solid, pad) {
+  const rect = expandedRect(solid, pad);
+  if (!pointInRect(from.x, from.y, rect)) return false;
+  const cx = solid.x + solid.w / 2;
+  const cy = solid.y + solid.h / 2;
+  const before = Math.hypot(from.x - cx, from.y - cy);
+  const after = Math.hypot(to.x - cx, to.y - cy);
+  return after + SOLID_EGRESS_EPSILON >= before;
+}
+
+function escapeTargetFromSolid(from, floor, allowId = '') {
+  const solids = solidObjects(floor, allowId);
+  const stuck = solids.find(o => pointInRect(from.x, from.y, expandedRect(o, PERSON_COLLISION_PAD)));
+  if (!stuck) return null;
+  const cx = stuck.x + stuck.w / 2;
+  const cy = stuck.y + stuck.h / 2;
+  const dx = from.x - cx;
+  const dy = from.y - cy;
+  const mag = Math.max(1, Math.hypot(dx, dy));
+  const candidates = [
+    clampToPlay(from.x + dx / mag * 58, from.y + dy / mag * 58),
+    clampToPlay(stuck.x - 28, from.y),
+    clampToPlay(stuck.x + stuck.w + 28, from.y),
+    clampToPlay(from.x, stuck.y - 28),
+    clampToPlay(from.x, stuck.y + stuck.h + 28)
+  ];
+  return candidates.find(p => roomAt(p.x, p.y, floor) && !solids.some(o => pointInRect(p.x, p.y, expandedRect(o, ROUTE_CLEAR_PAD + 2)))) || null;
 }
 
 function finishFloorTravel(state, entity) {
@@ -265,6 +317,14 @@ function recoverBlocked(state, entity, _next, dt) {
       entity.path = reroute;
       return false;
     }
+  }
+
+  const escape = escapeTargetFromSolid({ x: entity.x, y: entity.y }, entity.floor, entity.moveAllowId || '');
+  if (escape && entity.recoveryCount <= 10) {
+    entity.path = [escape, ...(final ? [final] : [])];
+    entity.action = 'Recovering route';
+    entity.pose = 'walk';
+    return false;
   }
 
   if (final && entity.recoveryCount > 8) {
