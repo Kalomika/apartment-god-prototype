@@ -46,7 +46,7 @@ Read these before any Top Shot task:
 10. Open PRs related to Top Shot
 11. The exact files to edit
 
-## Latest anomaly audit pass
+## Latest full code audit pass
 
 Branch:
 
@@ -62,12 +62,14 @@ Backup branch:
 
 Implemented:
 
-- Created a separate audit branch so broad audit work does not overwrite PR #25 directly.
-- Added `top-shot/docs/AUDIT_REPORT_2026-07-12.md`.
+- Expanded the audit from the CQC smoke file to the full Top Shot game code surface.
+- Audited docs, scripts, tests, runtime state, systems, AI, stealth, perception, movement, CQC Lab, combat, explosives, wounds, vitality, physicality, prestige, requests, navmesh, camera controls, Three.js world, actors, effects, package scripts, index, and Render config.
+- Added and expanded `top-shot/docs/AUDIT_REPORT_2026-07-12.md`.
 - Updated `top-shot/AGENTS.md` and `top-shot/docs/TOP_SHOT_HANDBOOK.md` so every Top Shot completion report must include clickable playable links.
 - Updated top-level check expectations to include the split smoke commands plus the full smoke gate.
-- Strengthened `top-shot/tests/cqcSmoke.js` to cover body-shot zone recording, sweep grounding attempts, mount spacing, mounted ground attacks, mount escape integrity, CQC numeric validity, and hitbox numeric validity.
-- Updated `top-shot/docs/QA_CHECKLIST.md`, `top-shot/docs/COVERAGE_MATRIX.md`, and `top-shot/docs/DEVELOPMENT_LOG.md`.
+- Strengthened `top-shot/tests/cqcSmoke.js` to cover body-shot zone recording, deterministic sweep grounding, mount spacing, mounted ground attacks, mount escape integrity, CQC numeric validity, and hitbox numeric validity.
+- Fixed `top-shot/tests/stealthSmoke.js` so it no longer fails on a valid immediate stealth phase transition. It now validates legal stealth phases, awareness initialization, quiet shadow behavior, sound suspicion, hard-sight gating for alert, last-known position storage, and search-plan generation.
+- Updated `top-shot/docs/ARCHITECTURE.md`, `top-shot/docs/QA_CHECKLIST.md`, `top-shot/docs/COVERAGE_MATRIX.md`, and `top-shot/docs/DEVELOPMENT_LOG.md`.
 
 Files changed in latest pass:
 
@@ -76,14 +78,18 @@ Files changed in latest pass:
 - `top-shot/docs/AUDIT_REPORT_2026-07-12.md`
 - `top-shot/docs/HANDOFF.md`
 - `top-shot/docs/DEVELOPMENT_LOG.md`
+- `top-shot/docs/ARCHITECTURE.md`
 - `top-shot/docs/QA_CHECKLIST.md`
 - `top-shot/docs/COVERAGE_MATRIX.md`
 - `top-shot/tests/cqcSmoke.js`
+- `top-shot/tests/stealthSmoke.js`
 
 What changed in gameplay:
 
 - No gameplay runtime code was intentionally changed in this audit pass.
-- CQC smoke coverage is stricter and may reveal real CQC issues the old smoke did not catch.
+- Smoke expectations changed to better reflect actual gameplay preservation targets.
+- CQC smoke coverage is stricter and deterministic.
+- Stealth smoke no longer treats a valid immediate runtime phase transition as a failure.
 
 ## Previous runtime fix pass
 
@@ -129,6 +135,8 @@ Implemented:
 It should be treated as experimental and not merge ready until checks run and browser behavior is verified.
 
 Starshot work should use `COVERAGE_MATRIX.md` to track feature status, branch source, file ownership, test proof, risk, and next action for every slice.
+
+PR #26, the studio visual pipeline PR, reports a stealth smoke blocker tied to stale test expectations. This audit branch corrects the stealth smoke expectation, but PR #26 still needs verification or a rebase/port of that correction.
 
 ## Important branches
 
@@ -191,7 +199,8 @@ npm run build
 - Grenade throws and suppression dives do not create invalid fighter state.
 - Body shots record proper zones.
 - Sweeps, trips, mounts, mounted attacks, and mount escapes remain readable and valid.
-- If `npm run smoke:sim` or `npm run smoke:cqc` fails, use the printed context before editing again.
+- Stealth phases, noise suspicion, visual detection, last-known position, and search plan behavior still work.
+- If `npm run smoke:sim`, `npm run smoke:cqc`, or `npm run smoke:stealth` fails, use the printed context before editing again.
 - Debug overlay toggles with `D`.
 - Collision debug toggles with `C`.
 - No console errors on start.
