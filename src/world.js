@@ -15,16 +15,19 @@ export const floors = [
   },
   {
     id: 1,
-    name: 'Upstairs',
+    name: 'Upstairs Extended',
     rooms: [
-      { id: 'bedroom', name: 'Primary Bedroom', x: 24, y: 36, w: 440, h: 286 },
-      { id: 'office', name: 'Office', x: 480, y: 36, w: 456, h: 286 },
-      { id: 'walkin_closet', name: 'Primary Walk In Closet', x: 24, y: 338, w: 174, h: 170 },
-      { id: 'suite_foyer', name: 'Primary Suite Foyer', x: 214, y: 338, w: 230, h: 170 },
-      { id: 'hall', name: 'Upper Hall', x: 460, y: 338, w: 476, h: 170 },
-      { id: 'master_bath', name: 'Primary Suite Bath', x: 24, y: 524, w: 430, h: 160 },
-      { id: 'upstairs_landing', name: 'Upstairs Landing', x: 470, y: 524, w: 234, h: 160 },
-      { id: 'stairs2', name: 'Stairs', x: 720, y: 524, w: 216, h: 160 }
+      { id: 'bedroom_full', name: 'Full Bedroom', x: 24, y: 36, w: 210, h: 246 },
+      { id: 'bedroom_queen', name: 'Queen Bedroom', x: 250, y: 36, w: 230, h: 246 },
+      { id: 'shared_bath', name: 'Shared Upstairs Bath', x: 24, y: 338, w: 190, h: 170 },
+      { id: 'hall', name: 'Upper Hall Extension', x: 230, y: 300, w: 266, h: 384 },
+      { id: 'upstairs_landing', name: 'Upstairs Landing', x: 24, y: 524, w: 190, h: 160 },
+      { id: 'upstairs_linen_closet', name: 'Linen / Closet Room', x: 250, y: 524, w: 230, h: 160 },
+      { id: 'bedroom', name: 'Primary Bedroom', x: 512, y: 36, w: 424, h: 224 },
+      { id: 'office', name: 'Office / Library', x: 512, y: 276, w: 424, h: 160 },
+      { id: 'suite_foyer', name: 'Primary Suite Vanity Foyer', x: 512, y: 452, w: 160, h: 232 },
+      { id: 'walkin_closet', name: 'Primary Walk In Closet', x: 688, y: 452, w: 248, h: 92 },
+      { id: 'master_bath', name: 'Primary Suite Bath', x: 688, y: 560, w: 248, h: 124 }
     ]
   },
   { id: 2, name: 'Open Basement', rooms: [{ id: 'basement', name: 'Open Basement', x: 24, y: 36, w: 912, h: 648 }] },
@@ -67,22 +70,36 @@ export const objects = [
   { id: 'light_living', label: 'Living Light', kind: 'light', floor: 0, room: 'living', x: 408, y: 52, w: 22, h: 22, solid: false },
   { id: 'stairs_down', label: 'Upstairs Stairs', kind: 'stairs', floor: 0, room: 'stairs', x: 780, y: 554, w: 118, h: 84, solid: false, toFloor: 1, exitId: 'stairs_up' },
 
-  { id: 'bed', label: 'King Bed', kind: 'bed', floor: 1, room: 'bedroom', x: 66, y: 90, w: 236, h: 118, facing: 'east', headboard: 'west', solid: true, enterable: true },
-  { id: 'primary_nightstand_north', label: 'Primary North Nightstand', kind: 'nightstand', floor: 1, room: 'bedroom', x: 38, y: 96, w: 24, h: 44, solid: true },
-  { id: 'primary_nightstand_south', label: 'Primary South Nightstand', kind: 'nightstand', floor: 1, room: 'bedroom', x: 38, y: 158, w: 24, h: 44, solid: true },
-  { id: 'bedroom_tv', label: 'Bedroom Wall TV', kind: 'tv', floor: 1, room: 'bedroom', x: 424, y: 124, w: 30, h: 116, facing: 'west', wallMounted: true, solid: true },
-  { id: 'closet', label: 'Walk In Closet Door', kind: 'closet', floor: 1, room: 'bedroom', x: 72, y: 318, w: 80, h: 26, solid: false, enterable: true, closetEntrance: 'south' },
-  { id: 'desk', label: 'Laptop Desk', kind: 'desk', floor: 1, room: 'office', x: 552, y: 96, w: 122, h: 66, solid: true },
-  { id: 'bookshelf', label: 'Office Book Library', kind: 'bookshelf', floor: 1, room: 'office', x: 494, y: 170, w: 44, h: 126, solid: true },
-  { id: 'office_couch', label: 'Office Couch', kind: 'couch', floor: 1, room: 'office', x: 842, y: 112, w: 58, h: 128, facing: 'west', solid: true, enterable: true },
-  { id: 'master_bathtub', label: 'Primary Bathtub', kind: 'bathtub', floor: 1, room: 'master_bath', x: 178, y: 548, w: 116, h: 62, solid: true, enterable: true },
-  { id: 'master_shower', label: 'Primary Shower', kind: 'shower', floor: 1, room: 'master_bath', x: 44, y: 594, w: 72, h: 70, solid: true, enterable: true },
-  { id: 'master_bath_sink', label: 'Primary Double Vanity', kind: 'sink', floor: 1, room: 'suite_foyer', x: 222, y: 374, w: 42, h: 112, facing: 'east', vanity: 'double', solid: true },
-  { id: 'master_toilet', label: 'Primary Toilet', kind: 'toilet', floor: 1, room: 'master_bath', x: 372, y: 592, w: 44, h: 54, solid: true, enterable: true },
-  { id: 'light_bedroom', label: 'Bedroom Light', kind: 'light', floor: 1, room: 'bedroom', x: 402, y: 52, w: 22, h: 22, solid: false },
-  { id: 'light_office_lounge', label: 'Office Lounge Light', kind: 'light', floor: 1, room: 'office', x: 900, y: 52, w: 22, h: 22, solid: false },
-  { id: 'light_master_bath', label: 'Primary Bath Light', kind: 'light', floor: 1, room: 'master_bath', x: 420, y: 540, w: 22, h: 22, solid: false },
-  { id: 'stairs_up', label: 'Downstairs Stairs', kind: 'stairs', floor: 1, room: 'stairs2', x: 766, y: 554, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'stairs_down' },
+  { id: 'full_bed', label: 'Full Bed', kind: 'bed', floor: 1, room: 'bedroom_full', x: 54, y: 86, w: 150, h: 92, facing: 'east', headboard: 'west', solid: true, enterable: true },
+  { id: 'full_nightstand', label: 'Full Bedroom Nightstand', kind: 'nightstand', floor: 1, room: 'bedroom_full', x: 30, y: 104, w: 22, h: 36, solid: true },
+  { id: 'full_bedroom_tv', label: 'Full Bedroom Wall TV', kind: 'tv', floor: 1, room: 'bedroom_full', x: 204, y: 104, w: 24, h: 88, facing: 'west', wallMounted: true, solid: true },
+  { id: 'full_bedroom_closet', label: 'Full Bedroom Closet', kind: 'closet', floor: 1, room: 'bedroom_full', x: 58, y: 252, w: 82, h: 24, solid: false, enterable: true },
+  { id: 'queen_bed', label: 'Queen Bed', kind: 'bed', floor: 1, room: 'bedroom_queen', x: 280, y: 84, w: 172, h: 100, facing: 'east', headboard: 'west', solid: true, enterable: true },
+  { id: 'queen_nightstand', label: 'Queen Bedroom Nightstand', kind: 'nightstand', floor: 1, room: 'bedroom_queen', x: 256, y: 104, w: 22, h: 38, solid: true },
+  { id: 'queen_bedroom_tv', label: 'Queen Bedroom Wall TV', kind: 'tv', floor: 1, room: 'bedroom_queen', x: 452, y: 104, w: 24, h: 92, facing: 'west', wallMounted: true, solid: true },
+  { id: 'queen_bedroom_closet', label: 'Queen Bedroom Closet', kind: 'closet', floor: 1, room: 'bedroom_queen', x: 312, y: 252, w: 92, h: 24, solid: false, enterable: true },
+  { id: 'shared_shower', label: 'Shared Upstairs Shower', kind: 'shower', floor: 1, room: 'shared_bath', x: 44, y: 360, w: 70, h: 72, solid: true, enterable: true },
+  { id: 'shared_bath_sink', label: 'Shared Upstairs Vanity', kind: 'sink', floor: 1, room: 'shared_bath', x: 132, y: 362, w: 58, h: 48, facing: 'west', handleSide: 'north', solid: true },
+  { id: 'shared_toilet', label: 'Shared Upstairs Toilet', kind: 'toilet', floor: 1, room: 'shared_bath', x: 140, y: 438, w: 44, h: 54, solid: true, enterable: true },
+  { id: 'upstairs_linen_closet', label: 'Linen Closet', kind: 'closet', floor: 1, room: 'upstairs_linen_closet', x: 280, y: 552, w: 82, h: 44, solid: false, enterable: true },
+  { id: 'stairs_up', label: 'Downstairs Stairs', kind: 'stairs', floor: 1, room: 'upstairs_landing', x: 72, y: 572, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'stairs_down' },
+
+  { id: 'bed', label: 'King Bed', kind: 'bed', floor: 1, room: 'bedroom', x: 548, y: 94, w: 224, h: 112, facing: 'east', headboard: 'west', solid: true, enterable: true },
+  { id: 'primary_nightstand_north', label: 'Primary North Nightstand', kind: 'nightstand', floor: 1, room: 'bedroom', x: 520, y: 104, w: 24, h: 44, solid: true },
+  { id: 'primary_nightstand_south', label: 'Primary South Nightstand', kind: 'nightstand', floor: 1, room: 'bedroom', x: 520, y: 164, w: 24, h: 44, solid: true },
+  { id: 'bedroom_tv', label: 'Bedroom Wall TV', kind: 'tv', floor: 1, room: 'bedroom', x: 900, y: 112, w: 28, h: 112, facing: 'west', wallMounted: true, solid: true },
+  { id: 'closet', label: 'Primary Walk In Closet Door', kind: 'closet', floor: 1, room: 'suite_foyer', x: 706, y: 474, w: 86, h: 26, solid: false, enterable: true, closetEntrance: 'east' },
+  { id: 'desk', label: 'Laptop Desk', kind: 'desk', floor: 1, room: 'office', x: 552, y: 302, w: 122, h: 66, solid: true },
+  { id: 'bookshelf', label: 'Office Book Library', kind: 'bookshelf', floor: 1, room: 'office', x: 520, y: 372, w: 42, h: 54, solid: true },
+  { id: 'office_couch', label: 'Office Couch', kind: 'couch', floor: 1, room: 'office', x: 850, y: 300, w: 58, h: 118, facing: 'west', solid: true, enterable: true },
+  { id: 'master_bath_sink', label: 'Primary East-Facing Double Vanity', kind: 'sink', floor: 1, room: 'suite_foyer', x: 526, y: 504, w: 42, h: 112, facing: 'east', handleSide: 'west', vanity: 'double', solid: true },
+  { id: 'master_shower', label: 'Primary Shower', kind: 'shower', floor: 1, room: 'master_bath', x: 704, y: 588, w: 74, h: 70, solid: true, enterable: true },
+  { id: 'master_bathtub', label: 'Primary Bathtub', kind: 'bathtub', floor: 1, room: 'master_bath', x: 804, y: 574, w: 104, h: 60, solid: true, enterable: true },
+  { id: 'master_toilet', label: 'Primary Toilet', kind: 'toilet', floor: 1, room: 'master_bath', x: 882, y: 632, w: 42, h: 46, solid: true, enterable: true },
+  { id: 'light_bedroom', label: 'Bedroom Light', kind: 'light', floor: 1, room: 'bedroom', x: 902, y: 52, w: 22, h: 22, solid: false },
+  { id: 'light_office_lounge', label: 'Office Lounge Light', kind: 'light', floor: 1, room: 'office', x: 900, y: 292, w: 22, h: 22, solid: false },
+  { id: 'light_shared_bath', label: 'Shared Upstairs Bath Light', kind: 'light', floor: 1, room: 'shared_bath', x: 184, y: 350, w: 22, h: 22, solid: false },
+  { id: 'light_master_bath', label: 'Primary Bath Light', kind: 'light', floor: 1, room: 'master_bath', x: 902, y: 572, w: 22, h: 22, solid: false },
 
   { id: 'basement_stairs_up', label: 'Main Floor Stairs', kind: 'stairs', floor: 2, room: 'basement', x: 766, y: 554, w: 118, h: 84, solid: false, toFloor: 0, exitId: 'basement_door' },
   { id: 'pool_table', label: 'Pool Table', kind: 'pool_table', floor: 2, room: 'basement', x: 250, y: 248, w: 250, h: 122, solid: true },
@@ -166,7 +183,7 @@ export function approachPoint(obj, action = '') {
   const cy = obj.y + obj.h / 2;
   if (obj.kind === 'stairs') return clampToPlay(cx, cy);
   if (obj.kind === 'dog_bath') return clampToPlay(cx, cy);
-  if (obj.kind === 'closet') return clampToPlay(cx, obj.y + obj.h + 26);
+  if (obj.kind === 'closet') return clampToPlay(obj.closetEntrance === 'east' ? obj.x + obj.w + 26 : cx, obj.closetEntrance === 'east' ? cy : obj.y + obj.h + 26);
   if (obj.kind === 'couch') {
     if (obj.facing === 'west') return clampToPlay(obj.x + 18, cy);
     if (obj.facing === 'east') return clampToPlay(obj.x + obj.w - 18, cy);
@@ -174,7 +191,12 @@ export function approachPoint(obj, action = '') {
   }
   if (obj.enterable || ['sleep', 'nap', 'shower', 'toilet', 'swim', 'swim_together', 'soccer_practice', 'soccer_match', 'wash_dog'].includes(action)) return clampToPlay(cx, cy);
   if (obj.kind === 'fridge') return clampToPlay(cx, obj.y + obj.h + 42);
-  if (['stove', 'sink'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36);
+  if (obj.kind === 'sink') {
+    if (obj.facing === 'east') return clampToPlay(obj.x + obj.w + 28, cy);
+    if (obj.facing === 'west') return clampToPlay(obj.x - 28, cy);
+    return clampToPlay(cx, obj.y + obj.h + 36);
+  }
+  if (obj.kind === 'stove') return clampToPlay(cx, obj.y + obj.h + 36);
   if (obj.kind === 'coffee_maker') return clampToPlay(cx, obj.y + obj.h + 28);
   if (obj.kind === 'dining_table') return clampToPlay(cx, obj.y + obj.h + 34);
   if (obj.kind === 'cleaning_closet') return clampToPlay(obj.x + obj.w + 34, cy);
@@ -194,8 +216,8 @@ export function approachPoint(obj, action = '') {
   if (obj.kind === 'car') return clampToPlay(obj.x + obj.w + 28, obj.y + obj.h * 0.58);
   if (['bike', 'motorbike', 'atv'].includes(obj.kind)) return clampToPlay(cx + 34, cy + 18);
   if (obj.kind === 'tv') {
-    const seat = obj.room === 'living' ? getObject('couch') : obj.room === 'bedroom' ? getObject('bed') : obj.room === 'secret_lab' ? getObject('lab_pose_chair') : getObject('basement_couch');
-    return seat ? clampToPlay(seat.x + seat.w * .55, seat.y + seat.h / 2) : clampToPlay(cx, obj.y + 150);
+    const seat = obj.room === 'living' ? getObject('couch') : obj.room === 'bedroom' ? getObject('bed') : obj.room === 'bedroom_full' ? getObject('full_bed') : obj.room === 'bedroom_queen' ? getObject('queen_bed') : obj.room === 'secret_lab' ? getObject('lab_pose_chair') : getObject('basement_couch');
+    return seat ? clampToPlay(seat.x + seat.w * .72, seat.y + seat.h / 2) : clampToPlay(cx, obj.y + 150);
   }
   if (obj.kind === 'door') return clampToPlay(cx, obj.y - 28);
   if (obj.kind === 'dog_bowl') return clampToPlay(cx, obj.y + obj.h + 30);
