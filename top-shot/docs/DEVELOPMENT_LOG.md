@@ -14,6 +14,8 @@ Automated results: `npm run check`, `npm run assets:check`, and `npm run starsho
 
 Deferred: browser automation, screenshot and video comparison, performance collector, expanded batch analytics, verified PR previews, texture atlas ingestion, GLTF production rig import, and browser visual QA.
 
+Publishing update: local HTTPS push was unavailable because the checkout had no GitHub credentials. The authenticated GitHub connector created `top-shot-studio-pipeline` from `top-shot-starshot-engine` and published the exact 15 file implementation set. A remote backup branch named `backup/top-shot-studio-pipeline-2026-07-13` is created from the final published head. Stable remains untouched.
+
 ## 2026-07-11, Starshot Meta-System hardening and debug overlay snapshot wiring
 
 Tool or person: ChatGPT
