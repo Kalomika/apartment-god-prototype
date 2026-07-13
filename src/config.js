@@ -44,6 +44,7 @@ export const ACTIONS = {
   vacuum_cleaner: [['vacuum_clean', 'Vacuum Crumbs']],
   robot_vacuum: [['robot_vacuum_start', 'Start Robot Vacuum']],
   shower: [['shower', 'Take Shower'], ['groom', 'Groom']],
+  bathtub: [['shower', 'Take Bath']],
   toilet: [['toilet', 'Use Toilet']],
   door: [['work', 'Work'], ['errand', 'Quick Errand'], ['mall', 'Mall Trip'], ['movies', 'Movie Theater'], ['date', 'Date Night']],
   bed: [['sleep', 'Sleep'], ['bed_together', 'Go To Bed Together'], ['make_bed', 'Make Bed'], ['intimacy', 'Private Moment'], ['relax', 'Relax']],
