@@ -1,7 +1,7 @@
 import { objects } from './world.js';
 import { roundRect } from './renderHelpers.js';
 import { drawVehicleSprite } from './vehicleSpriteRenderer.js';
-import { drawBikeMountOverlay } from './bikeMountRenderer.js';
+import { drawBikeMountOverlay, isBikeLikeVehicle } from './bikeMountRenderer.js';
 
 export function drawDynamicProps(ctx, state) {
   drawPulledBook(ctx, state);
@@ -167,11 +167,12 @@ function drawGarageDoor(ctx, state) {
 function drawAnimatedVehicle(ctx, v) {
   const flash = v.remoteFlashT > 0 && Math.floor(v.remoteFlashT * 12) % 2 === 0;
   const rider = riderShouldShow(v);
+  const bikeLike = isBikeLikeVehicle(v);
   const drawn = drawVehicleSprite(ctx, v, null, {
     open: v.open,
     trunkOpen: v.trunkOpen,
     flash,
-    rider
+    rider: bikeLike ? false : rider
   });
   if (!drawn) fallbackVehicleBlock(ctx, v, flash);
   drawBikeMountOverlay(ctx, v, null, { rider });
