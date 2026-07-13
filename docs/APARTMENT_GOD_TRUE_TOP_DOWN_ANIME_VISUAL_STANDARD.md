@@ -23,6 +23,29 @@ The game must retain its own identity. The desired traits are:
 5. Anime timing with strong poses, readable holds, and an effective 8 frames per second starting point where appropriate.
 6. Hand-drawn 2D effects for impacts, steam, light, water, smoke, and emotional accents.
 
+## Old Blend Placeholder Rejection
+
+The old blend placeholder style is rejected as a quality target. Procedural fallback drawing may remain only as a temporary safety layer while real PNG assets are prepared, audited, and wired behind safe loaders.
+
+Do not approve work that merely stacks a new object on top of the old object and leaves both visible. A replacement must either remove the older renderer path or deliberately clear the old footprint before the corrected art draws.
+
+No runtime object should be marked production without an object-by-object audit. The audit must record the object id, room, current visual source, required PNG path, required states, scale, anchor, lighting needs, and whether the old procedural fallback is still visible.
+
+## Lighting Contract
+
+The world must not be evenly lit at all times. Lighting has logic.
+
+Every room pass and PNG environment pass must define:
+
+1. Sun source or no sun source.
+2. Window, door, skylight, garage door, porch, or artificial fixture source.
+3. Day, dawn, dusk, and night behavior.
+4. Whether a room light can override darkness.
+5. Whether the lighting is a global room filter, an object highlight, or a separate effect layer.
+6. How the light works at actual game scale on mobile.
+
+Anime lighting may use global filters, screen overlays, room tints, and hand-drawn light shapes. It should create mood and direction without turning every object into heavy photo-realistic painting. Baked gradients directly on modular character or clothing pieces should be avoided unless they are part of a controlled sprite lighting pass.
+
 ## Camera Law
 
 Runtime world art uses a strict overhead camera. The top surfaces of upright things are visible. Front and side elevations are not pasted onto the floor.
@@ -97,10 +120,6 @@ Rejected generations are evidence, not runtime assets. Record why they failed, t
 
 ## Current Approved Slice
 
-Anime visual pass 01 approves only:
+Anime visual pass 01 was disabled after live QA showed mismatched garage states and a metallic/isometric read that did not satisfy Kam's current direction. The former garage floor, family SUV closed state, and sports convertible closed state remain evidence and reference material only until a complete garage and vehicle state set passes review.
 
-1. Garage painterly floor plate.
-2. Family SUV, closed state.
-3. Sports convertible, closed state.
-
-The current human and dog image attempts are rejected for camera or posture errors. Existing procedural renderers remain as safe fallbacks until approved overhead 2D sprite sets pass review.
+Current live runtime may use procedural fallback art only as a temporary safety layer. New production work must move toward audited PNG assets and complete state coverage, not isolated partial overlays.
