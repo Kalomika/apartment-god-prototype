@@ -11,15 +11,19 @@ export const doorways = [
   { floor: 0, a: 'entry', b: 'stairs', x: 704, y: 410, w: 18, h: 62 },
   { floor: 0, a: 'entry', b: 'stairs', x: 642, y: 538, w: 72, h: 54 },
   { floor: 0, a: 'kitchen', b: 'stairs', x: 770, y: 300, w: 68, h: 22 },
-  { floor: 1, a: 'bedroom', b: 'walkin_closet', x: 72, y: 322, w: 92, h: 30 },
-  { floor: 1, a: 'bedroom', b: 'suite_foyer', x: 252, y: 322, w: 96, h: 30 },
-  { floor: 1, a: 'office', b: 'hall', x: 574, y: 322, w: 82, h: 30 },
-  { floor: 1, a: 'walkin_closet', b: 'master_bath', x: 86, y: 508, w: 76, h: 30 },
-  { floor: 1, a: 'suite_foyer', b: 'master_bath', x: 278, y: 508, w: 100, h: 30 },
-  { floor: 1, a: 'suite_foyer', b: 'hall', x: 444, y: 410, w: 18, h: 58 },
-  { floor: 1, a: 'hall', b: 'upstairs_landing', x: 574, y: 508, w: 92, h: 22 },
-  { floor: 1, a: 'upstairs_landing', b: 'stairs2', x: 704, y: 580, w: 18, h: 58 },
-  { floor: 1, a: 'hall', b: 'stairs2', x: 802, y: 508, w: 58, h: 22 },
+
+  { floor: 1, a: 'bedroom_full', b: 'hall', x: 96, y: 282, w: 92, h: 30 },
+  { floor: 1, a: 'bedroom_queen', b: 'hall', x: 316, y: 282, w: 92, h: 30 },
+  { floor: 1, a: 'shared_bath', b: 'hall', x: 206, y: 386, w: 32, h: 76 },
+  { floor: 1, a: 'upstairs_landing', b: 'hall', x: 206, y: 580, w: 32, h: 70 },
+  { floor: 1, a: 'upstairs_linen_closet', b: 'hall', x: 322, y: 508, w: 90, h: 30 },
+  { floor: 1, a: 'hall', b: 'office', x: 496, y: 330, w: 30, h: 72 },
+  { floor: 1, a: 'office', b: 'bedroom', x: 640, y: 260, w: 116, h: 30 },
+  { floor: 1, a: 'office', b: 'suite_foyer', x: 548, y: 436, w: 86, h: 30 },
+  { floor: 1, a: 'suite_foyer', b: 'walkin_closet', x: 672, y: 488, w: 30, h: 48 },
+  { floor: 1, a: 'suite_foyer', b: 'master_bath', x: 672, y: 594, w: 30, h: 52 },
+  { floor: 1, a: 'walkin_closet', b: 'master_bath', x: 774, y: 544, w: 88, h: 30 },
+
   { floor: 4, a: 'yard', b: 'pool_area', x: 596, y: 150, w: 18, h: 100 },
   { floor: 4, a: 'yard', b: 'kennel_area', x: 596, y: 470, w: 18, h: 92 }
 ];
@@ -27,10 +31,12 @@ export const doorways = [
 export const windows = [
   { id: 'win_living', label: 'Living Window', floor: 0, room: 'living', x: 116, y: 34, w: 86, h: 8 },
   { id: 'win_kitchen', label: 'Kitchen Window', floor: 0, room: 'kitchen', x: 618, y: 34, w: 82, h: 8 },
-  { id: 'win_bedroom', label: 'Bedroom Window', floor: 1, room: 'bedroom', x: 142, y: 34, w: 96, h: 8 },
-  { id: 'win_office', label: 'Office Window', floor: 1, room: 'office', x: 564, y: 34, w: 88, h: 8 },
-  { id: 'win_office_east', label: 'Office Lounge Window', floor: 1, room: 'office', x: 802, y: 34, w: 88, h: 8 },
-  { id: 'win_master_bath', label: 'Primary Bath Window', floor: 1, room: 'master_bath', x: 126, y: 522, w: 96, h: 8 },
+  { id: 'win_full_bedroom', label: 'Full Bedroom Window', floor: 1, room: 'bedroom_full', x: 86, y: 34, w: 82, h: 8 },
+  { id: 'win_queen_bedroom', label: 'Queen Bedroom Window', floor: 1, room: 'bedroom_queen', x: 318, y: 34, w: 92, h: 8 },
+  { id: 'win_primary_bedroom', label: 'Primary Bedroom Window', floor: 1, room: 'bedroom', x: 640, y: 34, w: 116, h: 8 },
+  { id: 'win_office', label: 'Office Window', floor: 1, room: 'office', x: 610, y: 274, w: 96, h: 8 },
+  { id: 'win_office_east', label: 'Office Lounge Window', floor: 1, room: 'office', x: 802, y: 274, w: 88, h: 8 },
+  { id: 'win_master_bath', label: 'Primary Bath Window', floor: 1, room: 'master_bath', x: 756, y: 558, w: 96, h: 8 },
   { id: 'win_garage', label: 'Garage Vent', floor: 3, room: 'garage', x: 420, y: 34, w: 110, h: 8 }
 ];
 
