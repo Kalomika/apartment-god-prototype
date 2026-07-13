@@ -9,15 +9,22 @@ const FLOOR_UP = '#d4c2a4';
 const GRASS = '#536f52';
 
 export function applyRealismRuntimeCorrections(state) {
-  if (state.realismCorrectionPassVersion === 2) return;
-  state.realismCorrectionPassVersion = 2;
+  if (state.realismCorrectionPassVersion === 3) return;
+  state.realismCorrectionPassVersion = 3;
   setObject('couch', { x: 96, y: 184, w: 238, h: 124, facing: 'up', enterable: true });
   setObject('dining_table', { x: 494, y: 286, w: 196, h: 62 });
   setObject('coffee_maker', { x: 720, y: 72, w: 44, h: 32 });
-  setObject('bookshelf', { x: 42, y: 72, w: 58, h: 150, room: 'living' });
+  preserveBookshelfFloorCorrection();
   setObject('car_1', { w: 136, h: 252 });
   setObject('car_2', { x: 512, w: 110, h: 228 });
   setObject('arcade_machine', { x: 420, y: 72, w: 58, h: 82 });
+}
+
+function preserveBookshelfFloorCorrection() {
+  const shelf = objects.find(o => o.id === 'bookshelf');
+  if (!shelf) return;
+  if (shelf.floor === 0) Object.assign(shelf, { x: 42, y: 72, w: 58, h: 150, room: 'living' });
+  if (shelf.floor === 1) Object.assign(shelf, { x: 494, y: 170, w: 44, h: 126, room: 'office', label: 'Office Book Library' });
 }
 
 function setObject(id, patch) {
