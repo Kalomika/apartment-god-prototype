@@ -7,6 +7,7 @@ import { drawBookWorld } from './bookRender.js';
 import { drawObjectCorrectiveOverlays } from './objectCorrectiveOverlays.js';
 import { drawVisualReplacementClears } from './visualReplacementClears.js';
 import { drawRequestedAfterEntityVisualCorrections, drawRequestedVisualCorrections } from './requestedVisualCorrections.js';
+import { applyRealismRuntimeCorrections, drawRealismAfterEntityCorrections, drawRealismCorrections } from './realismCorrectionPass.js';
 import { drawVisualRegressionFixes } from './visualRegressionFixes.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
@@ -25,6 +26,7 @@ let phoneUiFailed = false;
 let cameraUiFailed = false;
 
 export function draw(ctx, state) {
+  applyRealismRuntimeCorrections(state);
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   syncSafePhoneUi(state);
   syncSafeCameraUi(state);
@@ -66,12 +68,14 @@ function drawScene(ctx, state) {
   drawObjectCorrectiveOverlays(ctx, state);
   drawVisualReplacementClears(ctx, state);
   drawRequestedVisualCorrections(ctx, state);
+  drawRealismCorrections(ctx, state);
   drawVisualRegressionFixes(ctx, state);
   drawVehicleSpriteOverlays(ctx, state);
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
   drawRequestedAfterEntityVisualCorrections(ctx, state);
+  drawRealismAfterEntityCorrections(ctx, state);
   drawAfterEntityOverlays(ctx, state);
   drawPoolFx(ctx, state);
   drawCarriedItems(ctx, state);
@@ -201,76 +205,31 @@ function drawPoolFx(ctx, state) {
       ctx.fillStyle = '#11151c';
       ctx.font = '900 7px system-ui';
       ctx.textAlign = 'center';
-      ctx.fillText(ball.value, ball.x, ball.y + 3);
-      ctx.textAlign = 'left';
+      ctx.fillText(String(ball.value), ball.x, ball.y + 2.5);
     }
   }
-  drawPoolScoreboard(ctx, game);
   ctx.restore();
-}
-
-function drawPoolScoreboard(ctx, game) {
-  const x = 86;
-  const y = 238;
-  ctx.fillStyle = 'rgba(8,10,15,.78)';
-  ctx.fillRect(x, y, 310, 74);
-  ctx.strokeStyle = 'rgba(116,230,255,.7)';
-  ctx.strokeRect(x, y, 310, 74);
-  ctx.fillStyle = COLORS.text;
-  ctx.font = '900 13px system-ui';
-  const names = game.names || game.playerIds || [];
-  const rows = names.map((name, index) => {
-    const id = game.playerIds?.[index] || name;
-    return `${index === game.turn % Math.max(1, names.length) && !game.winner ? '▶ ' : ''}${name}: ${game.score?.[id] || 0}`;
-  }).join('   ');
-  ctx.fillText(rows || 'Pool mini game', x + 12, y + 24);
-  ctx.font = '800 12px system-ui';
-  ctx.fillStyle = '#f1c66a';
-  ctx.fillText(game.winner ? `Winner: ${game.winner}` : game.message || 'Taking shots', x + 12, y + 48);
-  ctx.fillStyle = '#b6c1d2';
-  ctx.fillText(`Shots ${Object.values(game.shots || {}).reduce((sum, n) => sum + n, 0)}`, x + 12, y + 66);
 }
 
 function drawStatus(ctx, state) {
-  ctx.fillStyle = 'rgba(10,12,18,.72)';
-  ctx.fillRect(12, 10, 390, 34);
+  ctx.save();
+  ctx.fillStyle = 'rgba(7,10,16,.72)';
+  ctx.fillRect(0, 0, 420, 31);
   ctx.fillStyle = COLORS.text;
-  ctx.font = '900 16px system-ui';
-  const trash = state.garbage ? ` trash ${Math.round(state.garbage.kitchen || 0)}%` : '';
-  const invested = state.investments?.lifetime ? ` inv $${Math.round(state.investments.lifetime)}` : '';
-  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode || 'guided'}${trash}${invested}`, 24, 32);
+  ctx.font = '900 14px system-ui';
+  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode}   trash ${Math.round(state.garbage?.kitchen || 0)}%`, 12, 20);
+  ctx.fillStyle = 'rgba(116,230,255,.28)';
+  ctx.fillRect(438, 12, 120, 12);
+  ctx.fillStyle = 'rgba(255,255,255,.35)';
+  ctx.fillRect(560, 12, 200, 12);
+  ctx.restore();
 }
 
 function drawOverlay(ctx, state) {
-  if (!state.offsite) return;
-  const people = state.entities.filter(e => e.type === 'person');
-  const allPeopleAway = people.length > 0 && people.every(e => e.hidden);
-  const label = state.offsite.label || state.offsite.actionId.replaceAll('_', ' ');
-  if (allPeopleAway) {
-    drawOffsiteScene(ctx, state);
-    ctx.fillStyle = COLORS.text;
-    ctx.font = '700 18px system-ui';
-    ctx.textAlign = 'center';
-    ctx.fillText(`Clock ${formatTime(state.time)}`, PLAY_W / 2, PLAY_H - 42);
-    ctx.textAlign = 'left';
-    return;
-  }
-  ctx.save();
-  const x = PLAY_W - 292;
-  const y = 12;
-  ctx.fillStyle = 'rgba(8,10,15,.82)';
-  ctx.fillRect(x, y, 280, 64);
-  ctx.strokeStyle = 'rgba(241,198,106,.7)';
-  ctx.strokeRect(x, y, 280, 64);
-  ctx.fillStyle = '#f1c66a';
-  ctx.beginPath();
-  ctx.arc(x + 28, y + 31, 11, 0, Math.PI * 2);
-  ctx.fill();
+  if (!state.paused) return;
+  ctx.fillStyle = 'rgba(0,0,0,.35)';
+  ctx.fillRect(0, 0, PLAY_W, PLAY_H);
   ctx.fillStyle = COLORS.text;
-  ctx.font = '900 13px system-ui';
-  ctx.fillText(`Off site: ${label}`, x + 54, y + 25);
-  ctx.font = '700 11px system-ui';
-  const stage = state.offsite.stage === 'plane' ? 'Outbound flight' : state.offsite.stage === 'return_plane' ? 'Return flight' : 'Activity';
-  ctx.fillText(stage, x + 54, y + 47);
-  ctx.restore();
+  ctx.font = '900 42px system-ui';
+  ctx.fillText('PAUSED', 390, 350);
 }
