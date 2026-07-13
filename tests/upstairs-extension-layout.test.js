@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { doorways } from '../src/blueprint.js';
+import { doorways, routeThroughDoors } from '../src/blueprint.js';
 import { applyUpstairsExtensionLayout } from '../src/upstairsExtensionLayout.js';
 import { floors, getObject } from '../src/world.js';
 
@@ -55,5 +55,18 @@ describe('upstairs extension layout', () => {
     for (const roomId of ['upstairs_landing', 'hall', 'bedroom_full', 'bedroom_queen', 'shared_bath', 'office', 'bedroom', 'suite_foyer', 'walkin_closet', 'master_bath']) {
       expect(connectedRooms.has(roomId)).toBe(true);
     }
+  });
+
+  it('has a direct upper foyer connector from the extension hall to the primary suite foyer', () => {
+    const connector = doorways.find(door => door.floor === 1 && door.a === 'hall' && door.b === 'suite_foyer');
+
+    expect(connector).toBeTruthy();
+    expect(connector.h).toBeGreaterThanOrEqual(100);
+  });
+
+  it('routes from upstairs stairs to the primary master bath through door points', () => {
+    const path = routeThroughDoors({ x: 120, y: 616 }, { x: 800, y: 620 }, 1);
+
+    expect(path.length).toBeGreaterThan(0);
   });
 });
