@@ -1,6 +1,7 @@
 import { objects } from './world.js';
 import { roundRect } from './renderHelpers.js';
 import { drawVehicleSprite } from './vehicleSpriteRenderer.js';
+import { drawBikeMountOverlay } from './bikeMountRenderer.js';
 
 export function drawDynamicProps(ctx, state) {
   drawPulledBook(ctx, state);
@@ -165,13 +166,15 @@ function drawGarageDoor(ctx, state) {
 
 function drawAnimatedVehicle(ctx, v) {
   const flash = v.remoteFlashT > 0 && Math.floor(v.remoteFlashT * 12) % 2 === 0;
+  const rider = riderShouldShow(v);
   const drawn = drawVehicleSprite(ctx, v, null, {
     open: v.open,
     trunkOpen: v.trunkOpen,
     flash,
-    rider: riderShouldShow(v)
+    rider
   });
   if (!drawn) fallbackVehicleBlock(ctx, v, flash);
+  drawBikeMountOverlay(ctx, v, null, { rider });
   drawStoredLuggage(ctx, v, v.x, v.y, v.w || 116, v.h || 230);
   if (v.remoteFlashT > 0) drawVehicleBubble(ctx, (v.x || 0) + (v.w || 80) / 2, (v.y || 0) - 18, v.remoteLabel || 'REMOTE');
 }
@@ -185,7 +188,7 @@ function fallbackVehicleBlock(ctx, v, flash) {
 }
 
 function riderShouldShow(v) {
-  return ['boarding', 'door_closing', 'remote_lock', 'garage_opening', 'leaving', 'arriving', 'parking', 'remote_unlock', 'door_opening'].includes(v.phase);
+  return Boolean(v.mounted || ['mounting', 'mounted_ready', 'boarding', 'door_closing', 'remote_lock', 'garage_opening', 'leaving', 'arriving', 'parking', 'remote_unlock', 'door_opening', 'dismounting'].includes(v.phase));
 }
 
 function drawTrunkLuggagePosition(v, x, y, w, h, index) {
