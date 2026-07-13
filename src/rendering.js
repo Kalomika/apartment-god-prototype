@@ -221,4 +221,50 @@ function drawPoolScoreboard(ctx, game) {
   ctx.font = '800 12px system-ui';
   ctx.fillStyle = '#f1c66a';
   ctx.fillText(game.winner ? `Winner: ${game.winner}` : game.message || 'Taking shots', x + 12, y + 48);
+  ctx.fillStyle = '#b6c1d2';
+  ctx.fillText(`Shots ${Object.values(game.shots || {}).reduce((sum, n) => sum + n, 0)}`, x + 12, y + 66);
+}
+
+function drawStatus(ctx, state) {
+  ctx.fillStyle = 'rgba(10,12,18,.72)';
+  ctx.fillRect(12, 10, 390, 34);
+  ctx.fillStyle = COLORS.text;
+  ctx.font = '900 16px system-ui';
+  const trash = state.garbage ? ` trash ${Math.round(state.garbage.kitchen || 0)}%` : '';
+  const invested = state.investments?.lifetime ? ` inv $${Math.round(state.investments.lifetime)}` : '';
+  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode || 'guided'}${trash}${invested}`, 24, 32);
+}
+
+function drawOverlay(ctx, state) {
+  if (!state.offsite) return;
+  const people = state.entities.filter(e => e.type === 'person');
+  const allPeopleAway = people.length > 0 && people.every(e => e.hidden);
+  const label = state.offsite.label || state.offsite.actionId.replaceAll('_', ' ');
+  if (allPeopleAway) {
+    drawOffsiteScene(ctx, state);
+    ctx.fillStyle = COLORS.text;
+    ctx.font = '700 18px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Clock ${formatTime(state.time)}`, PLAY_W / 2, PLAY_H - 42);
+    ctx.textAlign = 'left';
+    return;
+  }
+  ctx.save();
+  const x = PLAY_W - 292;
+  const y = 12;
+  ctx.fillStyle = 'rgba(8,10,15,.82)';
+  ctx.fillRect(x, y, 280, 64);
+  ctx.strokeStyle = 'rgba(241,198,106,.7)';
+  ctx.strokeRect(x, y, 280, 64);
+  ctx.fillStyle = '#f1c66a';
+  ctx.beginPath();
+  ctx.arc(x + 28, y + 31, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = COLORS.text;
+  ctx.font = '900 13px system-ui';
+  ctx.fillText(`Off site: ${label}`, x + 54, y + 25);
+  ctx.font = '700 11px system-ui';
+  const stage = state.offsite.stage === 'plane' ? 'Outbound flight' : state.offsite.stage === 'return_plane' ? 'Return flight' : 'Activity';
+  ctx.fillText(stage, x + 54, y + 47);
+  ctx.restore();
 }
