@@ -7,6 +7,8 @@ const BASIN = '#ece5d8';
 const WATER = '#a8d3db';
 const TV_OFF = '#262320';
 const GLASS = 'rgba(168,211,219,.68)';
+const CONNECTOR = '#d2bf9e';
+const CONNECTOR_EDGE = '#8a7a63';
 
 export function applyUpstairsExtensionLayout() {
   patch('stairs_up', { x: 72, y: 572, w: 118, h: 84, room: 'upstairs_landing' });
@@ -19,11 +21,42 @@ export function drawUpstairsExtensionPolish(ctx, state) {
   if (state.floor !== 1) return;
   ctx.save();
   ctx.shadowColor = 'transparent';
+  drawMasterFoyerConnector(ctx);
   drawStairLanding(ctx);
   drawBedroomBuiltIns(ctx);
   drawSharedBathModernLayout(ctx);
   drawSuiteVanityOrientation(ctx);
   ctx.restore();
+}
+
+function drawMasterFoyerConnector(ctx) {
+  clearZone(ctx, 464, 300, 96, 386);
+  round(ctx, 468, 306, 88, 370, 8, CONNECTOR);
+  round(ctx, 468, 306, 88, 8, 2, CONNECTOR_EDGE);
+  round(ctx, 468, 668, 88, 8, 2, CONNECTOR_EDGE);
+  round(ctx, 468, 306, 8, 370, 2, CONNECTOR_EDGE);
+  round(ctx, 548, 306, 8, 370, 2, CONNECTOR_EDGE);
+
+  drawOpenDoorGap(ctx, 486, 326, 'TO OFFICE');
+  drawOpenDoorGap(ctx, 486, 522, 'TO MASTER SUITE');
+  drawOpenDoorGap(ctx, 486, 590, 'MASTER FOYER');
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(7,16,24,.72)';
+  ctx.font = '900 9px system-ui';
+  ctx.translate(492, 452);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('UPPER FOYER CONNECTOR TO PRIMARY SUITE', 0, 0);
+  ctx.restore();
+}
+
+function drawOpenDoorGap(ctx, x, y, text) {
+  round(ctx, x - 14, y - 24, 58, 48, 8, FLOOR);
+  line(ctx, x - 4, y - 16, x + 30, y - 16, 'rgba(255,255,255,.36)', 2);
+  line(ctx, x - 4, y + 16, x + 30, y + 16, 'rgba(255,255,255,.36)', 2);
+  ctx.fillStyle = 'rgba(7,16,24,.62)';
+  ctx.font = '900 7px system-ui';
+  ctx.fillText(text, x - 8, y + 3);
 }
 
 function drawStairLanding(ctx) {
