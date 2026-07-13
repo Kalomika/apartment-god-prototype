@@ -22,10 +22,11 @@ function drawEntity(ctx, e, selected) {
     ctx.strokeStyle = COLORS.active;
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(0, 4, e.type === 'dog' ? 30 : 34, 0, Math.PI * 2);
+    ctx.arc(0, 4, e.type === 'dog' ? 28 : 31, 0, Math.PI * 2);
     ctx.stroke();
   }
   ctx.save();
+  ctx.scale(e.type === 'dog' ? .95 : .90, e.type === 'dog' ? .95 : .90);
   if (e.type === 'dog') { ctx.rotate(heading(e)); drawDog(ctx, e); }
   else if (!drawTestActorSprite(ctx, e)) { ctx.rotate(heading(e)); drawPerson(ctx, e); }
   ctx.restore();
@@ -51,7 +52,7 @@ function heading(e) {
     e.lastHeading = Math.atan2(dy, dx) + Math.PI / 2;
     return e.lastHeading;
   }
-  if (!moving && ['tv', 'couch', 'watch', 'desk', 'study', 'read', 'eat', 'table', 'sleep', 'nap', 'shower', 'wash dog'].some(t => action.includes(t) || pose.includes(t))) return 0;
+  if (!moving && ['tv', 'couch', 'watch', 'desk', 'study', 'read', 'eat', 'table', 'sleep', 'nap', 'shower', 'wash dog', 'arcade', 'console', 'game', 'darts'].some(t => action.includes(t) || pose.includes(t))) return 0;
   if (Math.abs(dx) + Math.abs(dy) < 0.01) return e.lastHeading ?? 0;
   e.lastHeading = Math.atan2(dy, dx) + Math.PI / 2;
   return e.lastHeading;
@@ -73,7 +74,7 @@ function drawPerson(ctx, e) {
 }
 
 function isSitting(action, pose) {
-  return pose === 'sit' || ['tv', 'watch', 'desk', 'study', 'read', 'phone', 'game', 'shop', 'eat', 'table', 'relax'].some(t => action.includes(t));
+  return pose === 'sit' || ['tv', 'watch', 'desk', 'study', 'read', 'phone', 'game', 'console', 'arcade', 'darts', 'shop', 'eat', 'table', 'relax'].some(t => action.includes(t));
 }
 
 function drawIdlePose(ctx, female, cloth, accent) { humanCore(ctx, female, cloth, accent, Math.sin(performance.now() / 620) * .65, false); }
@@ -99,6 +100,8 @@ function drawSeatedPose(ctx, female, cloth, accent, action) {
   torso(ctx, female, cloth, accent, 36);
   if (action.includes('tv') || action.includes('watch')) {
     arm(ctx, -17, -6, -30, 14, cloth); arm(ctx, 17, -6, 30, 14, cloth); hand(ctx, -30, 14, accent); hand(ctx, 30, 14, accent); glowQuad(ctx, -42, -50, 42, -50, 26, 12, -26, 12, accent, .18);
+  } else if (action.includes('arcade') || action.includes('console')) {
+    arm(ctx, -17, -6, -27, 22 + tap * 2, cloth); arm(ctx, 17, -6, 27, 22 - tap * 2, cloth); hand(ctx, -27, 22 + tap * 2, accent); hand(ctx, 27, 22 - tap * 2, accent); gameController(ctx, 0, 30, accent); glowQuad(ctx, -34, -58, 34, -58, 44, 18, -44, 18, accent, .16);
   } else if (action.includes('desk') || action.includes('study') || action.includes('game') || action.includes('shop')) {
     arm(ctx, -17, -6, -23, 24 + tap, cloth); arm(ctx, 17, -6, 23, 24 - tap, cloth); hand(ctx, -23, 24 + tap, accent); hand(ctx, 23, 24 - tap, accent); laptop(ctx, 0, 35, accent);
   } else if (action.includes('read')) {
@@ -166,8 +169,9 @@ function bentLeg(ctx, x1, y1, x2, y2, fill, rot) { limb(ctx, x1, y1, x2, y2 - 6,
 function limb(ctx, x1, y1, x2, y2, width, fill) { ctx.strokeStyle = INK; ctx.lineWidth = width + 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.strokeStyle = fill; ctx.lineWidth = width; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
 function hand(ctx, x, y, accent) { ell(ctx, x, y, 4.5, 4.5, SKIN, INK, 1.5); ctx.fillStyle = accent; ctx.fillRect(x - 2, y - 2, 4, 1); }
 function shoe(ctx, x, y, rot) { ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ell(ctx, 0, 0, 5, 8, '#05070a', INK, 1); ctx.restore(); }
-function clothesPile(ctx, female, alpha = 1) { ctx.save(); ctx.translate(-38, 36); ctx.globalAlpha = .25 + alpha * .75; ell(ctx, 0, 2, 16, 7, 'rgba(0,0,0,.22)'); ctx.save(); ctx.rotate(-.32); roundRect(ctx, -17, -7, 31, 14, 6, female ? CLOTH.girlfriend : CLOTH.resident); roundRect(ctx, -1, -12, 20, 12, 5, female ? MAGENTA : CYAN); ctx.restore(); ctx.save(); ctx.rotate(.48); roundRect(ctx, -9, 2, 28, 10, 5, '#242b34'); ctx.restore(); ell(ctx, -16, -2, 7, 4, '#05070a', INK, 1); ell(ctx, 18, 5, 8, 5, '#05070a', INK, 1); ctx.restore(); }
+function clothesPile(ctx, female, alpha = 1) { ctx.save(); ctx.translate(-38, 36); ctx.globalAlpha = .25 + alpha * .75; ell(ctx, 0, 2, 16, 7, 'rgba(0,0,0,.18)'); ctx.save(); ctx.rotate(-.10); roundRect(ctx, -18, -9, 34, 13, 4, female ? CLOTH.girlfriend : CLOTH.resident); roundRect(ctx, -18, 5, 28, 10, 4, '#293342'); ctx.restore(); ctx.save(); ctx.rotate(.18); roundRect(ctx, 0, -13, 24, 12, 4, female ? MAGENTA : CYAN); ctx.restore(); ell(ctx, -18, -4, 7, 4, '#05070a', INK, 1); ell(ctx, 19, 7, 8, 5, '#05070a', INK, 1); ctx.restore(); }
 function laptop(ctx, x, y, accent) { roundRect(ctx, x - 21, y - 11, 42, 21, 4, '#121821'); roundRect(ctx, x - 17, y - 8, 34, 12, 3, accent); roundRect(ctx, x - 24, y + 8, 48, 6, 2, '#dfe6ea'); }
+function gameController(ctx, x, y, accent) { roundRect(ctx, x - 21, y - 9, 42, 18, 8, '#10141b'); circle(ctx, x - 10, y, 3, accent); circle(ctx, x + 10, y, 3, '#f1c66a'); line(ctx, x - 4, y, x + 4, y, '#dfe6ea', 1.5); }
 function book(ctx, x, y) { roundRect(ctx, x - 21, y - 9, 42, 18, 4, '#efe7dc'); line(ctx, x, y - 8, x, y + 8, '#8b6f53', 1); }
 function phone(ctx, x, y) { roundRect(ctx, x - 6, y - 11, 12, 22, 3, '#10141b'); roundRect(ctx, x - 4, y - 8, 8, 15, 2, '#a8e9ff'); }
 function plate(ctx, x, y) { ell(ctx, x, y, 13, 6, '#efe7dc', INK, 1); ell(ctx, x + 2, y, 5, 3, '#b66d55'); }
@@ -180,3 +184,4 @@ function drawJaggedBurst(ctx, pulse) { ctx.beginPath(); for (let i = 0; i < 16; 
 function drawBubble(ctx, text, style = 'speech') { const w = Math.max(72, text.length * 12 + 24); roundRect(ctx, -w / 2, -86, w, 34, 12, style === 'thought' ? '#eef7ff' : '#f8fbff'); ctx.fillStyle = '#10141b'; ctx.font = '900 16px system-ui'; ctx.textAlign = 'center'; ctx.fillText(text, 0, -64); ctx.textAlign = 'left'; }
 function ell(ctx, x, y, rx, ry, fill, stroke = '', lineWidth = 0) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke && lineWidth > 0) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth; ctx.stroke(); } }
 function line(ctx, x1, y1, x2, y2, color, width = 2) { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+function circle(ctx, x, y, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
