@@ -13,4 +13,15 @@ describe('realism correction bookshelf floor safety', () => {
     expect(shelf.room).toBe('office');
     expect(shelf.x).toBeGreaterThan(450);
   });
+
+  it('still reapplies object corrections when saved state already carries the correction version', () => {
+    const shelf = getObject('bookshelf');
+    Object.assign(shelf, { x: 42, y: 72, room: 'living' });
+
+    applyRealismRuntimeCorrections({ realismCorrectionPassVersion: 3 });
+
+    expect(shelf.floor).toBe(1);
+    expect(shelf.room).toBe('office');
+    expect(shelf.x).toBe(494);
+  });
 });
