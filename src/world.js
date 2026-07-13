@@ -45,7 +45,6 @@ export const objects = [
   { id: 'couch', label: 'Couch', kind: 'couch', floor: 0, room: 'living', x: 108, y: 250, w: 210, h: 62, facing: 'up', solid: true, enterable: true },
   { id: 'tv', label: 'Wall Mounted TV', kind: 'tv', floor: 0, room: 'living', x: 172, y: 54, w: 120, h: 30, wallMounted: true, solid: true },
   { id: 'stereo', label: 'Media Shelf', kind: 'stereo', floor: 0, room: 'living', x: 304, y: 60, w: 58, h: 34, solid: true },
-  { id: 'bookshelf', label: 'Bookshelf', kind: 'bookshelf', floor: 0, room: 'entry', x: 72, y: 426, w: 42, h: 92, solid: true },
   { id: 'fridge', label: 'Fridge', kind: 'fridge', floor: 0, room: 'kitchen', x: 486, y: 70, w: 70, h: 88, facing: 'down', solid: true },
   { id: 'stove', label: 'Stove', kind: 'stove', floor: 0, room: 'kitchen', x: 598, y: 70, w: 72, h: 64, solid: true },
   { id: 'sink', label: 'Sink', kind: 'sink', floor: 0, room: 'kitchen', x: 690, y: 78, w: 54, h: 48, solid: true },
@@ -74,10 +73,11 @@ export const objects = [
   { id: 'bedroom_tv', label: 'Bedroom Wall TV', kind: 'tv', floor: 1, room: 'bedroom', x: 424, y: 124, w: 30, h: 116, facing: 'west', wallMounted: true, solid: true },
   { id: 'closet', label: 'Walk In Closet Door', kind: 'closet', floor: 1, room: 'bedroom', x: 72, y: 318, w: 80, h: 26, solid: false, enterable: true, closetEntrance: 'south' },
   { id: 'desk', label: 'Laptop Desk', kind: 'desk', floor: 1, room: 'office', x: 552, y: 96, w: 122, h: 66, solid: true },
-  { id: 'office_couch', label: 'Office Couch', kind: 'couch', floor: 1, room: 'office', x: 790, y: 154, w: 118, h: 58, facing: 'down', solid: true, enterable: true },
+  { id: 'bookshelf', label: 'Office Book Library', kind: 'bookshelf', floor: 1, room: 'office', x: 494, y: 170, w: 44, h: 126, solid: true },
+  { id: 'office_couch', label: 'Office Couch', kind: 'couch', floor: 1, room: 'office', x: 842, y: 112, w: 58, h: 128, facing: 'west', solid: true, enterable: true },
   { id: 'master_bathtub', label: 'Primary Bathtub', kind: 'bathtub', floor: 1, room: 'master_bath', x: 178, y: 548, w: 116, h: 62, solid: true, enterable: true },
   { id: 'master_shower', label: 'Primary Shower', kind: 'shower', floor: 1, room: 'master_bath', x: 44, y: 594, w: 72, h: 70, solid: true, enterable: true },
-  { id: 'master_bath_sink', label: 'Primary Bath Sink', kind: 'sink', floor: 1, room: 'suite_foyer', x: 304, y: 390, w: 56, h: 42, solid: true },
+  { id: 'master_bath_sink', label: 'Primary Double Vanity', kind: 'sink', floor: 1, room: 'suite_foyer', x: 222, y: 374, w: 42, h: 112, facing: 'east', vanity: 'double', solid: true },
   { id: 'master_toilet', label: 'Primary Toilet', kind: 'toilet', floor: 1, room: 'master_bath', x: 372, y: 592, w: 44, h: 54, solid: true, enterable: true },
   { id: 'light_bedroom', label: 'Bedroom Light', kind: 'light', floor: 1, room: 'bedroom', x: 402, y: 52, w: 22, h: 22, solid: false },
   { id: 'light_office_lounge', label: 'Office Lounge Light', kind: 'light', floor: 1, room: 'office', x: 900, y: 52, w: 22, h: 22, solid: false },
@@ -167,7 +167,11 @@ export function approachPoint(obj, action = '') {
   if (obj.kind === 'stairs') return clampToPlay(cx, cy);
   if (obj.kind === 'dog_bath') return clampToPlay(cx, cy);
   if (obj.kind === 'closet') return clampToPlay(cx, obj.y + obj.h + 26);
-  if (obj.kind === 'couch') return clampToPlay(cx, obj.facing === 'up' ? obj.y + obj.h * .48 : obj.y + obj.h - 24);
+  if (obj.kind === 'couch') {
+    if (obj.facing === 'west') return clampToPlay(obj.x + 18, cy);
+    if (obj.facing === 'east') return clampToPlay(obj.x + obj.w - 18, cy);
+    return clampToPlay(cx, obj.facing === 'up' ? obj.y + obj.h * .48 : obj.y + obj.h - 24);
+  }
   if (obj.enterable || ['sleep', 'nap', 'shower', 'toilet', 'swim', 'swim_together', 'soccer_practice', 'soccer_match', 'wash_dog'].includes(action)) return clampToPlay(cx, cy);
   if (obj.kind === 'fridge') return clampToPlay(cx, obj.y + obj.h + 42);
   if (['stove', 'sink'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36);
