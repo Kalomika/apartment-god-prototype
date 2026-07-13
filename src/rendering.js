@@ -1,6 +1,7 @@
 import './fit.js';
 import { PLAY_H, PLAY_W, COLORS } from './config.js';
 import { drawWorld } from './renderWorld.js';
+import { drawAnimeEnvironmentUnderlay } from './animeVisualLayer.js';
 import { drawObjects } from './renderObjects.js';
 import { drawBookWorld } from './bookRender.js';
 import { drawObjectCorrectiveOverlays } from './objectCorrectiveOverlays.js';
@@ -54,6 +55,7 @@ function syncSafeCameraUi(state) {
 
 function drawScene(ctx, state) {
   drawWorld(ctx, state);
+  drawAnimeEnvironmentUnderlay(ctx, state);
   drawSoccer(ctx, state);
   drawObjects(ctx, state);
   drawBookWorld(ctx, state);

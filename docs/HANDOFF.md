@@ -2,7 +2,7 @@
 
 ## Current status
 
-Apartment God Prototype is live and has been converted into a modular codebase. Current work is focused on restoring and improving life-sim readability while preserving every original feature.
+Apartment God Prototype is live and has been converted into a modular codebase. Active development is on `phaser-migration`. The newest work starts the strict overhead anime visual conversion while preserving safe fallbacks and every original feature.
 
 Live URL:
 
@@ -32,47 +32,50 @@ https://github.com/Kalomika/apartment-god-prototype/issues/1
 
 ## Latest pass
 
-Latest commit:
+Branch:
 
-`52b43d6acc7ba7e160b768bf35b7851e32f81fc4`
+`phaser-migration`
+
+Backup:
+
+`backup/phaser-migration-before-anime-visual-overhaul-2026-07-13`
 
 Implemented:
 
-- Visible walk-cycle body animation with arms and legs.
-- Distinct sitting pose.
-- Distinct lying/sleeping pose.
-- Social/tickle/cuddle/kiss/hold-hands pose handling.
-- Both participants now animate during social actions.
-- Dog movement now includes legs/tail feedback.
-- Pretend phone music with selectable genres.
-- Genre effects for fun, social, stamina, calm/hype, and small intellect gains for some genres.
-- Dynamic stereo object when music starts.
-- Stereo rendering and stereo interaction hook.
-- Feature inventory updated so animation and pretend music cannot be dropped by future refactors.
+- Active true top down anime visual standard.
+- Approved painterly garage floor plate.
+- Approved closed family SUV and sports convertible PNGs.
+- Safe cached loading with current renderers retained on failure.
+- Facing-aware vehicle PNG rotation.
+- Existing renderer retained for vehicle door and trunk states.
+- Static build now includes `assets/`.
+- Production manifest entries, checksums, rejections, and deferred categories.
+- Unit coverage for asset paths, non-browser fallback, and facing rotation.
+- Vitest now collects only `*.test.js`; the mobile `*.spec.js` remains under Playwright.
 
 ## Known limitations
 
-- Render deployment must be allowed time to rebuild after each main commit.
-- Animation is symbolic canvas body-language, not full sprite-sheet animation yet.
-- Pretend music is silent intentionally to avoid licensing issues.
-- Social poses are readable approximations and should be refined with stronger choreography later.
-- A full furniture-populated-start versus empty-start mode is not implemented yet.
-- Long-term aging/lifetime calendar is intentionally deferred.
+- `main` and Render settings were not changed.
+- Browser visual approval is still required for the garage crop, scale, layering, and state transitions.
+- Local syntax, unit, asset validation, and build checks pass. Full lint remains blocked by pre-existing empty catch blocks. Playwright could not obtain a browser binary in the current environment.
+- Characters and dog remain procedural because the generated attempts failed the overhead camera or posture test.
+- Bike, motorbike, ATV, other rooms, props, activity animation, and open vehicle PNG frames remain future work.
+- The Canvas runtime remains active while an orthographic rigged model to 2D anime renderer is proven.
 
 ## Next recommended test pass
 
-On mobile, verify:
+On a local browser build, verify:
 
-1. Character walk cycles show arms and legs.
-2. Sitting actions look seated.
-3. Sleep/nap looks lying down.
-4. Tickle/cuddle/kiss animate both characters.
-5. Dog pet/train/fetch still appears.
-6. Phone: Music opens a genre prompt.
-7. Choosing rap, rock, classical, jazz, afrobeat, or electronic starts pretend music.
-8. Stereo appears in the living room after music starts.
-9. Clock/status overlay remains visible.
-10. Game canvas is not squashed.
+1. The garage floor plate loads inside the room walls.
+2. The closed SUV and convertible use the new art.
+3. Both vehicles face the direction declared in `src/world.js`.
+4. Unlock, door, trunk, departure, and return states never produce a blank frame.
+5. Click areas and collision footprints remain aligned.
+6. Missing images fall back without a blank canvas or crash.
+7. Garage lights and room transitions remain readable.
+8. Mobile frame rate remains acceptable.
+
+If these pass, create one adult human orthographic rig proof and one dog quadruped rig proof. Do not mass-produce character PNGs from camera-incorrect generations.
 
 ## Required completion report
 

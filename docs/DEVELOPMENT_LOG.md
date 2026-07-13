@@ -2,6 +2,43 @@
 
 This file tracks meaningful repo changes so any future tool or developer can continue without depending on chat history.
 
+## 2026-07-13, True top down anime foundation and garage pass 01
+
+Tool or person: Codex with connected Photoshop
+
+Branch: phaser-migration
+
+Backup branch: backup/phaser-migration-before-anime-visual-overhaul-2026-07-13
+
+Summary:
+
+- Added `docs/APARTMENT_GOD_TRUE_TOP_DOWN_ANIME_VISUAL_STANDARD.md` as the active visual contract.
+- Set the target to mature science fiction anime production design under a strict overhead camera, using painterly environments and color or light separation instead of heavy generic outlines.
+- Recorded the long-term character and animal direction as shared rigged 3D foundations rendered into a 2D anime presentation.
+- Added approved Photoshop assets for the garage floor, closed family SUV, and closed sports convertible.
+- Added safe cached image loading and retained prior renderers when an asset is missing or a vehicle door or trunk is open.
+- Added facing rotation for production vehicle PNGs.
+- Updated the build to copy `assets/` into both output directories.
+- Added manifest checksums, approval notes, rejected generation notes, and a small unit test for asset contracts and vehicle rotation.
+- Separated Vitest unit discovery from Playwright `.spec.js` discovery so `npm test` does not execute the mobile browser suite under the wrong runner.
+
+Rejected in this pass:
+
+- Human images that kept front-facing face and torso construction.
+- A dog image that read as lying on its back.
+
+Known limits:
+
+- This is the first approved garage slice, not a full game conversion.
+- Bike, motorbike, ATV, other rooms, props, cast, dog, activity clips, and open vehicle frames remain on safe fallbacks.
+- Syntax, unit, production asset validation, and static build pass locally.
+- Full repo lint still has pre-existing empty catch errors outside this pass.
+- Browser and Render visual approval are still required. Local Playwright could not start because no browser binary was installed, and the permitted download returned an invalid empty archive.
+
+Next recommended step:
+
+Review the garage in a local browser at mobile scale. If crop, facing, layering, and state fallbacks pass, create an orthographic rig proof for one adult and the dog before broad character replacement.
+
 ## 2026-06-27, Repo memory scaffold
 
 Tool or person: ChatGPT

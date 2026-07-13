@@ -1,3 +1,5 @@
+import { ANIME_VISUAL_ASSETS, getAnimeVisualAsset } from './animeVisualAssets.js';
+
 const VEHICLE_IDS = new Set(['car_1', 'car_2', 'bike', 'motorbike', 'atv', 'garage_alarm_post']);
 
 export function drawVehicleSprite(ctx, vehicle, state = null, options = {}) {
@@ -12,14 +14,66 @@ export function drawVehicleSprite(ctx, vehicle, state = null, options = {}) {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.shadowColor = 'transparent';
-  if (id === 'car_1' || vehicle.vehicleBody === 'suv') drawExactSuv(ctx, vehicle, { flash, open, trunkOpen });
-  else if (id === 'car_2' || vehicle.vehicleBody === 'sports' || vehicle.vehicleBody === 'convertible') drawExactSportsCar(ctx, vehicle, { flash, open, trunkOpen });
+  if (id === 'car_1' || vehicle.vehicleBody === 'suv') {
+    if (!open && !trunkOpen && drawProductionVehicle(ctx, vehicle, 'garageFamilySuv', flash)) return finishVehicleDraw(ctx);
+    drawExactSuv(ctx, vehicle, { flash, open, trunkOpen });
+  }
+  else if (id === 'car_2' || vehicle.vehicleBody === 'sports' || vehicle.vehicleBody === 'convertible') {
+    if (!open && !trunkOpen && drawProductionVehicle(ctx, vehicle, 'garageSportsConvertible', flash)) return finishVehicleDraw(ctx);
+    drawExactSportsCar(ctx, vehicle, { flash, open, trunkOpen });
+  }
   else if (kind === 'bike') drawExactBike(ctx, vehicle, { rider, flash });
   else if (kind === 'motorbike') drawExactMotorbike(ctx, vehicle, { rider, flash });
   else if (kind === 'atv') drawExactAtv(ctx, vehicle, { rider, flash });
   else if (vehicle.kind === 'charging_station' || id === 'garage_alarm_post') drawExactAlarmPost(ctx, vehicle, { flash });
   ctx.restore();
   return true;
+}
+
+function finishVehicleDraw(ctx) {
+  ctx.restore();
+  return true;
+}
+
+function drawProductionVehicle(ctx, vehicle, assetKey, flash) {
+  const image = getAnimeVisualAsset(assetKey);
+  const crop = ANIME_VISUAL_ASSETS[assetKey]?.crop;
+  if (!image || !crop) return false;
+
+  const w = vehicle.w || 116;
+  const h = vehicle.h || 230;
+  const maxWidth = w * 1.45;
+  const naturalWidth = h * (crop.w / crop.h);
+  const drawWidth = Math.min(maxWidth, naturalWidth);
+  const drawHeight = drawWidth * (crop.h / crop.w);
+  const cx = vehicle.x + w / 2;
+  const cy = vehicle.y + h / 2;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(vehicleSpriteRotation(vehicle.facing));
+  ctx.drawImage(
+    image,
+    crop.x,
+    crop.y,
+    crop.w,
+    crop.h,
+    -drawWidth / 2,
+    -drawHeight / 2,
+    drawWidth,
+    drawHeight
+  );
+  ctx.restore();
+
+  if (flash) drawAlarmHalo(ctx, vehicle.x, vehicle.y, w, h);
+  return true;
+}
+
+export function vehicleSpriteRotation(facing = 'up') {
+  if (facing === 'down') return Math.PI;
+  if (facing === 'left') return -Math.PI / 2;
+  if (facing === 'right') return Math.PI / 2;
+  return 0;
 }
 
 export function isVehicleSprite(vehicle) {

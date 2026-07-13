@@ -596,3 +596,46 @@ This touches render objects, corrective overlays, dynamic rendering, vehicle sta
 
 Follow ups:
 If this pass behaves correctly in browser, mirror to `main` only when Kam explicitly wants Render testing. Then continue with proper reference backed vehicle sprites, deeper boarding and exiting animation states, final mounted rider poses, and a larger visual asset pipeline pass.
+
+---
+
+## 2026-07-13, True Top Down Anime Visual Foundation And Garage Pass 01
+
+Status: NEEDS_TESTING
+Branch: phaser-migration
+Backup branch: backup/phaser-migration-before-anime-visual-overhaul-2026-07-13
+Runtime files changed: yes
+Render playable branch updated: no
+Render settings changed: no
+
+Summary:
+Reviewed current visual rules, recent project context, the active renderer, sprite manifests, prior generated branches, and recovered visual artifacts. Added a stricter anime visual standard and integrated the first three assets that passed review: a painterly garage floor, a closed family SUV, and a closed sports convertible.
+
+Implementation details:
+
+- Added a strict overhead anime visual standard with upright-object checks, adult anatomy rules, no heavy-outline direction, painterly environment guidance, anime timing guidance, and a long-term rigged 3D to 2D character and animal pipeline.
+- Generated and inspected multiple Photoshop assets.
+- Rejected human attempts because they retained front-facing face and torso construction.
+- Rejected the dog attempt because it read as lying on its back instead of standing from above.
+- Added a browser-safe image cache. A missing or failed image leaves the current renderer active.
+- Added the approved painterly garage floor as an underlay inside the existing room boundary.
+- Added approved PNG rendering for the closed SUV and convertible, including object-facing rotation.
+- Kept current door and trunk render states as fallbacks until matching production frames pass review.
+- Updated the static build so `assets/` ships with `dist/` and `Dist/`.
+- Added production manifest records, checksums, rejection reasons, and deferred categories.
+
+Testing performed:
+
+- `npm run check` passed, 64 source files and sprite schema.
+- `npm run assets:validate` passed, including all three production files.
+- `npm test` passed, 3 unit tests.
+- `npm run build` passed and copied `assets/` into both static output directories.
+- Focused lint on the changed JavaScript files passed.
+- Full repo lint still fails on three pre-existing empty catch blocks in `src/calendarSkipSystem.js` and `src/canvasRuntime.js`, plus existing warnings.
+- Playwright browser smoke could not start because the environment has no browser binary. The browser download endpoint returned an invalid empty archive. No Render test was run.
+
+Known limits:
+This is a garage vertical slice, not an across-the-game conversion. Bikes, motorbike, ATV, characters, dog, objects, other rooms, activity-specific animation, and open vehicle frames remain on safe fallbacks. The existing Canvas runtime remains active while the rigged overhead renderer foundation is designed and proven.
+
+Exact next step:
+Run local checks and browser review of the garage. If it passes, create one orthographic rig proof for an adult human and one quadruped proof for the dog before any broad character replacement.

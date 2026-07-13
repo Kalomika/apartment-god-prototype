@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "style_target": "High-end late 80s / early 90s arcade and 16-bit inspired top-down adult apartment life sim. Detailed, readable, mature, not cute or chibi.",
+  "style_target": "Mature late 1990s science fiction anime production design under a strict orthographic overhead camera. Painterly environments, restrained industrial color, color and light separation instead of heavy outlines, adult anatomy, and controlled anime timing.",
   "forbidden_looks": [
     "chibi",
     "cute mascot",
@@ -11,7 +11,11 @@
     "blob characters",
     "generic programmer-art boxes",
     "unclear top-down read",
-    "inconsistent scale"
+    "inconsistent scale",
+    "isometric contamination",
+    "front or side elevations laid on the floor",
+    "heavy generic toon outlines",
+    "unrelated single-frame character guesses"
   ],
   "atlas": {
     "image": "assets/generated/apartment-god-sprites.png",
@@ -103,6 +107,9 @@
     { "id": "toilet_main", "kind": "toilet", "role": "object", "file": "assets/sprites/objects/toilet_main.png", "anchor": { "x": 0.5, "y": 0.9 }, "scale": 1, "status": "planned", "notes": "Readable without oversized icon treatment." },
     { "id": "pet_flap_main", "kind": "pet_flap", "role": "object", "file": "assets/sprites/objects/pet_flap_main.png", "anchor": { "x": 0.5, "y": 1 }, "scale": 1, "status": "planned", "notes": "Functional dog route read." },
     { "id": "car_sedan_top", "kind": "car", "role": "vehicle", "file": "assets/sprites/vehicles/car_sedan_top.png", "anchor": { "x": 0.5, "y": 0.5 }, "scale": 1, "status": "planned", "notes": "Top-down garage car with headlights and rear lights." },
-    { "id": "kennel_backyard", "kind": "kennel", "role": "object", "file": "assets/sprites/objects/kennel_backyard.png", "anchor": { "x": 0.5, "y": 0.9 }, "scale": 1, "status": "planned", "notes": "Dog scale must feel natural." }
+    { "id": "kennel_backyard", "kind": "kennel", "role": "object", "file": "assets/sprites/objects/kennel_backyard.png", "anchor": { "x": 0.5, "y": 0.9 }, "scale": 1, "status": "planned", "notes": "Dog scale must feel natural." },
+    { "id": "garage_family_suv_anime_01", "kind": "car", "role": "vehicle_closed", "file": "assets/sprites/vehicles/anime-pass-01/family-suv/garage_suv_anime_top_512.png", "anchor": { "x": 0.5, "y": 0.5 }, "scale": 1, "status": "production", "notes": "Approved overhead family SUV closed state. Runtime rotates the source for object facing and keeps the prior renderer for open states or load failure." },
+    { "id": "garage_sports_convertible_anime_01", "kind": "car", "role": "vehicle_closed", "file": "assets/sprites/vehicles/anime-pass-01/sports-convertible/garage_convertible_anime_top_512.png", "anchor": { "x": 0.5, "y": 0.5 }, "scale": 1, "status": "production", "notes": "Approved overhead sports convertible closed state. Runtime keeps procedural door and trunk states until matching production frames pass review." },
+    { "id": "garage_floor_anime_01", "kind": "garage_floor", "role": "environment_underlay", "file": "assets/sprites/environments/anime-pass-01/garage/garage_floor_anime_painterly_960x720.png", "anchor": { "x": 0.5, "y": 0.5 }, "scale": 1, "status": "production", "notes": "Approved painterly industrial garage floor plate, clipped inside the existing room boundary." }
   ]
 }

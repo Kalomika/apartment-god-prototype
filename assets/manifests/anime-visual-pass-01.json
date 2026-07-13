@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "pass_id": "anime-visual-pass-01",
+  "camera": "orthographic_true_overhead",
+  "style_standard": "docs/APARTMENT_GOD_TRUE_TOP_DOWN_ANIME_VISUAL_STANDARD.md",
+  "approved": [
+    {
+      "id": "garage_family_suv_anime_01",
+      "file": "assets/sprites/vehicles/anime-pass-01/family-suv/garage_suv_anime_top_512.png",
+      "sha256": "d1591c2f61174c71ed3c392dac15fdc5d82d1491d7e06ee6df644dbf19dcdc44",
+      "runtime_state": "closed",
+      "fallback": "src/vehicleSpriteRenderer.js"
+    },
+    {
+      "id": "garage_sports_convertible_anime_01",
+      "file": "assets/sprites/vehicles/anime-pass-01/sports-convertible/garage_convertible_anime_top_512.png",
+      "sha256": "eff3c81dad2fb33980ca8552b607f893e0fcfe5da4bd8b6499d05200ee7da503",
+      "runtime_state": "closed",
+      "fallback": "src/vehicleSpriteRenderer.js"
+    },
+    {
+      "id": "garage_floor_anime_01",
+      "file": "assets/sprites/environments/anime-pass-01/garage/garage_floor_anime_painterly_960x720.png",
+      "sha256": "396ac75281602727d00284209ec73ad4bfc963425f25889211145812611b5362",
+      "runtime_state": "garage_underlay",
+      "fallback": "src/renderWorld.js"
+    }
+  ],
+  "rejected": [
+    {
+      "category": "human_character",
+      "reason": "Generated poses retained front-facing facial and torso construction instead of strict overhead anatomy."
+    },
+    {
+      "category": "dog",
+      "reason": "Generated pose read as lying on its back instead of standing upright on four feet from above."
+    }
+  ],
+  "deferred": [
+    "open SUV door and trunk production frames",
+    "open convertible door and trunk production frames",
+    "rigged human overhead model and animation set",
+    "rigged dog overhead model and animation set",
+    "bike, motorbike, and ATV production sprites",
+    "remaining room environment plates and object set"
+  ]
+}
