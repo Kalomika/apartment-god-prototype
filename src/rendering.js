@@ -8,6 +8,7 @@ import { drawObjectCorrectiveOverlays } from './objectCorrectiveOverlays.js';
 import { drawVisualReplacementClears } from './visualReplacementClears.js';
 import { drawRequestedAfterEntityVisualCorrections, drawRequestedVisualCorrections } from './requestedVisualCorrections.js';
 import { applyRealismRuntimeCorrections, drawRealismAfterEntityCorrections, drawRealismCorrections } from './realismCorrectionPass.js';
+import { applyMainFloorLayoutPolish, drawMainFloorLayoutPolish } from './mainFloorLayoutPolish.js';
 import { drawVisualRegressionFixes } from './visualRegressionFixes.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
@@ -27,6 +28,7 @@ let cameraUiFailed = false;
 
 export function draw(ctx, state) {
   applyRealismRuntimeCorrections(state);
+  applyMainFloorLayoutPolish(state);
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   syncSafePhoneUi(state);
   syncSafeCameraUi(state);
@@ -70,6 +72,7 @@ function drawScene(ctx, state) {
   drawRequestedVisualCorrections(ctx, state);
   drawRealismCorrections(ctx, state);
   drawVisualRegressionFixes(ctx, state);
+  drawMainFloorLayoutPolish(ctx, state);
   drawVehicleSpriteOverlays(ctx, state);
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
