@@ -13,7 +13,27 @@ This shared hosting caused a real production error on 2026-07-13 when Top Shot's
 | Game | Visual Pipeline | Current Repository Situation |
 |---|---|---|
 | Apartment God | True top down 2D sprites, 2D effects, painterly 2D environments, anime timing | Active development remains in `Kalomika/apartment-god-prototype` on Apartment God branches. |
-| Top Shot | 3D models, human joint rigs, 3D gameplay and camera systems, 2D styled rendering and effects where directed | Legacy active and backup branches are still hosted inside the Apartment God repository and need a separate repository. |
+| Top Shot | Highly rigged 3D models and 3D gameplay systems combined with intentional 2D anime presentation, 2D effects, painterly 2D backgrounds, outline-free color and lighting separation, and effective 8 fps timing | Legacy active and backup branches are still hosted inside the Apartment God repository and need a separate repository. |
+
+## Top Shot Rules That Must Remain Intact
+
+This separation document does not replace Top Shot's own handbook, logs, matrices, code, or branch instructions. Those sources remain authoritative for Top Shot. The split must preserve, not simplify, the rules Kam already established.
+
+The confirmed Top Shot visual and operational direction includes:
+
+1. Fighters use highly rigged 3D models with a real human joint structure and grounded, Metal Gear Solid-like anatomical integrity.
+2. The 3D models are presented with a 2D anime look.
+3. Toon shading uses no heavy outlines. Color, value, and lighting separate forms.
+4. Wind Waker is a reference for graphic color and lighting clarity, not for toy proportions. Model integrity remains grounded and adult.
+5. Backgrounds may be painterly 2D art.
+6. Effects are 2D.
+7. Animation should support an effective 8 fps anime feel where directed.
+8. The default camera is Top Down. Existing High Tactical, Oblique, and Isometric camera presets remain Top Shot options and must not be confused with Apartment God's fixed true overhead rule.
+9. Top Shot source work stays inside `top-shot/` on Top Shot branches until migration.
+10. The Top Shot Render target is `https://top-shot-prototype.onrender.com/`.
+11. Top Shot's AI versus AI, no direct fighter control design and its combat, cover, hearing, line of sight, damage, extraction, and coaching rules remain Top Shot rules. Repository separation does not authorize redesigning them.
+
+Shared aesthetic words do not merge the games. Both projects can use anime timing, 2D effects, painterly art, or top down cameras while still using different asset and runtime pipelines.
 
 ## Confirmed Top Shot Branch Families In This Repository
 
@@ -53,8 +73,9 @@ There are also many `backup/top-shot-*` restore branches. They must be preserved
 4. Inventory Top Shot Actions, deployment settings, binary assets, documentation, secrets, and external links.
 5. Run build and smoke tests from the new Top Shot repository.
 6. Add a Top Shot specific `AGENTS.md`, handbook, handoff, backup policy, and project identity marker.
-7. Freeze Top Shot branches in the Apartment God repository during a verification period.
-8. Only after Kam approves the verified migration, archive or delete the old Top Shot branches from the Apartment God repository.
+7. Copy all existing Top Shot production rules without reducing its hybrid 3D plus 2D direction to a generic 3D label.
+8. Freeze Top Shot branches in the Apartment God repository during a verification period.
+9. Only after Kam approves the verified migration, archive or delete the old Top Shot branches from the Apartment God repository.
 
 ## Safety Rules
 

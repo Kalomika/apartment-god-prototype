@@ -41,8 +41,9 @@ Review the garage in a local browser at mobile scale. If crop, facing, layering,
 
 Correction:
 
-- Apartment God must not inherit Top Shot's 3D model direction. Top Shot is the separate 3D project. Apartment God remains a true top down 2D sprite game.
+- Apartment God must not inherit Top Shot's model and renderer pipeline. Top Shot is the separate hybrid project with highly rigged 3D models and intentional 2D presentation elements. Apartment God remains a true top down 2D sprite game.
 - The repository audit confirmed that active and backup Top Shot branches are still hosted inside `Kalomika/apartment-god-prototype`. Added a repository separation plan and root `AGENTS.md` boundary rule. No branches were moved or deleted.
+- Clarified that Top Shot is not a generic 3D-only pipeline. Its established rules combine highly rigged 3D models with 2D effects, painterly 2D backgrounds, outline-free color and lighting separation, and effective 8 fps anime timing. No Top Shot rule was removed or weakened.
 
 ## 2026-06-27, Repo memory scaffold
 

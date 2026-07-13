@@ -8,7 +8,7 @@ Applies to: environments, characters, animals, vehicles, props, effects, animati
 
 Apartment God and Top Shot are different games with different production pipelines.
 
-Apartment God is a true top down 2D sprite game. Top Shot is the project that uses 3D models. Never import Top Shot model, rig, renderer, or animation pipeline instructions into Apartment God.
+Apartment God is a true top down 2D sprite game. Top Shot is a separate game with highly rigged 3D models and intentional 2D presentation elements. Never import Top Shot model, rig, renderer, combat, camera, or animation pipeline instructions into Apartment God. Do not remove or weaken Top Shot's 2D effects, painterly background, anime timing, or outline-free rendering rules when working on Top Shot.
 
 ## Target
 
@@ -62,6 +62,8 @@ The long-term character and animal pipeline is a shared modular 2D sprite system
 7. 2D effect layers and painterly environment integration.
 
 PNG sprite sheets are the primary runtime character and animal format. Do not build the full cast as unrelated single-frame guesses. Use approved master character sheets, consistent proportions, shared frame rules, modular layers, and coherent action sets.
+
+For cut character assets, use flat anime color, simple cel separation, no gradients, no heavy painterly shading, minimal facial detail, and top down readability first. Keep the construction modular: base body underlayer first, then hair, clothing, props, and reusable arms or hands. After every asset commit, audit the master inventory for expected versus created assets, folder, filename, real transparent PNG data, frame order, missing A/B/C frames, and accidental dog or person mixing.
 
 ## Animation Contract
 

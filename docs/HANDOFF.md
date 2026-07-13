@@ -77,7 +77,7 @@ On a local browser build, verify:
 
 If these pass, create one complete adult human overhead 2D sprite proof and one dog overhead 2D sprite proof. Do not mass-produce character PNGs from camera-incorrect generations.
 
-Project separation rule: Apartment God is the 2D sprite game. Top Shot is the separate 3D model game. Never mix their production instructions.
+Project separation rule: Apartment God is the 2D sprite game. Top Shot is the separate hybrid game with highly rigged 3D models, 2D effects, painterly 2D backgrounds, outline-free color and lighting separation, and anime timing. Never mix their production instructions, and never remove Top Shot's 2D rules because its fighters are 3D.
 
 Repository root cause: Top Shot active and backup branches are still hosted inside `Kalomika/apartment-god-prototype`. Read `docs/APARTMENT_GOD_TOP_SHOT_REPOSITORY_SEPARATION.md`. No migration or branch deletion is authorized until Kam confirms the destination Top Shot repository.
 

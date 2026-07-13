@@ -11,8 +11,9 @@ Work only in `Kalomika/apartment-god-prototype` unless Kam explicitly says other
 This repository currently contains legacy Top Shot branches as well as Apartment God branches. That shared hosting does not make them one game.
 
 - Apartment God is the true top down 2D sprite game.
-- Top Shot is the separate 3D model game.
+- Top Shot is the separate hybrid production: highly rigged 3D models presented with intentional 2D anime elements, including 2D effects, painterly 2D backgrounds, outline-free color and lighting separation, and an effective 8 fps feel.
 - When working on Apartment God, do not read Top Shot branches as Apartment God requirements and do not import Top Shot model, rig, renderer, combat, camera, or animation pipeline instructions.
+- When working on Top Shot, preserve its complete 3D plus 2D pipeline. Do not remove its 2D effects, painterly background, anime timing, or outline-free rendering rules merely because its fighters are 3D.
 - Branches beginning with `top-shot`, `backup/top-shot`, `codex-wip/top-shot`, or `diag/top-shot` belong to Top Shot unless Kam explicitly says otherwise.
 - Confirm the game name, active branch, and destination repository before every visual or engine pass.
 - Follow `docs/APARTMENT_GOD_TOP_SHOT_REPOSITORY_SEPARATION.md` for the eventual repository split. Do not move or delete shared history without Kam's explicit approval.
