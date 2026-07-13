@@ -106,7 +106,8 @@ export function createState() {
     garbage: { kitchen: 0, bagsOutside: 0, looseItems: [] },
     roomLights: {
       living: true, kitchen: true, bath: true, entry: true, stairs: true,
-      bedroom: true, office: true, bath2: true, hall: true, stairs2: true,
+      bedroom: true, office: true, bath2: true, walkin_closet: true, master_bath: true,
+      hall: true, guest_room: true, upstairs_landing: true, stairs2: true,
       basement_game: true, basement_gym: true, basement_media: true, basement_stairs: true,
       garage_bay: true, garage_storage: true, garage_entry: true,
       yard: true, pool_area: true, kennel_area: true,
