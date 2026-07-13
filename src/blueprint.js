@@ -18,6 +18,7 @@ export const doorways = [
   { floor: 1, a: 'upstairs_landing', b: 'hall', x: 206, y: 580, w: 32, h: 70 },
   { floor: 1, a: 'upstairs_linen_closet', b: 'hall', x: 322, y: 508, w: 90, h: 30 },
   { floor: 1, a: 'hall', b: 'office', x: 496, y: 330, w: 30, h: 72 },
+  { floor: 1, a: 'hall', b: 'suite_foyer', x: 496, y: 516, w: 30, h: 108 },
   { floor: 1, a: 'office', b: 'bedroom', x: 640, y: 260, w: 116, h: 30 },
   { floor: 1, a: 'office', b: 'suite_foyer', x: 548, y: 436, w: 86, h: 30 },
   { floor: 1, a: 'suite_foyer', b: 'walkin_closet', x: 672, y: 488, w: 30, h: 48 },
