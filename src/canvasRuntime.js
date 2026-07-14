@@ -138,8 +138,29 @@ export function bootCanvasGame() {
   const ui = createUi(state, canvas);
 
   window.addEventListener('beforeunload', () => saveRefreshState(state));
+  document.addEventListener('visibilitychange', () => {
+    state.backgroundMode = document.hidden;
+    if (!document.hidden) state.saveStatus = { message: 'Returned from background' };
+  });
 
   let last = performance.now();
+  let lastHiddenTick = performance.now();
+  const hiddenTicker = window.setInterval(() => {
+    if (!document.hidden || state.paused) return;
+    const now = performance.now();
+    const elapsed = Math.min(4.0, Math.max(0, (now - lastHiddenTick) / 1000));
+    lastHiddenTick = now;
+    try {
+      sanitizeRuntimeState(state);
+      applyRuntimeRegressionGuards(state);
+      advanceSimulation(state, elapsed);
+      updateRefreshAutosave(state, Math.min(1, elapsed));
+    } catch (error) {
+      console.error('[Apartment God] Background tick recovered.', error);
+    }
+  }, 1000);
+  window.addEventListener('beforeunload', () => window.clearInterval(hiddenTicker));
+
   function frame(now) {
     try {
       sanitizeRuntimeState(state);
@@ -147,6 +168,7 @@ export function bootCanvasGame() {
       const rawElapsed = Math.max(0, (now - last) / 1000);
       const rawDt = Math.min(document.hidden ? 4.0 : 0.2, rawElapsed);
       last = now;
+      if (!document.hidden) lastHiddenTick = now;
       const cameraDt = Math.min(0.05, rawElapsed);
 
       updateCameraTransition(state, cameraDt);
