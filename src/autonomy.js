@@ -2,7 +2,7 @@ import { startObjectAction, startSocialAction, startOffsite } from './actions.js
 import { shouldAutoStartWork } from './careerSystem.js';
 import { shouldAvoidActivityForNow } from './lifeQualitySystem.js';
 import { byId, say, setMood } from './state.js';
-import { getObject, roomAt } from './world.js';
+import { getObject, objectsByKind, roomAt } from './world.js';
 import { commandMove } from './movement.js';
 
 const HUMAN_IDLE_MIN = 3.5;
@@ -104,20 +104,13 @@ function urgentNeed(actor) {
 }
 
 function satisfyNeed(state, actor, need, partner) {
-  if (need === 'bladder') return tryAnyObject(state, actor, orderedByFloor(actor, [
-    ['toilet', 'toilet'],
-    ['toilet2', 'toilet']
-  ]));
+  if (need === 'bladder') return tryAnyObject(state, actor, nearestToiletChoices(actor));
   if (need === 'hunger') return tryAnyObject(state, actor, [
     ['fridge', actor.needs?.hunger < 26 ? 'meal' : 'snack'],
     ['stove', 'meal'],
     ['dining_table', 'eat_meal']
   ]);
-  if (need === 'freshness') return tryAnyObject(state, actor, orderedByFloor(actor, [
-    ['shower', 'shower'],
-    ['shower2', 'shower'],
-    ['sink', 'groom']
-  ]));
+  if (need === 'freshness') return tryAnyObject(state, actor, nearestFreshnessChoices(actor));
   if (need === 'energy') return tryAnyObject(state, actor, orderedByFloor(actor, [
     ['bed', 'sleep'],
     ['couch', 'nap'],
@@ -127,6 +120,28 @@ function satisfyNeed(state, actor, need, partner) {
   if (need === 'social') return trySocial(state, actor, partner);
   if (need === 'fun') return tryFunActivity(state, actor, partner);
   return false;
+}
+
+function nearestToiletChoices(actor) {
+  const actionId = actor.id === 'resident' && (actor.needs?.bladder ?? 100) >= 30 ? 'pee_stand' : 'toilet';
+  return nearestObjects(actor, ['toilet']).map(obj => [obj.id, actionId]);
+}
+
+function nearestFreshnessChoices(actor) {
+  return [
+    ...nearestObjects(actor, ['shower', 'bathtub']).map(obj => [obj.id, 'shower']),
+    ...nearestObjects(actor, ['sink']).map(obj => [obj.id, 'groom'])
+  ];
+}
+
+function nearestObjects(actor, kinds) {
+  const list = kinds.flatMap(kind => objectsByKind(kind));
+  return list.sort((a, b) => objectRank(actor, a) - objectRank(actor, b));
+}
+
+function objectRank(actor, obj) {
+  const floorPenalty = obj.floor === actor.floor ? 0 : 100000;
+  return floorPenalty + Math.hypot(actor.x - (obj.x + obj.w / 2), actor.y - (obj.y + obj.h / 2));
 }
 
 function shouldSleep(state, actor, partner, hour) {
