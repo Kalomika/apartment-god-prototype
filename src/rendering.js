@@ -13,7 +13,7 @@ import { drawBathBedAfterEntityOverlays, drawBathBedStateOverlays } from './bath
 import { drawVisualRegressionFixes } from './visualRegressionFixes.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
-import { drawEntities } from './renderEntities.js';
+import { drawEntities } from './renderEntitiesTopDown.js';
 import { drawAfterEntityOverlays } from './afterEntityOverlays.js';
 import { drawAnimeTimeLighting } from './animeTimeLighting.js';
 import { drawOffsiteScene } from './offsiteScenes.js';
@@ -220,10 +220,11 @@ function drawPoolFx(ctx, state) {
 function drawStatus(ctx, state) {
   ctx.save();
   ctx.fillStyle = 'rgba(7,10,16,.72)';
-  ctx.fillRect(0, 0, 420, 31);
+  ctx.fillRect(0, 0, 470, 31);
   ctx.fillStyle = COLORS.text;
   ctx.font = '900 14px system-ui';
-  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode}   trash ${Math.round(state.garbage?.kitchen || 0)}%`, 12, 20);
+  const tidy = Number.isFinite(state.tidiness?.score) ? `   tidy ${Math.round(state.tidiness.score)}%` : '';
+  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode}   trash ${Math.round(state.garbage?.kitchen || 0)}%${tidy}`, 12, 20);
   ctx.fillStyle = 'rgba(116,230,255,.28)';
   ctx.fillRect(438, 12, 120, 12);
   ctx.fillStyle = 'rgba(255,255,255,.35)';
