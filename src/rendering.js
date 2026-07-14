@@ -1,6 +1,7 @@
 import './fit.js';
 import { PLAY_H, PLAY_W, COLORS } from './config.js';
 import { drawWorld } from './renderWorld.js';
+import { drawFrontYardDriveway } from './frontYardDriveway.js';
 import { drawAnimeEnvironmentUnderlay } from './animeVisualLayer.js';
 import { drawObjects } from './renderObjects.js';
 import { drawBookWorld } from './bookRender.js';
@@ -66,6 +67,7 @@ function syncSafeCameraUi(state) {
 
 function drawScene(ctx, state) {
   drawWorld(ctx, state);
+  drawFrontYardDriveway(ctx, state);
   drawAnimeEnvironmentUnderlay(ctx, state);
   drawSoccer(ctx, state);
   drawObjects(ctx, state);
