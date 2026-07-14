@@ -140,6 +140,7 @@ export function createUi(state, surface, options = {}) {
       { label: 'Main House', run: () => jumpArea(0, 'Main House') },
       { label: 'Backyard North', run: () => jumpArea(4, 'Backyard North') },
       { label: 'Front Yard South', run: () => jumpArea(6, 'Front Yard South') },
+      { label: 'Driveway West', run: () => jumpArea(7, 'Driveway West') },
       { label: 'Garage West', run: () => jumpArea(3, 'Garage West') },
       { label: 'Front Patio / Entry', run: () => jumpArea(0, 'Front Patio / Entry') },
       { label: 'Upstairs', run: () => jumpArea(1, 'Upstairs') },
@@ -150,11 +151,11 @@ export function createUi(state, surface, options = {}) {
   function changeVertical(delta) {
     if (delta > 0) {
       if (state.floor === 2) return jumpArea(0, 'Main House');
-      if (state.floor === 0 || state.floor === 3 || state.floor === 4 || state.floor === 6) return jumpArea(1, 'Upstairs');
+      if (state.floor === 0 || state.floor === 3 || state.floor === 4 || state.floor === 6 || state.floor === 7) return jumpArea(1, 'Upstairs');
       return jumpArea(1, 'Upstairs');
     }
     if (state.floor === 1) return jumpArea(0, 'Main House');
-    if (state.floor === 0 || state.floor === 3 || state.floor === 4 || state.floor === 6) return jumpArea(2, 'Basement');
+    if (state.floor === 0 || state.floor === 3 || state.floor === 4 || state.floor === 6 || state.floor === 7) return jumpArea(2, 'Basement');
     return jumpArea(2, 'Basement');
   }
 
