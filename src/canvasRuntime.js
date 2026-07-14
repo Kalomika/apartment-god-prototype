@@ -172,7 +172,7 @@ export function bootCanvasGame() {
       const cameraDt = Math.min(0.05, rawElapsed);
 
       updateCameraTransition(state, cameraDt);
-      advanceSimulation(state, rawDt);
+      if (!document.hidden) advanceSimulation(state, rawDt);
       updateRefreshAutosave(state, cameraDt);
 
       if (state.skipRecap?.visibleT > 0) state.skipRecap.visibleT -= cameraDt;
