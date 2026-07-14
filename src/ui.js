@@ -196,6 +196,7 @@ export function createUi(state, surface, options = {}) {
     if ((obj.kind === 'door' || obj.kind === 'car') && TRAVEL_ACTIONS.includes(actionId)) return guidedOffsite(actor, actionId, [], obj.kind === 'car' ? obj.id : 'auto');
     if (obj.kind === 'bike' && TRAVEL_ACTIONS.includes(actionId)) return guidedOffsite(actor, actionId, [], 'bike');
     if (obj.kind === 'motorbike' && TRAVEL_ACTIONS.includes(actionId)) return guidedOffsite(actor, actionId, [], 'motorbike');
+    if (obj.kind === 'atv' && TRAVEL_ACTIONS.includes(actionId)) return guidedOffsite(actor, actionId, [], 'atv');
     guidedObject(actor, obj, actionId);
   }
   function setFloor(floor) { jumpArea(floor, floors[floor]?.name || 'area'); }
