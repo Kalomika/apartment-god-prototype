@@ -1,5 +1,5 @@
 import { createState } from './state.js';
-import { draw } from './rendering.js?v=20260714-dining-kitchen-layout';
+import { draw } from './rendering.js?v=20260714-front-yard-driveway';
 import { createUi } from './ui.js';
 import { updateMovement } from './movement.js';
 import { resolveArrival, updateActions } from './actions.js';
@@ -13,6 +13,9 @@ import { applyRuntimeRegressionGuards } from './runtimeRegressionGuards.js';
 import { updatePoolActivity } from './poolActivitySystem.js';
 import { updateHouseTidiness } from './tidinessSystem.js';
 import { advanceGameClock } from './timeSystem.js';
+import { installFrontYardWorld } from './frontYardDriveway.js';
+
+installFrontYardWorld();
 
 const REFRESH_SAVE_KEY = 'apartment_god_test_refresh_state_v3';
 let frameErrorCount = 0;
