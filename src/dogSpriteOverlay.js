@@ -1,9 +1,9 @@
 const DOG_ATLAS = new Image();
 DOG_ATLAS.decoding = 'async';
-DOG_ATLAS.src = new URL('../assets/sprites/characters/dog/top_down_dog_atlas.svg', import.meta.url).href;
+DOG_ATLAS.src = `${new URL('../assets/sprites/characters/dog/top_down_dog_atlas.svg', import.meta.url).href}?v=20260714-brown-white-dog-atlas`;
 
 const FRAME = 128;
-const FRAME_MAP = { south: 0, north: 1, east: 2, west: 3 };
+const FRAME_MAP = { north: 0, south: 1, east: 2, west: 3 };
 const OUTLINE = '#071018';
 
 export function drawDogSpriteOverlay(ctx, state) {
@@ -16,7 +16,7 @@ export function drawDogSpriteOverlay(ctx, state) {
 function drawDogAtlasFrame(ctx, dog, direction, selected) {
   if (!DOG_ATLAS.complete || DOG_ATLAS.naturalWidth === 0) return;
   const moving = Array.isArray(dog.path) && dog.path.length > 0;
-  const frame = FRAME_MAP[direction] ?? 0;
+  const frame = FRAME_MAP[direction] ?? 1;
   const bob = moving ? Math.sin(performance.now() / 120) * 1.4 : 0;
   ctx.save();
   ctx.translate(dog.x, dog.y + bob);
