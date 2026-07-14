@@ -38,10 +38,14 @@ describe('calendar work HUD foundation', () => {
     const state = createState();
     const resident = state.entities.find(entity => entity.id === 'resident');
 
-    expect(careerScheduleStatusLine(state, resident)).toContain('Work: off today');
+    expect(careerScheduleStatusLine(state, resident)).toContain('Work: today');
 
     state.time = 1440 + 10 * 60;
 
     expect(careerScheduleStatusLine(state, resident)).toContain('Work: due now');
+
+    state.time = 2 * 1440 + 8 * 60;
+
+    expect(careerScheduleStatusLine(state, resident)).toContain('Work: off today');
   });
 });
