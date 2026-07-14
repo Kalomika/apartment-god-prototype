@@ -4,10 +4,10 @@ export const CAREER_TRACKS = [
   {
     id: 'storyboard_artist',
     label: 'Storyboard Artist',
-    scheduleLabel: 'Mon, Tue, Thu, Fri, 10 AM to 2 PM',
+    scheduleLabel: 'Mon, Wed, Fri, 10 AM to 2 PM',
     startHour: 10,
     endHour: 14,
-    days: [1, 2, 4, 5],
+    days: [1, 3, 5],
     basePay: 165,
     payRaise: 36,
     xpPerShift: 24,
@@ -40,10 +40,10 @@ export const CAREER_TRACKS = [
   {
     id: 'movie_theater',
     label: 'Movie Theater Crew',
-    scheduleLabel: 'Thu to Sun, 6 PM to 10 PM',
+    scheduleLabel: 'Thu, Fri, Sat, 6 PM to 10 PM',
     startHour: 18,
     endHour: 22,
-    days: [0, 4, 5, 6],
+    days: [4, 5, 6],
     basePay: 92,
     payRaise: 18,
     xpPerShift: 18,
@@ -76,10 +76,10 @@ export const CAREER_TRACKS = [
   {
     id: 'freelance_animator',
     label: 'Freelance Animator',
-    scheduleLabel: 'Flexible, four hour blocks, three or four days weekly',
+    scheduleLabel: 'Tue, Thu, Sat, 12 PM to 4 PM',
     startHour: 12,
     endHour: 16,
-    days: [1, 2, 4, 6],
+    days: [2, 4, 6],
     basePay: 118,
     payRaise: 42,
     xpPerShift: 24,
@@ -217,6 +217,24 @@ export function workDueText(state, actor) {
   return `${track.label} L${level}, ${track.scheduleLabel}, max ${shiftHours(track)}h, $${pay}/shift${due ? ', due now' : ''}`;
 }
 
+export function careerScheduleStatusLine(state, actor) {
+  const career = careerFor(state, actor);
+  const track = trackForCareer(career);
+  if (!career || !track) return 'Work: no job assigned';
+  const day = gameDay(state) % 7;
+  const todayName = DAY_NAMES[day];
+  const worked = career.lastWorkedDay === gameDay(state);
+  const today = track.days.includes(day);
+  const dueNow = isWorkWindow(state, track) && !worked;
+  const missed = today && currentHour(state) >= track.endHour && !worked;
+  const window = shiftWindowLabel(track);
+  if (dueNow) return `Work: due now, ${track.label}, ${window}`;
+  if (worked) return `Work: already worked today, last pay $${Math.round(career.lastPay || 0)}`;
+  if (missed) return `Work: ${todayName} shift missed, ${track.label}, ${window}`;
+  if (today) return `Work: today ${window}, ${track.label}`;
+  return `Work: off today, ${track.label}, schedule ${track.scheduleLabel}`;
+}
+
 export function careerHudLine(state, actor) {
   const career = careerFor(state, actor);
   const track = trackForCareer(career);
@@ -300,4 +318,15 @@ function promoThreshold(track, level) {
 function shiftHours(track) {
   const raw = track.endHour - track.startHour;
   return raw > 0 ? raw : raw + 24;
+}
+
+function shiftWindowLabel(track) {
+  return `${hourLabel(track.startHour)} to ${hourLabel(track.endHour)}`;
+}
+
+function hourLabel(hour) {
+  const normalized = ((hour % 24) + 24) % 24;
+  const suffix = normalized >= 12 ? 'PM' : 'AM';
+  const h = ((normalized + 11) % 12) + 1;
+  return `${h} ${suffix}`;
 }
