@@ -15,8 +15,13 @@ Commit:
 - 579c76ffffb5c952c3499e2c8bc7a0a89bad3761, Surface calendar and work status immediately in phone
 - cd3b1fa95717c29fddde649cdd6149f1e4ed40f9, Prioritize compact calendar HUD readout
 - 80d521bf891f48e7d1e80788b8dd8c2f589ca49e, Add calendar work HUD regression tests
+- df1a3e765f4bbab457448aaeaf88719c439aa389, Fix calendar work status test expectations
+- c1c343afd992a6223a04f16c9ea974e107cd15a9, Log calendar work HUD audit and implementation
+- 45f291a58e46f33a44fcb4f6e05272c09075c986, Add matrix patch for calendar work HUD pass
 Files changed:
 - apartment-god-production/IDEA_BIBLE_APPEND_2026-07-14_CALENDAR_WORK_HUD_FRONT_YARD.md
+- apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-14_CALENDAR_WORK_HUD.md
+- apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-14_CALENDAR_WORK_HUD.md
 - index.html
 - src/main.js
 - src/canvasRuntime.js
@@ -56,7 +61,7 @@ Runtime changes:
 - Updated the Calendar phone surface with Year, long date, time, week, holiday, time scale, and work status rows.
 - Updated all career templates in `src/careerSystem.js` to three day work weeks.
 - Added `careerScheduleStatusLine(state, actor)` so the HUD and phone can say if work is due now, already done today, missed, later today, or off today.
-- Added regression tests in `tests/calendar-work-hud.test.js` for reset date, Year 2 rollover, time scale, three day schedules, and work due status.
+- Added and corrected regression tests in `tests/calendar-work-hud.test.js` for reset date, Year 2 rollover, time scale, three day schedules, and work due status.
 
 Testing performed:
 
