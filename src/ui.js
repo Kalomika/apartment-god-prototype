@@ -139,8 +139,9 @@ export function createUi(state, surface, options = {}) {
     openMenu(16, 74, 'House Map', [
       { label: 'Main House', run: () => jumpArea(0, 'Main House') },
       { label: 'Backyard North', run: () => jumpArea(4, 'Backyard North') },
+      { label: 'Front Yard South', run: () => jumpArea(6, 'Front Yard South') },
       { label: 'Garage West', run: () => jumpArea(3, 'Garage West') },
-      { label: 'Front Patio', run: () => jumpArea(0, 'Front Patio / Entry') },
+      { label: 'Front Patio / Entry', run: () => jumpArea(0, 'Front Patio / Entry') },
       { label: 'Upstairs', run: () => jumpArea(1, 'Upstairs') },
       { label: 'Basement', run: () => jumpArea(2, 'Basement') }
     ]);
@@ -149,11 +150,11 @@ export function createUi(state, surface, options = {}) {
   function changeVertical(delta) {
     if (delta > 0) {
       if (state.floor === 2) return jumpArea(0, 'Main House');
-      if (state.floor === 0 || state.floor === 3 || state.floor === 4) return jumpArea(1, 'Upstairs');
+      if (state.floor === 0 || state.floor === 3 || state.floor === 4 || state.floor === 6) return jumpArea(1, 'Upstairs');
       return jumpArea(1, 'Upstairs');
     }
     if (state.floor === 1) return jumpArea(0, 'Main House');
-    if (state.floor === 0 || state.floor === 3 || state.floor === 4) return jumpArea(2, 'Basement');
+    if (state.floor === 0 || state.floor === 3 || state.floor === 4 || state.floor === 6) return jumpArea(2, 'Basement');
     return jumpArea(2, 'Basement');
   }
 
@@ -199,7 +200,7 @@ export function createUi(state, surface, options = {}) {
   function setFloor(floor) { jumpArea(floor, floors[floor]?.name || 'area'); }
 
   function bindButtons() {
-    const areaButtons = [[0, 'Main'], [1, 'Upstairs'], [2, 'Basement'], [3, 'Garage West'], [4, 'Yard North']];
+    const areaButtons = [[0, 'Main'], [1, 'Upstairs'], [2, 'Basement'], [3, 'Garage West'], [4, 'Yard North'], [6, 'Front South']];
     for (const [i, label] of areaButtons) { const btn = document.getElementById(`floor-${i}`); if (btn) { btn.textContent = label; btn.onclick = () => setFloor(i); } }
     document.getElementById('speed-1').onclick = () => { state.speed = 1; };
     document.getElementById('speed-3').onclick = () => { state.speed = 3; };
