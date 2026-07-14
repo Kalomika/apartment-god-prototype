@@ -1,3 +1,3 @@
-import { bootCanvasGame } from './canvasRuntime.js?v=20260714-human-renderer-framework';
+import { bootCanvasGame } from './canvasRuntime.js?v=20260714-dining-kitchen-layout';
 
 bootCanvasGame();
