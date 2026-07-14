@@ -1,6 +1,6 @@
 # Apartment God Development Handbook
 
-Last major handbook update: 2026-07-12 03:10 AM CT
+Last major handbook update: 2026-07-13 CT
 
 This is the long form rulebook for Apartment God development. Every AI, scheduled agent, or developer working on the project should read this before touching the repo.
 
@@ -61,6 +61,8 @@ Before meaningful work, read:
 docs/APARTMENT_GOD_DEVELOPMENT_HANDBOOK.md
 docs/APARTMENT_GOD_BACKUP_POLICY.md
 docs/APARTMENT_GOD_NO_BROAD_IMPLEMENTATION_RULE.md
+docs/APARTMENT_GOD_PNG_UPLOAD_FALLBACK.md
+docs/APARTMENT_GOD_IDEA_LOGGING_RULE.md
 apartment-god-production/ONGOING_DESIGN_LOG.md
 apartment-god-production/DEVELOPMENT_MATRIX.md
 ```
@@ -70,6 +72,10 @@ The handbook is the standing rulebook.
 The backup policy defines when restore branches are required, how routine and milestone backups should be treated, and what must happen before any Render playable branch update.
 
 The no broad implementation rule blocks generic placeholder logic from being treated as a real visual, animation, layout, object, or activity implementation when a specific state is required.
+
+The PNG upload fallback explains how to move real PNG assets into the repo safely without relying on `.png.b64` files as final runtime assets.
+
+The idea logging rule requires current user directives, bug batches, planned ideas, and design intent to be logged in a repo-searchable file before meaningful execution.
 
 The ongoing log is the dated work history. It records what was done, what was planned, what was reverted, what is risky, what still needs testing, and what another AI should not accidentally overwrite.
 
@@ -88,6 +94,16 @@ apartment-god-production/ONGOING_DESIGN_LOG.md
 ```
 
 Do not silently erase older history. Append a new timestamped entry.
+
+Every user idea, design directive, bug batch, system rule, platform direction, object behavior, activity behavior, animation requirement, and future feature must also be preserved in:
+
+```txt
+apartment-god-production/APARTMENT_GOD_IDEA_BIBLE.md
+```
+
+or in a clearly named append file under `apartment-god-production/` when canonical patching is unsafe.
+
+This logging must happen before meaningful execution whenever the work is more than a trivial typo fix. The reason is simple: another AI chat must be able to search the repo and pick up Kam's intent without relying on chat memory.
 
 Every entry should include:
 
@@ -128,6 +144,7 @@ Rules:
 - If something is reverted, add a REVERTED entry with the reason.
 - If a backup was made, include the branch name.
 - If `main` was updated for Render access, say so clearly.
+- A code checklist is not enough. The audit must compare the live behavior and visual result to Kam's actual directive.
 
 ---
 
@@ -218,398 +235,5 @@ Preferred safety behavior:
 - Catch recoverable runtime errors.
 - Log useful error messages.
 - Clear obviously corrupted transient state.
-- Keep the canvas visible.
-- Preserve playability whenever possible.
-- Never hide a crash under a silent failure.
-
-For save and reset work:
-
-- Reset must not immediately resave stale actor positions during reload.
-- Refresh autosave should preserve normal play, but reset should truly start fresh.
-- If a save merge can fail, catch it and avoid blanking the game.
-
----
-
-## 8. Phone, Menu, and Mobile Rules
-
-The phone should be compact when closed.
-
-When opened, it can become a larger phone panel.
-
-Every phone tab must be scrollable on mobile.
-
-Every interaction menu must be scrollable on mobile.
-
-Bottom buttons must never be hidden off screen.
-
-The phone, blueprint, and locator should not block gameplay objects if a bottom control bar exists.
-
-Menus should close after a selection when appropriate, especially map, room, area, and person locator selections.
-
----
-
-## 9. Gameplay Rules
-
-The house must remain playable unless everyone leaves.
-
-If one person leaves, the remaining home character should still be playable.
-
-If the selected person leaves, selection should switch to someone still home.
-
-Off site time lapse should cover the screen only if the whole household is gone.
-
-If someone remains home, show a small off site indicator only.
-
-Vehicles must be visible and logical.
-
-If someone drives away, use a parked garage vehicle.
-
-If the garage exit is at the top, cars should face upward and drive upward. If the current layout uses a bottom exit, keep the vehicle logic visually consistent with that layout until the layout changes.
-
-Returning vehicles should visibly drive back, park, then characters come inside.
-
-Characters should not pop in and out without visible logic when a vehicle is involved.
-
----
-
-## 10. Actor AI Direction
-
-Actors should feel like beings living in a world where Kam is God.
-
-They should not be empty pawns. They should have:
-
-- Needs
-- Routines
-- Preferences
-- Thoughts
-- Social desires
-- Activity choices
-- Personal priorities
-- Memories
-- Consequences from actions
-
-Testing mode needs guided commands to override immediately so Kam can debug movement, objects, doors, vehicles, bathrooms, food, sleep, and social actions.
-
-Future normal mode can allow actors to accept, delay, refuse, or negotiate based on:
-
-- Hunger
-- Bladder urgency
-- Energy
-- Freshness
-- Mood
-- Personality
-- Relationship
-- Distance
-- Current action
-- Object availability
-- Memory
-- Route reachability
-
-Core design sentence:
-
-```txt
-They are beings.
-You are God.
-They can resist.
-But God has tools.
-```
-
----
-
-## 11. Movement and Pathfinding Direction
-
-Characters should not use the exact same pixel route every time.
-
-Use:
-
-- Multiple approach points
-- Slight destination variation
-- Route memory
-- Alternative objects
-- Alternative rooms
-- Blacklisted failed routes
-- Path retry options
-- Fallback behavior
-
-Do not show Blocked until reasonable alternatives are exhausted.
-
-Examples:
-
-- If the downstairs toilet is occupied, try the upstairs toilet.
-- If a couch approach is blocked, try another approach point around the couch.
-- If a vehicle path clips the ATV, route around the ATV instead of freezing.
-- If an object is not useful, do not wander there just to stand idle.
-
-Actors may use the same activity again, but they should not look like they only know one identical path.
-
----
-
-## 12. Sleep, Routine, and Time Direction
-
-Couples should generally try to sleep around a shared assigned bedtime.
-
-Bedtime is a goal, not a rigid script. Actors can stay up for work, movies, deadlines, personality, night owl traits, or player interference.
-
-Lack of sleep should affect more than energy:
-
-- Stamina
-- Mood
-- Patience
-- Movement speed
-- Mistake chance
-- Social irritability
-- Recovery
-- Health style consequences
-
-If the whole main household is asleep, time can speed up through the night. If only one person is asleep, time should usually remain normal unless a later design says otherwise.
-
-Morning routine should eventually consider:
-
-- Alarm
-- Bathroom
-- Shower
-- Brushing teeth
-- Hunger
-- Coffee
-- Work time
-- Commute
-
----
-
-## 13. Thought Bubble and Speech Bubble Rules
-
-Speech bubbles are for things said out loud to another actor or to the household.
-
-Thought bubbles are for private intention, personal wants, chosen activities, or information the player should consider but that is not spoken out loud.
-
-Examples:
-
-- Actor chooses to watch a movie alone: thought bubble.
-- Actor asks partner to watch a movie: speech or invitation bubble.
-- Actor wants to play with dog alone: thought bubble first, then speech if calling the dog.
-- Actor warns partner it is bedtime: speech bubble.
-
----
-
-## 14. Activity Consequence Direction
-
-Every activity should eventually have a result beyond the animation.
-
-One activity can affect multiple stats.
-
-Examples:
-
-- Watching together increases social and fun.
-- Documentaries increase intellect or learning.
-- Horror can create cautious night behavior for a short time.
-- Classical music can improve focus or intellect.
-- Reading improves intellect, learning, focus, or future decision quality.
-- Exercise improves fitness and slows stamina depletion over time.
-- Coffee gives a short boost, then a later sluggish dip.
-
-Activities should have believable in game duration where practical.
-
-Examples:
-
-- A song is short.
-- An album is longer.
-- A TV episode is medium.
-- A movie can take hours of game time.
-
-Long activities should be interruptible by urgent needs, work, player guidance, or major events.
-
----
-
-## 15. Work, Vocation, and Responsibility Direction
-
-Characters should eventually have jobs with schedules, shifts, pay, and consequences.
-
-Jobs can be remote or physical.
-
-Remote jobs can give more freedom but less pay.
-
-Physical jobs can pay more but take the character away from the house.
-
-Different shifts should affect life differently:
-
-- Morning
-- Afternoon
-- Evening
-- Overnight
-
-Overnight work can pay more but should harm recovery and routine because it fights the normal sleep window.
-
-Work lateness should matter:
-
-- Warning
-- Write up
-- Fired
-- Rehire limits
-
-Job search can eventually happen through the phone or computer.
-
-Potential phone app idea:
-
-```txt
-Job Hunt
-```
-
-or a stylized professional network app.
-
----
-
-## 16. World Object and Testing Direction
-
-For testing, default objects needed for core mechanics should exist after reset.
-
-Do not make Kam reorder core test objects every time reset happens.
-
-Examples of objects that should exist by default when mechanics need them:
-
-- Bed
-- Toilet
-- Shower
-- Fridge
-- Stove
-- Sink
-- Couch
-- TV
-- Desk
-- Dog bowl
-- Dog kennel
-- Vehicles
-- Bookshelf once reading and intellect are active
-- Coffee maker once coffee is active
-
-The build or shopping system can still exist later, but basic mechanics must be testable without tedious setup.
-
----
-
-## 17. Visual Quality Direction
-
-Do not trap the project in crude placeholder art long term.
-
-The target is a readable adult top down apartment life sim with high visual ceiling.
-
-Do not make the style:
-
-- Chibi
-- Toy like
-- Mascot like
-- Emoji like
-- Oversized head
-- Childish
-- Blob like
-- Crude programmer art
-
-Phaser is the future target, but playable clone comes first. Do not replace working visuals with ugly placeholder Phaser output and call it progress.
-
----
-
-## 18. No Broad Implementation Rule
-
-Apartment God must not use broad, generic, or shared placeholder logic as the final implementation when a specific visual, pose, animation, object interaction, room layout, or activity state is required.
-
-Before committing runtime or visual work, check:
-
-```txt
-1. Does the activity resolve to a specific state?
-2. Does the pose or animation match the exact object and action?
-3. Does the object read as its intended real object, not an abstract placeholder?
-4. Does the visual obey true top down presentation?
-5. If a fallback remains, is it named, documented, and not represented as final?
-```
-
-Hard examples:
-
-```txt
-Lifting weights cannot share the same pose as punching a heavy bag.
-Treadmill cannot share the same pose as walking to an object.
-Desk laptop use cannot share the same pose as reading or phone use.
-Bed sleeping under covers cannot share the same visual as lying awake.
-Showering cannot rely on blurry censorship overlays.
-Dog washing cannot share generic petting or shower logic.
-Closets, baths, beds, and furniture must reflect their actual intended physical structure and gameplay use.
-```
-
-The detailed rule file is required reading:
-
-```txt
-docs/APARTMENT_GOD_NO_BROAD_IMPLEMENTATION_RULE.md
-```
-
----
-
-## 19. Repo Map
-
-Common runtime areas:
-
-```txt
-src/world.js              House layout, objects, floors, approach points
-src/state.js              Actor state, needs, traits, time, household data
-src/autonomy.js           Actor AI and automatic behavior
-src/movement.js           Movement, pathfinding, routes, blocked recovery
-src/actions.js            Object and social action execution
-src/ui.js                 Canvas interaction menus and guided controls
-src/phoneUI.js            Phone interface and phone actions
-src/vehicleSystem.js      Garage, vehicles, travel boarding and return logic
-src/saveSystem.js         Save, load, refresh persistence, reset safety
-src/rendering.js          Main render orchestration and UI sync safety
-src/renderWorld.js        World drawing
-src/renderObjects.js      Object drawing
-src/renderDynamic.js      Actors and dynamic visual drawing
-styles.css                Layout, mobile, phone, control bar styling
-```
-
-Important documentation areas:
-
-```txt
-docs/
-apartment-god-production/
-assets/sprite_replacement_queue/
-assets/manifests/
-```
-
----
-
-## 20. Developer Behavior Standards
-
-Be careful, direct, and honest.
-
-Before editing:
-
-1. Verify repo.
-2. Verify branch.
-3. Read handbook, backup policy, no broad implementation rule, ongoing log, and development matrix.
-4. Inspect relevant files.
-5. Create backup for major work.
-
-While editing:
-
-- Prefer source fixes over hacks.
-- Keep changes small enough to reason about.
-- Do not break playability for architecture purity.
-- Do not remove working behavior unless replacing it with tested better behavior.
-- Avoid duplicate systems that fight each other.
-- Make failure states visible and recoverable.
-- Reject broad generic implementation before committing runtime changes.
-
-After editing:
-
-1. Commit to the correct branch.
-2. Update the log.
-3. If Kam needs browser testing, update `main` only after backup and explicit intent.
-4. Tell Kam what branch was edited.
-5. Give the test link and exact testing instructions.
-
----
-
-## 21. Current Known Direction Summary
-
-Immediate priority is smarter autonomy and reliable movement.
-
-Actors should use the whole house intelligently without Kam guiding every action.
-
-They should stop wandering to pointless places, stop freezing when another option exists, use alternate objects, vary routes, satisfy needs, use social actions, play with the dog, sleep, eat, shower, use bathrooms, and choose meaningful activities.
-
-The game should feel like a living world, not a set of dumb idle loops.
+- Prefer a visible recovery state over a blank canvas.
+- Never hide repeated errors silently.
