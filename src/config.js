@@ -69,7 +69,7 @@ export const ACTIONS = {
   weight_bench: [['lift_weights', 'Lift Weights']],
   heavy_bag: [['heavy_bag', 'Hit Heavy Bag']],
   swim_pool: [['swim', 'Swim'], ['swim_together', 'Swim Together']],
-  soccer_field: [['soccer_practice', 'Kick Soccer Ball']],
+  soccer_field: [['soccer_practice', 'Kick Soccer Ball'], ['soccer_match', 'Play Soccer Match']],
   kennel: [['dog_rest', 'Dog Rest'], ['call_dog_yard', 'Call Dog To Yard']],
   car: [['work', 'Drive to Work'], ['errand', 'Drive Errand'], ['mall', 'Drive to Mall'], ['movies', 'Drive to Movies'], ['date', 'Drive Date Night'], ['drive', 'Cruise Around'], ['maintain_vehicle', 'Maintain Vehicle']],
   bike: VEHICLE_DESTINATIONS.map(([id, label]) => [id, `Bike to ${label}`]),
