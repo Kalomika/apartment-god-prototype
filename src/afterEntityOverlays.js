@@ -5,7 +5,6 @@ import { formatTime } from './renderHelpers.js';
 export function drawAfterEntityOverlays(ctx, state) {
   drawWardrobeOverlays(ctx, state);
   drawShowerPrivacyOverlays(ctx, state);
-  drawCorrectSeatedPoseOverlays(ctx, state);
   drawDeskChairBackOverlays(ctx, state);
   drawSleepHeadOrientationFixes(ctx, state);
   drawUpgradedDogOverlays(ctx, state);
@@ -34,9 +33,9 @@ function drawWardrobeOverlays(ctx, state) {
 }
 
 function drawShowerPrivacyOverlays(ctx, state) {
-  const showering = (state.entities || []).filter(e => !e.hidden && e.floor === state.floor && isShowering(e) && !actorIsMoving(e));
+  const showering = (state.entities || []).filter(e => !e.hidden && e.floor === state.floor && isActiveShower(e) && !actorIsMoving(e));
   for (const actor of showering) {
-    const shower = nearestShower(actor, state.floor);
+    const shower = objects.find(o => o.id === actor.showerObjectId) || nearestShower(actor, state.floor);
     if (!shower || !isNearObject(actor, shower, 92)) continue;
     ctx.save();
     drawFloorClothesPile(ctx, shower.x + shower.w + 22, shower.y + shower.h - 18, actor.id === 'girlfriend');
@@ -45,10 +44,8 @@ function drawShowerPrivacyOverlays(ctx, state) {
   }
 }
 
-function isShowering(entity) {
-  const action = String(entity.action || '').toLowerCase();
-  const pose = String(entity.pose || '').toLowerCase();
-  return pose === 'shower' || action.includes('shower');
+function isActiveShower(entity) {
+  return entity.actionT > 0 && (entity.currentActionId === 'shower' || entity.pose === 'shower');
 }
 
 function nearestShower(actor, floor) {
@@ -68,81 +65,16 @@ function drawFloorClothesPile(ctx, x, y, female) {
   blob(ctx, x + 16, y + 5, 13, 7, female ? '#ff75df' : '#74e6ff');
   blob(ctx, x - 10, y + 8, 9, 6, '#05070a');
   blob(ctx, x + 2, y - 9, 10, 5, '#d8c4a4');
-  ctx.fillStyle = '#071018';
-  ctx.font = '900 8px system-ui';
-  ctx.fillText('clothes', x - 18, y + 22);
   ctx.restore();
 }
 
 function drawHangingTowel(ctx, x, y, female) {
   ctx.save();
   ctx.globalAlpha = .96;
-  roundRect(ctx, x - 10, y - 30, 20, 46, 7, female ? '#f4b5dd' : '#a8e9ff');
+  roundRect(ctx, x - 10, y - 30, 20, 46, 7, female ? '#f4b5dd' : '#f3f1ea');
   ctx.strokeStyle = 'rgba(7,16,24,.55)';
   ctx.lineWidth = 1.5;
   roundRect(ctx, x - 10, y - 30, 20, 46, 7, '', true);
-  ctx.fillStyle = '#071018';
-  ctx.font = '900 7px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText('TOWEL', x, y + 28);
-  ctx.textAlign = 'left';
-  ctx.restore();
-}
-
-function drawCorrectSeatedPoseOverlays(ctx, state) {
-  for (const actor of state.entities || []) {
-    if (actor.hidden || actor.floor !== state.floor || actor.type !== 'person' || actorIsMoving(actor)) continue;
-    const target = seatedFacingTarget(actor, state);
-    if (!target) continue;
-    const action = String(actor.action || '').toLowerCase();
-    const tableMode = action.includes('eat') || action.includes('table') || action.includes('dining table');
-    const seatedAction = tableMode || action.includes('couch') || action.includes('relax') || action.includes('watch') || action.includes('tv') || action.includes('desk') || action.includes('read') || action.includes('study') || action.includes('console') || action.includes('game');
-    const targetNorth = target.y + target.h / 2 < actor.y - 4;
-    if (seatedAction && targetNorth) drawBackFacingSeatedActor(ctx, actor, target, { tableMode });
-  }
-}
-
-function drawBackFacingSeatedActor(ctx, actor, target, options = {}) {
-  const tx = target.x + target.w / 2;
-  const ty = target.y + target.h / 2;
-  const angle = Math.atan2(ty - actor.y, tx - actor.x) + Math.PI / 2;
-  const female = actor.id === 'girlfriend';
-  const cloth = female ? '#17131b' : '#111820';
-  const accent = female ? '#ff75df' : '#74e6ff';
-  ctx.save();
-  ctx.translate(actor.x, actor.y);
-  ctx.rotate(angle);
-  ctx.globalAlpha = .98;
-  ctx.fillStyle = 'rgba(0,0,0,.36)';
-  ctx.beginPath();
-  ctx.ellipse(0, 16, 34, 28, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = cloth;
-  ctx.strokeStyle = '#071018';
-  ctx.lineWidth = 3;
-  roundRect(ctx, -19, -8, 38, 42, 14, cloth, true);
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 1.6;
-  line(ctx, -8, -2, -8, 26, accent, 1.6);
-  line(ctx, 8, -2, 8, 26, accent, 1.6);
-  bentLeg(ctx, -12, 18, -28, 38, cloth, -.25);
-  bentLeg(ctx, 12, 18, 28, 38, cloth, .25);
-  if (options.tableMode) {
-    arm(ctx, -17, -3, -23, -20, cloth);
-    arm(ctx, 17, -3, 23, -20, cloth);
-    tableHand(ctx, -23, -20, accent);
-    tableHand(ctx, 23, -20, accent);
-  } else {
-    arm(ctx, -17, -3, -31, 18, cloth);
-    arm(ctx, 17, -3, 31, 18, cloth);
-  }
-  ctx.fillStyle = '#05070a';
-  ctx.strokeStyle = '#071018';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.ellipse(0, -25, female ? 16 : 17, female ? 18 : 16, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
   ctx.restore();
 }
 
@@ -166,19 +98,17 @@ function drawSleepHeadOrientationFixes(ctx, state) {
     if (actor.hidden || actor.floor !== state.floor || actor.type !== 'person') continue;
     if (!isSleeping(actor)) continue;
     const female = actor.id === 'girlfriend';
-    const skin = '#3a241f';
-    const hair = '#05070a';
     ctx.save();
     roundRect(ctx, actor.x - 52, actor.y - 22, 34, 44, 12, '#e5edf4');
     roundRect(ctx, actor.x - 42, actor.y - 19, 28, 38, 11, 'rgba(229,237,244,.96)');
-    ctx.fillStyle = skin;
+    ctx.fillStyle = '#3a241f';
     ctx.strokeStyle = '#071018';
     ctx.lineWidth = 2.2;
     ctx.beginPath();
     ctx.ellipse(actor.x - 29, actor.y, female ? 18 : 17, female ? 13 : 12, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = hair;
+    ctx.fillStyle = '#05070a';
     ctx.beginPath();
     ctx.ellipse(actor.x - 37, actor.y - 1, female ? 11 : 10, female ? 14 : 12, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -222,22 +152,12 @@ function drawTopDownDog(ctx, dog) {
   const step = resting ? 0 : moving ? [-1, .5, 1, -.5][Math.floor(performance.now() / 110) % 4] : Math.sin(performance.now() / 600) * .18;
   const coat = '#e7dfcf';
   const shade = '#b9a98f';
-  const collar = '#44c7df';
   ctx.save();
   ctx.globalAlpha = 0.99;
   ctx.fillStyle = 'rgba(0,0,0,.26)';
   ctx.beginPath();
   ctx.ellipse(0, 10, resting ? 38 : 34, resting ? 18 : 21, 0, 0, Math.PI * 2);
   ctx.fill();
-  if (resting) {
-    dogLeg(ctx, -15, 7, -29, 13, 5, coat);
-    dogLeg(ctx, 10, 8, 24, 14, 5, coat);
-    ctx.beginPath(); ctx.ellipse(0, 0, 30, 17, 0, 0, Math.PI * 2); ctx.fillStyle = coat; ctx.fill(); ctx.strokeStyle = '#071018'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(24, -7, 13, 10, 0, 0, Math.PI * 2); ctx.fillStyle = coat; ctx.fill(); ctx.stroke();
-    circle(ctx, 34, -7, 4, '#071018');
-    ctx.restore();
-    return;
-  }
   dogLeg(ctx, -13, 8, -21 - step * 4, 30, 5.5, coat);
   dogLeg(ctx, 12, 8, 20 + step * 4, 30, 5.5, coat);
   dogLeg(ctx, -15, -9, -28 + step * 5, -28, 5, coat);
@@ -248,21 +168,17 @@ function drawTopDownDog(ctx, dog) {
   ctx.beginPath(); ctx.ellipse(18, -22, 5, 11, -.25, 0, Math.PI * 2); ctx.fillStyle = shade; ctx.fill(); ctx.stroke();
   ctx.beginPath(); ctx.ellipse(31, -24, 5, 10, .25, 0, Math.PI * 2); ctx.fillStyle = shade; ctx.fill(); ctx.stroke();
   circle(ctx, 37, -12, 4.5, '#071018');
-  roundRect(ctx, 10, -18, 22, 4, 2, collar);
+  roundRect(ctx, 10, -18, 22, 4, 2, '#44c7df');
   ctx.strokeStyle = '#071018'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-28, -2); ctx.quadraticCurveTo(-48, -16 - step * 4, -55, -1 - step * 2); ctx.stroke();
   ctx.restore();
 }
 
-function dogLeg(ctx, x1, y1, x2, y2, width, color) {
-  line(ctx, x1, y1, x2, y2, color, width);
-  line(ctx, x1, y1, x2, y2, '#071018', 1.2);
-}
+function dogLeg(ctx, x1, y1, x2, y2, width, color) { line(ctx, x1, y1, x2, y2, color, width); line(ctx, x1, y1, x2, y2, '#071018', 1.2); }
 
 function drawReadableVanitySinks(ctx, state) {
   for (const sink of objects.filter(o => o.floor === state.floor && o.kind === 'sink')) {
-    const wide = sink.w > 60 || sink.h > 60 || sink.vanity === 'double';
     ctx.save();
-    if (wide) drawDoubleVanity(ctx, sink);
+    if (sink.vanity === 'double') drawDoubleVanity(ctx, sink);
     else drawReadableSink(ctx, sink);
     ctx.restore();
   }
@@ -277,52 +193,19 @@ function drawReadableSink(ctx, sink) {
   ctx.fill();
   ctx.strokeStyle = '#66737b'; ctx.lineWidth = 1.5; ctx.stroke();
   circle(ctx, sink.x + sink.w / 2, sink.y + sink.h / 2 + 2, 3, '#4e5964');
-  line(ctx, sink.x + sink.w / 2 - 8, sink.y + 7, sink.x + sink.w / 2 + 8, sink.y + 7, '#cfd9dc', 3);
 }
 
 function drawDoubleVanity(ctx, sink) {
   roundRect(ctx, sink.x - 4, sink.y - 4, sink.w + 8, sink.h + 8, 8, '#5f5145');
   roundRect(ctx, sink.x + 4, sink.y + 6, sink.w - 8, sink.h - 12, 7, '#8f765f');
-  const cx = sink.x + sink.w / 2;
-  const basinW = Math.max(15, sink.w * .30);
   for (const y of [sink.y + sink.h * .32, sink.y + sink.h * .68]) {
     ctx.fillStyle = '#ece5d8';
-    ctx.beginPath();
-    ctx.ellipse(cx, y, basinW, 13, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#66737b'; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.fillStyle = '#a8d3db';
-    ctx.beginPath(); ctx.ellipse(cx, y, basinW - 6, 7, 0, 0, Math.PI * 2); ctx.fill();
-    circle(ctx, cx, y, 2.8, '#4e5964');
-    line(ctx, cx - 9, y - 13, cx + 9, y - 13, '#cfd9dc', 3);
+    ctx.beginPath(); ctx.ellipse(sink.x + sink.w * .58, y, 14, 20, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#66737b'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#a8d3db'; ctx.beginPath(); ctx.ellipse(sink.x + sink.w * .58, y, 8, 13, 0, 0, Math.PI * 2); ctx.fill();
+    circle(ctx, sink.x + sink.w * .58, y, 2.8, '#4e5964');
+    line(ctx, sink.x + 8, y - 15, sink.x + 8, y + 15, '#cfd9dc', 3);
   }
 }
-
-function tableHand(ctx, x, y, accent) {
-  ctx.fillStyle = '#3a241f';
-  ctx.strokeStyle = '#071018';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.ellipse(x, y, 4.5, 4.5, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = accent;
-  ctx.fillRect(x - 2, y - 2, 4, 1);
-}
-
-function seatedFacingTarget(actor, state) {
-  const action = String(actor.action || '').toLowerCase();
-  const pose = String(actor.pose || '').toLowerCase();
-  const seated = pose === 'sit' || action.includes('watch') || action.includes('tv') || action.includes('couch') || action.includes('relax') || action.includes('console') || action.includes('game') || action.includes('desk') || action.includes('read') || action.includes('eat') || action.includes('table');
-  if (!seated) return null;
-  if (action.includes('eat') || action.includes('table') || action.includes('dining table')) return firstObject(state.floor, ['dining_table']);
-  if (action.includes('watch') || action.includes('tv') || action.includes('couch') || action.includes('relax')) return firstObject(state.floor, ['bedroom_tv', 'tv', 'lab_motion_screen', 'game_console']);
-  if (action.includes('console') || action.includes('game')) return firstObject(state.floor, ['game_console', 'lab_game_console', 'arcade_machine']);
-  if (action.includes('desk') || action.includes('read') || action.includes('study')) return firstObject(state.floor, ['desk', 'lab_laptop_desk', 'bookshelf']);
-  return null;
-}
-
-function firstObject(floor, ids) { return ids.map(id => objects.find(o => o.id === id && o.floor === floor)).find(Boolean) || null; }
 
 function drawCalendarSkipRecap(ctx, state) {
   const recap = state.skipRecap;
@@ -342,78 +225,10 @@ function drawCalendarSkipRecap(ctx, state) {
   ctx.fillStyle = '#f1c66a';
   ctx.font = '800 12px system-ui';
   ctx.fillText(`${recap.message || 'Skipped time'} • now ${formatTime(state.time)}`, x + 16, y + 44);
-  let yy = y + 88;
-  for (const day of (recap.days || []).slice(0, 5)) {
-    ctx.fillStyle = day.checked ? '#90d68c' : '#b6c1d2';
-    ctx.font = '900 16px system-ui';
-    ctx.fillText(day.checked ? '✓' : '•', x + 18, yy);
-    ctx.fillStyle = '#f8fbff';
-    ctx.font = '800 12px system-ui';
-    ctx.fillText(day.label, x + 42, yy);
-    if (day.events?.length) { ctx.fillStyle = '#f1c66a'; ctx.font = '700 10px system-ui'; ctx.fillText(day.events.slice(0, 2).join(', '), x + 42, yy + 14); yy += 10; }
-    yy += 24;
-  }
   ctx.restore();
 }
 
-function bentLeg(ctx, x1, y1, x2, y2, color, lean = 0) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 9;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.quadraticCurveTo((x1 + x2) / 2 + lean * 18, (y1 + y2) / 2, x2, y2);
-  ctx.stroke();
-  ctx.strokeStyle = '#071018';
-  ctx.lineWidth = 2.2;
-  ctx.stroke();
-}
-
-function arm(ctx, x1, y1, x2, y2, color) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 7;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.stroke();
-  ctx.strokeStyle = '#071018';
-  ctx.lineWidth = 1.8;
-  ctx.stroke();
-}
-
-function blob(ctx, x, y, rx, ry, fill) {
-  ctx.beginPath();
-  ctx.ellipse(x, y, rx, ry, Math.sin(x + y) * .2, 0, Math.PI * 2);
-  ctx.fillStyle = fill;
-  ctx.fill();
-  ctx.strokeStyle = '#071018';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-}
-
-function roundRect(ctx, x, y, w, h, r, fill = '', stroke = false) {
-  if (fill) ctx.fillStyle = fill;
-  ctx.beginPath();
-  if (ctx.roundRect) ctx.roundRect(x, y, Math.max(1, w), Math.max(1, h), Math.max(0, r));
-  else ctx.rect(x, y, Math.max(1, w), Math.max(1, h));
-  if (fill) ctx.fill();
-  if (stroke) ctx.stroke();
-}
-
-function line(ctx, x1, y1, x2, y2, color, width = 2) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.stroke();
-}
-
-function circle(ctx, x, y, r, color) {
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fill();
-}
+function blob(ctx, x, y, rx, ry, fill) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, Math.sin(x + y) * .2, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = '#071018'; ctx.lineWidth = 1.5; ctx.stroke(); }
+function roundRect(ctx, x, y, w, h, r, fill = '', stroke = false) { if (fill) ctx.fillStyle = fill; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, Math.max(1, w), Math.max(1, h), Math.max(0, r)); else ctx.rect(x, y, Math.max(1, w), Math.max(1, h)); if (fill) ctx.fill(); if (stroke) ctx.stroke(); }
+function line(ctx, x1, y1, x2, y2, color, width = 2) { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+function circle(ctx, x, y, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
