@@ -1,4 +1,4 @@
-import { applyWorkCompletion } from './careerSystem.js';
+import { applyWorkCompletion, workOffsiteDurationForActor } from './careerSystem.js';
 import { changeNeed, log, say, setMood } from './state.js';
 
 export const DAILY_DESTINATIONS = [
@@ -115,6 +115,7 @@ function adjustedDuration(duration, vehicleId) {
 export function updateOffsiteJob(state, dt) {
   const job = state.offsite;
   if (!job) return false;
+  normalizeWorkJobDuration(state, job);
   if (job.stage === 'plane' || job.stage === 'return_plane') {
     const total = job.planeTotal || 12;
     job.planeT -= dt;
@@ -146,6 +147,18 @@ export function updateOffsiteJob(state, dt) {
     return false;
   }
   return true;
+}
+
+function normalizeWorkJobDuration(state, job) {
+  if (job.actionId !== 'work' || job.workloadDurationApplied) return;
+  const actorId = (job.actors || [])[0];
+  const duration = workOffsiteDurationForActor(state, actorId);
+  if (Number.isFinite(duration) && duration > 0) {
+    job.t = duration;
+    job.baseDuration = duration;
+    job.bookedDuration = duration;
+  }
+  job.workloadDurationApplied = true;
 }
 
 export function applyOffsiteRewards(state, job) {
