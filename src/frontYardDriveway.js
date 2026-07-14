@@ -1,6 +1,7 @@
 import { PLAY_H, PLAY_W } from './config.js';
 import { floors, objects } from './world.js';
 import { roundRect } from './renderHelpers.js';
+import { drawVehicleSprite } from './vehicleSpriteRenderer.js';
 
 export const FRONT_YARD_FLOOR = 6;
 
@@ -174,6 +175,16 @@ export function drawFrontYardDriveway(ctx, state) {
   drawBushes(ctx);
   drawMailbox(ctx);
   drawGarageMouth(ctx, state);
+  drawFrontYardVehicle(ctx, state.vehicleDeparture);
+  drawFrontYardVehicle(ctx, state.vehicleReturn);
+  ctx.restore();
+}
+
+function drawFrontYardVehicle(ctx, v) {
+  if (!v || v.floor !== FRONT_YARD_FLOOR) return;
+  ctx.save();
+  const drawn = drawVehicleSprite(ctx, v, null, { open: false, trunkOpen: false, flash: false, rider: false });
+  if (!drawn) roundRect(ctx, v.x || 0, v.y || 0, v.w || 80, v.h || 120, 14, '#789477');
   ctx.restore();
 }
 
@@ -194,9 +205,7 @@ function drawLawnTexture(ctx) {
 
 function drawDriveway(ctx) {
   ctx.save();
-  ctx.fillStyle = '#8f9697';
   roundRect(ctx, 238, 64, 236, 480, 10, '#8f9697');
-  ctx.fillStyle = '#a8aead';
   roundRect(ctx, 258, 74, 86, 462, 6, '#a8aead');
   roundRect(ctx, 368, 74, 86, 462, 6, '#9ca3a2');
   ctx.strokeStyle = 'rgba(38,43,45,.34)';
@@ -265,7 +274,6 @@ function drawMailbox(ctx) {
 function drawGarageMouth(ctx, state) {
   ctx.save();
   const open = state.vehicleDeparture?.floor === FRONT_YARD_FLOOR || state.vehicleReturn?.floor === FRONT_YARD_FLOOR;
-  ctx.fillStyle = open ? '#1f2731' : '#39414b';
   roundRect(ctx, 288, 42, 142, 48, 8, open ? '#1f2731' : '#39414b');
   ctx.strokeStyle = open ? '#74e6ff' : '#20252b';
   ctx.lineWidth = 3;
