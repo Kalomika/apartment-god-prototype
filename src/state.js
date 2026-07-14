@@ -41,7 +41,7 @@ function entity(id, name, type, floor, x, y, color) {
     bookReading: false, bookTask: null,
     needs: baseNeeds(), skills: baseSkills(id, type), skillCaps: skillCaps(id, type),
     memory: { favorites: [], dislikes: [], activities: [], movies: [], foods: [] },
-    traits: id === 'girlfriend' ? { frugal: true, spender: false, social: true, meticulous: true } : { frugal: false, spender: false, social: false }
+    traits: id === 'girlfriend' ? { frugal: true, spender: false, social: true, meticulous: true, tidyPriority: 0.9 } : { frugal: false, spender: false, social: false, tidyPriority: 0.45 }
   };
   if (type === 'person' && !id.includes('lab')) e.wardrobe = defaultWardrobe(id);
   return e;
@@ -89,7 +89,7 @@ export function createState() {
     calendar: { bookings: [], history: [] },
     books: { loose: [], returned: 0 },
     meals: { tablePlates: [] },
-    tidiness: { rooms: {} },
+    tidiness: { rooms: {}, score: 100, activityMultiplier: 1.2 },
     cleaning: { crumbs: [], robotVacuum: { active: true, floor: 0, x: 694, y: 460, dockX: 694, dockY: 460, targetId: null, cleaned: 0 } },
     lifeControl: { mode: 'semi_auto', pendingChoices: [] },
     lifeQuality: { lastMonthIndex: null, lastYearIndex: null, reviews: [], yearReviews: [] },
@@ -151,7 +151,8 @@ export function setMood(entity, mood) {
 
 export function changeNeed(entity, key, amount) {
   if (!entity.needs || !(key in entity.needs)) return;
-  entity.needs[key] = Math.max(0, Math.min(100, entity.needs[key] + amount));
+  const multiplier = amount > 0 && Number.isFinite(entity.houseTidinessMultiplier) ? entity.houseTidinessMultiplier : 1;
+  entity.needs[key] = Math.max(0, Math.min(100, entity.needs[key] + amount * multiplier));
 }
 
 export function stopEntity(entity) {
