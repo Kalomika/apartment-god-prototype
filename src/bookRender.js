@@ -26,36 +26,25 @@ function drawModernLCouchOverlay(ctx, state) {
   ctx.lineWidth = 2;
   round(ctx, x, y, w, 64, 22, '', true);
   round(ctx, x + 133, y + 20, 91, h, 22, '', true);
-  ctx.fillStyle = '#f1c66a';
-  ctx.font = '900 8px system-ui';
-  ctx.fillText('L SOFA', x + 15, y - 5);
   ctx.restore();
 }
 
 function drawOutdoorReadingChairs(ctx, state) {
   if (state.floor !== 0) return;
   ctx.save();
-  drawChair(ctx, 166, 604, 'READ');
-  drawChair(ctx, 256, 604, 'READ');
+  drawChair(ctx, 166, 604);
+  drawChair(ctx, 256, 604);
   round(ctx, 220, 610, 24, 22, 7, '#9f704a');
-  ctx.fillStyle = '#f8f2e8';
-  ctx.font = '900 7px system-ui';
-  ctx.fillText('side', 224, 623);
   ctx.restore();
 }
 
-function drawChair(ctx, x, y, label) {
+function drawChair(ctx, x, y) {
   round(ctx, x, y, 42, 44, 14, '#6f8f8a');
   round(ctx, x + 6, y + 7, 30, 24, 11, '#93b8b3');
   round(ctx, x + 2, y + 28, 38, 11, 6, '#4e6662');
   ctx.strokeStyle = '#263c3a';
   ctx.lineWidth = 2;
   round(ctx, x, y, 42, 44, 14, '', true);
-  ctx.fillStyle = '#f1c66a';
-  ctx.font = '900 7px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText(label, x + 21, y - 4);
-  ctx.textAlign = 'left';
 }
 
 function drawLooseBooks(ctx, state) {
@@ -67,21 +56,23 @@ function drawLooseBook(ctx, book) {
   ctx.save();
   ctx.translate(book.x, book.y);
   ctx.rotate(-0.18);
-  round(ctx, -12, -8, 24, 16, 4, '#efe7dc');
+  ctx.fillStyle = 'rgba(7,16,24,.18)';
+  ctx.beginPath();
+  ctx.ellipse(2, 4, 17, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  round(ctx, -14, -9, 28, 18, 4, '#efe7dc');
   ctx.strokeStyle = '#7b5c38';
   ctx.lineWidth = 1.6;
-  round(ctx, -12, -8, 24, 16, 4, '', true);
+  round(ctx, -14, -9, 28, 18, 4, '', true);
   ctx.beginPath();
-  ctx.moveTo(0, -7);
-  ctx.lineTo(0, 8);
+  ctx.moveTo(0, -8);
+  ctx.lineTo(0, 9);
   ctx.stroke();
   ctx.fillStyle = '#b66d55';
-  ctx.fillRect(-9, -5, 7, 10);
-  ctx.restore();
-  ctx.save();
-  ctx.fillStyle = '#071018';
-  ctx.font = '900 7px system-ui';
-  ctx.fillText('loose book', book.x - 18, book.y + 23);
+  ctx.fillRect(-11, -6, 8, 12);
+  ctx.fillStyle = 'rgba(7,16,24,.34)';
+  ctx.fillRect(3, -5, 8, 2);
+  ctx.fillRect(3, 0, 7, 2);
   ctx.restore();
 }
 
