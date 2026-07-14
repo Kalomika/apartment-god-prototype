@@ -17,7 +17,7 @@ import { updatePoolActivity } from './poolActivitySystem.js';
 import { updateHouseTidiness } from './tidinessSystem.js';
 
 const REFRESH_SAVE_KEY = 'apartment_god_test_refresh_state_v3';
-const FRAME_TEXTURE_KEY = 'apartment_god_canvas_bridge_frame';
+const POST_RENDER_EVENT = Phaser.Core?.Events?.POST_RENDER || 'postrender';
 
 export function bootPhaserGame() {
   const canvas = document.getElementById('game');
@@ -30,9 +30,9 @@ export function bootPhaserGame() {
       width: CANVAS_W,
       height: CANVAS_H,
       backgroundColor: '#171a22',
-      render: { antialias: false, pixelArt: true, transparent: false },
+      render: { antialias: false, pixelArt: true, transparent: false, clearBeforeRender: true },
       scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: CANVAS_W, height: CANVAS_H },
-      scene: [ApartmentGodPhaserBridgeScene]
+      scene: [ApartmentGodPhaserHostScene]
     });
   } catch (error) {
     console.error('[Apartment God] Phaser host failed before scene boot. Falling back to Canvas runtime.', error);
@@ -40,12 +40,14 @@ export function bootPhaserGame() {
   }
 }
 
-class ApartmentGodPhaserBridgeScene extends Phaser.Scene {
+class ApartmentGodPhaserHostScene extends Phaser.Scene {
   constructor() {
-    super('ApartmentGodPhaserBridgeScene');
+    super('ApartmentGodPhaserHostScene');
     this.frameErrorCount = 0;
     this.hiddenTicker = null;
     this.lastHiddenTick = 0;
+    this.canvasCtx = null;
+    this.renderDisabled = false;
   }
 
   create() {
@@ -55,10 +57,10 @@ class ApartmentGodPhaserBridgeScene extends Phaser.Scene {
       sanitizeRuntimeState(this.state);
       applyRuntimeRegressionGuards(this.state);
 
-      this.frameTexture = this.textures.createCanvas(FRAME_TEXTURE_KEY, CANVAS_W, CANVAS_H);
-      this.frameCtx = this.frameTexture.getContext();
-      this.frameImage = this.add.image(0, 0, FRAME_TEXTURE_KEY).setOrigin(0, 0).setDepth(0);
-      this.frameImage.setDisplaySize(CANVAS_W, CANVAS_H);
+      this.canvasCtx = this.game.canvas.getContext('2d', { alpha: false });
+      if (!this.canvasCtx) throw new Error('Phaser canvas 2D context was unavailable');
+      this.game.canvas.width = CANVAS_W;
+      this.game.canvas.height = CANVAS_H;
 
       installCameraSwipeNavigation(this.state, this.game.canvas);
       this.ui = createUi(this.state, this.game.canvas, { externalInput: true });
@@ -76,7 +78,8 @@ class ApartmentGodPhaserBridgeScene extends Phaser.Scene {
       this.lastHiddenTick = performance.now();
       this.hiddenTicker = window.setInterval(() => this.hiddenTick(), 1000);
       window.addEventListener('beforeunload', () => window.clearInterval(this.hiddenTicker));
-      this.registry.set('apartmentGodRuntime', 'phaser-hosted-canvas-bridge');
+      this.game.events.on(POST_RENDER_EVENT, this.renderFrame, this);
+      this.registry.set('apartmentGodRuntime', 'phaser-direct-canvas-host');
       this.renderFrame();
       this.ui.renderHud();
     } catch (error) {
@@ -87,7 +90,7 @@ class ApartmentGodPhaserBridgeScene extends Phaser.Scene {
   }
 
   update(_time, deltaMs) {
-    if (!this.state || !this.frameCtx) return;
+    if (!this.state || !this.canvasCtx) return;
     try {
       sanitizeRuntimeState(this.state);
       applyRuntimeRegressionGuards(this.state);
@@ -97,7 +100,6 @@ class ApartmentGodPhaserBridgeScene extends Phaser.Scene {
       if (!document.hidden) advanceSimulation(this.state, rawDt);
       updateRefreshAutosave(this.state, cameraDt);
       if (this.state.skipRecap?.visibleT > 0) this.state.skipRecap.visibleT -= cameraDt;
-      this.renderFrame();
       this.ui.renderHud();
     } catch (error) {
       this.recoverFrame(error);
@@ -120,8 +122,12 @@ class ApartmentGodPhaserBridgeScene extends Phaser.Scene {
   }
 
   renderFrame() {
-    draw(this.frameCtx, this.state);
-    this.frameTexture.refresh();
+    if (this.renderDisabled || !this.canvasCtx || !this.state) return;
+    try {
+      draw(this.canvasCtx, this.state);
+    } catch (error) {
+      this.recoverFrame(error);
+    }
   }
 
   recoverFrame(error) {
@@ -139,12 +145,15 @@ class ApartmentGodPhaserBridgeScene extends Phaser.Scene {
     }
     this.state.saveStatus = { message: 'Phaser runtime error handled' };
     this.drawBootError(error);
-    this.frameTexture.refresh();
-    if (this.frameErrorCount > 2) this.state.paused = true;
+    if (this.frameErrorCount > 2) {
+      this.state.paused = true;
+      this.renderDisabled = true;
+    }
   }
 
   drawBootError(error) {
-    const ctx = this.frameCtx;
+    const ctx = this.canvasCtx;
+    if (!ctx) return;
     ctx.save();
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
     ctx.fillStyle = '#171a22';
