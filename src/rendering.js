@@ -10,6 +10,8 @@ import { drawVisualReplacementClears } from './visualReplacementClears.js';
 import { drawRequestedAfterEntityVisualCorrections, drawRequestedVisualCorrections } from './requestedVisualCorrections.js';
 import { applyRealismRuntimeCorrections, drawRealismAfterEntityCorrections, drawRealismCorrections } from './realismCorrectionPass.js';
 import { applyMainFloorLayoutPolish, drawMainFloorLayoutPolish } from './mainFloorLayoutPolish.js?v=20260714-living-dining-kitchen-cleanup';
+import { drawLayerOrderingCorrections } from './layerOrderingCorrections.js?v=20260714-layer-routing-lab';
+import { drawVehicleOccupantOverlay } from './vehicleOccupantOverlay.js?v=20260714-visible-occupants';
 import { drawBathBedAfterEntityOverlays, drawBathBedStateOverlays } from './bathBedStateOverlays.js';
 import { drawVisualRegressionFixes } from './visualRegressionFixes.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
@@ -78,10 +80,12 @@ function drawScene(ctx, state) {
   drawRealismCorrections(ctx, state);
   drawVisualRegressionFixes(ctx, state);
   drawMainFloorLayoutPolish(ctx, state);
+  drawLayerOrderingCorrections(ctx, state);
   drawBathBedStateOverlays(ctx, state);
   drawTvStateCorrectiveOverlays(ctx, state);
   drawVehicleSpriteOverlays(ctx, state);
   drawDynamicProps(ctx, state);
+  drawVehicleOccupantOverlay(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
   drawDogSpriteOverlay(ctx, state);
@@ -168,82 +172,52 @@ function drawFetchBall(ctx, state) {
   ctx.restore();
 }
 
+function drawStatus(ctx, state) {
+  ctx.fillStyle = 'rgba(10,12,18,.72)';
+  ctx.fillRect(12, 10, 360, 34);
+  ctx.fillStyle = COLORS.text;
+  ctx.font = '900 16px system-ui';
+  const trash = state.garbage ? ` trash ${Math.round(state.garbage.kitchen || 0)}%` : '';
+  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode || 'guided'}${trash}`, 24, 32);
+}
+
+function drawOverlay(ctx, state) {
+  if (!state.offsite) return;
+  if (drawOffsiteScene(ctx, state, PLAY_W, PLAY_H)) return;
+  ctx.fillStyle = 'rgba(8,10,15,.72)';
+  ctx.fillRect(0, 0, PLAY_W, PLAY_H);
+  ctx.fillStyle = COLORS.text;
+  ctx.font = '900 36px system-ui';
+  ctx.textAlign = 'center';
+  const label = state.offsite.label || state.offsite.actionId.replaceAll('_', ' ');
+  ctx.fillText(`Offsite: ${label}`, PLAY_W / 2, 320);
+  ctx.font = '700 20px system-ui';
+  ctx.fillText(`Clock ${formatTime(state.time)}`, PLAY_W / 2, 358);
+  ctx.textAlign = 'left';
+}
+
 function drawPoolFx(ctx, state) {
+  if (!state.poolGame || state.poolGame.floor !== state.floor) return;
   const game = state.poolGame;
-  if (!game?.balls || state.floor !== 2) return;
   ctx.save();
   if (game.cueLine?.t > 0) {
-    ctx.strokeStyle = 'rgba(241,198,106,.75)';
+    ctx.globalAlpha = Math.min(1, game.cueLine.t);
+    ctx.strokeStyle = '#f1c66a';
     ctx.lineWidth = 2;
-    ctx.setLineDash([8, 6]);
     ctx.beginPath();
     ctx.moveTo(game.cueLine.x1, game.cueLine.y1);
     ctx.lineTo(game.cueLine.x2, game.cueLine.y2);
     ctx.stroke();
-    ctx.setLineDash([]);
   }
-  if (game.cueThrust?.t > 0) {
-    const pct = game.cueThrust.t / .45;
-    const pull = 18 * Math.sin(pct * Math.PI);
-    const dx = game.cueThrust.x2 - game.cueThrust.x1;
-    const dy = game.cueThrust.y2 - game.cueThrust.y1;
-    const mag = Math.max(1, Math.hypot(dx, dy));
-    const ox = (dx / mag) * pull;
-    const oy = (dy / mag) * pull;
-    ctx.strokeStyle = '#d6b27a';
-    ctx.lineWidth = 5;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(game.cueThrust.x1 - ox, game.cueThrust.y1 - oy);
-    ctx.lineTo(game.cueThrust.x2 - ox, game.cueThrust.y2 - oy);
-    ctx.stroke();
-    ctx.strokeStyle = '#3b2a1d';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(game.cueThrust.x2 - ox, game.cueThrust.y2 - oy);
-    ctx.lineTo(game.cueThrust.x2 - ox + dx / mag * 10, game.cueThrust.y2 - oy + dy / mag * 10);
-    ctx.stroke();
+  if (game.messageT > 0 && game.message) {
+    ctx.globalAlpha = Math.min(1, game.messageT / 1.2);
+    ctx.fillStyle = 'rgba(8,10,15,.78)';
+    ctx.fillRect(330, 48, 300, 34);
+    ctx.fillStyle = '#f1c66a';
+    ctx.font = '900 14px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText(game.message, 480, 70);
+    ctx.textAlign = 'left';
   }
-  for (const ball of game.balls) {
-    if (ball.pocketed) continue;
-    ctx.fillStyle = ball.fill || '#f8fbff';
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.id === 'cue' ? 6 : 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#11151c';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    if (ball.value) {
-      ctx.fillStyle = '#11151c';
-      ctx.font = '900 7px system-ui';
-      ctx.textAlign = 'center';
-      ctx.fillText(String(ball.value), ball.x, ball.y + 2.5);
-    }
-  }
-  ctx.restore();
-}
-
-function drawStatus(ctx, state) {
-  ctx.save();
-  ctx.fillStyle = 'rgba(18,22,31,.78)';
-  ctx.fillRect(0, PLAY_H - 34, PLAY_W, 34);
-  ctx.fillStyle = COLORS.text;
-  ctx.font = '700 16px system-ui';
-  ctx.fillText(`${formatTime(state.time)}   $${state.money}`, 14, PLAY_H - 12);
-  ctx.fillStyle = COLORS.muted;
-  ctx.font = '600 12px system-ui';
-  ctx.fillText(state.paused ? 'Paused' : `${state.speed}x`, 150, PLAY_H - 12);
-  ctx.restore();
-}
-
-function drawOverlay(ctx, state) {
-  if (!state.paused) return;
-  ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,.35)';
-  ctx.fillRect(0, 0, PLAY_W, PLAY_H);
-  ctx.fillStyle = '#fff';
-  ctx.font = '900 44px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText('PAUSED', PLAY_W / 2, PLAY_H / 2);
   ctx.restore();
 }
