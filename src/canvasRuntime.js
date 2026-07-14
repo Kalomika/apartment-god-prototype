@@ -14,6 +14,7 @@ import { updatePoolActivity } from './poolActivitySystem.js';
 import { updateHouseTidiness } from './tidinessSystem.js';
 import { advanceGameClock } from './timeSystem.js';
 import { installFrontYardWorld } from './frontYardDriveway.js';
+import { applyRuntimeObjectCorrections } from './runtimeObjectCorrections.js?v=20260714-layer-routing-lab';
 
 installFrontYardWorld();
 
@@ -47,6 +48,7 @@ function sanitizeRuntimeState(state) {
   state.notifications = Array.isArray(state.notifications) ? state.notifications : [];
   state.lifeControl ??= { mode: 'semi_auto', pendingChoices: [] };
   state.lifeQuality ??= { lastMonthIndex: null, lastYearIndex: null, reviews: [], yearReviews: [] };
+  applyRuntimeObjectCorrections();
   for (const entity of state.entities) {
     entity.path = Array.isArray(entity.path) ? entity.path : [];
     entity.needs ??= {};
@@ -108,6 +110,7 @@ function drawBootError(ctx, error) {
 
 function runSimulationStep(state, dt) {
   if (dt <= 0) return;
+  applyRuntimeObjectCorrections();
   updateHouseTidiness(state);
   updatePoolActivity(state, dt);
   for (const entity of state.entities) {
