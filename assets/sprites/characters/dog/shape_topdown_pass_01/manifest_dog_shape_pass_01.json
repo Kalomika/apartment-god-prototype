@@ -1,0 +1,29 @@
+{
+  "asset_pack_id": "dog_shape_topdown_pass_01",
+  "character_id": "dog",
+  "character_type": "dog",
+  "status": "runtime_integrated_shape_pass",
+  "runtime_file": "src/dogSpriteOverlay.js",
+  "style": "shape-built true top-down dog sprite logic",
+  "notes": [
+    "This pass upgrades the live in-game dog with shape-built top-down state rendering.",
+    "The original PNG cutout target remains the next binary asset pass, but the dog is no longer waiting on the old SVG atlas to look upgraded.",
+    "State logic is organized so future PNG frames can replace the shape renderer state by state without changing game activity logic."
+  ],
+  "states": [
+    { "state_id": "DOG_IDLE", "frames": ["idle breathing", "idle weight shift"], "status": "integrated" },
+    { "state_id": "DOG_WALK", "frames": ["walk gait 1", "walk gait 2", "walk gait 3", "walk gait 4"], "directions": ["north", "south", "east", "west"], "status": "integrated" },
+    { "state_id": "DOG_RUN", "frames": ["run gait 1", "run gait 2", "run gait 3", "run gait 4"], "directions": ["north", "south", "east", "west"], "status": "integrated" },
+    { "state_id": "DOG_SIT", "frames": ["sit hold"], "status": "integrated" },
+    { "state_id": "DOG_LIE_DOWN", "frames": ["lie hold"], "status": "integrated" },
+    { "state_id": "DOG_CURL_SLEEP", "frames": ["curled sleep hold"], "status": "integrated" },
+    { "state_id": "DOG_PLAY_BOW", "frames": ["play bow hold"], "status": "integrated" },
+    { "state_id": "DOG_BARK_REACT", "frames": ["bark/react hold with marks"], "status": "integrated" },
+    { "state_id": "DOG_EAT", "frames": ["head down at bowl"], "status": "integrated" },
+    { "state_id": "DOG_DRINK", "frames": ["head down at water bowl"], "status": "integrated" },
+    { "state_id": "DOG_FETCH_CARRY", "frames": ["ball carry hold"], "status": "integrated" },
+    { "state_id": "DOG_HAPPY", "frames": ["happy tongue hold"], "status": "integrated" },
+    { "state_id": "DOG_ALERT", "frames": ["alert marks hold"], "status": "integrated" },
+    { "state_id": "DOG_SAD", "frames": ["sad lowered expression"], "status": "integrated" }
+  ]
+}
