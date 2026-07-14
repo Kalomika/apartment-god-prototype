@@ -55,12 +55,17 @@ function drawTvStateAndLivingClear(ctx, state) {
 }
 
 function isWatchingTv(state) {
+  const tv = object('tv');
+  if (!tv) return false;
   return (state.entities || []).some(entity => {
-    if (entity.hidden || entity.floor !== 0 || entity.type !== 'person') return false;
+    if (entity.hidden || entity.floor !== tv.floor || entity.type !== 'person') return false;
     const action = String(entity.action || '').toLowerCase();
     const pose = String(entity.pose || '').toLowerCase();
     if (action.includes('sleep') || action.includes('nap') || action.includes('waking')) return false;
-    return action.includes('tv') || action.includes('watch') || action.includes('movie') || action.includes('sports') || pose.includes('watch');
+    const watching = action.includes('tv') || action.includes('watch') || action.includes('movie') || action.includes('sports') || pose.includes('watch');
+    if (!watching) return false;
+    const tvCenter = { x: tv.x + tv.w / 2, y: tv.y + tv.h / 2 };
+    return entity.y > tv.y + tv.h && Math.hypot(entity.x - tvCenter.x, entity.y - tvCenter.y) <= 245;
   });
 }
 
