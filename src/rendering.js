@@ -13,7 +13,8 @@ import { drawBathBedAfterEntityOverlays, drawBathBedStateOverlays } from './bath
 import { drawVisualRegressionFixes } from './visualRegressionFixes.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
-import { drawEntities } from './renderEntitiesTopDown.js';
+import { drawEntities } from './renderEntities.js';
+import { drawTvStateCorrectiveOverlays } from './tvStateCorrectiveOverlays.js';
 import { drawAfterEntityOverlays } from './afterEntityOverlays.js';
 import { drawAnimeTimeLighting } from './animeTimeLighting.js';
 import { drawOffsiteScene } from './offsiteScenes.js';
@@ -75,6 +76,7 @@ function drawScene(ctx, state) {
   drawVisualRegressionFixes(ctx, state);
   drawMainFloorLayoutPolish(ctx, state);
   drawBathBedStateOverlays(ctx, state);
+  drawTvStateCorrectiveOverlays(ctx, state);
   drawVehicleSpriteOverlays(ctx, state);
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
