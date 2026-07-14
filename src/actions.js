@@ -3,7 +3,7 @@ import { startFetchThrow } from './fetchSystem.js';
 import { addGarbageFromAction, callDogToYard, continueTrashRun, startTakeTrashOut } from './garbage.js';
 import { byId, changeNeed, log, say, setMood } from './state.js';
 import { beginVehicleDeparture, beginVehicleReturn } from './vehicleSystem.js';
-import { getObject, getStairExit, roomAt } from './world.js';
+import { getObject, getStairExit, objectsByKind, roomAt } from './world.js';
 import { commandObject, commandSocial } from './movement.js';
 import { applyOffsiteRewards, canAffordTravel, destinationFor, isDestinationOpen, payForTravel, updateOffsiteJob } from './travelLocations.js';
 import { updateInvestments } from './investmentSystem.js';
@@ -79,8 +79,11 @@ function beginTimedAction(entity, label, actionId) {
   entity.pose = actionId === 'dog_rest' ? 'dog_rest' :
     actionId === 'wash_dog' ? 'wash_dog' :
     ['sleep', 'nap', 'bed_together', 'intimacy'].includes(actionId) ? 'sleep' :
-    ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'toilet', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together', 'read', 'study', 'eat_meal', 'sit_table', 'change_clothes', 'plan_week_outfits', 'read_carried_book'].includes(actionId) ? 'sit' :
-    ['treadmill', 'lift_weights', 'heavy_bag', 'swim', 'swim_together', 'shower', 'pool_solo', 'pool_together', 'soccer_practice', 'soccer_match'].includes(actionId) ? actionId : 'stand';
+    actionId === 'shower' ? 'shower' :
+    actionId === 'pee_stand' ? 'pee_stand' :
+    actionId === 'toilet' ? 'toilet_sit' :
+    ['watch_tv', 'watch_together', 'comedy', 'horror', 'sports', 'relax', 'desk_work', 'play_game', 'phone', 'shop', 'console_game', 'console_together', 'read', 'study', 'eat_meal', 'sit_table', 'change_clothes', 'plan_week_outfits', 'read_carried_book'].includes(actionId) ? 'sit' :
+    ['treadmill', 'lift_weights', 'heavy_bag', 'swim', 'swim_together', 'pool_solo', 'pool_together', 'soccer_practice', 'soccer_match'].includes(actionId) ? actionId : 'stand';
 }
 
 function actionDuration(actionId) {
@@ -112,6 +115,9 @@ export function resolveArrival(state, entity) {
     if (isTogetherAction(target.actionId)) { if (queuePartnerForSharedAction(state, entity, target.actionId, obj)) return; entity.action = 'Idle'; entity.actionT = 0; entity.pose = 'stand'; return; }
     const label = `${obj.label}: ${target.actionId.replaceAll('_', ' ')}`;
     beginTimedAction(entity, label, target.actionId); say(entity, speechFor(target.actionId));
+    if (target.actionId === 'shower') { entity.showerObjectId = obj.id; entity.carrying = null; }
+    if (target.actionId === 'toilet' || target.actionId === 'pee_stand') entity.toiletObjectId = obj.id;
+    if (['sleep', 'nap', 'bed_together', 'intimacy'].includes(target.actionId)) state.objectState.bedMade = false;
     if (target.actionId === 'wash_dog') syncDogForBath(state, entity, obj);
     if (target.actionId === 'make_bed') state.objectState.bedMade = false;
     if (obj.kind === 'fridge') { state.objectState.fridgeOpen = true; state.objectState.fridgeActivity = target.actionId; if (target.actionId === 'snack') entity.carrying = 'snack'; }
@@ -254,12 +260,13 @@ function finishAction(state, e) {
   if (completedActionId === 'vacuum_clean') { cleanCrumbsNear(state, e); changeNeed(e, 'freshness', -1); setMood(e, 'calm'); }
   if (completedActionId === 'robot_vacuum_start') { setMood(e, 'calm'); }
   if (text.includes('bring food')) { changeNeed(e, 'social', 5); setMood(e, 'happy'); }
-  if (text.includes('shower')) { changeNeed(e, 'freshness', 36); setMood(e, 'calm'); e.carrying = 'towel'; }
+  if (completedActionId === 'shower') { changeNeed(e, 'freshness', 36); setMood(e, 'calm'); e.carrying = 'towel_wrap'; e.showerObjectId = null; }
   if (text.includes('wash dog')) { const dog = byId(state, 'dog'); if (dog) { changeNeed(dog, 'freshness', 42); changeNeed(dog, 'fun', 6); dog.action = 'Idle'; dog.pose = 'stand'; dog.actionT = 0; dog.actionTotal = 0; dog.currentActionId = null; say(dog, 'clean'); } changeNeed(e, 'freshness', -3); changeNeed(e, 'social', 4); setMood(e, 'happy'); }
   if (text.includes('brush')) { changeNeed(e, 'freshness', 12); setMood(e, 'calm'); }
   if (text.includes('groom')) { changeNeed(e, 'freshness', 18); setMood(e, 'calm'); }
-  if (text.includes('toilet')) { changeNeed(e, 'bladder', 36); changeNeed(e, 'freshness', -8); setMood(e, 'calm'); }
-  if (text.includes('change clothes')) { applyDailyOutfit(state, e); changeNeed(e, 'freshness', 6); setMood(e, 'calm'); }
+  if (completedActionId === 'pee_stand') { changeNeed(e, 'bladder', 28); changeNeed(e, 'freshness', -4); queueHandWash(state, e); setMood(e, 'calm'); }
+  if (completedActionId === 'toilet') { changeNeed(e, 'bladder', 100); changeNeed(e, 'freshness', -8); queueHandWash(state, e); setMood(e, 'calm'); }
+  if (text.includes('change clothes')) { applyDailyOutfit(state, e); changeNeed(e, 'freshness', 6); if (e.carrying === 'towel_wrap') e.carrying = null; setMood(e, 'calm'); }
   if (text.includes('plan weekly outfits')) { if (e.wardrobe) e.wardrobe.planned = true; say(e, 'FIT'); setMood(e, 'calm'); }
   if (text.includes('sleep') || text.includes('nap') || text.includes('bed together')) { changeNeed(e, 'energy', 32); changeNeed(e, 'stamina', 24); state.objectState.bedMade = false; setMood(e, 'calm'); }
   if (text.includes('make bed')) { state.objectState.bedMade = true; changeNeed(e, 'fun', -1); setMood(e, 'calm'); }
@@ -271,7 +278,7 @@ function finishAction(state, e) {
   if (text.includes('game') || text.includes('console') || text.includes('arcade') || text.includes('pool') || text.includes('darts') || text.includes('chess')) { changeNeed(e, 'fun', 18); changeNeed(e, 'social', text.includes('together') ? 12 : 0); changeNeed(e, 'stamina', -3); setMood(e, 'hyped'); }
   if (text.includes('soccer')) { changeNeed(e, 'fun', 12); changeNeed(e, 'stamina', -9); changeNeed(e, 'freshness', -5); setMood(e, 'hyped'); }
   if (text.includes('treadmill') || text.includes('lift weights') || text.includes('heavy bag')) { changeNeed(e, 'stamina', -12); changeNeed(e, 'fun', 8); changeNeed(e, 'freshness', -8); setMood(e, 'hyped'); }
-  if (text.includes('swim')) { changeNeed(e, 'stamina', -7); changeNeed(e, 'fun', 18); changeNeed(e, 'freshness', 8); setMood(e, 'happy'); e.carrying = 'towel'; }
+  if (text.includes('swim')) { changeNeed(e, 'stamina', -7); changeNeed(e, 'fun', 18); changeNeed(e, 'freshness', 8); setMood(e, 'happy'); e.carrying = 'towel_wrap'; }
   if (text.includes('coffee')) { changeNeed(e, 'energy', 10); setMood(e, 'hyped'); }
   if (text.includes('phone') || text.includes('talk')) { changeNeed(e, 'social', 18); setMood(e, 'phone'); }
   if (text.includes('kiss') || text.includes('cuddle') || text.includes('hands')) { changeNeed(e, 'social', 22); setMood(e, 'love'); }
@@ -281,9 +288,27 @@ function finishAction(state, e) {
   if (text.includes('light')) toggleRoomLight(state, e);
   state.objectState.fridgeOpen = false; state.objectState.fridgeActivity = null; state.objectState.doorOpen = false;
   if (completedActionId !== 'cook_meal') e.carrying = e.carrying === 'plated_meal' ? null : e.carrying;
-  e.action = 'Idle'; e.actionT = 0; e.actionTotal = 0; e.pose = 'stand'; e.currentActionId = null; e.idleT = -3;
+  e.action = 'Idle'; e.actionT = 0; e.actionTotal = 0; e.pose = 'stand'; e.currentActionId = null; e.toiletObjectId = null; e.idleT = -3;
   if (e.carrying && ['popcorn', 'snack', 'ingredients', 'cleaning_supplies', 'vacuum'].includes(e.carrying)) e.carrying = null;
   if (e.queuedTask) runQueuedTask(state, e);
+}
+
+function queueHandWash(state, e) {
+  if (e.queuedTask || e.type !== 'person') return;
+  const sink = nearestObjectByKind(e, 'sink');
+  if (!sink) return;
+  e.queuedTask = { type: 'object', objectId: sink.id, actionId: 'groom' };
+  log(state, `${e.name} will wash hands after using the toilet.`);
+}
+
+function nearestObjectByKind(actor, kind) {
+  return objectsByKind(kind).sort((a, b) => {
+    const floorA = a.floor === actor.floor ? 0 : 100000;
+    const floorB = b.floor === actor.floor ? 0 : 100000;
+    const da = floorA + Math.hypot(actor.x - (a.x + a.w / 2), actor.y - (a.y + a.h / 2));
+    const db = floorB + Math.hypot(actor.x - (b.x + b.w / 2), actor.y - (b.y + b.h / 2));
+    return da - db;
+  })[0] || null;
 }
 
 function applyDailyOutfit(state, e) {
@@ -339,6 +364,5 @@ function buildParty(state, actor, invitedIds, actionId, vehicleId = 'auto') {
   }
   return party;
 }
-
 function finishOffsite(state) { const job = state.offsite; if (!job) return; applyOffsiteRewards(state, job); beginVehicleReturn(state, job.actionId, job.actors || [], job.vehicleId || state.objectState.vehicleInUse || 'car_1'); state.offsite = null; state.objectState.doorOpen = false; }
-function speechFor(actionId) { const map = { shower: 'SHOWER', toilet: 'TOILET', snack: 'SNACK', meal: 'COOK', gather_ingredients: 'PREP', cook_meal: 'COOK', serve_meal: 'PLATE', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', make_bed: 'BED', change_clothes: 'FIT', plan_week_outfits: 'FIT', get_cleaning_supplies: 'CLEAN', vacuum_clean: 'VAC', robot_vacuum_start: 'AUTO', wash_dog: 'BATH', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', read: 'READ', read_carried_book: 'READ', study: 'STUDY', eat_meal: 'EAT', coffee: 'COFFEE', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'BED', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
+function speechFor(actionId) { const map = { shower: 'SHOWER', pee_stand: 'PEE', toilet: 'TOILET', snack: 'SNACK', meal: 'COOK', gather_ingredients: 'PREP', cook_meal: 'COOK', serve_meal: 'PLATE', bring_food: 'FOOD', comedy: 'TV', horror: 'TV', sports: 'TV', phone: 'PHONE', play_game: 'GAME', sleep: 'SLEEP', nap: 'NAP', make_bed: 'BED', change_clothes: 'FIT', plan_week_outfits: 'FIT', get_cleaning_supplies: 'CLEAN', vacuum_clean: 'VAC', robot_vacuum_start: 'AUTO', wash_dog: 'BATH', kiss: 'KISS', cuddle: 'CUDDLE', tickle: 'LAUGH', hands: 'HANDS', watch_together: 'TV', bed_together: 'BED', intimacy: 'LOVE', pet: 'PET', train: 'TRAIN', feed_dog: 'BOWL', pool_solo: 'POOL', pool_together: 'POOL', arcade: 'ARCADE', arcade_together: 'ARCADE', console_game: 'GAME', console_together: 'GAME', read: 'READ', read_carried_book: 'READ', study: 'STUDY', eat_meal: 'EAT', coffee: 'COFFEE', darts: 'DARTS', darts_together: 'DARTS', treadmill: 'RUN', lift_weights: 'LIFT', heavy_bag: 'PUNCH', swim: 'SWIM', swim_together: 'SWIM', take_trash_out: 'TRASH', dump_trash: 'DUMP', throw_trash: 'TOSS', wash_dishes: 'WASH', dog_rest: 'BED', call_dog_yard: 'YARD', drive: 'CAR', bike_trip: 'BIKE', motorbike_trip: 'MOTO', soccer_practice: 'KICK', soccer_match: 'MATCH' }; return map[actionId] || actionId.toUpperCase().slice(0, 8); }
