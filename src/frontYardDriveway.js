@@ -1,4 +1,4 @@
-import { PLAY_H, PLAY_W } from './config.js';
+import { PLAY_W } from './config.js';
 import { floors, objects } from './world.js';
 import { roundRect } from './renderHelpers.js';
 import { drawVehicleSprite } from './vehicleSpriteRenderer.js';
@@ -167,7 +167,7 @@ export function drawFrontYardDriveway(ctx, state) {
   if (state.floor !== FRONT_YARD_FLOOR) return;
   ctx.save();
   ctx.fillStyle = '#768f6e';
-  ctx.fillRect(0, 0, PLAY_W, PLAY_H);
+  ctx.fillRect(0, 0, PLAY_W, 720);
   drawLawnTexture(ctx);
   drawDriveway(ctx);
   drawFrontGate(ctx);
