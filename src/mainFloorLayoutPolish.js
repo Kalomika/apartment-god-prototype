@@ -182,9 +182,15 @@ function drawCleanDiningSet(ctx, state) {
   drawPlaceSetting(ctx, table.x + table.w / 2, table.y + 20);
   drawPlaceSetting(ctx, table.x + table.w / 2, table.y + table.h - 20);
   circle(ctx, table.x + table.w / 2, table.y + table.h / 2, 7, '#5f7c55');
-  if (hasAction(state, ['eat', 'meal', 'table'], table.floor)) {
-    circle(ctx, table.x + table.w / 2 + 28, table.y + table.h / 2, 12, '#efe7dc');
-    circle(ctx, table.x + table.w / 2 + 30, table.y + table.h / 2, 5, '#b66d55');
+  drawServedTablePlates(ctx, state, table);
+}
+
+function drawServedTablePlates(ctx, state, table) {
+  const plates = (state.meals?.tablePlates || []).filter(p => p.floor === table.floor && p.tableId === table.id);
+  for (const plate of plates) {
+    circle(ctx, plate.x, plate.y, 12, '#efe7dc');
+    circle(ctx, plate.x + 2, plate.y, 5, plate.food === 'snack' ? '#d59b5a' : '#b66d55');
+    line(ctx, plate.x - 10, plate.y + 12, plate.x + 10, plate.y + 12, 'rgba(7,16,24,.24)', 1);
   }
 }
 
@@ -233,16 +239,6 @@ function patchObject(id, patch) {
 
 function object(id) {
   return objects.find(o => o.id === id) || null;
-}
-
-function hasAction(state, terms, floor = state.floor) {
-  const list = Array.isArray(terms) ? terms : [terms];
-  return (state.entities || []).some(e => {
-    if (e.hidden || e.floor !== floor) return false;
-    const action = String(e.action || '').toLowerCase();
-    const pose = String(e.pose || '').toLowerCase();
-    return list.some(term => action.includes(term) || pose.includes(term));
-  });
 }
 
 function round(ctx, x, y, w, h, r, fill) {
