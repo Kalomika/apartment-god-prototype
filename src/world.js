@@ -23,7 +23,7 @@ export const floors = [
       { id: 'suite_foyer', name: 'Primary Suite Foyer', x: 214, y: 338, w: 230, h: 170 },
       { id: 'hall', name: 'Upper Hall', x: 460, y: 338, w: 476, h: 170 },
       { id: 'master_bath', name: 'Primary Suite Bath', x: 24, y: 524, w: 430, h: 160 },
-      { id: 'upstairs_landing', name: 'Upstairs Landing', x: 470, y: 524, w: 234, h: 160 },
+      { id: 'panic_room', name: 'Panic Room', x: 470, y: 524, w: 234, h: 160 },
       { id: 'stairs2', name: 'Stairs', x: 720, y: 524, w: 216, h: 160 }
     ]
   },
@@ -51,8 +51,8 @@ export const objects = [
   { id: 'coffee_maker', label: 'Coffee Maker', kind: 'coffee_maker', floor: 0, room: 'kitchen', x: 722, y: 144, w: 42, h: 34, solid: false },
   { id: 'trash_kitchen', label: 'Kitchen Trash', kind: 'trash_can', floor: 0, room: 'kitchen', x: 728, y: 214, w: 34, h: 42, solid: false },
   { id: 'shower', label: 'Shower', kind: 'shower', floor: 0, room: 'bath', x: 806, y: 70, w: 60, h: 88, solid: true, enterable: true },
-  { id: 'bath_sink', label: 'Bathroom Sink', kind: 'sink', floor: 0, room: 'bath', x: 872, y: 154, w: 48, h: 38, solid: true },
-  { id: 'toilet', label: 'Toilet', kind: 'toilet', floor: 0, room: 'bath', x: 878, y: 212, w: 44, h: 54, solid: true, enterable: true },
+  { id: 'bath_sink', label: 'Bathroom Sink', kind: 'sink', floor: 0, room: 'bath', x: 872, y: 154, w: 48, h: 38, facing: 'west', solid: true },
+  { id: 'toilet', label: 'Toilet', kind: 'toilet', floor: 0, room: 'bath', x: 878, y: 212, w: 44, h: 54, facing: 'west', solid: true, enterable: true },
   { id: 'door', label: 'Front Door', kind: 'door', floor: 0, room: 'entry', x: 240, y: 544, w: 96, h: 34, solid: false },
   { id: 'pet_flap_front', label: 'Front Pet Flap', kind: 'door', styleAs: 'door', floor: 0, room: 'entry', x: 354, y: 548, w: 46, h: 24, solid: false },
   { id: 'basement_door', label: 'Basement Door', kind: 'stairs', floor: 0, room: 'stairs', x: 742, y: 386, w: 82, h: 52, solid: false, toFloor: 2, exitId: 'basement_stairs_up' },
@@ -77,8 +77,12 @@ export const objects = [
   { id: 'office_couch', label: 'Office Couch', kind: 'couch', floor: 1, room: 'office', x: 842, y: 112, w: 58, h: 128, facing: 'west', solid: true, enterable: true },
   { id: 'master_bathtub', label: 'Primary Bathtub', kind: 'bathtub', floor: 1, room: 'master_bath', x: 178, y: 548, w: 116, h: 62, solid: true, enterable: true },
   { id: 'master_shower', label: 'Primary Shower', kind: 'shower', floor: 1, room: 'master_bath', x: 44, y: 594, w: 72, h: 70, solid: true, enterable: true },
-  { id: 'master_bath_sink', label: 'Primary Double Vanity', kind: 'sink', floor: 1, room: 'suite_foyer', x: 222, y: 374, w: 42, h: 112, facing: 'east', vanity: 'double', solid: true },
-  { id: 'master_toilet', label: 'Primary Toilet', kind: 'toilet', floor: 1, room: 'master_bath', x: 372, y: 592, w: 44, h: 54, solid: true, enterable: true },
+  { id: 'master_bath_sink', label: 'Primary Double Vanity', kind: 'sink', floor: 1, room: 'suite_foyer', x: 222, y: 374, w: 42, h: 112, facing: 'east', handleSide: 'west', vanity: 'double', solid: true },
+  { id: 'master_toilet', label: 'Primary Toilet', kind: 'toilet', floor: 1, room: 'master_bath', x: 372, y: 592, w: 44, h: 54, facing: 'west', solid: true, enterable: true },
+  { id: 'panic_room_door', label: 'Steel Panic Room Door', kind: 'panic_room_door', floor: 1, room: 'panic_room', x: 470, y: 582, w: 28, h: 62, facing: 'west', solid: true },
+  { id: 'panic_alarm_panel', label: 'Panic Room Alarm Panel', kind: 'security_panel', floor: 1, room: 'panic_room', x: 520, y: 548, w: 42, h: 28, solid: true },
+  { id: 'panic_defense_locker', label: 'Secured Defense Locker', kind: 'security_locker', floor: 1, room: 'panic_room', x: 646, y: 548, w: 42, h: 94, solid: true },
+  { id: 'panic_supply_bench', label: 'Emergency Supply Bench', kind: 'security_supply', floor: 1, room: 'panic_room', x: 546, y: 624, w: 94, h: 34, solid: true },
   { id: 'light_bedroom', label: 'Bedroom Light', kind: 'light', floor: 1, room: 'bedroom', x: 402, y: 52, w: 22, h: 22, solid: false },
   { id: 'light_office_lounge', label: 'Office Lounge Light', kind: 'light', floor: 1, room: 'office', x: 900, y: 52, w: 22, h: 22, solid: false },
   { id: 'light_master_bath', label: 'Primary Bath Light', kind: 'light', floor: 1, room: 'master_bath', x: 420, y: 540, w: 22, h: 22, solid: false },
@@ -138,6 +142,10 @@ export function getObject(id) {
   return objects.find(o => o.id === id) || null;
 }
 
+export function objectsByKind(kind, floor = null) {
+  return objects.filter(o => o.kind === kind && (floor == null || o.floor === floor));
+}
+
 export function getStairExit(stairs) {
   if (!stairs || stairs.kind !== 'stairs') return null;
   return getObject(stairs.exitId);
@@ -165,18 +173,27 @@ export function approachPoint(obj, action = '') {
   const cx = obj.x + obj.w / 2;
   const cy = obj.y + obj.h / 2;
   if (obj.kind === 'stairs') return clampToPlay(cx, cy);
+  if (obj.kind === 'bed') return bedSidePoint(obj, action);
+  if (obj.kind === 'toilet') return toiletUsePoint(obj, action);
   if (obj.kind === 'dog_bath') return clampToPlay(cx, cy);
-  if (obj.kind === 'closet') return clampToPlay(cx, obj.y + obj.h + 26);
+  if (obj.kind === 'closet') return clampToPlay(obj.closetEntrance === 'east' ? obj.x + obj.w + 26 : cx, obj.closetEntrance === 'east' ? cy : obj.y + obj.h + 26);
   if (obj.kind === 'couch') {
     if (obj.facing === 'west') return clampToPlay(obj.x + 18, cy);
     if (obj.facing === 'east') return clampToPlay(obj.x + obj.w - 18, cy);
     return clampToPlay(cx, obj.facing === 'up' ? obj.y + obj.h * .48 : obj.y + obj.h - 24);
   }
-  if (obj.enterable || ['sleep', 'nap', 'shower', 'toilet', 'swim', 'swim_together', 'soccer_practice', 'soccer_match', 'wash_dog'].includes(action)) return clampToPlay(cx, cy);
+  if (obj.enterable || ['shower', 'swim', 'swim_together', 'soccer_practice', 'soccer_match', 'wash_dog'].includes(action)) return clampToPlay(cx, cy);
   if (obj.kind === 'fridge') return clampToPlay(cx, obj.y + obj.h + 42);
-  if (['stove', 'sink'].includes(obj.kind)) return clampToPlay(cx, obj.y + obj.h + 36);
+  if (obj.kind === 'sink') {
+    if (obj.facing === 'east') return clampToPlay(obj.x + obj.w + 28, cy);
+    if (obj.facing === 'west') return clampToPlay(obj.x - 28, cy);
+    return clampToPlay(cx, obj.y + obj.h + 36);
+  }
+  if (obj.kind === 'stove') return clampToPlay(cx, obj.y + obj.h + 36);
   if (obj.kind === 'coffee_maker') return clampToPlay(cx, obj.y + obj.h + 28);
   if (obj.kind === 'dining_table') return clampToPlay(cx, obj.y + obj.h + 34);
+  if (obj.kind === 'panic_room_door') return clampToPlay(obj.x - 32, cy);
+  if (obj.kind?.startsWith('security_')) return clampToPlay(cx, obj.y + obj.h + 30);
   if (obj.kind === 'cleaning_closet') return clampToPlay(obj.x + obj.w + 34, cy);
   if (obj.kind === 'vacuum_cleaner') return clampToPlay(cx + 34, cy + 6);
   if (obj.kind === 'robot_vacuum') return clampToPlay(cx + 30, cy + 4);
@@ -195,12 +212,28 @@ export function approachPoint(obj, action = '') {
   if (['bike', 'motorbike', 'atv'].includes(obj.kind)) return clampToPlay(cx + 34, cy + 18);
   if (obj.kind === 'tv') {
     const seat = obj.room === 'living' ? getObject('couch') : obj.room === 'bedroom' ? getObject('bed') : obj.room === 'secret_lab' ? getObject('lab_pose_chair') : getObject('basement_couch');
-    return seat ? clampToPlay(seat.x + seat.w * .55, seat.y + seat.h / 2) : clampToPlay(cx, obj.y + 150);
+    return seat ? clampToPlay(seat.x + seat.w * .72, seat.y + seat.h / 2) : clampToPlay(cx, obj.y + 150);
   }
   if (obj.kind === 'door') return clampToPlay(cx, obj.y - 28);
   if (obj.kind === 'dog_bowl') return clampToPlay(cx, obj.y + obj.h + 30);
   if (obj.kind === 'light') return clampToPlay(obj.x - 26, obj.y + 10);
   return clampToPlay(cx, obj.y + obj.h + 32);
+}
+
+function bedSidePoint(obj, action = '') {
+  const upperSide = action === 'bed_together' || action === 'sleep' ? obj.y + obj.h * .32 : obj.y + obj.h * .68;
+  if (obj.facing === 'east' || obj.headboard === 'west') return clampToPlay(obj.x + obj.w + 28, upperSide);
+  if (obj.facing === 'west' || obj.headboard === 'east') return clampToPlay(obj.x - 28, upperSide);
+  return clampToPlay(obj.x + obj.w / 2, obj.y + obj.h + 28);
+}
+
+function toiletUsePoint(obj, action = '') {
+  const cx = obj.x + obj.w / 2;
+  const cy = obj.y + obj.h / 2;
+  if (action === 'pee_stand') return clampToPlay(obj.facing === 'west' ? obj.x - 18 : obj.x + obj.w + 18, cy + 6);
+  if (obj.facing === 'west') return clampToPlay(obj.x - 8, cy + 4);
+  if (obj.facing === 'east') return clampToPlay(obj.x + obj.w + 8, cy + 4);
+  return clampToPlay(cx, obj.y + obj.h + 8);
 }
 
 export function solidObjects(floor, allowId = '') {
