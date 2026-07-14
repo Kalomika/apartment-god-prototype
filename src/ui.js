@@ -1,6 +1,7 @@
 import { windowAt, toggleWindow } from './blueprint.js';
-import { careerHudLine } from './careerSystem.js';
+import { careerHudLine, careerScheduleStatusLine } from './careerSystem.js';
 import { calendarHudLine } from './calendarSystem.js';
+import { calendarCompactHudLine } from './calendarDisplay.js';
 import { ACTIONS, DOG_SOCIAL_ACTIONS, DOUBLE_TAP_MS, NEEDS, SOCIAL_ACTIONS } from './config.js';
 import { startObjectAction, startOffsite, startSocialAction, throwFetchBall } from './actions.js';
 import { interruptBookIfNeeded } from './bookSystem.js';
@@ -14,7 +15,6 @@ import { navigateView } from './cameraNavigation.js';
 import { clearRefreshState, loadGame, saveGame, slotSummary } from './saveSystem.js';
 import { log, resumeEntity, selected, stopEntity } from './state.js';
 import { floors, objectAt, objects } from './world.js';
-import { formatTime } from './renderHelpers.js';
 
 const TRAVEL_ACTIONS = ['work', 'errand', 'mall', 'movies', 'date'];
 
@@ -26,6 +26,7 @@ export function createUi(state, surface, options = {}) {
   const worldState = document.getElementById('world-state');
   const logEl = document.getElementById('log');
   const commandPanel = document.getElementById('command-panel');
+  const calendarPill = document.getElementById('hud-calendar-pill');
   let lastTap = 0;
 
   const closeMenu = () => { menu.classList.add('hidden'); menu.innerHTML = ''; state.menu = null; };
@@ -210,10 +211,21 @@ export function createUi(state, surface, options = {}) {
   }
 
   function renderHud() {
-    const actor = selected(state); selectedName.textContent = actor.name; currentAction.textContent = actor.action || 'Idle';
+    const actor = selected(state);
+    const compactDate = calendarCompactHudLine(state);
+    if (calendarPill) calendarPill.textContent = compactDate;
+    selectedName.textContent = actor.name;
+    currentAction.textContent = actor.action || 'Idle';
     needs.innerHTML = NEEDS.map(([key, label]) => { const value = Math.round(actor.needs[key] ?? 0); return `<div class="need-row"><span>${label}</span><div class="need-bar"><div class="need-fill" style="width:${value}%"></div></div><span>${value}</span></div>`; }).join('');
-    const music = state.music ? `<br>Music: ${state.music.genre}` : ''; const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : ''; const delivery = state.delivery ? `<br>Delivery: ${state.delivery.phase}` : ''; const save = state.saveStatus?.message ? `<br>Save: ${state.saveStatus.message}` : `<br>Slot 1: ${slotSummary(1)}`; const trash = state.garbage ? `<br>Trash: ${Math.round(state.garbage.kitchen || 0)}%` : ''; const career = actor.type === 'person' ? `<br>${careerHudLine(state, actor)}` : ''; const life = actor.type === 'person' ? `<br>${lifeQualityHudLine(state, actor)}` : '';
-    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>${calendarHudLine(state)}<br>Area: ${floors[state.floor]?.name || state.floor}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}<br>${lifeControlLabel(state)}${career}${life}${music}${build}${delivery}${trash}${save}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
+    const music = state.music ? `<br>Music: ${state.music.genre}` : '';
+    const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : '';
+    const delivery = state.delivery ? `<br>Delivery: ${state.delivery.phase}` : '';
+    const save = state.saveStatus?.message ? `<br>Save: ${state.saveStatus.message}` : `<br>Slot 1: ${slotSummary(1)}`;
+    const trash = state.garbage ? `<br>Trash: ${Math.round(state.garbage.kitchen || 0)}%` : '';
+    const career = actor.type === 'person' ? `<br>${careerHudLine(state, actor)}<br>${careerScheduleStatusLine(state, actor)}` : '';
+    const life = actor.type === 'person' ? `<br>${lifeQualityHudLine(state, actor)}` : '';
+    const calendar = calendarHudLine(state).replace(/^Calendar: /, 'Plans: ');
+    worldState.innerHTML = `<strong>${compactDate}</strong><br>Money: $${Math.round(state.money ?? 0)}<br>${calendar}<br>Area: ${floors[state.floor]?.name || state.floor}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Autonomy: ${state.autonomyMode}<br>${lifeControlLabel(state)}${career}${life}${music}${build}${delivery}${trash}${save}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
     logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
   }
 
