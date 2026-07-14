@@ -11,6 +11,7 @@ import { installCameraSwipeNavigation, updateCameraTransition } from './cameraNa
 import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
 import { applyRuntimeRegressionGuards } from './runtimeRegressionGuards.js';
 import { updatePoolActivity } from './poolActivitySystem.js';
+import { updateHouseTidiness } from './tidinessSystem.js';
 
 const REFRESH_SAVE_KEY = 'apartment_god_test_refresh_state_v3';
 let frameErrorCount = 0;
@@ -37,6 +38,8 @@ function sanitizeRuntimeState(state) {
   state.floor = Number.isInteger(state.floor) ? state.floor : 0;
   state.objectState ??= {};
   state.roomLights ??= {};
+  state.tidiness ??= { rooms: {}, score: 100, activityMultiplier: 1.2 };
+  state.tidiness.rooms ??= {};
   state.notifications = Array.isArray(state.notifications) ? state.notifications : [];
   state.lifeControl ??= { mode: 'semi_auto', pendingChoices: [] };
   state.lifeQuality ??= { lastMonthIndex: null, lastYearIndex: null, reviews: [], yearReviews: [] };
@@ -52,6 +55,7 @@ function sanitizeRuntimeState(state) {
     applyPoseOrientation(entity);
     cleanupStaleActorState(entity);
   }
+  updateHouseTidiness(state);
 }
 
 function applyPoseOrientation(entity) {
@@ -100,6 +104,7 @@ function drawBootError(ctx, error) {
 
 function runSimulationStep(state, dt) {
   if (dt <= 0) return;
+  updateHouseTidiness(state);
   updatePoolActivity(state, dt);
   for (const entity of state.entities) {
     const arrived = updateMovement(state, entity, dt);
@@ -111,6 +116,7 @@ function runSimulationStep(state, dt) {
   updateAutonomy(state, dt);
   state.time += dt * 0.6;
   updateLifeQualitySystem(state);
+  updateHouseTidiness(state);
 }
 
 function advanceSimulation(state, rawDt) {
