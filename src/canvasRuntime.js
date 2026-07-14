@@ -98,6 +98,35 @@ function drawBootError(ctx, error) {
   } catch (_) {}
 }
 
+function runSimulationStep(state, dt) {
+  if (dt <= 0) return;
+  updatePoolActivity(state, dt);
+  for (const entity of state.entities) {
+    const arrived = updateMovement(state, entity, dt);
+    if (arrived) resolveArrival(state, entity);
+  }
+  updateActions(state, dt);
+  updateCalendarRuntime(state);
+  updateAutoHooks(state, dt);
+  updateAutonomy(state, dt);
+  state.time += dt * 0.6;
+  updateLifeQualitySystem(state);
+}
+
+function advanceSimulation(state, rawDt) {
+  if (state.paused) return;
+  const maxStep = document.hidden ? 0.2 : 0.05;
+  const maxCatchup = document.hidden ? 4.0 : 0.2;
+  let remaining = Math.min(rawDt * state.speed, maxCatchup);
+  let guard = 0;
+  while (remaining > 0.0001 && guard < 80) {
+    const step = Math.min(maxStep, remaining);
+    runSimulationStep(state, step);
+    remaining -= step;
+    guard += 1;
+  }
+}
+
 export function bootCanvasGame() {
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
@@ -115,28 +144,16 @@ export function bootCanvasGame() {
     try {
       sanitizeRuntimeState(state);
       applyRuntimeRegressionGuards(state);
-      const rawDt = Math.min(0.05, (now - last) / 1000);
+      const rawElapsed = Math.max(0, (now - last) / 1000);
+      const rawDt = Math.min(document.hidden ? 4.0 : 0.2, rawElapsed);
       last = now;
-      const dt = state.paused ? 0 : rawDt * state.speed;
+      const cameraDt = Math.min(0.05, rawElapsed);
 
-      updateCameraTransition(state, rawDt);
+      updateCameraTransition(state, cameraDt);
+      advanceSimulation(state, rawDt);
+      updateRefreshAutosave(state, cameraDt);
 
-      if (dt > 0) {
-        updatePoolActivity(state, dt);
-        for (const entity of state.entities) {
-          const arrived = updateMovement(state, entity, dt);
-          if (arrived) resolveArrival(state, entity);
-        }
-        updateActions(state, dt);
-        updateCalendarRuntime(state);
-        updateAutoHooks(state, dt);
-        updateAutonomy(state, dt);
-        state.time += dt * 0.6;
-        updateLifeQualitySystem(state);
-        updateRefreshAutosave(state, rawDt);
-      }
-
-      if (state.skipRecap?.visibleT > 0) state.skipRecap.visibleT -= rawDt;
+      if (state.skipRecap?.visibleT > 0) state.skipRecap.visibleT -= cameraDt;
       draw(ctx, state);
       ui.renderHud();
     } catch (error) {
