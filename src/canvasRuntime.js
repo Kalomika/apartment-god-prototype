@@ -1,5 +1,5 @@
 import { createState } from './state.js';
-import { draw } from './rendering.js?v=20260714-front-yard-driveway';
+import { draw } from './rendering.js?v=20260714-living-dining-kitchen-cleanup';
 import { createUi } from './ui.js';
 import { updateMovement } from './movement.js';
 import { resolveArrival, updateActions } from './actions.js';
