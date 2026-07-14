@@ -73,7 +73,8 @@ export const ACTIONS = {
   kennel: [['dog_rest', 'Dog Rest'], ['call_dog_yard', 'Call Dog To Yard']],
   car: [['work', 'Drive to Work'], ['errand', 'Drive Errand'], ['mall', 'Drive to Mall'], ['movies', 'Drive to Movies'], ['date', 'Drive Date Night'], ['drive', 'Cruise Around'], ['maintain_vehicle', 'Maintain Vehicle']],
   bike: VEHICLE_DESTINATIONS.map(([id, label]) => [id, `Bike to ${label}`]),
-  motorbike: VEHICLE_DESTINATIONS.map(([id, label]) => [id, `Ride Motorbike to ${label}`])
+  motorbike: VEHICLE_DESTINATIONS.map(([id, label]) => [id, `Ride Motorbike to ${label}`]),
+  atv: VEHICLE_DESTINATIONS.map(([id, label]) => [id, `Ride ATV to ${label}`])
 };
 
 export const SOCIAL_ACTIONS = [
