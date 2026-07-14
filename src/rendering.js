@@ -13,7 +13,7 @@ import { drawBathBedAfterEntityOverlays, drawBathBedStateOverlays } from './bath
 import { drawVisualRegressionFixes } from './visualRegressionFixes.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
-import { drawEntities } from './renderEntities.js';
+import { drawEntities } from './renderEntities.js?v=20260714-human-renderer-framework';
 import { drawDogSpriteOverlay } from './dogSpriteOverlay.js?v=20260714-dog-strict-topdown';
 import { drawTvStateCorrectiveOverlays } from './tvStateCorrectiveOverlays.js';
 import { drawAfterEntityOverlays } from './afterEntityOverlays.js';
@@ -223,24 +223,25 @@ function drawPoolFx(ctx, state) {
 
 function drawStatus(ctx, state) {
   ctx.save();
-  ctx.fillStyle = 'rgba(7,10,16,.72)';
-  ctx.fillRect(0, 0, 470, 31);
+  ctx.fillStyle = 'rgba(18,22,31,.78)';
+  ctx.fillRect(0, PLAY_H - 34, PLAY_W, 34);
   ctx.fillStyle = COLORS.text;
-  ctx.font = '900 14px system-ui';
-  const tidy = Number.isFinite(state.tidiness?.score) ? `   tidy ${Math.round(state.tidiness.score)}%` : '';
-  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode}   trash ${Math.round(state.garbage?.kitchen || 0)}%${tidy}`, 12, 20);
-  ctx.fillStyle = 'rgba(116,230,255,.28)';
-  ctx.fillRect(438, 12, 120, 12);
-  ctx.fillStyle = 'rgba(255,255,255,.35)';
-  ctx.fillRect(560, 12, 200, 12);
+  ctx.font = '700 16px system-ui';
+  ctx.fillText(`${formatTime(state.time)}   $${state.money}`, 14, PLAY_H - 12);
+  ctx.fillStyle = COLORS.muted;
+  ctx.font = '600 12px system-ui';
+  ctx.fillText(state.paused ? 'Paused' : `${state.speed}x`, 150, PLAY_H - 12);
   ctx.restore();
 }
 
 function drawOverlay(ctx, state) {
   if (!state.paused) return;
+  ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,.35)';
   ctx.fillRect(0, 0, PLAY_W, PLAY_H);
-  ctx.fillStyle = COLORS.text;
-  ctx.font = '900 42px system-ui';
-  ctx.fillText('PAUSED', 390, 350);
+  ctx.fillStyle = '#fff';
+  ctx.font = '900 44px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText('PAUSED', PLAY_W / 2, PLAY_H / 2);
+  ctx.restore();
 }
