@@ -1,3 +1,3 @@
-import { bootCanvasGame } from './canvasRuntime.js?v=20260714-calendar-work-hud';
+import { bootCanvasGame } from './canvasRuntime.js?v=20260714-dining-kitchen-layout';
 
 bootCanvasGame();
