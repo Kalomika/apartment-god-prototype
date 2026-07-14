@@ -12,6 +12,7 @@ import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './sav
 import { applyRuntimeRegressionGuards } from './runtimeRegressionGuards.js';
 import { updatePoolActivity } from './poolActivitySystem.js';
 import { updateHouseTidiness } from './tidinessSystem.js';
+import { advanceGameClock } from './timeSystem.js';
 
 const REFRESH_SAVE_KEY = 'apartment_god_test_refresh_state_v3';
 let frameErrorCount = 0;
@@ -114,7 +115,7 @@ function runSimulationStep(state, dt) {
   updateCalendarRuntime(state);
   updateAutoHooks(state, dt);
   updateAutonomy(state, dt);
-  state.time += dt * 0.6;
+  advanceGameClock(state, dt);
   updateLifeQualitySystem(state);
   updateHouseTidiness(state);
 }
