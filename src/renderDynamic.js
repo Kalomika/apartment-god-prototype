@@ -14,11 +14,34 @@ export function drawDynamicProps(ctx, state) {
 export function drawCarriedItems(ctx, state) {
   for (const e of state.entities || []) {
     if (e.hidden || e.floor !== state.floor || !e.carrying) continue;
+    const item = String(e.carrying || '').toLowerCase();
+    if (item.includes('towel')) {
+      drawBodyTowelWrap(ctx, e);
+      continue;
+    }
     ctx.save();
     ctx.translate(e.x + 20, e.y - 22);
     drawCarryIcon(ctx, e.carrying);
     ctx.restore();
   }
+}
+
+function drawBodyTowelWrap(ctx, e) {
+  ctx.save();
+  ctx.translate(e.x, e.y);
+  ctx.globalAlpha = .98;
+  const female = e.id === 'girlfriend';
+  const wrap = female ? '#f5d7ee' : '#f3f1ea';
+  const shadow = 'rgba(7,16,24,.42)';
+  roundRect(ctx, -16, 1, 32, female ? 32 : 28, 8, wrap);
+  ctx.strokeStyle = shadow;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-13, 5, 26, female ? 24 : 20);
+  ctx.fillStyle = shadow;
+  ctx.fillRect(-12, female ? 20 : 17, 24, 3);
+  ctx.fillStyle = 'rgba(255,255,255,.45)';
+  ctx.fillRect(-11, 6, 8, female ? 21 : 17);
+  ctx.restore();
 }
 
 function drawCarryIcon(ctx, item) {
@@ -53,15 +76,10 @@ function drawCarryIcon(ctx, item) {
     return;
   }
   if (text.includes('towel')) {
-    roundRect(ctx, -13, -10, 26, 20, 5, '#a8e9ff');
+    roundRect(ctx, -13, -10, 26, 20, 5, '#f3f1ea');
     ctx.strokeStyle = '#071018';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(-10, -7, 20, 14);
-    ctx.fillStyle = '#071018';
-    ctx.font = '900 6px system-ui';
-    ctx.textAlign = 'center';
-    ctx.fillText('TOWEL', 0, 2);
-    ctx.textAlign = 'left';
     return;
   }
   if (text.includes('luggage')) {
