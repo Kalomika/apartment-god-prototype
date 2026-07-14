@@ -8,11 +8,20 @@ export function applyRuntimeRegressionGuards(state) {
   if (!state?.entities?.length) return;
   for (const entity of state.entities) {
     if (!entity || entity.hidden || entity.type !== 'person') continue;
+    guardTimedActionTotal(entity);
     guardBadCookingContact(state, entity);
     guardDiningSeatAlignment(state, entity);
     guardStairExitPlacement(entity);
     guardIdleCouchTrap(entity);
   }
+}
+
+function guardTimedActionTotal(entity) {
+  const remaining = Number(entity.actionT || 0);
+  if (!(remaining > 0)) return;
+  const total = Number(entity.actionTotal || 0);
+  if (Number.isFinite(total) && total >= remaining) return;
+  entity.actionTotal = remaining;
 }
 
 function guardBadCookingContact(state, entity) {
