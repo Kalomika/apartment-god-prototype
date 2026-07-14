@@ -1,9 +1,10 @@
 const OUTLINE = '#071018';
-const COAT = '#e9ddc8';
-const COAT_LIT = '#fff4df';
-const COAT_SHADE = '#b99a69';
-const DARK_PATCH = '#473421';
-const EAR = '#6a4a31';
+const WHITE = '#f3eadb';
+const WHITE_LIT = '#fff8ea';
+const WHITE_SHADE = '#d1c4ad';
+const BROWN = '#8b5a34';
+const BROWN_DARK = '#4c2f1f';
+const EAR = '#5b3828';
 const SHADOW = 'rgba(0,0,0,.22)';
 const BALL = '#5aa04c';
 const WATER = '#65b9d4';
@@ -14,50 +15,35 @@ export function drawDogSpriteOverlay(ctx, state) {
   for (const dog of (state.entities || []).filter(e => !e.hidden && e.floor === state.floor && e.type === 'dog')) {
     const direction = resolveDogDirection(dog);
     const stateKey = resolveDogState(dog);
-    drawShapeDog(ctx, dog, direction, stateKey, state);
+    drawTopDownDog(ctx, dog, direction, stateKey, state);
   }
 }
 
-function drawShapeDog(ctx, dog, direction, stateKey, state) {
+function drawTopDownDog(ctx, dog, direction, stateKey, state) {
   const moving = Array.isArray(dog.path) && dog.path.length > 0;
-  const tick = Math.floor(performance.now() / 140);
-  const gait = moving ? tick % 4 : Math.floor(performance.now() / 520) % 3;
-  const angle = directionAngle(direction);
-  const bob = moving ? Math.sin(performance.now() / 120) * .75 : 0;
+  const gait = moving ? Math.floor(performance.now() / 135) % 4 : 0;
   const selected = state.selectedId === dog.id;
+  const bob = moving ? Math.sin(performance.now() / 120) * .55 : 0;
 
   ctx.save();
   ctx.translate(dog.x, dog.y + bob);
   if (selected) drawSelectionRing(ctx);
-  ctx.rotate(angle);
-  ctx.scale(.56, .56);
-  if (stateKey === 'curl_sleep') drawCurlSleepDog(ctx);
+  ctx.rotate(directionAngle(direction));
+  ctx.scale(.74, .74);
+
+  if (stateKey === 'curl_sleep') drawSleepingDog(ctx);
+  else if (stateKey === 'sit') drawSittingDog(ctx, stateKey);
+  else if (stateKey === 'lie' || stateKey === 'play_bow') drawLowDog(ctx, stateKey, gait);
   else drawStandingDog(ctx, stateKey, gait);
+
   ctx.restore();
   drawDogUi(ctx, dog);
 }
 
-function drawSelectionRing(ctx) {
-  ctx.strokeStyle = '#f1c66a';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.ellipse(0, 5, 22, 16, 0, 0, Math.PI * 2);
-  ctx.stroke();
-}
-
-function drawDogUi(ctx, dog) {
-  ctx.save();
-  ctx.translate(dog.x, dog.y);
-  if (dog.actionT > 0) drawActionBar(ctx, dog);
-  if (dog.reaction?.t > 0) drawBubble(ctx, String(dog.reaction.text || '').slice(0, 36), dog.reaction.style || 'thought');
-  if (dog.bubble && dog.bubbleT > 0) drawBubble(ctx, String(dog.bubble || '').slice(0, 36), dog.reaction?.style || 'speech');
-  ctx.restore();
-}
-
 function resolveDogState(dog) {
-  const key = `${String(dog.currentActionId || '').toLowerCase()} ${String(dog.action || '').toLowerCase()} ${String(dog.pose || '').toLowerCase()} ${String(dog.carrying || '').toLowerCase()}`;
+  const key = `${dog.currentActionId || ''} ${dog.action || ''} ${dog.pose || ''} ${dog.carrying || ''}`.toLowerCase();
   const moving = Array.isArray(dog.path) && dog.path.length > 0;
-  if (key.includes('sleep') || key.includes('rest') || key.includes('dog bed')) return 'curl_sleep';
+  if (key.includes('sleep') || key.includes('dog bed') || key.includes('rest')) return 'curl_sleep';
   if (key.includes('eat') || key.includes('food') || key.includes('bowl')) return 'eat';
   if (key.includes('drink') || key.includes('water')) return 'drink';
   if (key.includes('fetch') || key.includes('ball') || key.includes('carry')) return 'fetch';
@@ -74,141 +60,155 @@ function resolveDogState(dog) {
 
 function resolveDogDirection(dog) {
   const target = Array.isArray(dog.path) && dog.path.length > 0 ? dog.path[0] : dog.target;
-  const dx = Number.isFinite(dog.vx) && Math.abs(dog.vx) > 0.01 ? dog.vx : target ? target.x - dog.x : 0;
-  const dy = Number.isFinite(dog.vy) && Math.abs(dog.vy) > 0.01 ? dog.vy : target ? target.y - dog.y : 0;
-  if (Math.abs(dx) + Math.abs(dy) < 0.01) return dog.lastDogDirection || 'south';
-  const direction = Math.abs(dy) >= Math.abs(dx) ? (dy < 0 ? 'north' : 'south') : (dx < 0 ? 'west' : 'east');
+  const dx = Number.isFinite(dog.vx) && Math.abs(dog.vx) > .01 ? dog.vx : target ? target.x - dog.x : 0;
+  const dy = Number.isFinite(dog.vy) && Math.abs(dog.vy) > .01 ? dog.vy : target ? target.y - dog.y : 0;
+  if (Math.abs(dx) + Math.abs(dy) < .01) return dog.lastDogDirection || 'south';
+  const direction = Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 'west' : 'east') : (dy < 0 ? 'north' : 'south');
   dog.lastDogDirection = direction;
   return direction;
 }
 
+// Base dog is drawn facing east: head at +X, tail at -X.
 function directionAngle(direction) {
-  return { south: 0, north: Math.PI, east: -Math.PI / 2, west: Math.PI / 2 }[direction] ?? 0;
+  return { east: 0, south: Math.PI / 2, west: Math.PI, north: -Math.PI / 2 }[direction] ?? 0;
 }
 
 function drawStandingDog(ctx, stateKey, gait) {
   const run = stateKey === 'run';
-  const lie = stateKey === 'lie';
-  const play = stateKey === 'play_bow';
-  const sit = stateKey === 'sit';
-  const bodyY = lie ? -4 : play ? -6 : sit ? 0 : -7;
-  const headY = lie ? 25 : play ? 31 : sit ? 29 : 25;
-  const rearY = lie ? -30 : play ? -26 : -35;
+  const step = [-1, .55, 1, -.55][gait % 4];
+  const stride = run ? 6 : 3.8;
 
-  ellipse(ctx, 0, 14, 28, 13, SHADOW);
-  drawTail(ctx, stateKey, rearY);
-  drawLegs(ctx, gait, stateKey, run, sit, lie, play);
-  ellipse(ctx, 0, bodyY, 23, lie ? 35 : 34, COAT_SHADE, OUTLINE, 3);
-  drawBackPatch(ctx, bodyY);
-  ellipse(ctx, 0, bodyY + 19, 19, 11, COAT_LIT);
-  drawEars(ctx, headY, stateKey);
-  ellipse(ctx, 0, headY, 17, 15, COAT_LIT, OUTLINE, 3);
-  ellipse(ctx, 0, headY + 8, 11, 7, COAT);
-  drawFace(ctx, headY, stateKey);
-  drawDogAccessory(ctx, headY, stateKey);
+  ellipse(ctx, 0, 8, 34, 15, SHADOW);
+  drawTail(ctx, stateKey, 0);
+  drawLeg(ctx, -12 - step * stride, -12, run ? -4 : -2);
+  drawLeg(ctx, -10 + step * stride, 12, run ? 4 : 2);
+  drawLeg(ctx, 11 + step * stride, -12, run ? 5 : 3);
+  drawLeg(ctx, 12 - step * stride, 12, run ? -5 : -3);
+  drawBody(ctx, 0, 0, 40, 24);
+  drawHead(ctx, 29, 0, stateKey);
+  drawAccessory(ctx, 42, 0, stateKey);
 }
 
-function drawTail(ctx, stateKey, rearY) {
-  const wag = stateKey === 'run' || stateKey === 'happy' || stateKey === 'idle' ? .18 : 0;
-  const swing = Math.sin(performance.now() / 105) * wag;
+function drawSittingDog(ctx, stateKey) {
+  ellipse(ctx, -2, 9, 31, 15, SHADOW);
+  drawTail(ctx, stateKey, -2);
+  drawLeg(ctx, -10, -12, -1, 10);
+  drawLeg(ctx, -10, 12, 1, 10);
+  drawLeg(ctx, 15, -9, 2, 9);
+  drawLeg(ctx, 15, 9, -2, 9);
+  drawBody(ctx, -2, 0, 34, 25);
+  drawHead(ctx, 25, 0, stateKey);
+}
+
+function drawLowDog(ctx, stateKey, gait) {
+  ellipse(ctx, -1, 9, 36, 14, SHADOW);
+  drawTail(ctx, stateKey, -1);
+  drawLeg(ctx, -13, -13, -4, 9);
+  drawLeg(ctx, -13, 13, 4, 9);
+  drawLeg(ctx, 14, -13, 5, 9);
+  drawLeg(ctx, 14, 13, -5, 9);
+  drawBody(ctx, -1, 0, 43, 23);
+  drawHead(ctx, 31, 0, stateKey);
+}
+
+function drawSleepingDog(ctx) {
+  ellipse(ctx, 0, 9, 29, 17, SHADOW);
+  ellipse(ctx, -1, 0, 32, 22, WHITE, OUTLINE, 2.5, -.18);
+  ellipse(ctx, -5, -2, 16, 12, BROWN, null, 0, -.18);
+  ellipse(ctx, 15, 6, 13, 11, BROWN, OUTLINE, 2, .15);
+  ellipse(ctx, 21, -1, 5, 8, EAR, OUTLINE, 1.6, -.15);
+  line(ctx, -26, 4, -37, 11, OUTLINE, 5);
+  line(ctx, -26, 4, -37, 11, WHITE_LIT, 3);
+  ellipse(ctx, 19, 9, 1.6, 1.6, OUTLINE);
+}
+
+function drawBody(ctx, x, y, rx, ry) {
+  ellipse(ctx, x, y, rx, ry, WHITE, OUTLINE, 3);
+  ellipse(ctx, x - 8, y - 4, 15, 11, BROWN, null, 0, -.15);
+  ellipse(ctx, x + 6, y + 5, 11, 8, WHITE_LIT, null, 0, .1);
+  line(ctx, x - rx + 8, y + ry - 3, x + rx - 6, y + ry - 4, WHITE_SHADE, 1.2);
+}
+
+function drawHead(ctx, x, y, stateKey) {
+  ellipse(ctx, x, y, 16, 14, BROWN, OUTLINE, 3);
+  ellipse(ctx, x + 10, y, 10, 8, BROWN, OUTLINE, 2);
+  ellipse(ctx, x + 18, y, 3.8, 3.2, OUTLINE);
+  ellipse(ctx, x - 4, y - 12, 7, 9, EAR, OUTLINE, 2, -.15);
+  ellipse(ctx, x - 4, y + 12, 7, 9, EAR, OUTLINE, 2, .15);
+  ellipse(ctx, x + 4, y - 5, 2.1, 2.1, OUTLINE);
+  ellipse(ctx, x + 4, y + 5, 2.1, 2.1, OUTLINE);
+  if (stateKey === 'happy') ellipse(ctx, x + 14, y + 8, 3, 5, PINK, OUTLINE, 1, .25);
+  if (stateKey === 'bark') ellipse(ctx, x + 17, y, 5.2, 5.2, '#25140e', OUTLINE, 1);
+  if (stateKey === 'sad') {
+    line(ctx, x + 1, y - 6, x + 7, y - 4, OUTLINE, 1.5);
+    line(ctx, x + 1, y + 6, x + 7, y + 4, OUTLINE, 1.5);
+  }
+}
+
+function drawLeg(ctx, x, y, offset = 0, len = 12) {
   ctx.save();
-  ctx.rotate(swing);
-  line(ctx, 0, rearY + 2, 3, rearY - 26, OUTLINE, 7);
-  line(ctx, 0, rearY + 2, 3, rearY - 26, COAT_LIT, 4);
+  ctx.translate(x, y);
+  ctx.rotate(offset * Math.PI / 70);
+  ellipse(ctx, 0, 0, len, 5.5, WHITE, OUTLINE, 2);
+  ellipse(ctx, len - 3, 0, 4.6, 4.8, WHITE_LIT, OUTLINE, 1.5);
   ctx.restore();
 }
 
-function drawLegs(ctx, gait, stateKey, run, sit, lie, play) {
-  if (sit) {
-    for (const [x, y, rx, ry] of [[-15,9,6,12],[15,9,6,12],[-13,25,6,10],[13,25,6,10]]) ellipse(ctx, x, y, rx, ry, COAT, OUTLINE, 2);
-    return;
-  }
-  if (lie || play) {
-    for (const [x, y] of [[-18,27],[18,27],[-18,-30],[18,-30]]) ellipse(ctx, x, y, 6, 14, COAT, OUTLINE, 2);
-    return;
-  }
-  const step = [-1, .45, 1, -.45][gait % 4];
-  const rearStep = -step;
-  const spread = run ? 1.22 : .92;
-  const points = [
-    [-10 - step * 4 * spread, 18 + Math.max(step, 0) * 3],
-    [10 + step * 4 * spread, 18 + Math.max(-step, 0) * 3],
-    [-11 - rearStep * 3.5 * spread, -26 + Math.max(rearStep, 0) * 2],
-    [11 + rearStep * 3.5 * spread, -26 + Math.max(-rearStep, 0) * 2]
-  ];
-  for (const [x, y] of points) ellipse(ctx, x, y, 5, run ? 13 : 11, COAT, OUTLINE, 2);
+function drawTail(ctx, stateKey, y = 0) {
+  const wag = stateKey === 'walk' || stateKey === 'run' || stateKey === 'happy' || stateKey === 'idle' ? Math.sin(performance.now() / 115) * .18 : 0;
+  ctx.save();
+  ctx.rotate(wag);
+  line(ctx, -36, y, -54, y - 7, OUTLINE, 6);
+  line(ctx, -36, y, -54, y - 7, WHITE_LIT, 3.4);
+  ctx.restore();
 }
 
-function drawBackPatch(ctx, bodyY) {
-  ctx.beginPath();
-  ctx.moveTo(-17, bodyY - 17);
-  ctx.bezierCurveTo(-10, bodyY - 29, 13, bodyY - 29, 18, bodyY - 15);
-  ctx.lineTo(18, bodyY + 8);
-  ctx.bezierCurveTo(5, bodyY + 13, -8, bodyY + 10, -18, bodyY + 5);
-  ctx.closePath();
-  ctx.fillStyle = DARK_PATCH;
-  ctx.fill();
-}
-
-function drawEars(ctx, headY, stateKey) {
-  const lift = stateKey === 'alert' || stateKey === 'bark' ? -4 : 0;
-  ellipse(ctx, -15, headY + lift, 6, 15, EAR, OUTLINE, 2, -.15);
-  ellipse(ctx, 15, headY + lift, 6, 15, EAR, OUTLINE, 2, .15);
-}
-
-function drawFace(ctx, headY, stateKey) {
-  if (stateKey === 'sad') {
-    line(ctx, -8, headY - 1, -4, headY - 2, OUTLINE, 1.6);
-    line(ctx, 4, headY - 2, 8, headY - 1, OUTLINE, 1.6);
-  } else {
-    ellipse(ctx, -6, headY, 1.8, 1.8, OUTLINE);
-    ellipse(ctx, 6, headY, 1.8, 1.8, OUTLINE);
-  }
-  ellipse(ctx, 0, headY + 9, 3.4, 2.8, OUTLINE);
-  if (stateKey === 'happy') ellipse(ctx, 0, headY + 17, 3.2, 5.5, PINK, OUTLINE, .8);
-  if (stateKey === 'bark') ellipse(ctx, 0, headY + 16, 5, 5.5, '#28140f', OUTLINE, .9);
-}
-
-function drawDogAccessory(ctx, headY, stateKey) {
-  if (stateKey === 'eat') drawBowl(ctx, 0, headY + 28, '#9a6a34');
-  if (stateKey === 'drink') drawBowl(ctx, 0, headY + 28, WATER);
+function drawAccessory(ctx, x, y, stateKey) {
   if (stateKey === 'fetch') {
-    ellipse(ctx, 0, headY + 25, 8, 8, BALL, OUTLINE, 2);
-    line(ctx, -4, headY + 22, 4, headY + 28, '#b7e082', 1.5);
+    ellipse(ctx, x + 13, y, 7.5, 7.5, BALL, OUTLINE, 2);
+    line(ctx, x + 9, y - 3, x + 17, y + 4, '#b7e082', 1.5);
   }
+  if (stateKey === 'eat') drawBowl(ctx, x + 18, y, '#9a6a34');
+  if (stateKey === 'drink') drawBowl(ctx, x + 18, y, WATER);
   if (stateKey === 'bark') {
-    line(ctx, 25, headY - 5, 36, headY - 12, OUTLINE, 2.2);
-    line(ctx, 28, headY + 6, 41, headY + 6, OUTLINE, 2.2);
+    line(ctx, x + 23, y - 7, x + 36, y - 15, OUTLINE, 2.2);
+    line(ctx, x + 25, y + 7, x + 39, y + 10, OUTLINE, 2.2);
   }
   if (stateKey === 'alert') {
-    line(ctx, -5, -47, -8, -59, OUTLINE, 2.2);
-    line(ctx, 5, -47, 9, -59, OUTLINE, 2.2);
-    ellipse(ctx, -10, -64, 2.4, 2.4, OUTLINE);
-    ellipse(ctx, 11, -64, 2.4, 2.4, OUTLINE);
+    line(ctx, x + 14, y - 13, x + 20, y - 26, OUTLINE, 2.2);
+    line(ctx, x + 14, y + 13, x + 20, y + 26, OUTLINE, 2.2);
+    ellipse(ctx, x + 22, y - 30, 2.5, 2.5, OUTLINE);
+    ellipse(ctx, x + 22, y + 30, 2.5, 2.5, OUTLINE);
   }
 }
 
 function drawBowl(ctx, x, y, fill) {
-  ellipse(ctx, x, y, 16, 7, BOWL, OUTLINE, 2);
-  ellipse(ctx, x, y - 1.5, 11, 4, fill);
+  ellipse(ctx, x, y, 15, 8, BOWL, OUTLINE, 2);
+  ellipse(ctx, x, y - 1, 10, 4, fill);
 }
 
-function drawCurlSleepDog(ctx) {
-  ellipse(ctx, 0, 7, 30, 23, SHADOW);
-  ellipse(ctx, 0, 0, 31, 26, COAT_SHADE, OUTLINE, 3, -.35);
-  ellipse(ctx, 7, -4, 20, 15, DARK_PATCH, null, 0, -.35);
-  ellipse(ctx, -15, 7, 17, 13, COAT_LIT, OUTLINE, 2, -.15);
-  ellipse(ctx, -21, 4, 6, 10, EAR, OUTLINE, 2, -.7);
-  line(ctx, 14, 12, 27, 21, OUTLINE, 5);
-  line(ctx, 14, 12, 27, 21, COAT_LIT, 3);
-  ellipse(ctx, -19, 11, 1.8, 1.8, OUTLINE);
+function drawSelectionRing(ctx) {
+  ctx.strokeStyle = '#f1c66a';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(0, 3, 31, 21, 0, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function drawDogUi(ctx, dog) {
+  ctx.save();
+  ctx.translate(dog.x, dog.y);
+  if (dog.actionT > 0) drawActionBar(ctx, dog);
+  if (dog.reaction?.t > 0) drawBubble(ctx, String(dog.reaction.text || '').slice(0, 36), dog.reaction.style || 'thought');
+  if (dog.bubble && dog.bubbleT > 0) drawBubble(ctx, String(dog.bubble || '').slice(0, 36), dog.reaction?.style || 'speech');
+  ctx.restore();
 }
 
 function drawActionBar(ctx, dog) {
   const total = Math.max(1, Number(dog.actionTotal || dog.actionT || 1));
   const pct = Math.max(0, Math.min(1, 1 - Number(dog.actionT || 0) / total));
-  round(ctx, -34, 34, 68, 8, 5, 'rgba(10,12,18,.84)');
-  round(ctx, -32, 36, 64 * pct, 4, 3, '#f1c66a');
+  round(ctx, -34, 35, 68, 8, 5, 'rgba(10,12,18,.84)');
+  round(ctx, -32, 37, 64 * pct, 4, 3, '#f1c66a');
 }
 
 function drawBubble(ctx, text, style = 'speech') {
