@@ -18,6 +18,8 @@ const CLOTH = {
   pjGirlfriend: '#3a2438'
 };
 
+const lastRenderPositions = new WeakMap();
+
 export function drawEntities(ctx, state) {
   for (const entity of state.entities.filter(e => !e.hidden && e.floor === state.floor)) {
     if (entity.type === 'dog') continue;
@@ -31,13 +33,14 @@ function drawTopDownActor(ctx, actor, selected) {
   const cloth = CLOTH[actor.id] || CLOTH.resident;
   const key = `${actor.currentActionId || ''} ${actor.action || ''} ${actor.pose || ''}`.toLowerCase();
   const sleeping = isBedSleepKey(key);
-  const moving = isMoving(actor, key);
+  const movedThisFrame = movedSinceLastRender(actor);
+  const moving = isMoving(actor, key) || movedThisFrame;
   const anchor = renderAnchor(actor, key);
 
   ctx.save();
   ctx.translate(anchor.x, anchor.y);
   if (selected) drawSelectionRing(ctx, actor.type);
-  ctx.rotate(sleeping ? 0 : heading(actor, key, moving));
+  rememberHeading(actor, key, moving);
   drawGroundShadow(ctx, moving, sleeping);
   drawPerson(ctx, actor, female, cloth, accent, key, moving);
   if (actor.carrying === 'towel' || key.includes('towel')) drawTowelWrap(ctx, female);
@@ -68,21 +71,28 @@ function isBedSleepKey(key) {
   return false;
 }
 
-function isMoving(actor, key) {
-  return Number(actor.actionT || 0) <= 0 && (Boolean(actor.path?.length) || Boolean(actor.target) || key.includes('walking to') || key.includes('heading') || key.includes('walk'));
+function movedSinceLastRender(actor) {
+  if (Number(actor.actionT || 0) > 0 || isBedSleepKey(`${actor.currentActionId || ''} ${actor.action || ''} ${actor.pose || ''}`.toLowerCase())) return false;
+  const last = lastRenderPositions.get(actor);
+  const current = { x: Number(actor.x || 0), y: Number(actor.y || 0) };
+  lastRenderPositions.set(actor, current);
+  if (!last) return false;
+  return Math.hypot(current.x - last.x, current.y - last.y) > 0.15;
 }
 
-function heading(actor, key, moving) {
+function isMoving(actor, key) {
+  const busy = Number(actor.actionT || 0) > 0;
+  const walkPose = String(actor.pose || '').toLowerCase() === 'walk';
+  if (busy && !walkPose) return false;
+  return Boolean(actor.path?.length) || Boolean(actor.target) || walkPose || key.includes('walking to') || key.includes('heading') || key.includes('walk') || key.includes('going to');
+}
+
+function rememberHeading(actor, key, moving) {
   const dx = actor.vx || (actor.target ? actor.target.x - actor.x : 0);
   const dy = actor.vy || (actor.target ? actor.target.y - actor.y : 0);
-  if (moving && Math.abs(dx) + Math.abs(dy) >= 0.01) {
-    actor.lastHeading = Math.atan2(dy, dx) + Math.PI / 2;
-    return actor.lastHeading;
-  }
-  if (!moving && ['tv', 'couch', 'watch', 'desk', 'study', 'read', 'eat', 'table', 'sleep', 'nap', 'shower', 'wash dog', 'lift', 'treadmill', 'heavy bag'].some(t => key.includes(t))) return 0;
-  if (Math.abs(dx) + Math.abs(dy) < 0.01) return actor.lastHeading || 0;
-  actor.lastHeading = Math.atan2(dy, dx) + Math.PI / 2;
-  return actor.lastHeading;
+  if (moving && Math.abs(dx) + Math.abs(dy) >= 0.01) actor.lastHeading = Math.atan2(dy, dx) + Math.PI / 2;
+  else if (!moving && ['tv', 'couch', 'watch', 'desk', 'study', 'read', 'eat', 'table', 'sleep', 'nap', 'shower', 'wash dog', 'brush', 'tooth', 'toilet', 'pee', 'lift', 'treadmill', 'heavy bag'].some(t => key.includes(t))) actor.lastHeading = 0;
+  return actor.lastHeading || 0;
 }
 
 function drawSelectionRing(ctx, type) {
@@ -95,11 +105,14 @@ function drawSelectionRing(ctx, type) {
 
 function drawGroundShadow(ctx, moving, sleeping) {
   if (sleeping) return ellipse(ctx, 4, 12, 48, 25, 'rgba(0,0,0,.20)');
-  ellipse(ctx, 0, 12, moving ? 34 : 31, moving ? 17 : 15, 'rgba(0,0,0,.22)');
+  ellipse(ctx, 0, 12, moving ? 36 : 31, moving ? 18 : 15, 'rgba(0,0,0,.22)');
 }
 
 function drawPerson(ctx, actor, female, cloth, accent, key, moving) {
   if (moving) return drawWalkPose(ctx, female, cloth, accent);
+  if (key.includes('pee_stand') || key.includes('pee standing')) return drawStandingPeePose(ctx, female, cloth, accent);
+  if (key.includes('toilet_sit') || (key.includes('toilet') && !key.includes('no route'))) return drawToiletPose(ctx, female, cloth, accent);
+  if (key.includes('brush_teeth') || key.includes('brush teeth') || key.includes('tooth')) return drawBrushTeethPose(ctx, female, cloth, accent);
   if (key.includes('lift_weights') || key.includes('lift weights')) return drawLiftPose(ctx, female, cloth, accent);
   if (key.includes('treadmill')) return drawTreadmillPose(ctx, female, cloth, accent);
   if (key.includes('heavy_bag') || key.includes('heavy bag')) return drawBoxingPose(ctx, female, cloth, accent);
@@ -119,16 +132,25 @@ function drawIdlePose(ctx, female, cloth, accent) {
 }
 
 function drawWalkPose(ctx, female, cloth, accent) {
-  const step = [-1, 0.45, 1, -0.45][Math.floor(performance.now() / 115) % 4];
-  ellipse(ctx, 0, 10, 34, 43, 'rgba(0,0,0,.22)');
-  leg(ctx, -8, 13, -12 - step * 5, 36 + Math.max(step, 0) * 4, cloth, -0.08);
-  leg(ctx, 8, 13, 12 + step * 5, 36 + Math.max(-step, 0) * 4, cloth, 0.08);
+  const step = [-1.25, 0.65, 1.25, -0.65][Math.floor(performance.now() / 105) % 4];
+  ellipse(ctx, 0, 10, 36, 44, 'rgba(0,0,0,.22)');
+  leg(ctx, -8, 13, -13 - step * 6, 36 + Math.max(step, 0) * 5, cloth, -0.08);
+  leg(ctx, 8, 13, 13 + step * 6, 36 + Math.max(-step, 0) * 5, cloth, 0.08);
   torso(ctx, female, cloth, accent, 42);
-  arm(ctx, -16, -8, -28 + step * 5, 10 - step * 6, cloth);
-  arm(ctx, 16, -8, 28 - step * 5, 10 + step * 6, cloth);
-  hand(ctx, -28 + step * 5, 10 - step * 6, accent);
-  hand(ctx, 28 - step * 5, 10 + step * 6, accent);
+  arm(ctx, -16, -8, -29 + step * 6, 10 - step * 7, cloth);
+  arm(ctx, 16, -8, 29 - step * 6, 10 + step * 7, cloth);
+  hand(ctx, -29 + step * 6, 10 - step * 7, accent);
+  hand(ctx, 29 - step * 6, 10 + step * 7, accent);
   head(ctx, female, 0, -37);
+  motionTicks(ctx, step, accent);
+}
+
+function motionTicks(ctx, step, accent) {
+  ctx.save();
+  ctx.globalAlpha = 0.28;
+  line(ctx, -31, 32 + Math.abs(step) * 2, -43, 38, accent, 1.4);
+  line(ctx, 31, 32 + Math.abs(step) * 2, 43, 38, accent, 1.4);
+  ctx.restore();
 }
 
 function drawSeatedPose(ctx, female, cloth, accent, key) {
@@ -198,6 +220,54 @@ function drawShowerPose(ctx, female, accent) {
   ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.beginPath();
   for (let i = 0; i < 4; i++) { ctx.moveTo(-23 + i * 15, -55); ctx.lineTo(-29 + i * 14, -31); }
   ctx.stroke();
+}
+
+function drawStandingPeePose(ctx, female, cloth, accent) {
+  ellipse(ctx, 0, 10, 34, 43, 'rgba(0,0,0,.22)');
+  leg(ctx, -8, 13, -12, 38, cloth, -0.08);
+  leg(ctx, 8, 13, 12, 38, cloth, 0.08);
+  torso(ctx, female, cloth, accent, 42);
+  arm(ctx, -16, -8, -24, 12, cloth);
+  arm(ctx, 16, -8, 20, 18, cloth);
+  hand(ctx, -24, 12, accent);
+  hand(ctx, 20, 18, accent);
+  head(ctx, female, 0, -37);
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  line(ctx, 0, 33, 0, 47, '#e0d7aa', 1.4);
+  ctx.restore();
+}
+
+function drawToiletPose(ctx, female, cloth, accent) {
+  ellipse(ctx, 0, 18, 38, 23, 'rgba(0,0,0,.18)');
+  roundRect(ctx, -20, 14, 40, 26, 10, '#e8edf2');
+  bentLeg(ctx, -10, 10, -23, 30, cloth, -0.16);
+  bentLeg(ctx, 10, 10, 23, 30, cloth, 0.16);
+  torso(ctx, female, cloth, accent, 35);
+  arm(ctx, -16, -7, -26, 14, cloth);
+  arm(ctx, 16, -7, 26, 14, cloth);
+  hand(ctx, -26, 14, accent);
+  hand(ctx, 26, 14, accent);
+  head(ctx, female, 0, -34);
+}
+
+function drawBrushTeethPose(ctx, female, cloth, accent) {
+  const scrub = Math.sin(performance.now() / 80) * 4;
+  ellipse(ctx, 0, 10, 34, 43, 'rgba(0,0,0,.20)');
+  leg(ctx, -8, 13, -12, 37, cloth, -0.08);
+  leg(ctx, 8, 13, 12, 37, cloth, 0.08);
+  torso(ctx, female, cloth, accent, 42);
+  arm(ctx, -16, -8, -26, 13, cloth);
+  arm(ctx, 16, -8, 7 + scrub, -25, cloth);
+  hand(ctx, -26, 13, accent);
+  hand(ctx, 7 + scrub, -25, accent);
+  head(ctx, female, 0, -37);
+  line(ctx, 3 + scrub, -22, 14 + scrub, -22, '#f4f7fb', 2.2);
+  ctx.save();
+  ctx.globalAlpha = 0.45;
+  ellipse(ctx, 24, -19, 4, 3, '#d9fbff');
+  ellipse(ctx, 29, -16, 3, 2, '#d9fbff');
+  ctx.restore();
 }
 
 function drawWashDogPose(ctx, female, cloth, accent) {
@@ -273,7 +343,9 @@ function head(ctx, female, x, y) {
   ellipse(ctx, x, y, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5);
   ellipse(ctx, x, y + 2, female ? 10 : 11, female ? 11 : 10, SKIN_LIT);
   hair(ctx, female, x, y);
-  line(ctx, x - 4, y + 4, x + 4, y + 4, '#f0d7bd', 1);
+  eye(ctx, x - 5, y + 1);
+  eye(ctx, x + 5, y + 1);
+  line(ctx, x - 4, y + 6, x + 4, y + 6, '#f0d7bd', 1);
 }
 
 function hair(ctx, female, x, y) {
@@ -282,7 +354,7 @@ function hair(ctx, female, x, y) {
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   if (female) {
-    ctx.ellipse(x, y - 4, 19, 20, 0, Math.PI * 0.85, Math.PI * 2.15);
+    ctx.ellipse(x, y - 6, 19, 15, 0, Math.PI * 0.9, Math.PI * 2.1);
     ctx.fill(); ctx.stroke();
     ellipse(ctx, x - 15, y + 3, 5, 9, HAIR, INK, 1);
     ellipse(ctx, x + 15, y + 3, 5, 9, HAIR, INK, 1);
@@ -292,6 +364,7 @@ function hair(ctx, female, x, y) {
   }
 }
 
+function eye(ctx, x, y) { ellipse(ctx, x, y, 1.8, 1.2, '#f3d4b7'); ellipse(ctx, x, y, 0.8, 0.8, INK); }
 function arm(ctx, x1, y1, x2, y2, fill) { limb(ctx, x1, y1, x2, y2, 7, fill); }
 function leg(ctx, x1, y1, x2, y2, fill, rot = 0) { limb(ctx, x1, y1, x2, y2, 8, fill); shoe(ctx, x2, y2 + 3, rot); }
 function bentLeg(ctx, x1, y1, x2, y2, fill, rot) { limb(ctx, x1, y1, x2, y2, 9, fill); shoe(ctx, x2, y2 + 3, rot); }
