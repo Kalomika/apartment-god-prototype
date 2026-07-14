@@ -1,5 +1,6 @@
 import { COLORS } from './config.js';
 import { roundRect } from './renderHelpers.js';
+import { getObject } from './world.js';
 
 const INK = '#071018';
 const SKIN = '#3a241f';
@@ -22,9 +23,10 @@ function drawTopDownActor(ctx, actor, selected) {
   const cloth = CLOTH[actor.id] || CLOTH.resident;
   const key = `${actor.currentActionId || ''} ${actor.action || ''} ${actor.pose || ''}`.toLowerCase();
   const moving = Array.isArray(actor.path) && actor.path.length > 0 && Number(actor.actionT || 0) <= 0;
+  const anchor = renderAnchor(actor, key);
 
   ctx.save();
-  ctx.translate(actor.x, actor.y);
+  ctx.translate(anchor.x, anchor.y);
   if (selected) drawSelectionRing(ctx);
   drawGroundShadow(ctx, moving);
   drawStaticTopDownBody(ctx, female, cloth, accent, key);
@@ -33,6 +35,26 @@ function drawTopDownActor(ctx, actor, selected) {
   if (actor.reaction?.t > 0) drawReactionBubble(ctx, actor.reaction);
   if (actor.bubble && actor.bubbleT > 0) drawBubble(ctx, actor.bubble, actor.reaction?.style || 'speech');
   ctx.restore();
+}
+
+function renderAnchor(actor, key) {
+  if (isBedSleepKey(key)) {
+    const bed = getObject(actor.sleepObjectId || 'bed');
+    if (bed && bed.floor === actor.floor) {
+      const lane = actor.id === 'girlfriend' ? 0.64 : 0.38;
+      if (bed.facing === 'east' || bed.headboard === 'west') return { x: bed.x + bed.w * 0.56, y: bed.y + bed.h * lane };
+      if (bed.facing === 'west' || bed.headboard === 'east') return { x: bed.x + bed.w * 0.44, y: bed.y + bed.h * lane };
+      return { x: bed.x + bed.w * lane, y: bed.y + bed.h * 0.55 };
+    }
+  }
+  return { x: actor.x, y: actor.y };
+}
+
+function isBedSleepKey(key) {
+  if (!key) return false;
+  if (key.includes('bed together') || key.includes('bed_together') || key.includes('king bed') || key.includes('waking')) return true;
+  if (key.includes('sleep') && !key.includes('dog')) return true;
+  return false;
 }
 
 function drawSelectionRing(ctx) {
@@ -55,7 +77,6 @@ function drawStaticTopDownBody(ctx, female, cloth, accent, key) {
   // This is a static true top-down bridge so the old procedural animation system can be replaced one approved state at a time.
   const shoulderW = female ? 35 : 39;
   const torsoW = female ? 30 : 34;
-  const torsoH = 42;
 
   // Legs read as top-down lower body mass, not side-view legs.
   roundRect(ctx, -15, 9, 12, 31, 7, cloth);
