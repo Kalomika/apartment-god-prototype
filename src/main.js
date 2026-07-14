@@ -1,3 +1,3 @@
-import { bootCanvasGame } from './canvasRuntime.js?v=20260714-human-renderer-framework';
+import { bootPhaserMigration2Game } from './phaserMigration2Runtime.js?v=20260714-phaser-migration-2-native';
 
-bootCanvasGame();
+bootPhaserMigration2Game();
