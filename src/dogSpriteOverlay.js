@@ -23,14 +23,14 @@ function drawShapeDog(ctx, dog, direction, stateKey, state) {
   const tick = Math.floor(performance.now() / 140);
   const gait = moving ? tick % 4 : Math.floor(performance.now() / 520) % 3;
   const angle = directionAngle(direction);
-  const bob = moving ? Math.sin(performance.now() / 120) * .9 : 0;
+  const bob = moving ? Math.sin(performance.now() / 120) * .75 : 0;
   const selected = state.selectedId === dog.id;
 
   ctx.save();
   ctx.translate(dog.x, dog.y + bob);
   if (selected) drawSelectionRing(ctx);
   ctx.rotate(angle);
-  ctx.scale(.64, .64);
+  ctx.scale(.56, .56);
   if (stateKey === 'curl_sleep') drawCurlSleepDog(ctx);
   else drawStandingDog(ctx, stateKey, gait);
   ctx.restore();
@@ -41,14 +41,17 @@ function drawSelectionRing(ctx) {
   ctx.strokeStyle = '#f1c66a';
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.ellipse(0, 5, 24, 18, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, 5, 22, 16, 0, 0, Math.PI * 2);
   ctx.stroke();
 }
 
 function drawDogUi(ctx, dog) {
+  ctx.save();
+  ctx.translate(dog.x, dog.y);
   if (dog.actionT > 0) drawActionBar(ctx, dog);
   if (dog.reaction?.t > 0) drawBubble(ctx, String(dog.reaction.text || '').slice(0, 36), dog.reaction.style || 'thought');
   if (dog.bubble && dog.bubbleT > 0) drawBubble(ctx, String(dog.bubble || '').slice(0, 36), dog.reaction?.style || 'speech');
+  ctx.restore();
 }
 
 function resolveDogState(dog) {
@@ -80,7 +83,7 @@ function resolveDogDirection(dog) {
 }
 
 function directionAngle(direction) {
-  return { south: 0, north: Math.PI, east: Math.PI / 2, west: -Math.PI / 2 }[direction] ?? 0;
+  return { south: 0, north: Math.PI, east: -Math.PI / 2, west: Math.PI / 2 }[direction] ?? 0;
 }
 
 function drawStandingDog(ctx, stateKey, gait) {
@@ -204,20 +207,19 @@ function drawCurlSleepDog(ctx) {
 function drawActionBar(ctx, dog) {
   const total = Math.max(1, Number(dog.actionTotal || dog.actionT || 1));
   const pct = Math.max(0, Math.min(1, 1 - Number(dog.actionT || 0) / total));
-  round(ctx, dog.x - 34, dog.y + 34, 68, 8, 5, 'rgba(10,12,18,.84)');
-  round(ctx, dog.x - 32, dog.y + 36, 64 * pct, 4, 3, '#f1c66a');
+  round(ctx, -34, 34, 68, 8, 5, 'rgba(10,12,18,.84)');
+  round(ctx, -32, 36, 64 * pct, 4, 3, '#f1c66a');
 }
 
 function drawBubble(ctx, text, style = 'speech') {
   if (!text) return;
   const w = Math.max(58, text.length * 7 + 18);
-  const x = 0;
   const y = -58;
-  round(ctx, x - w / 2, y, w, 24, 10, style === 'thought' ? '#e9f2ff' : '#f8fbff');
+  round(ctx, -w / 2, y, w, 24, 10, style === 'thought' ? '#e9f2ff' : '#f8fbff');
   ctx.fillStyle = '#10141b';
   ctx.font = '900 10px system-ui';
   ctx.textAlign = 'center';
-  ctx.fillText(text, x, y + 16);
+  ctx.fillText(text, 0, y + 16);
   ctx.textAlign = 'left';
 }
 
