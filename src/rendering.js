@@ -14,6 +14,7 @@ import { drawVisualRegressionFixes } from './visualRegressionFixes.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
+import { drawDogSpriteOverlay } from './dogSpriteOverlay.js';
 import { drawTvStateCorrectiveOverlays } from './tvStateCorrectiveOverlays.js';
 import { drawAfterEntityOverlays } from './afterEntityOverlays.js';
 import { drawAnimeTimeLighting } from './animeTimeLighting.js';
@@ -81,6 +82,7 @@ function drawScene(ctx, state) {
   drawDynamicProps(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
+  drawDogSpriteOverlay(ctx, state);
   drawBathBedAfterEntityOverlays(ctx, state);
   drawRequestedAfterEntityVisualCorrections(ctx, state);
   drawRealismAfterEntityCorrections(ctx, state);
