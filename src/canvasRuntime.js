@@ -1,5 +1,5 @@
 import { createState } from './state.js';
-import { draw } from './rendering.js?v=20260714-human-renderer-framework';
+import { draw } from './rendering.js?v=20260714-dining-kitchen-layout';
 import { createUi } from './ui.js';
 import { updateMovement } from './movement.js';
 import { resolveArrival, updateActions } from './actions.js';
