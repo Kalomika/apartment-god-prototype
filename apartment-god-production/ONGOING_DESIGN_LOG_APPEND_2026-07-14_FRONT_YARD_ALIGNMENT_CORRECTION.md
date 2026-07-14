@@ -13,9 +13,12 @@ Commit:
 - 78c43a724fef72a01d78e3de5a134d97a401f9b5, Cache bust front yard adjacency renderer
 - 960735cf03e4b2d637d763dd846dfe5b1f7316cc, Cache bust front yard adjacency runtime
 - 0be9187266ccca466baab0757b05a3dad4151f74, Cache bust page for front yard adjacency
+- 6594d822ec8b1aa41c965f9c4b18c3409e4114b0, Log front yard adjacency correction
+- 23871c58c8e69bf98e540cd352b943869bfd7e6f, Add matrix patch for front yard adjacency correction
 Files changed:
 - apartment-god-production/IDEA_BIBLE_APPEND_2026-07-14_FRONT_YARD_ALIGNMENT_CORRECTION.md
 - apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-14_FRONT_YARD_ALIGNMENT_CORRECTION.md
+- apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-14_FRONT_YARD_ALIGNMENT_CORRECTION.md
 - src/frontYardDriveway.js
 - src/cameraNavigation.js
 - src/ui.js
