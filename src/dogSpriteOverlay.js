@@ -1,11 +1,10 @@
 const OUTLINE = '#071018';
-const CREAM = '#f2ead8';
-const CREAM_LIT = '#fff7e8';
-const TAN = '#b57435';
-const TAN_LIT = '#d09a55';
-const DARK = '#40301f';
-const EAR = '#6d4a2c';
-const SHADOW = 'rgba(0,0,0,.25)';
+const COAT = '#e9ddc8';
+const COAT_LIT = '#fff4df';
+const COAT_SHADE = '#b99a69';
+const DARK_PATCH = '#473421';
+const EAR = '#6a4a31';
+const SHADOW = 'rgba(0,0,0,.22)';
 const BALL = '#5aa04c';
 const WATER = '#65b9d4';
 const BOWL = '#50585b';
@@ -14,34 +13,53 @@ const PINK = '#dd6c6c';
 export function drawDogSpriteOverlay(ctx, state) {
   for (const dog of (state.entities || []).filter(e => !e.hidden && e.floor === state.floor && e.type === 'dog')) {
     const direction = resolveDogDirection(dog);
-    const stateKey = resolveDogState(dog, state);
+    const stateKey = resolveDogState(dog);
     drawShapeDog(ctx, dog, direction, stateKey, state);
   }
 }
 
 function drawShapeDog(ctx, dog, direction, stateKey, state) {
   const moving = Array.isArray(dog.path) && dog.path.length > 0;
-  const tick = Math.floor(performance.now() / 130);
-  const gait = moving ? tick % 4 : Math.floor(performance.now() / 460) % 3;
+  const tick = Math.floor(performance.now() / 140);
+  const gait = moving ? tick % 4 : Math.floor(performance.now() / 520) % 3;
   const angle = directionAngle(direction);
-  const bob = moving ? Math.sin(performance.now() / 105) * 1.4 : 0;
+  const bob = moving ? Math.sin(performance.now() / 120) * .9 : 0;
+  const selected = state.selectedId === dog.id;
 
   ctx.save();
   ctx.translate(dog.x, dog.y + bob);
+  if (selected) drawSelectionRing(ctx);
   ctx.rotate(angle);
+  ctx.scale(.64, .64);
   if (stateKey === 'curl_sleep') drawCurlSleepDog(ctx);
-  else drawStandingDog(ctx, stateKey, gait, state);
+  else drawStandingDog(ctx, stateKey, gait);
   ctx.restore();
+  drawDogUi(ctx, dog);
 }
 
-function resolveDogState(dog, state) {
+function drawSelectionRing(ctx) {
+  ctx.strokeStyle = '#f1c66a';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(0, 5, 24, 18, 0, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function drawDogUi(ctx, dog) {
+  if (dog.actionT > 0) drawActionBar(ctx, dog);
+  if (dog.reaction?.t > 0) drawBubble(ctx, String(dog.reaction.text || '').slice(0, 36), dog.reaction.style || 'thought');
+  if (dog.bubble && dog.bubbleT > 0) drawBubble(ctx, String(dog.bubble || '').slice(0, 36), dog.reaction?.style || 'speech');
+}
+
+function resolveDogState(dog) {
   const key = `${String(dog.currentActionId || '').toLowerCase()} ${String(dog.action || '').toLowerCase()} ${String(dog.pose || '').toLowerCase()} ${String(dog.carrying || '').toLowerCase()}`;
   const moving = Array.isArray(dog.path) && dog.path.length > 0;
   if (key.includes('sleep') || key.includes('rest') || key.includes('dog bed')) return 'curl_sleep';
   if (key.includes('eat') || key.includes('food') || key.includes('bowl')) return 'eat';
   if (key.includes('drink') || key.includes('water')) return 'drink';
-  if (key.includes('fetch') || key.includes('ball') || state.fetch?.ball) return 'fetch';
-  if (key.includes('bark') || key.includes('alert')) return 'bark';
+  if (key.includes('fetch') || key.includes('ball') || key.includes('carry')) return 'fetch';
+  if (key.includes('bark')) return 'bark';
+  if (key.includes('alert')) return 'alert';
   if (key.includes('sad')) return 'sad';
   if (key.includes('happy')) return 'happy';
   if (key.includes('sit')) return 'sit';
@@ -65,132 +83,142 @@ function directionAngle(direction) {
   return { south: 0, north: Math.PI, east: Math.PI / 2, west: -Math.PI / 2 }[direction] ?? 0;
 }
 
-function drawStandingDog(ctx, stateKey, gait, state) {
+function drawStandingDog(ctx, stateKey, gait) {
   const run = stateKey === 'run';
   const lie = stateKey === 'lie';
   const play = stateKey === 'play_bow';
   const sit = stateKey === 'sit';
-  const scaleY = lie ? 1.16 : play ? 1.08 : sit ? .94 : 1;
-  const bodyY = lie ? -5 : play ? -6 : sit ? 0 : -6;
-  const headY = lie ? 25 : play ? 31 : sit ? 31 : 28;
-  const rearY = lie ? -35 : play ? -28 : -39;
+  const bodyY = lie ? -4 : play ? -6 : sit ? 0 : -7;
+  const headY = lie ? 25 : play ? 31 : sit ? 29 : 25;
+  const rearY = lie ? -30 : play ? -26 : -35;
 
-  ellipse(ctx, 0, 18, 31, 15, SHADOW);
-  drawTail(ctx, gait, stateKey, rearY);
+  ellipse(ctx, 0, 14, 28, 13, SHADOW);
+  drawTail(ctx, stateKey, rearY);
   drawLegs(ctx, gait, stateKey, run, sit, lie, play);
-  ellipse(ctx, 0, bodyY, 25, 37 * scaleY, TAN, OUTLINE, 3);
-  drawBackPatch(ctx, bodyY, scaleY);
-  round(ctx, -18, bodyY + 21, 36, 13, 9, CREAM_LIT);
+  ellipse(ctx, 0, bodyY, 23, lie ? 35 : 34, COAT_SHADE, OUTLINE, 3);
+  drawBackPatch(ctx, bodyY);
+  ellipse(ctx, 0, bodyY + 19, 19, 11, COAT_LIT);
   drawEars(ctx, headY, stateKey);
-  ellipse(ctx, 0, headY, 20, stateKey === 'bark' ? 18 : 17, TAN_LIT, OUTLINE, 3);
-  round(ctx, -7, headY - 18, 14, 31, 7, CREAM_LIT);
-  ellipse(ctx, 0, headY + 11, 14, 10, CREAM_LIT);
+  ellipse(ctx, 0, headY, 17, 15, COAT_LIT, OUTLINE, 3);
+  ellipse(ctx, 0, headY + 8, 11, 7, COAT);
   drawFace(ctx, headY, stateKey);
-  drawDogAccessory(ctx, headY, stateKey, state);
+  drawDogAccessory(ctx, headY, stateKey);
 }
 
-function drawTail(ctx, gait, stateKey, rearY) {
-  const wag = stateKey === 'run' ? .24 : stateKey === 'idle' ? .1 : 0;
-  const swing = Math.sin(performance.now() / 95) * wag;
+function drawTail(ctx, stateKey, rearY) {
+  const wag = stateKey === 'run' || stateKey === 'happy' || stateKey === 'idle' ? .18 : 0;
+  const swing = Math.sin(performance.now() / 105) * wag;
   ctx.save();
   ctx.rotate(swing);
-  ctx.beginPath();
-  ctx.moveTo(0, rearY + 2);
-  ctx.quadraticCurveTo(8, rearY - 20, 5, rearY - 35);
-  ctx.quadraticCurveTo(0, rearY - 40, -5, rearY - 35);
-  ctx.quadraticCurveTo(-7, rearY - 20, 0, rearY + 2);
-  ctx.fillStyle = CREAM_LIT;
-  ctx.fill();
-  ctx.strokeStyle = OUTLINE;
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  line(ctx, 0, rearY + 2, 3, rearY - 26, OUTLINE, 7);
+  line(ctx, 0, rearY + 2, 3, rearY - 26, COAT_LIT, 4);
   ctx.restore();
 }
 
 function drawLegs(ctx, gait, stateKey, run, sit, lie, play) {
   if (sit) {
-    for (const [x, y, rx, ry] of [[-19,9,8,15],[19,9,8,15],[-17,29,7,12],[17,29,7,12]]) ellipse(ctx, x, y, rx, ry, CREAM, OUTLINE, 2);
+    for (const [x, y, rx, ry] of [[-15,9,6,12],[15,9,6,12],[-13,25,6,10],[13,25,6,10]]) ellipse(ctx, x, y, rx, ry, COAT, OUTLINE, 2);
     return;
   }
   if (lie || play) {
-    for (const [x, y] of [[-22,30],[22,30],[-22,-36],[22,-36]]) ellipse(ctx, x, y, 7, 17, CREAM, OUTLINE, 2);
+    for (const [x, y] of [[-18,27],[18,27],[-18,-30],[18,-30]]) ellipse(ctx, x, y, 6, 14, COAT, OUTLINE, 2);
     return;
   }
   const step = [-1, .45, 1, -.45][gait % 4];
   const rearStep = -step;
-  const spread = run ? 1.35 : 1;
+  const spread = run ? 1.22 : .92;
   const points = [
-    [-12 - step * 5 * spread, 21 + Math.max(step, 0) * 4],
-    [12 + step * 5 * spread, 21 + Math.max(-step, 0) * 4],
-    [-13 - rearStep * 4 * spread, -29 + Math.max(rearStep, 0) * 3],
-    [13 + rearStep * 4 * spread, -29 + Math.max(-rearStep, 0) * 3]
+    [-10 - step * 4 * spread, 18 + Math.max(step, 0) * 3],
+    [10 + step * 4 * spread, 18 + Math.max(-step, 0) * 3],
+    [-11 - rearStep * 3.5 * spread, -26 + Math.max(rearStep, 0) * 2],
+    [11 + rearStep * 3.5 * spread, -26 + Math.max(-rearStep, 0) * 2]
   ];
-  for (const [x, y] of points) ellipse(ctx, x, y, 6, run ? 16 : 13, CREAM, OUTLINE, 2);
+  for (const [x, y] of points) ellipse(ctx, x, y, 5, run ? 13 : 11, COAT, OUTLINE, 2);
 }
 
-function drawBackPatch(ctx, bodyY, scaleY) {
+function drawBackPatch(ctx, bodyY) {
   ctx.beginPath();
-  ctx.moveTo(-20, bodyY - 18 * scaleY);
-  ctx.bezierCurveTo(-12, bodyY - 30 * scaleY, 14, bodyY - 30 * scaleY, 21, bodyY - 15 * scaleY);
-  ctx.lineTo(20, bodyY + 11 * scaleY);
-  ctx.bezierCurveTo(4, bodyY + 17 * scaleY, -9, bodyY + 13 * scaleY, -21, bodyY + 8 * scaleY);
+  ctx.moveTo(-17, bodyY - 17);
+  ctx.bezierCurveTo(-10, bodyY - 29, 13, bodyY - 29, 18, bodyY - 15);
+  ctx.lineTo(18, bodyY + 8);
+  ctx.bezierCurveTo(5, bodyY + 13, -8, bodyY + 10, -18, bodyY + 5);
   ctx.closePath();
-  ctx.fillStyle = DARK;
+  ctx.fillStyle = DARK_PATCH;
   ctx.fill();
 }
 
 function drawEars(ctx, headY, stateKey) {
   const lift = stateKey === 'alert' || stateKey === 'bark' ? -4 : 0;
-  ellipse(ctx, -19, headY + lift, 8, 20, EAR, OUTLINE, 2, -.2);
-  ellipse(ctx, 19, headY + lift, 8, 20, EAR, OUTLINE, 2, .2);
+  ellipse(ctx, -15, headY + lift, 6, 15, EAR, OUTLINE, 2, -.15);
+  ellipse(ctx, 15, headY + lift, 6, 15, EAR, OUTLINE, 2, .15);
 }
 
 function drawFace(ctx, headY, stateKey) {
   if (stateKey === 'sad') {
-    line(ctx, -11, headY - 1, -5, headY - 3, OUTLINE, 2);
-    line(ctx, 5, headY - 3, 11, headY - 1, OUTLINE, 2);
+    line(ctx, -8, headY - 1, -4, headY - 2, OUTLINE, 1.6);
+    line(ctx, 4, headY - 2, 8, headY - 1, OUTLINE, 1.6);
   } else {
-    ellipse(ctx, -8, headY, 2.5, 2.5, OUTLINE);
-    ellipse(ctx, 8, headY, 2.5, 2.5, OUTLINE);
+    ellipse(ctx, -6, headY, 1.8, 1.8, OUTLINE);
+    ellipse(ctx, 6, headY, 1.8, 1.8, OUTLINE);
   }
-  ellipse(ctx, 0, headY + 13, 5, 4, OUTLINE);
-  if (stateKey === 'happy') ellipse(ctx, 0, headY + 23, 5, 8, PINK, OUTLINE, 1);
-  if (stateKey === 'bark') ellipse(ctx, 0, headY + 21, 7, 8, '#28140f', OUTLINE, 1);
+  ellipse(ctx, 0, headY + 9, 3.4, 2.8, OUTLINE);
+  if (stateKey === 'happy') ellipse(ctx, 0, headY + 17, 3.2, 5.5, PINK, OUTLINE, .8);
+  if (stateKey === 'bark') ellipse(ctx, 0, headY + 16, 5, 5.5, '#28140f', OUTLINE, .9);
 }
 
-function drawDogAccessory(ctx, headY, stateKey, state) {
-  if (stateKey === 'eat') drawBowl(ctx, 0, headY + 37, '#9a6a34');
-  if (stateKey === 'drink') drawBowl(ctx, 0, headY + 37, WATER);
+function drawDogAccessory(ctx, headY, stateKey) {
+  if (stateKey === 'eat') drawBowl(ctx, 0, headY + 28, '#9a6a34');
+  if (stateKey === 'drink') drawBowl(ctx, 0, headY + 28, WATER);
   if (stateKey === 'fetch') {
-    ellipse(ctx, 0, headY + 36, 11, 11, BALL, OUTLINE, 2);
-    line(ctx, -6, headY + 33, 6, headY + 39, '#b7e082', 2);
+    ellipse(ctx, 0, headY + 25, 8, 8, BALL, OUTLINE, 2);
+    line(ctx, -4, headY + 22, 4, headY + 28, '#b7e082', 1.5);
   }
   if (stateKey === 'bark') {
-    line(ctx, 31, headY - 6, 44, headY - 15, OUTLINE, 3);
-    line(ctx, 35, headY + 9, 51, headY + 9, OUTLINE, 3);
+    line(ctx, 25, headY - 5, 36, headY - 12, OUTLINE, 2.2);
+    line(ctx, 28, headY + 6, 41, headY + 6, OUTLINE, 2.2);
   }
   if (stateKey === 'alert') {
-    line(ctx, -6, -54, -10, -69, OUTLINE, 3);
-    line(ctx, 6, -54, 11, -69, OUTLINE, 3);
-    ellipse(ctx, -12, -75, 3, 3, OUTLINE);
-    ellipse(ctx, 13, -75, 3, 3, OUTLINE);
+    line(ctx, -5, -47, -8, -59, OUTLINE, 2.2);
+    line(ctx, 5, -47, 9, -59, OUTLINE, 2.2);
+    ellipse(ctx, -10, -64, 2.4, 2.4, OUTLINE);
+    ellipse(ctx, 11, -64, 2.4, 2.4, OUTLINE);
   }
 }
 
 function drawBowl(ctx, x, y, fill) {
-  ellipse(ctx, x, y, 20, 9, BOWL, OUTLINE, 2);
-  ellipse(ctx, x, y - 2, 14, 5, fill);
+  ellipse(ctx, x, y, 16, 7, BOWL, OUTLINE, 2);
+  ellipse(ctx, x, y - 1.5, 11, 4, fill);
 }
 
 function drawCurlSleepDog(ctx) {
-  ellipse(ctx, 0, 8, 34, 26, SHADOW);
-  ellipse(ctx, 0, 0, 36, 30, TAN, OUTLINE, 3, -.35);
-  ellipse(ctx, 8, -4, 24, 18, DARK, null, 0, -.35);
-  ellipse(ctx, -18, 8, 20, 16, CREAM_LIT, OUTLINE, 2, -.15);
-  ellipse(ctx, -25, 5, 8, 12, EAR, OUTLINE, 2, -.7);
-  line(ctx, 16, 14, 32, 24, CREAM_LIT, 7);
-  line(ctx, 17, 15, 31, 23, OUTLINE, 2);
-  ellipse(ctx, -23, 13, 2, 2, OUTLINE);
+  ellipse(ctx, 0, 7, 30, 23, SHADOW);
+  ellipse(ctx, 0, 0, 31, 26, COAT_SHADE, OUTLINE, 3, -.35);
+  ellipse(ctx, 7, -4, 20, 15, DARK_PATCH, null, 0, -.35);
+  ellipse(ctx, -15, 7, 17, 13, COAT_LIT, OUTLINE, 2, -.15);
+  ellipse(ctx, -21, 4, 6, 10, EAR, OUTLINE, 2, -.7);
+  line(ctx, 14, 12, 27, 21, OUTLINE, 5);
+  line(ctx, 14, 12, 27, 21, COAT_LIT, 3);
+  ellipse(ctx, -19, 11, 1.8, 1.8, OUTLINE);
+}
+
+function drawActionBar(ctx, dog) {
+  const total = Math.max(1, Number(dog.actionTotal || dog.actionT || 1));
+  const pct = Math.max(0, Math.min(1, 1 - Number(dog.actionT || 0) / total));
+  round(ctx, dog.x - 34, dog.y + 34, 68, 8, 5, 'rgba(10,12,18,.84)');
+  round(ctx, dog.x - 32, dog.y + 36, 64 * pct, 4, 3, '#f1c66a');
+}
+
+function drawBubble(ctx, text, style = 'speech') {
+  if (!text) return;
+  const w = Math.max(58, text.length * 7 + 18);
+  const x = 0;
+  const y = -58;
+  round(ctx, x - w / 2, y, w, 24, 10, style === 'thought' ? '#e9f2ff' : '#f8fbff');
+  ctx.fillStyle = '#10141b';
+  ctx.font = '900 10px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, x, y + 16);
+  ctx.textAlign = 'left';
 }
 
 function round(ctx, x, y, w, h, r, fill) {
