@@ -2,7 +2,7 @@ import { applyWorkCompletion } from './careerSystem.js';
 import { changeNeed, log, say, setMood } from './state.js';
 
 export const DAILY_DESTINATIONS = [
-  { id: 'work', label: 'Four Hour Work Shift', cost: 0, duration: 11, hours: [5, 24], scene: 'work', stat: 'money', money: 95, fun: -2, energy: -8 },
+  { id: 'work', label: 'Scheduled Work Shift', cost: 0, duration: 11, hours: [5, 24], scene: 'work', stat: 'money', money: 95, fun: -2, energy: -8 },
   { id: 'errand', label: 'Quick Errand', cost: 20, duration: 30, hours: [7, 23], scene: 'errand', fun: 4, energy: -6 },
   { id: 'mall', label: 'Mall Trip', cost: 55, duration: 60, hours: [10, 22], scene: 'mall', fun: 14, social: 8, energy: -8 },
   { id: 'movies', label: 'Movie Theater', cost: 32, duration: 120, hours: [11, 25], scene: 'theater', fun: 24, social: 10, energy: -7 },
@@ -79,10 +79,11 @@ export function payForTravel(state, destination, vehicleId = 'auto') {
   return true;
 }
 
-export function createOffsiteJob(actionId, partyIds, vehicleId = 'car_1') {
+export function createOffsiteJob(actionId, partyIds, vehicleId = 'car_1', options = {}) {
   const destination = destinationFor(actionId);
   const vacation = actionId.startsWith('vacation_');
-  const duration = adjustedDuration(destination?.duration ?? 30, vehicleId);
+  const baseDuration = Number.isFinite(options.duration) && options.duration > 0 ? options.duration : destination?.duration ?? 30;
+  const duration = adjustedDuration(baseDuration, vehicleId);
   return {
     actionId,
     destinationId: destination?.id || actionId,
