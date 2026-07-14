@@ -1,3 +1,3 @@
-import { bootPhaserGame } from './phaserRuntime.js';
+import { bootCanvasGame } from './canvasRuntime.js';
 
-bootPhaserGame();
+bootCanvasGame();
