@@ -55,7 +55,7 @@ function heading(e) {
     e.lastHeading = Math.atan2(dy, dx) + Math.PI / 2;
     return e.lastHeading;
   }
-  if (!moving && ['tv', 'couch', 'watch', 'desk', 'study', 'read', 'eat', 'table', 'sleep', 'nap', 'shower', 'wash dog', 'arcade', 'console', 'game', 'darts', 'cook', 'stove', 'treadmill', 'lift weights', 'weight', 'heavy bag', 'pool', 'swim', 'soccer'].some(t => action.includes(t))) return 0;
+  if (!moving && ['tv', 'couch', 'watch', 'desk', 'study', 'read', 'eat', 'table', 'sleep', 'nap', 'shower', 'wash dog', 'arcade', 'console', 'game', 'darts', 'cook', 'stove', 'treadmill', 'lift weights', 'weight', 'heavy bag', 'pool', 'swim', 'soccer', 'pee', 'toilet'].some(t => action.includes(t))) return 0;
   if (Math.abs(dx) + Math.abs(dy) < 0.01) return e.lastHeading ?? 0;
   e.lastHeading = Math.atan2(dy, dx) + Math.PI / 2;
   return e.lastHeading;
@@ -69,8 +69,10 @@ function drawPerson(ctx, e) {
   const accent = female ? MAGENTA : CYAN;
   const cloth = female ? CLOTH.girlfriend : CLOTH.resident;
 
-  if (isMoving(e) && !e.actionT) return drawWalkPose(ctx, female, cloth, accent);
-  if (pose === 'shower' || key.includes('shower')) return drawShowerSequence(ctx, e, female, accent);
+  if (isMoving(e) && !e.actionT) return drawWalkPose(ctx, female, cloth, accent, isNorthHeading(e));
+  if (pose === 'shower' || e.currentActionId === 'shower') return drawShowerSequence(ctx, e, female, accent);
+  if (pose === 'pee_stand' || e.currentActionId === 'pee_stand') return drawStandingPeePose(ctx, female, cloth, accent);
+  if (pose === 'toilet_sit' || e.currentActionId === 'toilet') return drawSeatedPose(ctx, female, cloth, accent, action, key, true);
   if (pose === 'wash_dog' || key.includes('wash dog')) return drawWashDogPose(ctx, female, cloth, accent);
   if (pose === 'sleep' || key.includes('sleep') || key.includes('nap') || key.includes('waking up') || key.includes('bed together')) return drawSleepPose(ctx, e, female, accent);
   if (key.includes('lift_weights') || key.includes('lift weights') || key.includes('weight bench')) return drawLiftWeightsPose(ctx, female, cloth, accent);
@@ -81,18 +83,28 @@ function drawPerson(ctx, e) {
   if (key.includes('pool_solo') || key.includes('pool_together') || key.includes('pool table') || pose === 'pool') return drawPoolCuePose(ctx, female, cloth, accent);
   if (key.includes('cook') || key.includes('stove')) return drawCookingPose(ctx, female, cloth, accent);
   if (key.includes('clean') || key.includes('trash') || key.includes('vacuum') || key.includes('brush') || key.includes('groom')) return drawCleaningPose(ctx, female, cloth, accent);
-  if (isSitting(key)) return drawSeatedPose(ctx, female, cloth, accent, action, key);
+  if (isSitting(key)) return drawSeatedPose(ctx, female, cloth, accent, action, key, shouldDrawBackFacingSeat(key));
   return drawIdlePose(ctx, female, cloth, accent);
+}
+
+function isNorthHeading(e) {
+  const a = ((e.lastHeading || 0) + Math.PI * 2) % (Math.PI * 2);
+  return a < Math.PI / 4 || a > Math.PI * 7 / 4;
+}
+
+function shouldDrawBackFacingSeat(key) {
+  return ['sit', 'tv', 'watch', 'desk', 'study', 'read', 'phone', 'game', 'console', 'arcade', 'darts', 'shop', 'eat', 'table', 'relax'].some(t => key.includes(t));
 }
 
 function isSitting(key) {
   return ['sit', 'tv', 'watch', 'desk', 'study', 'read', 'phone', 'game', 'console', 'arcade', 'darts', 'shop', 'eat', 'table', 'relax'].some(t => key.includes(t));
 }
 
-function drawIdlePose(ctx, female, cloth, accent) { humanCore(ctx, female, cloth, accent, Math.sin(performance.now() / 620) * .65, false); }
+function drawIdlePose(ctx, female, cloth, accent) { humanCore(ctx, female, cloth, accent, Math.sin(performance.now() / 620) * .65, false, false); }
 
-function drawWalkPose(ctx, female, cloth, accent) {
+function drawWalkPose(ctx, female, cloth, accent, backFacing = false) {
   const step = [-1, .45, 1, -.45][Math.floor(performance.now() / 115) % 4];
+  if (backFacing) return drawNorthWalkPose(ctx, female, cloth, accent, step);
   ell(ctx, 0, 10, 34, 43, 'rgba(0,0,0,.22)');
   leg(ctx, -8, 13, -12 - step * 5, 36 + Math.max(step, 0) * 4, cloth, -.08);
   leg(ctx, 8, 13, 12 + step * 5, 36 + Math.max(-step, 0) * 4, cloth, .08);
@@ -104,8 +116,21 @@ function drawWalkPose(ctx, female, cloth, accent) {
   head(ctx, female, 0, -37);
 }
 
-function drawSeatedPose(ctx, female, cloth, accent, action, key) {
+function drawNorthWalkPose(ctx, female, cloth, accent, step) {
+  ell(ctx, 0, 10, 34, 43, 'rgba(0,0,0,.22)');
+  leg(ctx, -8, 12, -12 - step * 5, 37 + Math.max(step, 0) * 4, cloth, -.08);
+  leg(ctx, 8, 12, 12 + step * 5, 37 + Math.max(-step, 0) * 4, cloth, .08);
+  backTorso(ctx, female, cloth, accent, 43);
+  arm(ctx, -16, -7, -27 + step * 5, 12 - step * 6, cloth);
+  arm(ctx, 16, -7, 27 - step * 5, 12 + step * 6, cloth);
+  ell(ctx, 0, -38, female ? 17 : 18, female ? 18 : 16, '#05070a', INK, 2.5);
+  ell(ctx, 0, -31, female ? 12 : 11, female ? 8 : 7, '#05070a');
+  line(ctx, -12, -24, 12, -24, 'rgba(255,255,255,.10)', 1.3);
+}
+
+function drawSeatedPose(ctx, female, cloth, accent, action, key, backFacing = false) {
   const tap = Math.sin(performance.now() / 95);
+  if (backFacing) return drawBackSeatedPose(ctx, female, cloth, accent, key, tap);
   ell(ctx, 0, 12, 36, 32, 'rgba(0,0,0,.20)');
   bentLeg(ctx, -10, 12, -23, 31, cloth, -.18);
   bentLeg(ctx, 10, 12, 23, 31, cloth, .18);
@@ -122,15 +147,39 @@ function drawSeatedPose(ctx, female, cloth, accent, action, key) {
     arm(ctx, -17, -6, -27, 15, cloth); arm(ctx, 17, -6, 25, 8, cloth); hand(ctx, -27, 15, accent); phone(ctx, 25, 8); glowQuad(ctx, 1, -22, 35, -18, 48, 22, 13, 24, accent, .16);
   } else if (key.includes('eat') || key.includes('table')) {
     const bite = Math.max(0, Math.sin(performance.now() / 170));
-    arm(ctx, -17, -6, -25, 17, cloth);
-    arm(ctx, 17, -6, 18, 16 - bite * 4, cloth);
-    hand(ctx, -25, 17, accent);
-    hand(ctx, 18, 16 - bite * 4, accent);
-    plate(ctx, 0, 34);
+    arm(ctx, -17, -6, -25, 17, cloth); arm(ctx, 17, -6, 18, 16 - bite * 4, cloth); hand(ctx, -25, 17, accent); hand(ctx, 18, 16 - bite * 4, accent); plate(ctx, 0, 34);
   } else {
     arm(ctx, -17, -6, -25, 16, cloth); arm(ctx, 17, -6, 25, 16, cloth); hand(ctx, -25, 16, accent); hand(ctx, 25, 16, accent);
   }
   head(ctx, female, 0, -35);
+}
+
+function drawBackSeatedPose(ctx, female, cloth, accent, key, tap) {
+  ell(ctx, 0, 13, 37, 31, 'rgba(0,0,0,.20)');
+  bentLeg(ctx, -10, 12, -24, 32, cloth, -.18);
+  bentLeg(ctx, 10, 12, 24, 32, cloth, .18);
+  backTorso(ctx, female, cloth, accent, 36);
+  if (key.includes('desk') || key.includes('study') || key.includes('shop') || key.includes('game')) {
+    arm(ctx, -16, -7, -24, 24 + tap, cloth); arm(ctx, 16, -7, 24, 24 - tap, cloth); laptop(ctx, 0, 35, accent);
+  } else if (key.includes('arcade') || key.includes('console')) {
+    arm(ctx, -16, -7, -28, 22 + tap * 2, cloth); arm(ctx, 16, -7, 28, 22 - tap * 2, cloth); gameController(ctx, 0, 30, accent);
+  } else if (key.includes('read')) {
+    arm(ctx, -16, -7, -25, 23, cloth); arm(ctx, 16, -7, 25, 23, cloth); book(ctx, 0, 31);
+  } else if (key.includes('eat') || key.includes('table')) {
+    arm(ctx, -16, -7, -25, 20, cloth); arm(ctx, 16, -7, 22, 20, cloth); plate(ctx, 0, 34);
+  } else {
+    arm(ctx, -16, -7, -28, 15, cloth); arm(ctx, 16, -7, 28, 15, cloth);
+  }
+  ell(ctx, 0, -36, female ? 17 : 18, female ? 18 : 16, '#05070a', INK, 2.5);
+  ell(ctx, 0, -29, female ? 12 : 11, female ? 8 : 7, '#05070a');
+}
+
+function drawStandingPeePose(ctx, female, cloth, accent) {
+  ell(ctx, 0, 10, 34, 43, 'rgba(0,0,0,.22)');
+  leg(ctx, -8, 13, -12, 38, cloth, -.08); leg(ctx, 8, 13, 12, 38, cloth, .08);
+  torso(ctx, female, cloth, accent, 42);
+  arm(ctx, -16, -8, -24, 12, cloth); arm(ctx, 16, -8, 20, 18, cloth); hand(ctx, -24, 12, accent); hand(ctx, 20, 18, accent);
+  head(ctx, female, 0, -37);
 }
 
 function drawSleepPose(ctx, e, female, accent) {
@@ -178,71 +227,18 @@ function drawWashDogPose(ctx, female, cloth, accent) {
   arm(ctx, -17, -7, -28, 12, cloth); arm(ctx, 17, -7, 46 + scrub, 19, cloth); hand(ctx, -28, 12, accent); hand(ctx, 46 + scrub, 19, accent); head(ctx, female, 0, -34);
 }
 
-function drawLiftWeightsPose(ctx, female, cloth, accent) {
-  const rep = (Math.sin(performance.now() / 260) + 1) / 2;
-  roundRect(ctx, -12, -26, 24, 78, 8, 'rgba(39,49,59,.58)');
-  ell(ctx, 0, 10, 37, 38, 'rgba(0,0,0,.20)');
-  ctx.save();
-  ctx.rotate(-Math.PI / 2);
-  leg(ctx, -8, 10, -10, 35, cloth, 0); leg(ctx, 8, 10, 10, 35, cloth, 0); torso(ctx, female, cloth, accent, 36); head(ctx, female, -24, -35);
-  const y = -34 - rep * 18;
-  line(ctx, -48, y, 48, y, '#dfe6ea', 4); circle(ctx, -54, y, 9, '#343b46'); circle(ctx, 54, y, 9, '#343b46');
-  arm(ctx, -15, -6, -34, y, cloth); arm(ctx, 15, -6, 34, y, cloth); hand(ctx, -34, y, accent); hand(ctx, 34, y, accent);
-  ctx.restore();
-}
+function drawLiftWeightsPose(ctx, female, cloth, accent) { const rep = (Math.sin(performance.now() / 260) + 1) / 2; roundRect(ctx, -12, -26, 24, 78, 8, 'rgba(39,49,59,.58)'); ell(ctx, 0, 10, 37, 38, 'rgba(0,0,0,.20)'); ctx.save(); ctx.rotate(-Math.PI / 2); leg(ctx, -8, 10, -10, 35, cloth, 0); leg(ctx, 8, 10, 10, 35, cloth, 0); torso(ctx, female, cloth, accent, 36); head(ctx, female, -24, -35); const y = -34 - rep * 18; line(ctx, -48, y, 48, y, '#dfe6ea', 4); circle(ctx, -54, y, 9, '#343b46'); circle(ctx, 54, y, 9, '#343b46'); arm(ctx, -15, -6, -34, y, cloth); arm(ctx, 15, -6, 34, y, cloth); hand(ctx, -34, y, accent); hand(ctx, 34, y, accent); ctx.restore(); }
+function drawHeavyBagPose(ctx, female, cloth, accent) { const hit = Math.max(0, Math.sin(performance.now() / 180)); roundRect(ctx, 47 + hit * 4, -35, 20, 72, 10, '#27313b'); line(ctx, 57, -48, 57, -35, '#dfe6ea', 3); ell(ctx, -6, 12, 35, 42, 'rgba(0,0,0,.20)'); leg(ctx, -12, 14, -27, 39, cloth, -.3); leg(ctx, 10, 14, 22, 38, cloth, .16); torso(ctx, female, cloth, accent, 42); arm(ctx, -17, -7, -34, 6, cloth); arm(ctx, 17, -7, 43 + hit * 12, -8, cloth); glove(ctx, -34, 6, accent); glove(ctx, 43 + hit * 12, -8, accent); head(ctx, female, 0, -36); if (hit > .78) burst(ctx, 67, -8, '#f1c66a'); }
+function drawTreadmillPose(ctx, female, cloth, accent) { const c = [-1, .45, 1, -.45][Math.floor(performance.now() / 90) % 4]; roundRect(ctx, -36, -6, 72, 70, 11, 'rgba(20,24,31,.70)'); line(ctx, -30, 18, 30, 18, accent, 2); line(ctx, -24, -2, 24, -2, '#dfe6ea', 3); ell(ctx, 0, 19, 31, 35, 'rgba(0,0,0,.20)'); leg(ctx, -8, 13, -12 - c * 6, 38 + Math.max(c, 0) * 6, cloth, -.08); leg(ctx, 8, 13, 12 + c * 6, 38 + Math.max(-c, 0) * 6, cloth, .08); torso(ctx, female, cloth, accent, 40); arm(ctx, -16, -8, -27, 7 - c * 5, cloth); arm(ctx, 16, -8, 27, 7 + c * 5, cloth); hand(ctx, -27, 7 - c * 5, accent); hand(ctx, 27, 7 + c * 5, accent); head(ctx, female, 0, -36); }
+function drawSwimPose(ctx, female, cloth, accent) { const stroke = Math.sin(performance.now() / 160); for (let i = 0; i < 4; i++) line(ctx, -46 + i * 30, 24 + Math.sin(i + stroke) * 4, -28 + i * 30, 20 + Math.cos(i + stroke) * 4, 'rgba(168,233,255,.55)', 2); ell(ctx, 0, 10, 36, 24, 'rgba(0,0,0,.12)'); torso(ctx, female, cloth, accent, 30); arm(ctx, -16, -6, -38, -20 + stroke * 8, cloth); arm(ctx, 16, -6, 38, -20 - stroke * 8, cloth); hand(ctx, -38, -20 + stroke * 8, accent); hand(ctx, 38, -20 - stroke * 8, accent); leg(ctx, -8, 14, -19 - stroke * 7, 34, cloth, -.2); leg(ctx, 8, 14, 19 + stroke * 7, 34, cloth, .2); head(ctx, female, 0, -35); }
+function drawSoccerPose(ctx, female, cloth, accent) { const kick = Math.max(0, Math.sin(performance.now() / 210)); ell(ctx, 0, 12, 35, 43, 'rgba(0,0,0,.20)'); leg(ctx, -9, 13, -18, 39, cloth, -.18); leg(ctx, 9, 13, 24 + kick * 9, 35 - kick * 8, cloth, .28); torso(ctx, female, cloth, accent, 42); arm(ctx, -17, -7, -33, 8, cloth); arm(ctx, 17, -7, 32, 9, cloth); hand(ctx, -33, 8, accent); hand(ctx, 32, 9, accent); ball(ctx, 43, 34 - kick * 9); head(ctx, female, 0, -36); }
+function drawPoolCuePose(ctx, female, cloth, accent) { const aim = Math.sin(performance.now() / 520) * 2; ell(ctx, 0, 12, 36, 43, 'rgba(0,0,0,.20)'); leg(ctx, -10, 14, -24, 40, cloth, -.3); leg(ctx, 10, 14, 18, 38, cloth, .1); torso(ctx, female, cloth, accent, 41); line(ctx, -38, 8 + aim, 54, -11 + aim, '#c8a66b', 4); arm(ctx, -16, -6, -36, 8 + aim, cloth); arm(ctx, 16, -6, 31, -6 + aim, cloth); hand(ctx, -36, 8 + aim, accent); hand(ctx, 31, -6 + aim, accent); head(ctx, female, 0, -36); }
+function drawCookingPose(ctx, female, cloth, accent) { const stir = Math.sin(performance.now() / 250) * 5; counter(ctx); ell(ctx, 0, 12, 34, 42, 'rgba(0,0,0,.20)'); leg(ctx, -8, 14, -12, 38, cloth, -.03); leg(ctx, 8, 14, 12, 38, cloth, .03); torso(ctx, female, cloth, accent, 42); pan(ctx, 13, 31); arm(ctx, -17, -7, -25, 24, cloth); arm(ctx, 17, -7, 24 + stir, 22, cloth); hand(ctx, -25, 24, accent); hand(ctx, 24 + stir, 22, accent); head(ctx, female, 0, -36); }
+function drawCleaningPose(ctx, female, cloth, accent) { const wipe = Math.sin(performance.now() / 130) * 8; ell(ctx, 0, 12, 34, 42, 'rgba(0,0,0,.20)'); leg(ctx, -9, 13, -12, 39, cloth, .03); leg(ctx, 9, 13, 12, 39, cloth, -.03); torso(ctx, female, cloth, accent, 42); arm(ctx, -17, -7, -31, 14, cloth); arm(ctx, 17, -7, 29 + wipe, 17, cloth); hand(ctx, -31, 14, accent); rag(ctx, 29 + wipe, 17); head(ctx, female, 0, -36); }
 
-function drawHeavyBagPose(ctx, female, cloth, accent) {
-  const hit = Math.max(0, Math.sin(performance.now() / 180));
-  roundRect(ctx, 47 + hit * 4, -35, 20, 72, 10, '#27313b'); line(ctx, 57, -48, 57, -35, '#dfe6ea', 3);
-  ell(ctx, -6, 12, 35, 42, 'rgba(0,0,0,.20)'); leg(ctx, -12, 14, -27, 39, cloth, -.3); leg(ctx, 10, 14, 22, 38, cloth, .16); torso(ctx, female, cloth, accent, 42);
-  arm(ctx, -17, -7, -34, 6, cloth); arm(ctx, 17, -7, 43 + hit * 12, -8, cloth); glove(ctx, -34, 6, accent); glove(ctx, 43 + hit * 12, -8, accent); head(ctx, female, 0, -36);
-  if (hit > .78) burst(ctx, 67, -8, '#f1c66a');
-}
-
-function drawTreadmillPose(ctx, female, cloth, accent) {
-  const c = [-1, .45, 1, -.45][Math.floor(performance.now() / 90) % 4];
-  roundRect(ctx, -36, -6, 72, 70, 11, 'rgba(20,24,31,.70)'); line(ctx, -30, 18, 30, 18, accent, 2); line(ctx, -24, -2, 24, -2, '#dfe6ea', 3);
-  ell(ctx, 0, 19, 31, 35, 'rgba(0,0,0,.20)'); leg(ctx, -8, 13, -12 - c * 6, 38 + Math.max(c, 0) * 6, cloth, -.08); leg(ctx, 8, 13, 12 + c * 6, 38 + Math.max(-c, 0) * 6, cloth, .08);
-  torso(ctx, female, cloth, accent, 40); arm(ctx, -16, -8, -27, 7 - c * 5, cloth); arm(ctx, 16, -8, 27, 7 + c * 5, cloth); hand(ctx, -27, 7 - c * 5, accent); hand(ctx, 27, 7 + c * 5, accent); head(ctx, female, 0, -36);
-}
-
-function drawSwimPose(ctx, female, cloth, accent) {
-  const stroke = Math.sin(performance.now() / 160);
-  for (let i = 0; i < 4; i++) line(ctx, -46 + i * 30, 24 + Math.sin(i + stroke) * 4, -28 + i * 30, 20 + Math.cos(i + stroke) * 4, 'rgba(168,233,255,.55)', 2);
-  ell(ctx, 0, 10, 36, 24, 'rgba(0,0,0,.12)');
-  torso(ctx, female, cloth, accent, 30);
-  arm(ctx, -16, -6, -38, -20 + stroke * 8, cloth); arm(ctx, 16, -6, 38, -20 - stroke * 8, cloth); hand(ctx, -38, -20 + stroke * 8, accent); hand(ctx, 38, -20 - stroke * 8, accent);
-  leg(ctx, -8, 14, -19 - stroke * 7, 34, cloth, -.2); leg(ctx, 8, 14, 19 + stroke * 7, 34, cloth, .2); head(ctx, female, 0, -35);
-}
-
-function drawSoccerPose(ctx, female, cloth, accent) {
-  const kick = Math.max(0, Math.sin(performance.now() / 210));
-  ell(ctx, 0, 12, 35, 43, 'rgba(0,0,0,.20)'); leg(ctx, -9, 13, -18, 39, cloth, -.18); leg(ctx, 9, 13, 24 + kick * 9, 35 - kick * 8, cloth, .28); torso(ctx, female, cloth, accent, 42); arm(ctx, -17, -7, -33, 8, cloth); arm(ctx, 17, -7, 32, 9, cloth); hand(ctx, -33, 8, accent); hand(ctx, 32, 9, accent); ball(ctx, 43, 34 - kick * 9); head(ctx, female, 0, -36);
-}
-
-function drawPoolCuePose(ctx, female, cloth, accent) {
-  const aim = Math.sin(performance.now() / 520) * 2;
-  ell(ctx, 0, 12, 36, 43, 'rgba(0,0,0,.20)'); leg(ctx, -10, 14, -24, 40, cloth, -.3); leg(ctx, 10, 14, 18, 38, cloth, .1); torso(ctx, female, cloth, accent, 41); line(ctx, -38, 8 + aim, 54, -11 + aim, '#c8a66b', 4); arm(ctx, -16, -6, -36, 8 + aim, cloth); arm(ctx, 16, -6, 31, -6 + aim, cloth); hand(ctx, -36, 8 + aim, accent); hand(ctx, 31, -6 + aim, accent); head(ctx, female, 0, -36);
-}
-
-function drawCookingPose(ctx, female, cloth, accent) {
-  const stir = Math.sin(performance.now() / 250) * 5;
-  counter(ctx); ell(ctx, 0, 12, 34, 42, 'rgba(0,0,0,.20)'); leg(ctx, -8, 14, -12, 38, cloth, -.03); leg(ctx, 8, 14, 12, 38, cloth, .03); torso(ctx, female, cloth, accent, 42); pan(ctx, 13, 31); arm(ctx, -17, -7, -25, 24, cloth); arm(ctx, 17, -7, 24 + stir, 22, cloth); hand(ctx, -25, 24, accent); hand(ctx, 24 + stir, 22, accent); head(ctx, female, 0, -36);
-}
-
-function drawCleaningPose(ctx, female, cloth, accent) {
-  const wipe = Math.sin(performance.now() / 130) * 8;
-  ell(ctx, 0, 12, 34, 42, 'rgba(0,0,0,.20)'); leg(ctx, -9, 13, -12, 39, cloth, .03); leg(ctx, 9, 13, 12, 39, cloth, -.03); torso(ctx, female, cloth, accent, 42); arm(ctx, -17, -7, -31, 14, cloth); arm(ctx, 17, -7, 29 + wipe, 17, cloth); hand(ctx, -31, 14, accent); rag(ctx, 29 + wipe, 17); head(ctx, female, 0, -36);
-}
-
-function humanCore(ctx, female, cloth, accent, step, seated) {
-  ell(ctx, 0, 8, 34, 45, 'rgba(0,0,0,.22)');
-  leg(ctx, -8, 14, -12 - step * 3, seated ? 28 : 38 + Math.abs(step) * 2, cloth, -.08);
-  leg(ctx, 8, 14, 12 + step * 3, seated ? 28 : 38 - Math.abs(step) * 2, cloth, .08);
-  torso(ctx, female, cloth, accent, seated ? 36 : 44);
-  arm(ctx, -16, -8, -28, 10 - step * 4, cloth); arm(ctx, 16, -8, 28, 10 + step * 4, cloth); hand(ctx, -29, 12 - step * 4, accent); hand(ctx, 29, 12 + step * 4, accent); head(ctx, female, 0, -37);
-}
+function humanCore(ctx, female, cloth, accent, step, seated, backFacing = false) { if (backFacing) return drawBackSeatedPose(ctx, female, cloth, accent, 'sit', step); ell(ctx, 0, 8, 34, 45, 'rgba(0,0,0,.22)'); leg(ctx, -8, 14, -12 - step * 3, seated ? 28 : 38 + Math.abs(step) * 2, cloth, -.08); leg(ctx, 8, 14, 12 + step * 3, seated ? 28 : 38 - Math.abs(step) * 2, cloth, .08); torso(ctx, female, cloth, accent, seated ? 36 : 44); arm(ctx, -16, -8, -28, 10 - step * 4, cloth); arm(ctx, 16, -8, 28, 10 + step * 4, cloth); hand(ctx, -29, 12 - step * 4, accent); hand(ctx, 29, 12 + step * 4, accent); head(ctx, female, 0, -37); }
 function torso(ctx, female, cloth, accent, h) { const shoulder = female ? 29 : 34, hip = female ? 24 : 28; ctx.beginPath(); ctx.moveTo(-shoulder / 2, -11); ctx.quadraticCurveTo(-shoulder * .48, 0, -hip / 2, h * .45); ctx.lineTo(hip / 2, h * .45); ctx.quadraticCurveTo(shoulder * .48, 0, shoulder / 2, -11); ctx.closePath(); ctx.fillStyle = cloth; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.stroke(); ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-shoulder * .30, -7); ctx.lineTo(-hip * .23, h * .34); ctx.moveTo(shoulder * .30, -7); ctx.lineTo(hip * .23, h * .34); ctx.stroke(); }
+function backTorso(ctx, female, cloth, accent, h) { const shoulder = female ? 30 : 35, hip = female ? 25 : 29; ctx.beginPath(); ctx.moveTo(-shoulder / 2, -11); ctx.quadraticCurveTo(-shoulder * .50, 0, -hip / 2, h * .45); ctx.lineTo(hip / 2, h * .45); ctx.quadraticCurveTo(shoulder * .50, 0, shoulder / 2, -11); ctx.closePath(); ctx.fillStyle = cloth; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.stroke(); ctx.strokeStyle = accent; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(-shoulder * .32, -4); ctx.quadraticCurveTo(0, 4, shoulder * .32, -4); ctx.moveTo(-hip * .26, h * .28); ctx.lineTo(hip * .26, h * .28); ctx.stroke(); }
 function head(ctx, female, x, y) { ell(ctx, x, y + 12, 8, 7, SKIN, INK, 2); ell(ctx, x, y, female ? 15 : 16, female ? 17 : 16, SKIN, INK, 2.5); ell(ctx, x, y + 2, female ? 10 : 11, female ? 11 : 10, SKIN_LIT); hair(ctx, female, x, y); line(ctx, x - 4, y + 4, x + 4, y + 4, '#f0d7bd', 1); }
 function hair(ctx, female, x, y) { ctx.fillStyle = '#05070a'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); if (female) { ctx.ellipse(x, y - 4, 19, 20, 0, Math.PI * .85, Math.PI * 2.15); ctx.fill(); ctx.stroke(); ell(ctx, x - 15, y + 3, 5, 9, '#05070a', INK, 1); ell(ctx, x + 15, y + 3, 5, 9, '#05070a', INK, 1); } else { ctx.ellipse(x, y - 6, 16, 11, 0, Math.PI, Math.PI * 2); ctx.fill(); ctx.stroke(); } }
 function arm(ctx, x1, y1, x2, y2, fill) { limb(ctx, x1, y1, x2, y2, 7, fill); }
