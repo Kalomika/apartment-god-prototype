@@ -10,9 +10,12 @@ Commit:
 - 04c494b9a9251cc91614437a712e18f501e05f03, Allow work trip duration to follow job workload
 - a9f7ea9b811e2d4b7c7779c0a9815384014d07f1, Normalize work offsite length from career workload
 - f9f476433cb3abda46a6d3814e497c8fb02a85dd, Test job workload tiers instead of blanket three day rule
+- b2bce4c8b7850bae285550200d0cdbacb361a8d6, Log job workload tier correction
+- a1255aada3f0e351e8b184c59549d2598e1c626f, Add matrix patch for job workload tiers
 Files changed:
 - apartment-god-production/IDEA_BIBLE_APPEND_2026-07-14_JOB_WORKLOAD_TIERS.md
 - apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-14_JOB_WORKLOAD_TIERS.md
+- apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-14_JOB_WORKLOAD_TIERS.md
 - src/careerSystem.js
 - src/travelLocations.js
 - tests/calendar-work-hud.test.js
