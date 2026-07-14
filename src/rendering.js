@@ -14,7 +14,7 @@ import { drawVisualRegressionFixes } from './visualRegressionFixes.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js';
-import { drawDogSpriteOverlay } from './dogSpriteOverlay.js?v=20260714-dog-cache-fix';
+import { drawDogSpriteOverlay } from './dogSpriteOverlay.js?v=20260714-dog-strict-topdown';
 import { drawTvStateCorrectiveOverlays } from './tvStateCorrectiveOverlays.js';
 import { drawAfterEntityOverlays } from './afterEntityOverlays.js';
 import { drawAnimeTimeLighting } from './animeTimeLighting.js';
