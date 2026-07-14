@@ -1,11 +1,12 @@
 import { floors, roomAt } from './world.js';
 import { log } from './state.js';
 
-const MAIN_LEVEL_AREAS = new Set([0, 3, 4, 5, 6]);
+const MAIN_LEVEL_AREAS = new Set([0, 3, 4, 5, 6, 7]);
 const AREA_POSITIONS = {
   3: { x: -1, y: 0, label: 'Garage' },
   0: { x: 0, y: 0, label: 'Main House' },
   4: { x: 0, y: -1, label: 'Backyard' },
+  7: { x: -1, y: 1, label: 'Driveway West' },
   6: { x: 0, y: 1, label: 'Front Yard' },
   5: { x: 1, y: 0, label: 'Secret Lab' }
 };
@@ -15,6 +16,7 @@ const BLUEPRINT_FLOORS = [
   { id: 4, label: 'Backyard North', className: 'yard' },
   { id: 3, label: 'Garage West', className: 'garage' },
   { id: 0, label: 'Main House', className: 'main' },
+  { id: 7, label: 'Driveway West', className: 'driveway' },
   { id: 6, label: 'Front Yard South', className: 'front-yard' },
   { id: 2, label: 'Basement', className: 'basement' }
 ];
@@ -176,7 +178,7 @@ function swipeTarget(floor, dx, dy, elapsed) {
   if (floor === 3) {
     if (horizontal && dx < -42) return { floor: 0, label: 'Main House' };
     if (!horizontal && dy > 42) return { floor: 4, label: 'Backyard North' };
-    if (!horizontal && dy < -42) return { floor: 6, label: 'Front Yard South' };
+    if (!horizontal && dy < -42) return { floor: 7, label: 'Driveway West' };
   }
 
   if (floor === 5) {
@@ -185,7 +187,12 @@ function swipeTarget(floor, dx, dy, elapsed) {
 
   if (floor === 6) {
     if (!horizontal && dy > 42) return { floor: 0, label: 'Main House' };
-    if (horizontal && dx > 42) return { floor: 3, label: 'Garage West' };
+    if (horizontal && dx > 42) return { floor: 7, label: 'Driveway West' };
+  }
+
+  if (floor === 7) {
+    if (!horizontal && dy > 42) return { floor: 3, label: 'Garage West' };
+    if (horizontal && dx < -42) return { floor: 6, label: 'Front Yard South' };
   }
   return null;
 }
@@ -285,7 +292,7 @@ function renderBlueprintPanel(state) {
   panel.classList.remove('hidden');
   panel.classList.add('blueprint-fullscreen');
   const cards = BLUEPRINT_FLOORS.map(item => floorCard(state, item)).join('');
-  panel.innerHTML = `<div class="blueprint-mode"><div class="blueprint-mode-header"><div><div class="blueprint-title">Whole House Blueprint</div><p class="blueprint-note">North is up. South is the front yard and road. West is the garage. East is the secret lab. Tap any region or person marker. The blueprint closes and the camera moves there.</p></div><button class="blueprint-close" type="button">×</button></div><div class="blueprint-compound-map">${cards}</div></div>`;
+  panel.innerHTML = `<div class="blueprint-mode"><div class="blueprint-mode-header"><div><div class="blueprint-title">Whole House Blueprint</div><p class="blueprint-note">North is up. The main front yard is directly South of the Main House. The driveway is West of that yard and directly South of the Garage. East remains the secret lab. Tap any region or person marker.</p></div><button class="blueprint-close" type="button">×</button></div><div class="blueprint-compound-map">${cards}</div></div>`;
   panel.querySelector('.blueprint-close').onclick = event => { event.stopPropagation(); closePanel(); };
   panel.querySelectorAll('[data-blueprint-floor]').forEach(button => {
     button.onclick = event => {
