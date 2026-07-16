@@ -7,8 +7,7 @@ export function applyPanicRoomCorrection() {
   const door = getObject('panic_room_door');
   if (door) Object.assign(door, {
     label: 'Steel Panic Room Door',
-    kind: 'door',
-    actionSet: 'panic_room_door',
+    kind: 'panic_room_door',
     styleAs: 'door',
     room: 'panic_room',
     x: 540,
@@ -17,7 +16,7 @@ export function applyPanicRoomCorrection() {
     h: 26,
     facing: 'north',
     solid: false,
-    enterable: false
+    enterable: true
   });
   if (!doorways.some(d => d.floor === 1 && d.a === 'hall' && d.b === 'panic_room')) doorways.push({ ...DOORWAY });
 }
