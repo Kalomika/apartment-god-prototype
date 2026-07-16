@@ -6,6 +6,7 @@ const TARGET_SCORE = 11;
 const MAX_SCORE = 15;
 const COURT_FLOOR = 6;
 const BALL_R = 8;
+const GAME_DURATION = 600;
 
 export function updateBasketballSystem(state, dt) {
   const starters = (state.entities || []).filter(e => basketballAction(e));
@@ -28,7 +29,7 @@ export function updateBasketballSystem(state, dt) {
 
   if (game.phase === 'forming') updateForming(state, game, players);
   else if (game.phase === 'check') updateCheck(game, offense, defense);
-  else if (game.phase === 'drive') updateDrive(game, offense, defense, dt);
+  else if (game.phase === 'drive') updateDrive(game, offense, defense);
   else if (game.phase === 'gather') updateGather(game, offense, defense);
   else if (game.phase === 'flight') updateFlight(state, game, offense, defense, dt);
   else if (game.phase === 'loose') updateLooseBall(game, players);
@@ -82,8 +83,8 @@ function startGame(state, starter) {
   for (const p of [starter, opponent]) {
     p.action = 'Basketball: taking court';
     p.currentActionId = p.id === starter.id ? 'basketball_1v1' : 'basketball_join';
-    p.actionT = Math.max(Number(p.actionT || 0), 600);
-    p.actionTotal = Math.max(Number(p.actionTotal || 0), 600);
+    p.actionT = GAME_DURATION;
+    p.actionTotal = GAME_DURATION;
     p.pose = 'walk';
     p.stopped = false;
   }
@@ -237,12 +238,11 @@ function createRebound(game, shot, offense, defense) {
 }
 
 function updateLooseBall(game, players) {
-  for (const p of players) {
-    if (!p.path?.length && !near(p, game.ball, 14)) commandMove(p, game.ball.x + (p.id === game.possessionId ? 7 : -7), game.ball.y);
-    p.action = 'Basketball: chasing loose ball';
-    p.pose = p.path?.length ? 'walk' : 'basketball_rebound';
+  for (const player of players) {
+    moveBasketballActor(player, { x: game.ball.x + (player.id === game.possessionId ? 7 : -7), y: game.ball.y }, 'Basketball: chasing loose ball', 14);
+    player.pose = player.path?.length ? 'walk' : 'basketball_rebound';
   }
-  const winners = players.filter(p => near(p, game.ball, 18) && !p.path?.length);
+  const winners = players.filter(player => near(player, game.ball, 18) && !player.path?.length);
   if (!winners.length) return;
   const winner = winners.sort((a, b) => Math.hypot(a.x - game.ball.x, a.y - game.ball.y) - Math.hypot(b.x - game.ball.x, b.y - game.ball.y))[0];
   game.possessionId = winner.id;
@@ -281,39 +281,52 @@ function finishGame(state, reason) {
   const game = state.basketballGame;
   if (!game) return;
   for (const id of game.playerIds || []) {
-    const p = byId(state, id);
-    if (!p) continue;
-    p.path = [];
-    p.target = null;
-    p.pending = null;
-    p.action = 'Idle';
-    p.actionT = 0;
-    p.actionTotal = 0;
-    p.currentActionId = null;
-    p.pose = 'stand';
-    p.carrying = null;
+    const player = byId(state, id);
+    if (!player) continue;
+    player.path = [];
+    player.target = null;
+    player.pending = null;
+    player.action = 'Idle';
+    player.actionT = 0;
+    player.actionTotal = 0;
+    player.currentActionId = null;
+    player.pose = 'stand';
+    player.carrying = null;
   }
   log(state, reason);
   state.basketballGame = null;
 }
 
-function basketballAction(e) {
-  const id = String(e?.currentActionId || '').toLowerCase();
-  return !e?.hidden && e?.type === 'person' && Number(e.actionT || 0) > 0 && (id === 'basketball_1v1' || id === 'basketball_join' || String(e.action || '').toLowerCase().includes('basketball'));
+function basketballAction(entity) {
+  const id = String(entity?.currentActionId || '').toLowerCase();
+  return !entity?.hidden && entity?.type === 'person' && Number(entity.actionT || 0) > 0 && (id === 'basketball_1v1' || id === 'basketball_join' || String(entity.action || '').toLowerCase().includes('basketball'));
 }
 
-function interrupted(players) { return players.some(p => !basketballAction(p)); }
-function criticalNeed(p) { const n = p.needs || {}; return (n.bladder ?? 100) < 14 || (n.hunger ?? 100) < 12 || (n.energy ?? 100) < 10 || (n.stamina ?? 100) < 10; }
-function gameOver(game) { const values = Object.values(game.score); const hi = Math.max(...values); const lo = Math.min(...values); return (hi >= TARGET_SCORE && hi - lo >= 2) || hi >= MAX_SCORE; }
+function interrupted(players) { return players.some(player => !basketballAction(player)); }
+function criticalNeed(player) { const needs = player.needs || {}; return (needs.bladder ?? 100) < 14 || (needs.hunger ?? 100) < 12 || (needs.energy ?? 100) < 10 || (needs.stamina ?? 100) < 10; }
+function gameOver(game) { const values = Object.values(game.score); const high = Math.max(...values); const low = Math.min(...values); return (high >= TARGET_SCORE && high - low >= 2) || high >= MAX_SCORE; }
 function hoopPoint(court) { return { x: court.x + 46, y: court.y + court.h / 2, z: 34 }; }
-function moveDirect(actor, point, action) { if (!actor) return; if (!actor.path?.length && !near(actor, point, 7)) commandMove(actor, point.x, point.y); actor.action = action; actor.pose = actor.path?.length ? 'walk' : actor.pose; }
+function moveDirect(actor, point, action) { moveBasketballActor(actor, point, action, 7); }
+function moveBasketballActor(actor, point, action, radius) {
+  if (!actor) return;
+  const actionId = actor.currentActionId || 'basketball_join';
+  const remaining = Math.max(1, Number(actor.actionT || GAME_DURATION));
+  const total = Math.max(remaining, Number(actor.actionTotal || GAME_DURATION));
+  if (!actor.path?.length && !near(actor, point, radius)) commandMove(actor, point.x, point.y);
+  actor.currentActionId = actionId;
+  actor.actionT = remaining;
+  actor.actionTotal = total;
+  actor.action = action;
+  actor.pose = actor.path?.length ? 'walk' : actor.pose;
+  actor.stopped = false;
+}
 function near(a, b, radius) { return Math.hypot(a.x - b.x, a.y - b.y) <= radius; }
 function dribbleHeight(t) { return Math.abs(Math.sin(t * 7.2)) * 22; }
 function drawScore(ctx, game) { round(ctx, 310, 48, 340, 34, 12, 'rgba(7,16,24,.84)'); ctx.fillStyle = '#f8fbff'; ctx.font = '900 14px system-ui'; ctx.textAlign = 'center'; const ids = game.playerIds; ctx.fillText(`${nameFor(game, ids[0])} ${game.score[ids[0]]}   •   ${game.score[ids[1]]} ${nameFor(game, ids[1])}`, 480, 70); ctx.textAlign = 'left'; }
 function nameFor(game, id) { return String(game.names?.[id] || id).toUpperCase().slice(0, 12); }
-function drawBall(ctx, x, y, r) { circle(ctx, x, y, r, '#d87d2d'); ctx.strokeStyle = '#5d3219'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.moveTo(x - r, y); ctx.lineTo(x + r, y); ctx.moveTo(x, y - r); ctx.lineTo(x, y + r); ctx.stroke(); }
-function hash(text) { let h = 0; for (let i = 0; i < String(text).length; i++) h = ((h << 5) - h + text.charCodeAt(i)) | 0; return h; }
-function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+function drawBall(ctx, x, y, radius) { circle(ctx, x, y, radius, '#d87d2d'); ctx.strokeStyle = '#5d3219'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.moveTo(x - radius, y); ctx.lineTo(x + radius, y); ctx.moveTo(x, y - radius); ctx.lineTo(x, y + radius); ctx.stroke(); }
+function hash(text) { let value = 0; for (let i = 0; i < String(text).length; i++) value = ((value << 5) - value + text.charCodeAt(i)) | 0; return value; }
+function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
-function round(ctx, x, y, w, h, r, fill) { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); ctx.fillStyle = fill; ctx.fill(); }
-function circle(ctx, x, y, r, fill) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill(); }
+function round(ctx, x, y, w, h, radius, fill) { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, radius); else ctx.rect(x, y, w, h); ctx.fillStyle = fill; ctx.fill(); }
+function circle(ctx, x, y, radius, fill) { ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill(); }
