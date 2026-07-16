@@ -7,6 +7,7 @@ const MAX_SCORE = 15;
 const COURT_FLOOR = 6;
 const BALL_R = 8;
 const GAME_DURATION = 600;
+const SKIN = '#3a241f';
 
 export function updateBasketballSystem(state, dt) {
   const starters = (state.entities || []).filter(e => basketballAction(e));
@@ -43,6 +44,7 @@ export function drawBasketballSystem(ctx, state) {
   if (!game || state.floor !== COURT_FLOOR) return;
   const ball = game.ball;
   ctx.save();
+  drawPlayerActionOverlays(ctx, state, game);
   drawScore(ctx, game);
   const shadowScale = 1 - Math.min(.65, ball.z / 110);
   ctx.fillStyle = `rgba(0,0,0,${.25 * shadowScale})`;
@@ -76,17 +78,17 @@ function startGame(state, starter) {
   commandMove(starter, startA.x, startA.y);
   if (opponent.floor !== COURT_FLOOR) {
     opponent.floor = COURT_FLOOR;
-    opponent.x = court.x + court.w + 42;
+    opponent.x = Math.max(42, court.x - 42);
     opponent.y = court.y + court.h * .55;
   }
   commandMove(opponent, startB.x, startB.y);
-  for (const p of [starter, opponent]) {
-    p.action = 'Basketball: taking court';
-    p.currentActionId = p.id === starter.id ? 'basketball_1v1' : 'basketball_join';
-    p.actionT = GAME_DURATION;
-    p.actionTotal = GAME_DURATION;
-    p.pose = 'walk';
-    p.stopped = false;
+  for (const player of [starter, opponent]) {
+    player.action = 'Basketball: taking court';
+    player.currentActionId = player.id === starter.id ? 'basketball_1v1' : 'basketball_join';
+    player.actionT = GAME_DURATION;
+    player.actionTotal = GAME_DURATION;
+    player.pose = 'walk';
+    player.stopped = false;
   }
   state.basketballGame = {
     courtId: court.id,
@@ -109,7 +111,7 @@ function startGame(state, starter) {
 }
 
 function updateForming(state, game, players) {
-  if (players.some(p => p.path?.length)) return;
+  if (players.some(player => player.path?.length)) return;
   game.phase = 'check';
   game.phaseT = 0;
   game.message = 'Check ball';
@@ -123,6 +125,7 @@ function updateCheck(game, offense, defense) {
   const guard = { x: top.x - 50, y: top.y - 16 };
   moveDirect(offense, top, 'Basketball: check ball');
   moveDirect(defense, guard, 'Basketball: guarding');
+  facePoint(defense, offense);
   game.ball.x = offense.x + 12;
   game.ball.y = offense.y + 17;
   game.ball.z = dribbleHeight(game.ball.bounceT);
@@ -151,6 +154,7 @@ function updateDrive(game, offense, defense) {
   moveDirect(offense, spot, 'Basketball: dribbling');
   const guard = { x: offense.x - 34, y: offense.y + Math.sin(game.t * 4) * 18 };
   moveDirect(defense, guard, 'Basketball: defending');
+  facePoint(defense, offense);
   game.ball.x = offense.x + 11;
   game.ball.y = offense.y + 16;
   game.ball.z = dribbleHeight(game.ball.bounceT);
@@ -166,6 +170,7 @@ function updateGather(game, offense, defense) {
   game.ball.x = offense.x;
   game.ball.y = offense.y - 8;
   game.ball.z = Math.min(34, game.phaseT * 38);
+  facePoint(defense, offense);
   if (game.phaseT >= .65) launchShot(game, offense, defense);
 }
 
@@ -173,6 +178,8 @@ function launchShot(game, offense, defense) {
   const court = getObject(game.courtId);
   if (!court) return;
   const hoop = hoopPoint(court);
+  facePoint(offense, hoop);
+  facePoint(defense, offense);
   const type = game.shot.type;
   const contest = Math.max(0, 1 - Math.hypot(defense.x - offense.x, defense.y - offense.y) / 90);
   const base = type === 'dunk' ? .94 : type === 'layup' ? .72 : type === 'two' ? .56 : .39;
@@ -255,11 +262,12 @@ function updateLooseBall(game, players) {
 function updateReset(game, players) {
   const court = getObject(game.courtId);
   if (!court) return;
-  const possession = players.find(p => p.id === game.possessionId);
-  const other = players.find(p => p.id !== game.possessionId);
+  const possession = players.find(player => player.id === game.possessionId);
+  const other = players.find(player => player.id !== game.possessionId);
   const top = { x: court.x + court.w * .60, y: court.y + court.h * .72 };
   moveDirect(possession, top, 'Basketball: reset possession');
   moveDirect(other, { x: top.x - 48, y: top.y - 18 }, 'Basketball: reset defense');
+  facePoint(other, possession);
   game.ball.x = possession.x + 10;
   game.ball.y = possession.y + 16;
   game.ball.z = dribbleHeight(game.ball.bounceT);
@@ -275,6 +283,75 @@ function updatePlayerBasketballPose(game, offense, defense) {
     offense.pose = offense.path?.length ? 'walk' : 'basketball_dribble';
     defense.pose = defense.path?.length ? 'walk' : 'basketball_defense';
   }
+  if (game.phase === 'check' || game.phase === 'reset') {
+    offense.pose = offense.path?.length ? 'walk' : 'basketball_dribble';
+    defense.pose = defense.path?.length ? 'walk' : 'basketball_defense';
+  }
+  if (game.phase === 'gather') {
+    offense.pose = `basketball_${game.shot?.type || 'two'}`;
+    defense.pose = 'basketball_contest';
+  }
+}
+
+function drawPlayerActionOverlays(ctx, state, game) {
+  for (const id of game.playerIds || []) {
+    const player = byId(state, id);
+    if (!player || player.hidden || player.floor !== COURT_FLOOR) continue;
+    const pose = String(player.pose || '').toLowerCase();
+    if (!pose.includes('basketball')) continue;
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    ctx.rotate(player.lastHeading || 0);
+    const shirt = player.id === 'girlfriend' ? '#ff75df' : '#74e6ff';
+    if (pose.includes('dribble')) drawDribbleOverlay(ctx, shirt, game.ball.bounceT);
+    else if (pose.includes('defense')) drawDefenseOverlay(ctx, shirt, false);
+    else if (pose.includes('contest')) drawDefenseOverlay(ctx, shirt, true);
+    else if (pose.includes('dunk')) drawShotOverlay(ctx, shirt, 'dunk');
+    else if (pose.includes('layup')) drawShotOverlay(ctx, shirt, 'layup');
+    else if (pose.includes('three')) drawShotOverlay(ctx, shirt, 'three');
+    else if (pose.includes('two')) drawShotOverlay(ctx, shirt, 'two');
+    else if (pose.includes('rebound')) drawReboundOverlay(ctx, shirt);
+    ctx.restore();
+  }
+}
+
+function drawDribbleOverlay(ctx, shirt, bounceT) {
+  const side = Math.sin(bounceT * 3.6) >= 0 ? 1 : -1;
+  line(ctx, side * 10, -4, side * 27, 19, SKIN, 5);
+  line(ctx, -side * 10, -4, -side * 21, 5, SKIN, 5);
+  round(ctx, -14, -8, 28, 18, 7, shirt);
+}
+
+function drawDefenseOverlay(ctx, shirt, contest) {
+  const reach = contest ? -34 : -24;
+  line(ctx, -11, -4, -30, reach, SKIN, 5);
+  line(ctx, 11, -4, 30, reach, SKIN, 5);
+  line(ctx, -8, 13, -20, 32, '#111820', 5);
+  line(ctx, 8, 13, 20, 32, '#111820', 5);
+  round(ctx, -14, -8, 28, 18, 7, shirt);
+}
+
+function drawShotOverlay(ctx, shirt, type) {
+  const lift = type === 'dunk' ? -17 : type === 'layup' ? -10 : -5;
+  const spread = type === 'layup' ? 8 : 0;
+  ctx.translate(0, lift);
+  ctx.fillStyle = 'rgba(0,0,0,.14)';
+  ctx.beginPath();
+  ctx.ellipse(0, 29 - lift, 22, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  line(ctx, -10, -5, -10 - spread, -36, SKIN, 5);
+  line(ctx, 10, -5, 10 + spread, type === 'dunk' ? -42 : -36, SKIN, 5);
+  line(ctx, -7, 12, type === 'layup' ? -18 : -10, 32, '#111820', 5);
+  line(ctx, 7, 12, type === 'dunk' ? 18 : 10, type === 'dunk' ? 26 : 32, '#111820', 5);
+  round(ctx, -14, -8, 28, 20, 7, shirt);
+}
+
+function drawReboundOverlay(ctx, shirt) {
+  line(ctx, -10, -4, -25, -32, SKIN, 5);
+  line(ctx, 10, -4, 25, -32, SKIN, 5);
+  line(ctx, -7, 12, -16, 30, '#111820', 5);
+  line(ctx, 7, 12, 16, 30, '#111820', 5);
+  round(ctx, -14, -8, 28, 20, 7, shirt);
 }
 
 function finishGame(state, reason) {
@@ -319,7 +396,9 @@ function moveBasketballActor(actor, point, action, radius) {
   actor.action = action;
   actor.pose = actor.path?.length ? 'walk' : actor.pose;
   actor.stopped = false;
+  facePoint(actor, point);
 }
+function facePoint(actor, point) { if (actor && point) actor.lastHeading = Math.atan2(point.y - actor.y, point.x - actor.x) + Math.PI / 2; }
 function near(a, b, radius) { return Math.hypot(a.x - b.x, a.y - b.y) <= radius; }
 function dribbleHeight(t) { return Math.abs(Math.sin(t * 7.2)) * 22; }
 function drawScore(ctx, game) { round(ctx, 310, 48, 340, 34, 12, 'rgba(7,16,24,.84)'); ctx.fillStyle = '#f8fbff'; ctx.font = '900 14px system-ui'; ctx.textAlign = 'center'; const ids = game.playerIds; ctx.fillText(`${nameFor(game, ids[0])} ${game.score[ids[0]]}   •   ${game.score[ids[1]]} ${nameFor(game, ids[1])}`, 480, 70); ctx.textAlign = 'left'; }
@@ -330,3 +409,4 @@ function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
 function round(ctx, x, y, w, h, radius, fill) { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, radius); else ctx.rect(x, y, w, h); ctx.fillStyle = fill; ctx.fill(); }
 function circle(ctx, x, y, radius, fill) { ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill(); }
+function line(ctx, x1, y1, x2, y2, color, width) { ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
