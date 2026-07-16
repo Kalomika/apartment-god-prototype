@@ -1,5 +1,5 @@
 import { byId, changeNeed, log, say } from './state.js';
-import { commandMove } from './movement.js';
+import { commandMove, commandObject } from './movement.js';
 import { getObject } from './world.js';
 
 const TARGET_SCORE = 11;
@@ -10,14 +10,15 @@ const GAME_DURATION = 600;
 const SKIN = '#3a241f';
 
 export function updateBasketballSystem(state, dt) {
-  const starters = (state.entities || []).filter(e => basketballAction(e));
+  const starters = (state.entities || []).filter(entity => basketballAction(entity));
   if (!state.basketballGame && starters.length) startGame(state, starters[0]);
   const game = state.basketballGame;
   if (!game) return;
 
   const players = game.playerIds.map(id => byId(state, id)).filter(Boolean);
+  if (game.phase === 'waiting_opponent') return updateWaitingForOpponent(state, game, players);
   if (players.length < 2 || interrupted(players)) return finishGame(state, 'Game interrupted');
-  if (players.some(p => p.floor !== COURT_FLOOR)) return finishGame(state, 'Players left the court');
+  if (players.some(player => player.floor !== COURT_FLOOR)) return finishGame(state, 'Players left the court');
   if (players.some(criticalNeed)) return finishGame(state, 'Urgent life need interrupted basketball');
 
   game.t += dt;
@@ -25,7 +26,7 @@ export function updateBasketballSystem(state, dt) {
   if (game.messageT > 0) game.messageT = Math.max(0, game.messageT - dt);
   game.ball.bounceT += dt;
   const offense = byId(state, game.possessionId);
-  const defense = players.find(p => p.id !== game.possessionId);
+  const defense = players.find(player => player.id !== game.possessionId);
   if (!offense || !defense) return finishGame(state, 'Game stopped');
 
   if (game.phase === 'forming') updateForming(state, game, players);
@@ -66,7 +67,7 @@ export function drawBasketballSystem(ctx, state) {
 function startGame(state, starter) {
   const court = getObject('basketball_court');
   if (!court) return;
-  const opponent = (state.entities || []).find(e => e.type === 'person' && e.id !== starter.id && !e.hidden && !e.labOnly && !criticalNeed(e));
+  const opponent = (state.entities || []).find(entity => entity.type === 'person' && entity.id !== starter.id && !entity.hidden && !entity.labOnly && !criticalNeed(entity));
   if (!opponent) {
     starter.action = 'Basketball: waiting for opponent';
     starter.pose = 'stand';
@@ -75,39 +76,64 @@ function startGame(state, starter) {
   }
   const startA = { x: court.x + court.w * .62, y: court.y + court.h * .72 };
   const startB = { x: court.x + court.w * .40, y: court.y + court.h * .68 };
-  commandMove(starter, startA.x, startA.y);
-  if (opponent.floor !== COURT_FLOOR) {
-    opponent.floor = COURT_FLOOR;
-    opponent.x = Math.max(42, court.x - 42);
-    opponent.y = court.y + court.h * .55;
-  }
-  commandMove(opponent, startB.x, startB.y);
-  for (const player of [starter, opponent]) {
-    player.action = 'Basketball: taking court';
-    player.currentActionId = player.id === starter.id ? 'basketball_1v1' : 'basketball_join';
-    player.actionT = GAME_DURATION;
-    player.actionTotal = GAME_DURATION;
-    player.pose = 'walk';
-    player.stopped = false;
-  }
+  starter.currentActionId = 'basketball_1v1';
+  starter.actionT = Math.max(Number(starter.actionT || 0), GAME_DURATION);
+  starter.actionTotal = Math.max(Number(starter.actionTotal || 0), GAME_DURATION);
+  moveBasketballActor(starter, startA, 'Basketball: waiting for opponent', 7);
+  commandObject(opponent, court, 'basketball_join');
+  opponent.action = 'Basketball: walking to the court';
+  say(opponent, 'HOOPS');
   state.basketballGame = {
     courtId: court.id,
     playerIds: [starter.id, opponent.id],
     score: { [starter.id]: 0, [opponent.id]: 0 },
     names: { [starter.id]: starter.name, [opponent.id]: opponent.name },
     possessionId: starter.id,
-    phase: 'forming',
+    phase: 'waiting_opponent',
     phaseT: 0,
     t: 0,
     shotNumber: 0,
     shot: null,
-    message: `${starter.name} versus ${opponent.name}`,
+    startA,
+    startB,
+    message: `${opponent.name} is walking to the court`,
     messageT: 2.2,
     ball: { x: startA.x, y: startA.y + 16, z: 0, vx: 0, vy: 0, vz: 0, bounceT: 0 }
   };
   state.floor = COURT_FLOOR;
   state.viewHoldT = 8;
-  log(state, `${starter.name} challenged ${opponent.name} to one on one basketball.`);
+  log(state, `${starter.name} challenged ${opponent.name} to one on one basketball. ${opponent.name} is walking to the court.`);
+}
+
+function updateWaitingForOpponent(state, game, players) {
+  const starter = players[0];
+  const opponent = players[1];
+  if (!starter || !opponent || !basketballAction(starter)) return finishGame(state, 'Basketball invitation cancelled');
+  starter.action = 'Basketball: waiting for opponent';
+  starter.pose = starter.path?.length ? 'walk' : 'basketball_dribble';
+  game.ball.x = starter.x + 10;
+  game.ball.y = starter.y + 16;
+  game.ball.z = dribbleHeight(game.ball.bounceT || 0);
+  game.ball.bounceT = Number(game.ball.bounceT || 0) + .035;
+
+  const opponentArrived = opponent.floor === COURT_FLOOR && basketballAction(opponent) && !opponent.path?.length;
+  if (!opponentArrived) {
+    const failed = opponent.floor !== COURT_FLOOR && !opponent.path?.length && !opponent.target && !opponent.pending;
+    if (failed) return finishGame(state, `${opponent.name} could not reach the basketball court`);
+    game.message = `${opponent.name} is walking to the court`;
+    game.messageT = Math.max(game.messageT, .3);
+    return;
+  }
+
+  opponent.currentActionId = 'basketball_join';
+  opponent.actionT = Math.max(Number(opponent.actionT || 0), GAME_DURATION);
+  opponent.actionTotal = Math.max(Number(opponent.actionTotal || 0), GAME_DURATION);
+  moveBasketballActor(starter, game.startA, 'Basketball: taking court', 7);
+  moveBasketballActor(opponent, game.startB, 'Basketball: taking court', 7);
+  game.phase = 'forming';
+  game.phaseT = 0;
+  game.message = 'Players taking positions';
+  game.messageT = 1.4;
 }
 
 function updateForming(state, game, players) {
