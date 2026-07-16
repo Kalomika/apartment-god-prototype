@@ -27,6 +27,8 @@ export function orderFood(state, actor, auto = false) {
     commandMove(actor, p.x, p.y);
   }
   actor.action = 'Waiting for food delivery';
+  actor.actionT = 7;
+  actor.actionTotal = 7;
   actor.pose = 'walk';
   setMood(actor, 'phone');
   say(actor, 'ORDER');
@@ -42,6 +44,12 @@ export function updateDelivery(state, dt) {
   if (!actor) { state.delivery = null; return; }
   job.t -= dt;
 
+  if (job.phase === 'arriving') {
+    actor.action = 'Waiting for food delivery';
+    actor.actionT = Math.max(job.t, 0);
+    actor.actionTotal = 7;
+  }
+
   if (job.phase === 'arriving' && job.t <= 0) {
     job.phase = 'exchange';
     job.t = 4;
@@ -50,8 +58,8 @@ export function updateDelivery(state, dt) {
     job.bubble = 'DELIVERY';
     state.objectState.doorOpen = true;
     actor.action = 'Receiving food delivery';
-    actor.actionT = Math.max(actor.actionT, 4);
-    actor.actionTotal = Math.max(actor.actionTotal || 0, 4);
+    actor.actionT = 4;
+    actor.actionTotal = 4;
     actor.pose = 'stand';
     actor.carrying = 'food bag';
     say(actor, 'THANKS');
