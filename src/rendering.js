@@ -9,20 +9,22 @@ import { drawObjectCorrectiveOverlays } from './objectCorrectiveOverlays.js';
 import { drawVisualReplacementClears } from './visualReplacementClears.js';
 import { drawRequestedAfterEntityVisualCorrections, drawRequestedVisualCorrections } from './requestedVisualCorrections.js';
 import { applyRealismRuntimeCorrections, drawRealismAfterEntityCorrections, drawRealismCorrections } from './realismCorrectionPass.js';
-import { applyMainFloorLayoutPolish, drawMainFloorLayoutPolish } from './mainFloorLayoutPolish.js?v=20260714-living-dining-kitchen-cleanup';
-import { drawLayerOrderingCorrections } from './layerOrderingCorrections.js?v=20260714-layer-routing-lab';
+import { applyMainFloorLayoutPolish, drawMainFloorLayoutPolish } from './mainFloorLayoutPolish.js?v=20260716-layer-source-fix';
 import { drawVehicleOccupantOverlay } from './vehicleOccupantOverlay.js?v=20260714-visible-occupants';
 import { drawBathBedAfterEntityOverlays, drawBathBedStateOverlays } from './bathBedStateOverlays.js';
 import { drawVisualRegressionFixes } from './visualRegressionFixes.js';
 import { drawVehicleSpriteOverlays } from './vehicleSpriteOverlays.js';
 import { drawCarriedItems, drawDynamicProps } from './renderDynamic.js';
 import { drawEntities } from './renderEntities.js?v=20260714-human-renderer-framework';
-import { drawDogSpriteOverlay } from './dogSpriteOverlay.js?v=20260714-dog-strict-topdown';
+import { drawDogSpriteOverlay } from './dogSpriteOverlay.js?v=20260716-dog-anatomy';
 import { drawTvStateCorrectiveOverlays } from './tvStateCorrectiveOverlays.js';
 import { drawAfterEntityOverlays } from './afterEntityOverlays.js';
 import { drawAnimeTimeLighting } from './animeTimeLighting.js';
-import { drawOffsiteScene } from './offsiteScenes.js';
 import { drawSoccer } from './soccerSystem.js';
+import { drawArcadeSystem } from './arcadeSystem.js';
+import { drawBasketballSystem } from './basketballSystem.js';
+import { drawOffsiteProgressOverlay } from './offsiteOverlay.js';
+import { drawPanicRoomDoorCorrection } from './panicRoomCorrection.js';
 import { syncPhoneUi } from './phoneUI.js';
 import { drawCameraTransition, syncCameraNavigationUi } from './cameraNavigation.js';
 import { formatTime } from './renderHelpers.js';
@@ -43,28 +45,20 @@ export function draw(ctx, state) {
   else drawScene(ctx, state);
 
   drawStatus(ctx, state);
-  drawOverlay(ctx, state);
+  drawOffsiteProgressOverlay(ctx, state);
   drawCameraTransition(ctx, state, PLAY_W, PLAY_H);
 }
 
 function syncSafePhoneUi(state) {
   if (phoneUiFailed) return;
-  try {
-    syncPhoneUi(state);
-  } catch (error) {
-    phoneUiFailed = true;
-    console.error('[Apartment God] Phone UI disabled after render error.', error);
-  }
+  try { syncPhoneUi(state); }
+  catch (error) { phoneUiFailed = true; console.error('[Apartment God] Phone UI disabled after render error.', error); }
 }
 
 function syncSafeCameraUi(state) {
   if (cameraUiFailed) return;
-  try {
-    syncCameraNavigationUi(state);
-  } catch (error) {
-    cameraUiFailed = true;
-    console.error('[Apartment God] Camera navigation UI disabled after render error.', error);
-  }
+  try { syncCameraNavigationUi(state); }
+  catch (error) { cameraUiFailed = true; console.error('[Apartment God] Camera navigation UI disabled after render error.', error); }
 }
 
 function drawScene(ctx, state) {
@@ -80,7 +74,6 @@ function drawScene(ctx, state) {
   drawRealismCorrections(ctx, state);
   drawVisualRegressionFixes(ctx, state);
   drawMainFloorLayoutPolish(ctx, state);
-  drawLayerOrderingCorrections(ctx, state);
   drawBathBedStateOverlays(ctx, state);
   drawTvStateCorrectiveOverlays(ctx, state);
   drawVehicleSpriteOverlays(ctx, state);
@@ -89,6 +82,9 @@ function drawScene(ctx, state) {
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
   drawDogSpriteOverlay(ctx, state);
+  drawArcadeSystem(ctx, state);
+  drawBasketballSystem(ctx, state);
+  drawPanicRoomDoorCorrection(ctx, state);
   drawBathBedAfterEntityOverlays(ctx, state);
   drawRequestedAfterEntityVisualCorrections(ctx, state);
   drawRealismAfterEntityCorrections(ctx, state);
@@ -113,7 +109,6 @@ function drawSlidingScene(ctx, state, tr) {
   const fromY = -dirY * PLAY_H * progress;
   const targetX = dirX * PLAY_W * (1 - progress);
   const targetY = dirY * PLAY_H * (1 - progress);
-
   ctx.save();
   clipPlay(ctx);
   drawSceneForFloor(ctx, state, tr.to, targetX, targetY);
@@ -126,7 +121,6 @@ function drawVerticalScene(ctx, state, tr) {
   const goingUp = tr.direction === 'up';
   const targetScale = goingUp ? 1.12 - progress * .12 : .92 + progress * .08;
   const targetY = goingUp ? (1 - progress) * 26 : -(1 - progress) * 26;
-
   ctx.save();
   clipPlay(ctx);
   drawSceneForFloor(ctx, state, tr.from, 0, 0);
@@ -174,26 +168,11 @@ function drawFetchBall(ctx, state) {
 
 function drawStatus(ctx, state) {
   ctx.fillStyle = 'rgba(10,12,18,.72)';
-  ctx.fillRect(12, 10, 360, 34);
+  ctx.fillRect(12, 10, 300, 34);
   ctx.fillStyle = COLORS.text;
   ctx.font = '900 16px system-ui';
   const trash = state.garbage ? ` trash ${Math.round(state.garbage.kitchen || 0)}%` : '';
-  ctx.fillText(`${formatTime(state.time)}   $${Math.round(state.money ?? 0)}   ${state.autonomyMode || 'guided'}${trash}`, 24, 32);
-}
-
-function drawOverlay(ctx, state) {
-  if (!state.offsite) return;
-  if (drawOffsiteScene(ctx, state, PLAY_W, PLAY_H)) return;
-  ctx.fillStyle = 'rgba(8,10,15,.72)';
-  ctx.fillRect(0, 0, PLAY_W, PLAY_H);
-  ctx.fillStyle = COLORS.text;
-  ctx.font = '900 36px system-ui';
-  ctx.textAlign = 'center';
-  const label = state.offsite.label || state.offsite.actionId.replaceAll('_', ' ');
-  ctx.fillText(`Offsite: ${label}`, PLAY_W / 2, 320);
-  ctx.font = '700 20px system-ui';
-  ctx.fillText(`Clock ${formatTime(state.time)}`, PLAY_W / 2, 358);
-  ctx.textAlign = 'left';
+  ctx.fillText(`$${Math.round(state.money ?? 0)}   ${state.autonomyMode || 'guided'}${trash}`, 24, 32);
 }
 
 function drawPoolFx(ctx, state) {
