@@ -1,5 +1,5 @@
 import { createState } from './state.js';
-import { draw } from './rendering.js?v=20260714-front-yard-adjacency';
+import { draw } from './rendering.js?v=20260716-layer-arcade-basketball-offsite';
 import { createUi } from './ui.js';
 import { updateMovement } from './movement.js';
 import { resolveArrival, updateActions } from './actions.js';
@@ -13,8 +13,11 @@ import { applyRuntimeRegressionGuards } from './runtimeRegressionGuards.js';
 import { updatePoolActivity } from './poolActivitySystem.js';
 import { updateHouseTidiness } from './tidinessSystem.js';
 import { advanceGameClock } from './timeSystem.js';
-import { installFrontYardWorld } from './frontYardDriveway.js';
-import { applyRuntimeObjectCorrections } from './runtimeObjectCorrections.js?v=20260714-layer-routing-lab';
+import { installFrontYardWorld, updateFrontYardEnvironment } from './frontYardDriveway.js';
+import { applyRuntimeObjectCorrections } from './runtimeObjectCorrections.js?v=20260716-layer-panic';
+import { updateArcadeSystem } from './arcadeSystem.js';
+import { updateBasketballSystem } from './basketballSystem.js';
+import { updateOffsiteHomeView } from './offsiteOverlay.js';
 
 installFrontYardWorld();
 
@@ -84,9 +87,7 @@ function cleanupStaleActorState(entity) {
     entity.blockedT = 0;
     entity.recoveryCount = 0;
   }
-  if (['walk', 'sit'].includes(entity.pose) && (action === 'idle' || action === 'walking' || action === 'running' || action === 'recovered')) {
-    entity.pose = 'stand';
-  }
+  if (['walk', 'sit'].includes(entity.pose) && (action === 'idle' || action === 'walking' || action === 'running' || action === 'recovered')) entity.pose = 'stand';
 }
 
 function drawBootError(ctx, error) {
@@ -111,6 +112,7 @@ function drawBootError(ctx, error) {
 function runSimulationStep(state, dt) {
   if (dt <= 0) return;
   applyRuntimeObjectCorrections();
+  updateFrontYardEnvironment(state, dt);
   updateHouseTidiness(state);
   updatePoolActivity(state, dt);
   for (const entity of state.entities) {
@@ -118,6 +120,9 @@ function runSimulationStep(state, dt) {
     if (arrived) resolveArrival(state, entity);
   }
   updateActions(state, dt);
+  updateArcadeSystem(state, dt);
+  updateBasketballSystem(state, dt);
+  updateOffsiteHomeView(state);
   updateCalendarRuntime(state);
   updateAutoHooks(state, dt);
   updateAutonomy(state, dt);
