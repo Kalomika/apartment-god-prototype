@@ -25,6 +25,7 @@ import { drawArcadeSystem } from './arcadeSystem.js';
 import { drawBasketballSystem } from './basketballSystem.js';
 import { drawOffsiteProgressOverlay } from './offsiteOverlay.js';
 import { drawPanicRoomDoorCorrection } from './panicRoomCorrection.js';
+import { drawGarageDoorAlignmentOverlay } from './garageDoorAlignmentOverlay.js';
 import { syncPhoneUi } from './phoneUI.js';
 import { drawCameraTransition, syncCameraNavigationUi } from './cameraNavigation.js';
 import { formatTime } from './renderHelpers.js';
@@ -79,6 +80,7 @@ function drawScene(ctx, state) {
   drawVehicleSpriteOverlays(ctx, state);
   drawDynamicProps(ctx, state);
   drawVehicleOccupantOverlay(ctx, state);
+  drawGarageDoorAlignmentOverlay(ctx, state);
   drawFetchBall(ctx, state);
   drawEntities(ctx, state);
   drawDogSpriteOverlay(ctx, state);
