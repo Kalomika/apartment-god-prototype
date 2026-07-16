@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ACTIONS } from '../src/config.js';
 import { updateArcadeSystem } from '../src/arcadeSystem.js';
 import { updateBasketballSystem } from '../src/basketballSystem.js';
-import { captureGateTraversalState, enforceGateTraversal } from '../src/gateTraversalGuard.js';
+import { captureGateTraversalState, enforceGateTraversal, requestGateForApproachingEntities } from '../src/gateTraversalGuard.js';
 import { updateOffsiteHomeView } from '../src/offsiteOverlay.js';
 import { poolShotStanceForTest } from '../src/poolActivitySystem.js';
 
@@ -40,6 +40,15 @@ describe('layer, vehicle, and game regression guards', () => {
     expect(actor.path).toEqual([{ x: 460, y: 450 }]);
     expect(actor.action).toBe('Waiting for driveway gate');
     expect(state.frontGate.requested).toBe(true);
+  });
+
+  it('requests the gate when a person approaches from the road side', () => {
+    const actor = person('girlfriend', 7, 460, 438);
+    actor.path = [{ x: 460, y: 380 }];
+    const state = { entities: [actor], frontGate: { open: 0, requested: false } };
+    requestGateForApproachingEntities(state, .1);
+    expect(state.frontGate.requested).toBe(true);
+    expect(state.frontGate.open).toBeGreaterThan(0);
   });
 
   it('allows the same crossing once the driveway gate is open', () => {
