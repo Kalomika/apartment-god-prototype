@@ -1,5 +1,7 @@
 import { objects } from './world.js';
 import { applyPanicRoomCorrection } from './panicRoomCorrection.js';
+import { applyFrontYardRoutingCorrection } from './frontYardRoutingCorrection.js';
+import { applyGarageDoorAlignment } from './garageDoorAlignmentOverlay.js';
 
 const VEHICLE_KINDS = new Set(['car', 'bike', 'motorbike', 'atv']);
 const COLLISION_KIND = 'soccer_field';
@@ -19,6 +21,8 @@ export function applyRuntimeObjectCorrections() {
   }
 
   applyPanicRoomCorrection();
+  applyFrontYardRoutingCorrection();
+  applyGarageDoorAlignment();
   syncVehicleCollisionBlocks();
 }
 
