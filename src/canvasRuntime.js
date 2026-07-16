@@ -18,7 +18,7 @@ import { applyRuntimeObjectCorrections } from './runtimeObjectCorrections.js?v=2
 import { updateArcadeSystem } from './arcadeSystem.js';
 import { updateBasketballSystem } from './basketballSystem.js';
 import { updateOffsiteHomeView } from './offsiteOverlay.js';
-import { captureGateTraversalState, enforceGateTraversal } from './gateTraversalGuard.js';
+import { captureGateTraversalState, enforceGateTraversal, requestGateForApproachingEntities } from './gateTraversalGuard.js';
 
 installFrontYardWorld();
 
@@ -114,6 +114,7 @@ function runSimulationStep(state, dt) {
   if (dt <= 0) return;
   applyRuntimeObjectCorrections();
   updateFrontYardEnvironment(state, dt);
+  requestGateForApproachingEntities(state, dt);
   updateHouseTidiness(state);
   updatePoolActivity(state, dt);
   captureGateTraversalState(state);
