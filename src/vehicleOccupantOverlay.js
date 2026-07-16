@@ -2,11 +2,20 @@ import { byId } from './state.js';
 import { isBikeLikeVehicle } from './bikeMountRenderer.js';
 
 export function drawVehicleOccupantOverlay(ctx, state) {
-  if (state.floor !== 3) return;
   const vehicle = state.vehicleDeparture || state.vehicleReturn;
-  if (!vehicle) return;
+  if (!vehicle || state.floor !== vehicle.floor) return;
+  if (state.floor === 7 && isBikeLikeVehicle(vehicle)) return;
+  const w = vehicle.w || 116;
+  const h = vehicle.h || 230;
+  const cx = (vehicle.x || 0) + w / 2;
+  const cy = (vehicle.y || 0) + h / 2;
   ctx.save();
   ctx.shadowColor = 'transparent';
+  if (state.floor === 7 && Number.isFinite(vehicle.renderAngle)) {
+    ctx.translate(cx, cy);
+    ctx.rotate(vehicle.renderAngle);
+    ctx.translate(-cx, -cy);
+  }
   if (isBikeLikeVehicle(vehicle)) drawMountedBikePeople(ctx, state, vehicle);
   else drawGlassRoofOccupants(ctx, state, vehicle);
   ctx.restore();
