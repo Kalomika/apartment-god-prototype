@@ -2,6 +2,20 @@ const DRIVEWAY_FLOOR = 7;
 const GATE_Y = 414;
 const OPEN_THRESHOLD = .72;
 
+export function requestGateForApproachingEntities(state, dt) {
+  const approaching = (state.entities || []).some(entity => {
+    if (!entity || entity.hidden || entity.floor !== DRIVEWAY_FLOOR) return false;
+    if (Math.abs(entity.y - GATE_Y) > 130) return false;
+    return (entity.path || []).some(point => crossedGate(entity.y, point.y));
+  });
+  if (!approaching) return;
+  state.frontGate ??= { open: 0, requested: false };
+  if (!state.frontGate.requested) {
+    state.frontGate.requested = true;
+    state.frontGate.open = Math.min(1, Number(state.frontGate.open || 0) + dt * 1.8);
+  }
+}
+
 export function captureGateTraversalState(state) {
   state.gateTraversalSnapshots ??= {};
   for (const entity of state.entities || []) {
