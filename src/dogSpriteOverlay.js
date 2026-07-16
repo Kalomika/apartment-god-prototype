@@ -1,6 +1,6 @@
 const DOG_ATLAS = new Image();
 DOG_ATLAS.decoding = 'async';
-DOG_ATLAS.src = `${new URL('../assets/sprites/characters/dog/top_down_dog_atlas.svg', import.meta.url).href}?v=20260714-brown-white-dog-atlas`;
+DOG_ATLAS.src = `${new URL('../assets/sprites/characters/dog/top_down_dog_atlas.svg', import.meta.url).href}?v=20260716-mature-top-down-anatomy`;
 
 const FRAME = 128;
 const FRAME_MAP = { north: 0, south: 1, east: 2, west: 3 };
@@ -17,11 +17,12 @@ function drawDogAtlasFrame(ctx, dog, direction, selected) {
   if (!DOG_ATLAS.complete || DOG_ATLAS.naturalWidth === 0) return;
   const moving = Array.isArray(dog.path) && dog.path.length > 0;
   const frame = FRAME_MAP[direction] ?? 1;
-  const bob = moving ? Math.sin(performance.now() / 120) * 1.4 : 0;
+  const bob = moving ? Math.sin(performance.now() / 150) * .7 : 0;
   ctx.save();
   ctx.translate(dog.x, dog.y + bob);
+  drawGroundShadow(ctx, moving);
   if (selected) drawSelectionRing(ctx);
-  ctx.drawImage(DOG_ATLAS, frame * FRAME, 0, FRAME, FRAME, -37, -44, 74, 74);
+  ctx.drawImage(DOG_ATLAS, frame * FRAME, 0, FRAME, FRAME, -40, -48, 80, 80);
   ctx.restore();
 }
 
@@ -35,11 +36,20 @@ function resolveDogDirection(dog) {
   return direction;
 }
 
+function drawGroundShadow(ctx, moving) {
+  ctx.save();
+  ctx.fillStyle = moving ? 'rgba(20,24,30,.17)' : 'rgba(20,24,30,.21)';
+  ctx.beginPath();
+  ctx.ellipse(0, 21, moving ? 27 : 29, moving ? 13 : 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawSelectionRing(ctx) {
   ctx.strokeStyle = '#f1c66a';
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.ellipse(0, 3, 31, 21, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, 3, 33, 23, 0, 0, Math.PI * 2);
   ctx.stroke();
 }
 
@@ -55,14 +65,14 @@ function drawDogUi(ctx, dog) {
 function drawActionBar(ctx, dog) {
   const total = Math.max(1, Number(dog.actionTotal || dog.actionT || 1));
   const pct = Math.max(0, Math.min(1, 1 - Number(dog.actionT || 0) / total));
-  round(ctx, -34, 35, 68, 8, 5, 'rgba(10,12,18,.84)');
-  round(ctx, -32, 37, 64 * pct, 4, 3, '#f1c66a');
+  round(ctx, -34, 37, 68, 8, 5, 'rgba(10,12,18,.84)');
+  round(ctx, -32, 39, 64 * pct, 4, 3, '#f1c66a');
 }
 
 function drawBubble(ctx, text, style = 'speech') {
   if (!text) return;
   const w = Math.max(58, text.length * 7 + 18);
-  const y = -58;
+  const y = -62;
   round(ctx, -w / 2, y, w, 24, 10, style === 'thought' ? '#e9f2ff' : '#f8fbff');
   ctx.fillStyle = OUTLINE;
   ctx.font = '900 10px system-ui';
