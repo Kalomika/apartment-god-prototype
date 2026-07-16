@@ -2,7 +2,7 @@
 
 Status: NEEDS_TESTING
 Branch: phaser-migration
-Commit: implementation range 3aadba5d1d34c20c937fdacdf874792c2e2ae42f through 1c76ea83720075f94434f9f4eab6f340c515069f
+Commit: runtime implementation range 3aadba5d1d34c20c937fdacdf874792c2e2ae42f through 76f2a3aadcf1b9f393c1c351f90f71ad55223275, regression test 1c76ea83720075f94434f9f4eab6f340c515069f
 Files changed: src/mainFloorLayoutPolish.js, src/poolActivitySystem.js, src/arcadeSystem.js, src/basketballSystem.js, src/frontYardDriveway.js, src/frontYardRoutingCorrection.js, src/gateTraversalGuard.js, src/offsiteOverlay.js, src/panicRoomCorrection.js, src/garageDoorAlignmentOverlay.js, src/runtimeObjectCorrections.js, src/rendering.js, src/canvasRuntime.js, src/main.js, src/config.js, src/dogSpriteOverlay.js, src/vehicleOccupantOverlay.js, assets/sprites/characters/dog/top_down_dog_atlas.svg, tests/layer-vehicle-games-regression.test.js, and production append files
 Runtime files changed: yes
 Render playable branch updated: no
@@ -24,6 +24,7 @@ Implementation details:
 - Added three arcade simulations, Neon Fighter, Orbit Pong, and Night Racer. The arcade overlay shows a nearby game screen and actor arms and hands following joystick and button input.
 - Replaced the global blank offsite scene with a compact progress bar. When the selected traveler is hidden, selection and camera return to a visible home actor so the house remains playable.
 - Added a larger one on one basketball court and a dedicated basketball state machine with score, dribbling, two point shots, three point shots, layups, dunks, misses, backboard and rim rebounds, loose ball pursuit, possession changes, win conditions, urgent need interruption, and manual interruption.
+- Added distinct basketball action overlays for dribbling, defensive stance, shot contests, two point and three point releases, layups, dunks, and rebound reaches. Player headings now follow the drive, opponent, and hoop direction.
 - Added regression tests covering closed and open gate crossing, offsite home selection, pool shot stance, arcade actions, and basketball action registration.
 
 Testing performed:
