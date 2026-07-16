@@ -2,7 +2,7 @@
 
 Status: NEEDS_TESTING
 Branch: phaser-migration
-Commit: runtime implementation range 3aadba5d1d34c20c937fdacdf874792c2e2ae42f through c613eca592adf50d21a10c5a77e4305e26d808b1, basketball action poses 76f2a3aadcf1b9f393c1c351f90f71ad55223275, regression tests through 2437f8acd60b434dfd1b8af2174b743a46cf85c0
+Commit: runtime implementation range 3aadba5d1d34c20c937fdacdf874792c2e2ae42f through 3051f13f5b88d392bd12f8f082cdd519e05ac22a, regression tests through 2437f8acd60b434dfd1b8af2174b743a46cf85c0
 Files changed: src/mainFloorLayoutPolish.js, src/poolActivitySystem.js, src/arcadeSystem.js, src/basketballSystem.js, src/frontYardDriveway.js, src/frontYardRoutingCorrection.js, src/gateTraversalGuard.js, src/offsiteOverlay.js, src/panicRoomCorrection.js, src/garageDoorAlignmentOverlay.js, src/runtimeObjectCorrections.js, src/rendering.js, src/canvasRuntime.js, src/main.js, src/config.js, src/dogSpriteOverlay.js, src/vehicleOccupantOverlay.js, assets/sprites/characters/dog/top_down_dog_atlas.svg, tests/layer-vehicle-games-regression.test.js, and production append files
 Runtime files changed: yes
 Render playable branch updated: no
@@ -25,16 +25,17 @@ Implementation details:
 - Replaced the global blank offsite scene with a compact progress bar. When the selected traveler is hidden, selection and camera return to a visible home actor so the house remains playable.
 - Added a larger one on one basketball court and a dedicated basketball state machine with score, dribbling, two point shots, three point shots, layups, dunks, misses, backboard and rim rebounds, loose ball pursuit, possession changes, win conditions, urgent need interruption, and manual interruption.
 - Added distinct basketball action overlays for dribbling, defensive stance, shot contests, two point and three point releases, layups, dunks, and rebound reaches. Player headings now follow the drive, opponent, and hoop direction.
+- Basketball invitations now route the opponent through the existing floor travel, porch, and front yard path system. The opponent walks to the court before the game forms instead of appearing there.
 - Added regression tests covering closed and open gate crossing, gate requests from both directions, offsite home selection, pool shot stance, arcade actions, and basketball action registration.
 
 Testing performed:
 Verified by code inspection and GitHub branch comparison. Local syntax checks were performed on key renderer and driveway drafts before commit. A Vitest regression file was added, but the full repository test, build, mobile browser, and Render behavior were not executed in this chat.
 
 Testing requested:
-On phaser-migration, test boot and Reset first. Then test the main floor dining table, chairs, room wall, and sink at several activity states; pool solo and together for several turns; dog movement in four directions; human and dog shadows; upstairs panic room approach; all three arcade games; SUV, convertible, bicycle, motorbike, and ATV departures and returns; closed gate pedestrian crossing from both sides; porch and driveway transitions; a full errand while controlling the remaining home actor; and a full one on one basketball game through makes, misses, rebounds, loose balls, scoring, completion, and interruption.
+On phaser-migration, test boot and Reset first. Then test the main floor dining table, chairs, room wall, and sink at several activity states; pool solo and together for several turns; dog movement in four directions; human and dog shadows; upstairs panic room approach; all three arcade games; SUV, convertible, bicycle, motorbike, and ATV departures and returns; closed gate pedestrian crossing from both sides; porch and driveway transitions; a full errand while controlling the remaining home actor; and a full one on one basketball game through opponent arrival, makes, misses, rebounds, loose balls, scoring, completion, and interruption.
 
 Known risks:
-This is committed runtime work without browser verification. The basketball opponent currently enters the isolated front yard test floor through a controlled placement fallback because the broader compound transition animation is not yet a complete walk through every screen. Arcade games are playable simulation loops inside the existing activity system, not standalone player controlled commercial games. The new vector dog still needs visual approval at mobile scale. Main remains untouched, so the current Render URL will not show this branch until Kam explicitly requests a main update.
+This is committed runtime work without browser verification. Arcade games are playable simulation loops inside the existing activity system, not standalone player controlled commercial games. The new vector dog still needs visual approval at mobile scale. Multi floor basketball invitation routing depends on the newly connected porch and front yard doorway graph and must be browser tested. Main remains untouched, so the current Render URL will not show this branch until Kam explicitly requests a main update.
 
 Follow ups:
 Run npm check, Vitest, build, and mobile browser testing in an environment with repository execution access. Correct any live path, scale, or render ordering issues found. Merge this append into the canonical ongoing log during the next safe documentation sync.
