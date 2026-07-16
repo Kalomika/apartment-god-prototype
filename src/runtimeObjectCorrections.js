@@ -1,10 +1,12 @@
 import { objects } from './world.js';
+import { applyPanicRoomCorrection } from './panicRoomCorrection.js';
 
 const VEHICLE_KINDS = new Set(['car', 'bike', 'motorbike', 'atv']);
 const COLLISION_KIND = 'soccer_field';
 
 export function applyRuntimeObjectCorrections() {
-  patchObject('sink', { x: 650, y: 94, w: 64, h: 40, solid: true, enterable: false, facing: 'down' });
+  patchObject('sink', { x: 716, y: 98, w: 44, h: 54, solid: true, enterable: false, facing: 'west' });
+  patchObject('dining_table', { x: 498, y: 230, w: 174, h: 58, solid: true, enterable: false });
 
   for (const id of [
     'couch', 'office_couch', 'basement_couch', 'bed', 'lab_bed', 'lab_pose_chair',
@@ -16,6 +18,7 @@ export function applyRuntimeObjectCorrections() {
     patchObject(id, { solid: true, enterable: false });
   }
 
+  applyPanicRoomCorrection();
   syncVehicleCollisionBlocks();
 }
 
@@ -61,4 +64,3 @@ function syncVehicleCollisionBlocks() {
 }
 
 applyRuntimeObjectCorrections();
-if (typeof window !== 'undefined') window.setInterval(applyRuntimeObjectCorrections, 250);
