@@ -5,6 +5,8 @@ const TABLE_MARGIN_X = 58;
 const TABLE_MARGIN_Y = 48;
 const BALL_RADIUS = 7;
 const SETTLE_SPEED = 5;
+const POOL_WALK_SPEED = 84;
+const ARRIVAL_RADIUS = 6;
 
 export function updatePoolActivity(state, dt) {
   const table = getObject('pool_table');
@@ -19,7 +21,6 @@ export function updatePoolActivity(state, dt) {
   const game = ensurePoolGame(state, table);
   game.activeActorIds = actors.map(actor => actor.id);
   game.turnIndex = Math.max(0, Math.min(game.turnIndex || 0, actors.length - 1));
-
   const ballsMoving = game.balls.some(ball => !ball.pocketed && Math.hypot(ball.vx || 0, ball.vy || 0) > SETTLE_SPEED);
   actors.forEach((actor, index) => updatePoolActor(state, actor, table, dt, index, actors.length, ballsMoving));
 }
@@ -28,18 +29,27 @@ export function poolShotStanceForTest(table, cue, target) {
   return shotStance(table, cue, target);
 }
 
+export function poolPerimeterPathForTest(from, to, table) {
+  return pathAroundTable(from, to, table);
+}
+
+export function stepPoolRouteForTest(actor, route, dt, speed = POOL_WALK_SPEED) {
+  actor.poolRoute = { points: route.map(point => ({ ...point })), key: 'test' };
+  return stepPoolRoute(actor, dt, speed);
+}
+
 function activePoolActors(state, floor) {
-  return (state.entities || []).filter(e => {
-    if (!e || e.hidden || e.type !== 'person' || e.floor !== floor) return false;
-    if (!(Number(e.actionT || 0) > 0)) return false;
-    const key = `${e.currentActionId || ''} ${e.action || ''} ${e.pose || ''}`.toLowerCase();
+  return (state.entities || []).filter(entity => {
+    if (!entity || entity.hidden || entity.type !== 'person' || entity.floor !== floor) return false;
+    if (!(Number(entity.actionT || 0) > 0)) return false;
+    const key = `${entity.currentActionId || ''} ${entity.action || ''} ${entity.pose || ''}`.toLowerCase();
     return key.includes('pool_solo') || key.includes('pool_together') || key.includes('pool practice') || key.includes('pool match') || key.includes('pool:');
   }).sort((a, b) => a.id.localeCompare(b.id));
 }
 
 function ensurePoolGame(state, table) {
   if (state.poolGame?.tableId === table.id && Array.isArray(state.poolGame.balls)) return state.poolGame;
-  const cy = table.y + table.h / 2;
+  const centerY = table.y + table.h / 2;
   state.poolGame = {
     tableId: table.id,
     floor: table.floor,
@@ -53,11 +63,11 @@ function ensurePoolGame(state, table) {
     messageT: 1.5,
     pockets: pocketsFor(table),
     balls: [
-      { id: 'cue', x: table.x + 72, y: cy, vx: 0, vy: 0, fill: '#f8fbff' },
-      { id: 'one', value: 1, x: table.x + table.w - 78, y: cy, vx: 0, vy: 0, fill: '#f1c66a' },
-      { id: 'two', value: 2, x: table.x + table.w - 55, y: cy - 14, vx: 0, vy: 0, fill: '#74e6ff' },
-      { id: 'three', value: 3, x: table.x + table.w - 55, y: cy + 14, vx: 0, vy: 0, fill: '#ff75df' },
-      { id: 'four', value: 4, x: table.x + table.w - 32, y: cy, vx: 0, vy: 0, fill: '#b66d55' }
+      { id: 'cue', x: table.x + 72, y: centerY, vx: 0, vy: 0, fill: '#f8fbff' },
+      { id: 'one', value: 1, x: table.x + table.w - 78, y: centerY, vx: 0, vy: 0, fill: '#f1c66a' },
+      { id: 'two', value: 2, x: table.x + table.w - 55, y: centerY - 14, vx: 0, vy: 0, fill: '#74e6ff' },
+      { id: 'three', value: 3, x: table.x + table.w - 55, y: centerY + 14, vx: 0, vy: 0, fill: '#ff75df' },
+      { id: 'four', value: 4, x: table.x + table.w - 32, y: centerY, vx: 0, vy: 0, fill: '#b66d55' }
     ]
   };
   return state.poolGame;
@@ -67,22 +77,31 @@ function updatePoolActor(state, actor, table, dt, actorIndex, actorCount, ballsM
   const game = ensurePoolGame(state, table);
   actor.carrying = 'cue_stick';
   actor.poolShotCooldown = Math.max(0, Number(actor.poolShotCooldown || 0) - dt);
+  actor.path = [];
+  actor.target = null;
+  actor.pending = null;
+  actor.moveAllowId = '';
   const shooter = actorIndex === game.turnIndex;
 
   if (!shooter) {
     const wait = waitingStation(table, actorIndex, actorCount, game.turnIndex);
-    moveActorToStableStation(actor, wait, table, 'Pool: watching opponent');
-    if (!actor.path?.length) {
+    const arrived = moveActorToStableStation(actor, wait, table, 'Pool: moving to waiting position', dt);
+    if (arrived) {
       actor.pose = 'stand';
       actor.action = 'Pool: watching opponent';
+      actor.vx = 0;
+      actor.vy = 0;
+      facePoint(actor, tableCenter(table));
     }
     return;
   }
 
   if (ballsMoving) {
-    actor.path = [];
+    actor.poolRoute = null;
     actor.pose = 'pool';
     actor.action = 'Pool: watching balls';
+    actor.vx = 0;
+    actor.vy = 0;
     return;
   }
 
@@ -91,6 +110,7 @@ function updatePoolActor(state, actor, table, dt, actorIndex, actorCount, ballsM
   if (!target) {
     resetRack(game, table);
     game.turnStance = null;
+    actor.poolRoute = null;
     return;
   }
 
@@ -105,15 +125,13 @@ function updatePoolActor(state, actor, table, dt, actorIndex, actorCount, ballsM
   }
 
   const stance = game.turnStance;
-  const distance = Math.hypot(actor.x - stance.x, actor.y - stance.y);
-  if (distance > 10) {
-    moveActorToStableStation(actor, stance, table, 'Pool: circling table');
-    return;
-  }
+  const arrived = moveActorToStableStation(actor, stance, table, 'Pool: circling table', dt);
+  if (!arrived) return;
 
-  actor.path = [];
   actor.x = stance.x;
   actor.y = stance.y;
+  actor.vx = 0;
+  actor.vy = 0;
   actor.pose = 'pool';
   actor.action = 'Pool: lining up shot';
   facePoint(actor, cue);
@@ -126,41 +144,103 @@ function updatePoolActor(state, actor, table, dt, actorIndex, actorCount, ballsM
   game.turnIndex = actorCount > 1 ? (game.turnIndex + 1) % actorCount : 0;
   game.turnSerial = (game.turnSerial || 0) + 1;
   game.turnStance = null;
+  actor.poolRoute = null;
 }
 
-function moveActorToStableStation(actor, station, table, label) {
-  if (actor.path?.length) {
-    actor.action = label;
-    actor.pose = 'walk';
-    return;
+function moveActorToStableStation(actor, station, table, label, dt) {
+  const distance = Math.hypot(actor.x - station.x, actor.y - station.y);
+  if (distance <= ARRIVAL_RADIUS) {
+    actor.poolRoute = null;
+    actor.x = station.x;
+    actor.y = station.y;
+    actor.vx = 0;
+    actor.vy = 0;
+    return true;
   }
-  if (Math.hypot(actor.x - station.x, actor.y - station.y) <= 10) return;
-  actor.path = pathAroundTable({ x: actor.x, y: actor.y }, station, table);
-  actor.speed = 84;
-  actor.pose = 'walk';
+
+  const routeKey = `${Math.round(station.x)}:${Math.round(station.y)}`;
+  if (!actor.poolRoute || actor.poolRoute.key !== routeKey || !actor.poolRoute.points?.length) {
+    actor.poolRoute = { key: routeKey, points: pathAroundTable({ x: actor.x, y: actor.y }, station, table) };
+  }
+
+  const arrived = stepPoolRoute(actor, dt, POOL_WALK_SPEED);
   actor.action = label;
-  actor.target = null;
-  actor.pending = null;
-  actor.moveAllowId = '';
+  actor.pose = arrived ? 'stand' : 'walk';
+  actor.speed = POOL_WALK_SPEED;
+  return arrived;
+}
+
+function stepPoolRoute(actor, dt, speed) {
+  const route = actor.poolRoute;
+  if (!route?.points?.length) {
+    actor.poolRoute = null;
+    actor.vx = 0;
+    actor.vy = 0;
+    return true;
+  }
+
+  let remaining = Math.max(0, speed * dt);
+  let moved = false;
+  while (remaining > 0 && route.points.length) {
+    const point = route.points[0];
+    const deltaX = point.x - actor.x;
+    const deltaY = point.y - actor.y;
+    const distance = Math.hypot(deltaX, deltaY);
+    if (distance <= Math.max(.01, remaining)) {
+      actor.x = point.x;
+      actor.y = point.y;
+      route.points.shift();
+      remaining -= distance;
+      moved = moved || distance > .01;
+      if (distance > .01) setPoolMotion(actor, deltaX / distance, deltaY / distance, speed);
+      continue;
+    }
+    const normalX = deltaX / distance;
+    const normalY = deltaY / distance;
+    actor.x += normalX * remaining;
+    actor.y += normalY * remaining;
+    setPoolMotion(actor, normalX, normalY, speed);
+    remaining = 0;
+    moved = true;
+  }
+
+  if (!route.points.length) {
+    actor.poolRoute = null;
+    actor.vx = 0;
+    actor.vy = 0;
+    return true;
+  }
+  if (!moved) {
+    actor.vx = 0;
+    actor.vy = 0;
+  }
+  return false;
+}
+
+function setPoolMotion(actor, normalX, normalY, speed) {
+  actor.vx = normalX * speed;
+  actor.vy = normalY * speed;
+  actor.lastHeading = Math.atan2(normalY, normalX) + Math.PI / 2;
+  actor.spriteDirection = Math.abs(normalX) >= Math.abs(normalY) ? (normalX < 0 ? 'west' : 'east') : (normalY < 0 ? 'north' : 'south');
 }
 
 function waitingStation(table, actorIndex, actorCount, turnIndex) {
   const side = (actorIndex + turnIndex + 2) % 4;
   const stations = [
-    { x: table.x + table.w / 2, y: table.y - TABLE_MARGIN_Y - 14 },
-    { x: table.x + table.w + TABLE_MARGIN_X + 14, y: table.y + table.h / 2 },
-    { x: table.x + table.w / 2, y: table.y + table.h + TABLE_MARGIN_Y + 14 },
-    { x: table.x - TABLE_MARGIN_X - 14, y: table.y + table.h / 2 }
+    { x: table.x + table.w / 2, y: table.y - TABLE_MARGIN_Y - 18 },
+    { x: table.x + table.w + TABLE_MARGIN_X + 18, y: table.y + table.h / 2 },
+    { x: table.x + table.w / 2, y: table.y + table.h + TABLE_MARGIN_Y + 18 },
+    { x: table.x - TABLE_MARGIN_X - 18, y: table.y + table.h / 2 }
   ];
   const offset = actorCount > 2 ? (actorIndex - (actorCount - 1) / 2) * 18 : 0;
-  const p = { ...stations[side] };
-  if (side % 2 === 0) p.x += offset;
-  else p.y += offset;
-  return p;
+  const point = { ...stations[side] };
+  if (side % 2 === 0) point.x += offset;
+  else point.y += offset;
+  return point;
 }
 
 function cueBall(game, table) {
-  let cue = game.balls.find(b => b.id === 'cue');
+  let cue = game.balls.find(ball => ball.id === 'cue');
   if (!cue) {
     cue = { id: 'cue', x: table.x + 72, y: table.y + table.h / 2, vx: 0, vy: 0, fill: '#f8fbff' };
     game.balls.unshift(cue);
@@ -171,9 +251,9 @@ function cueBall(game, table) {
 
 function chooseTargetBall(game, table) {
   const cue = cueBall(game, table);
-  const live = game.balls.filter(b => b.id !== 'cue' && !b.pocketed);
+  const live = game.balls.filter(ball => ball.id !== 'cue' && !ball.pocketed);
   if (!live.length) return null;
-  return live.map(b => ({ ball: b, d: Math.hypot(b.x - cue.x, b.y - cue.y) })).sort((a, b) => a.d - b.d)[0].ball;
+  return live.map(ball => ({ ball, distance: Math.hypot(ball.x - cue.x, ball.y - cue.y) })).sort((a, b) => a.distance - b.distance)[0].ball;
 }
 
 function shotStance(table, cue, target, actorIndex = 0, actorCount = 1) {
@@ -187,30 +267,30 @@ function shotStance(table, cue, target, actorIndex = 0, actorCount = 1) {
   return clampToSide({ x: cue.x + offset, y: table.y + table.h + TABLE_MARGIN_Y }, table, 'south');
 }
 
-function dominantSide(v) {
-  if (Math.abs(v.x) >= Math.abs(v.y)) return v.x < 0 ? 'west' : 'east';
-  return v.y < 0 ? 'north' : 'south';
+function dominantSide(vector) {
+  if (Math.abs(vector.x) >= Math.abs(vector.y)) return vector.x < 0 ? 'west' : 'east';
+  return vector.y < 0 ? 'north' : 'south';
 }
 
-function sideOfPoint(p, table) {
+function sideOfPoint(point, table) {
   const distances = [
-    ['west', Math.abs(p.x - (table.x - TABLE_MARGIN_X))],
-    ['east', Math.abs(p.x - (table.x + table.w + TABLE_MARGIN_X))],
-    ['north', Math.abs(p.y - (table.y - TABLE_MARGIN_Y))],
-    ['south', Math.abs(p.y - (table.y + table.h + TABLE_MARGIN_Y))]
+    ['west', Math.abs(point.x - (table.x - TABLE_MARGIN_X))],
+    ['east', Math.abs(point.x - (table.x + table.w + TABLE_MARGIN_X))],
+    ['north', Math.abs(point.y - (table.y - TABLE_MARGIN_Y))],
+    ['south', Math.abs(point.y - (table.y + table.h + TABLE_MARGIN_Y))]
   ];
   return distances.sort((a, b) => a[1] - b[1])[0][0];
 }
 
-function clampToSide(p, table, side) {
-  const minY = table.y - TABLE_MARGIN_Y;
-  const maxY = table.y + table.h + TABLE_MARGIN_Y;
-  const minX = table.x - TABLE_MARGIN_X;
-  const maxX = table.x + table.w + TABLE_MARGIN_X;
-  if (side === 'west') return { x: table.x - TABLE_MARGIN_X, y: clamp(p.y, minY, maxY) };
-  if (side === 'east') return { x: table.x + table.w + TABLE_MARGIN_X, y: clamp(p.y, minY, maxY) };
-  if (side === 'north') return { x: clamp(p.x, minX, maxX), y: table.y - TABLE_MARGIN_Y };
-  return { x: clamp(p.x, minX, maxX), y: table.y + table.h + TABLE_MARGIN_Y };
+function clampToSide(point, table, side) {
+  const minimumY = table.y - TABLE_MARGIN_Y;
+  const maximumY = table.y + table.h + TABLE_MARGIN_Y;
+  const minimumX = table.x - TABLE_MARGIN_X;
+  const maximumX = table.x + table.w + TABLE_MARGIN_X;
+  if (side === 'west') return { x: table.x - TABLE_MARGIN_X, y: clamp(point.y, minimumY, maximumY) };
+  if (side === 'east') return { x: table.x + table.w + TABLE_MARGIN_X, y: clamp(point.y, minimumY, maximumY) };
+  if (side === 'north') return { x: clamp(point.x, minimumX, maximumX), y: table.y - TABLE_MARGIN_Y };
+  return { x: clamp(point.x, minimumX, maximumX), y: table.y + table.h + TABLE_MARGIN_Y };
 }
 
 function pathAroundTable(from, to, table) {
@@ -226,30 +306,49 @@ function pathAroundTable(from, to, table) {
   const sideCorners = { north: [corners[0], corners[1]], east: [corners[1], corners[2]], south: [corners[2], corners[3]], west: [corners[3], corners[0]] };
   let best = [to];
   let bestLength = Infinity;
-  for (const start of sideCorners[fromSide]) for (const end of sideCorners[toSide]) for (const dir of [-1, 1]) {
-    const path = [...cornerRoute(corners, start, end, dir), to];
-    const len = pathLength(from, path);
-    if (len < bestLength) { best = path; bestLength = len; }
+  for (const start of sideCorners[fromSide]) {
+    for (const end of sideCorners[toSide]) {
+      for (const direction of [-1, 1]) {
+        const path = [...cornerRoute(corners, start, end, direction), to];
+        const length = pathLength(from, path);
+        if (length < bestLength) {
+          best = path;
+          bestLength = length;
+        }
+      }
+    }
   }
-  return best;
+  return dedupeRoute(best);
 }
 
-function cornerRoute(corners, start, end, dir) {
+function cornerRoute(corners, start, end, direction) {
   const route = [];
-  let index = corners.findIndex(c => c.id === start.id);
-  const endIndex = corners.findIndex(c => c.id === end.id);
+  let index = corners.findIndex(corner => corner.id === start.id);
+  const endIndex = corners.findIndex(corner => corner.id === end.id);
   route.push(corners[index]);
   while (index !== endIndex) {
-    index = (index + dir + corners.length) % corners.length;
+    index = (index + direction + corners.length) % corners.length;
     route.push(corners[index]);
   }
   return route;
 }
 
+function dedupeRoute(route) {
+  const output = [];
+  for (const point of route) {
+    const previous = output[output.length - 1];
+    if (!previous || Math.hypot(point.x - previous.x, point.y - previous.y) > .5) output.push({ x: point.x, y: point.y });
+  }
+  return output;
+}
+
 function pathLength(from, path) {
   let total = 0;
-  let prev = from;
-  for (const point of path) { total += Math.hypot(point.x - prev.x, point.y - prev.y); prev = point; }
+  let previous = from;
+  for (const point of path) {
+    total += Math.hypot(point.x - previous.x, point.y - previous.y);
+    previous = point;
+  }
   return total;
 }
 
@@ -284,8 +383,13 @@ function updatePoolBallPhysics(state, dt, table) {
     if (Math.abs(ball.vx) < .3) ball.vx = 0;
     if (Math.abs(ball.vy) < .3) ball.vy = 0;
     if (ball.id !== 'cue') {
-      const pocket = pockets.find(p => Math.hypot(ball.x - p.x, ball.y - p.y) < 15);
-      if (pocket) { ball.pocketed = true; ball.vx = 0; ball.vy = 0; continue; }
+      const pocket = pockets.find(candidate => Math.hypot(ball.x - candidate.x, ball.y - candidate.y) < 15);
+      if (pocket) {
+        ball.pocketed = true;
+        ball.vx = 0;
+        ball.vy = 0;
+        continue;
+      }
     }
     if (ball.x < table.x + BALL_RADIUS || ball.x > table.x + table.w - BALL_RADIUS) {
       ball.vx *= -.55;
@@ -296,29 +400,32 @@ function updatePoolBallPhysics(state, dt, table) {
       ball.y = clamp(ball.y, table.y + BALL_RADIUS, table.y + table.h - BALL_RADIUS);
     }
   }
-  if (!game.balls.some(b => b.id !== 'cue' && !b.pocketed)) resetRack(game, table);
+  if (!game.balls.some(ball => ball.id !== 'cue' && !ball.pocketed)) resetRack(game, table);
 }
 
 function resetRack(game, table) {
-  const cy = table.y + table.h / 2;
+  const centerY = table.y + table.h / 2;
   const rack = [
-    ['one', 1, table.x + table.w - 78, cy, '#f1c66a'],
-    ['two', 2, table.x + table.w - 55, cy - 14, '#74e6ff'],
-    ['three', 3, table.x + table.w - 55, cy + 14, '#ff75df'],
-    ['four', 4, table.x + table.w - 32, cy, '#b66d55']
+    ['one', 1, table.x + table.w - 78, centerY, '#f1c66a'],
+    ['two', 2, table.x + table.w - 55, centerY - 14, '#74e6ff'],
+    ['three', 3, table.x + table.w - 55, centerY + 14, '#ff75df'],
+    ['four', 4, table.x + table.w - 32, centerY, '#b66d55']
   ];
   for (const [id, value, x, y, fill] of rack) {
-    let ball = game.balls.find(b => b.id === id);
-    if (!ball) { ball = { id, value, fill }; game.balls.push(ball); }
+    let ball = game.balls.find(candidate => candidate.id === id);
+    if (!ball) {
+      ball = { id, value, fill };
+      game.balls.push(ball);
+    }
     Object.assign(ball, { x, y, vx: 0, vy: 0, pocketed: false, value, fill });
   }
-  Object.assign(cueBall(game, table), { x: table.x + 72, y: cy, vx: 0, vy: 0, pocketed: false });
+  Object.assign(cueBall(game, table), { x: table.x + 72, y: centerY, vx: 0, vy: 0, pocketed: false });
   game.turnStance = null;
   game.turnSerial = (game.turnSerial || 0) + 1;
 }
 
 function bestPocketFor(game, target) {
-  return (game.pockets || []).map(p => ({ pocket: p, d: Math.hypot(p.x - target.x, p.y - target.y) })).sort((a, b) => a.d - b.d)[0]?.pocket || { x: target.x + 40, y: target.y };
+  return (game.pockets || []).map(pocket => ({ pocket, distance: Math.hypot(pocket.x - target.x, pocket.y - target.y) })).sort((a, b) => a.distance - b.distance)[0]?.pocket || { x: target.x + 40, y: target.y };
 }
 
 function pocketsFor(table) {
@@ -330,7 +437,11 @@ function pocketsFor(table) {
 
 function facePoint(actor, point) {
   actor.lastHeading = Math.atan2(point.y - actor.y, point.x - actor.x) + Math.PI / 2;
+  const deltaX = point.x - actor.x;
+  const deltaY = point.y - actor.y;
+  actor.spriteDirection = Math.abs(deltaX) >= Math.abs(deltaY) ? (deltaX < 0 ? 'west' : 'east') : (deltaY < 0 ? 'north' : 'south');
 }
 
-function unit(x, y) { const mag = Math.max(.001, Math.hypot(x, y)); return { x: x / mag, y: y / mag }; }
-function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+function tableCenter(table) { return { x: table.x + table.w / 2, y: table.y + table.h / 2 }; }
+function unit(x, y) { const magnitude = Math.max(.001, Math.hypot(x, y)); return { x: x / magnitude, y: y / magnitude }; }
+function clamp(value, minimum, maximum) { return Math.max(minimum, Math.min(maximum, value)); }
