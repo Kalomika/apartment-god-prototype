@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "status": "NEEDS_TESTING",
+  "branch": "phaser-migration-2",
+  "animationFps": 8,
+  "frameWidth": 128,
+  "frameHeight": 128,
+  "sheetWidth": 512,
+  "sheetHeight": 512,
+  "directionRows": ["south", "west", "east", "north"],
+  "framesPerDirection": 4,
+  "grounding": {
+    "camera": "true top down",
+    "shadow": "faint contact ellipse beneath each active actor",
+    "walkTrigger": "world coordinate displacement greater than 0.08",
+    "stationaryRule": "never play walk animation from an action label alone"
+  },
+  "characters": [
+    {
+      "profile": "resident",
+      "runtimeIds": ["resident"],
+      "sheet": "assets/phaser-migration-2/sprites/characters/resident_8fps_sheet.svg",
+      "textureKey": "pm2-resident-sheet"
+    },
+    {
+      "profile": "girlfriend",
+      "runtimeIds": ["girlfriend", "lab_test_woman", "future female human profiles"],
+      "sheet": "assets/phaser-migration-2/sprites/characters/girlfriend_8fps_sheet.svg",
+      "textureKey": "pm2-girlfriend-sheet"
+    },
+    {
+      "profile": "labSubject",
+      "runtimeIds": ["lab_test_subject"],
+      "sheet": "assets/phaser-migration-2/sprites/characters/lab_subject_8fps_sheet.svg",
+      "textureKey": "pm2-lab-subject-sheet"
+    },
+    {
+      "profile": "dog",
+      "runtimeIds": ["dog", "future dog profiles"],
+      "sheet": "assets/phaser-migration-2/sprites/characters/dog_8fps_sheet.svg",
+      "textureKey": "pm2-dog-sheet"
+    }
+  ],
+  "poolActivity": {
+    "entry": "actor walks along explicit perimeter waypoints to the current shot or waiting station",
+    "loop": "8 FPS directional walk only while coordinates change",
+    "alignment": "shooter stops at a frozen stance and faces the cue ball before the shot",
+    "exit": "turn advances only after shot launch, then the next actor receives a new station route",
+    "fallback": "none, running in place is rejected"
+  },
+  "knownLimitations": [
+    "These first directional sheets still require browser visual approval at mobile game scale.",
+    "Unique activity sheets beyond pool stance remain a separate required animation expansion.",
+    "The migration branch is not approved for main promotion until direct browser testing passes."
+  ]
+}
