@@ -5,8 +5,10 @@ const canvas = document.getElementById('game');
 
 function fit() {
   const wide = window.innerWidth > window.innerHeight && window.innerWidth >= 760;
-  canvas.width = 960;
-  canvas.height = 720;
+  if (canvas.dataset.phaserOwned !== 'true') {
+    canvas.width = 960;
+    canvas.height = 720;
+  }
   shell.style.display = 'flex';
   shell.style.flexDirection = wide ? 'row' : 'column';
   shell.style.width = '100vw';
