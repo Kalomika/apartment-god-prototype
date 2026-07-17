@@ -9,6 +9,8 @@ Kam tests Apartment God through the Render service attached to `main`.
 
 For user requested runtime work in this project, once the intended source branch is verified and a current `main` backup exists, update `main` to the intended testable branch state so Kam can actually review the result through Render, unless Kam explicitly says not to update Render access.
 
+When Kam asks to restore the previous playable main while a migration branch is being corrected, restore `main` immediately from the confirmed main backup and continue overhaul work only on the migration branch.
+
 This applies to committed work that needs browser testing. It does not mean the work is approved, complete, or production ready. Use `NEEDS_TESTING` until Kam tests it.
 
 ## Safety
