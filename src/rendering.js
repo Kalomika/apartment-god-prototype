@@ -36,18 +36,30 @@ let phoneUiFailed = false;
 let cameraUiFailed = false;
 
 export function draw(ctx, state) {
+  prepareRender(ctx, state);
+  if (state.cameraTransition?.t > 0) drawTransitioningScene(ctx, state, true, true);
+  else drawScene(ctx, state, true, true);
+  drawHudLayers(ctx, state);
+}
+
+export function drawPhaserEnvironment(ctx, state) {
+  prepareRender(ctx, state);
+  if (state.cameraTransition?.t > 0) drawTransitioningScene(ctx, state, false, false);
+  else drawScene(ctx, state, false, false);
+}
+
+export function drawPhaserForeground(ctx, state) {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  drawForegroundLayers(ctx, state);
+  drawHudLayers(ctx, state);
+}
+
+function prepareRender(ctx, state) {
   applyRealismRuntimeCorrections(state);
   applyMainFloorLayoutPolish(state);
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   syncSafePhoneUi(state);
   syncSafeCameraUi(state);
-
-  if (state.cameraTransition?.t > 0) drawTransitioningScene(ctx, state);
-  else drawScene(ctx, state);
-
-  drawStatus(ctx, state);
-  drawOffsiteProgressOverlay(ctx, state);
-  drawCameraTransition(ctx, state, PLAY_W, PLAY_H);
 }
 
 function syncSafePhoneUi(state) {
@@ -62,7 +74,16 @@ function syncSafeCameraUi(state) {
   catch (error) { cameraUiFailed = true; console.error('[Apartment God] Camera navigation UI disabled after render error.', error); }
 }
 
-function drawScene(ctx, state) {
+function drawScene(ctx, state, includeActors, includeForeground) {
+  drawEnvironmentLayers(ctx, state);
+  if (includeActors) {
+    drawEntities(ctx, state);
+    drawDogSpriteOverlay(ctx, state);
+  }
+  if (includeForeground) drawForegroundLayers(ctx, state);
+}
+
+function drawEnvironmentLayers(ctx, state) {
   drawWorld(ctx, state);
   drawFrontYardDriveway(ctx, state);
   drawAnimeEnvironmentUnderlay(ctx, state);
@@ -82,8 +103,9 @@ function drawScene(ctx, state) {
   drawVehicleOccupantOverlay(ctx, state);
   drawGarageDoorAlignmentOverlay(ctx, state);
   drawFetchBall(ctx, state);
-  drawEntities(ctx, state);
-  drawDogSpriteOverlay(ctx, state);
+}
+
+function drawForegroundLayers(ctx, state) {
   drawArcadeSystem(ctx, state);
   drawBasketballSystem(ctx, state);
   drawPanicRoomDoorCorrection(ctx, state);
@@ -96,50 +118,56 @@ function drawScene(ctx, state) {
   drawAnimeTimeLighting(ctx, state);
 }
 
-function drawTransitioningScene(ctx, state) {
-  const tr = state.cameraTransition;
-  if (!Number.isInteger(tr.from) || !Number.isInteger(tr.to)) return drawScene(ctx, state);
-  if (tr.type === 'slide') return drawSlidingScene(ctx, state, tr);
-  return drawVerticalScene(ctx, state, tr);
+function drawHudLayers(ctx, state) {
+  drawStatus(ctx, state);
+  drawOffsiteProgressOverlay(ctx, state);
+  drawCameraTransition(ctx, state, PLAY_W, PLAY_H);
 }
 
-function drawSlidingScene(ctx, state, tr) {
-  const progress = 1 - Math.max(0, Math.min(1, tr.t / tr.total));
-  const dirX = tr.direction?.x || 0;
-  const dirY = tr.direction?.y || 0;
-  const fromX = -dirX * PLAY_W * progress;
-  const fromY = -dirY * PLAY_H * progress;
-  const targetX = dirX * PLAY_W * (1 - progress);
-  const targetY = dirY * PLAY_H * (1 - progress);
+function drawTransitioningScene(ctx, state, includeActors, includeForeground) {
+  const transition = state.cameraTransition;
+  if (!Number.isInteger(transition.from) || !Number.isInteger(transition.to)) return drawScene(ctx, state, includeActors, includeForeground);
+  if (transition.type === 'slide') return drawSlidingScene(ctx, state, transition, includeActors, includeForeground);
+  return drawVerticalScene(ctx, state, transition, includeActors, includeForeground);
+}
+
+function drawSlidingScene(ctx, state, transition, includeActors, includeForeground) {
+  const progress = 1 - Math.max(0, Math.min(1, transition.t / transition.total));
+  const directionX = transition.direction?.x || 0;
+  const directionY = transition.direction?.y || 0;
+  const fromX = -directionX * PLAY_W * progress;
+  const fromY = -directionY * PLAY_H * progress;
+  const targetX = directionX * PLAY_W * (1 - progress);
+  const targetY = directionY * PLAY_H * (1 - progress);
   ctx.save();
   clipPlay(ctx);
-  drawSceneForFloor(ctx, state, tr.to, targetX, targetY);
-  drawSceneForFloor(ctx, state, tr.from, fromX, fromY);
+  drawSceneForFloor(ctx, state, transition.to, targetX, targetY, includeActors, includeForeground);
+  drawSceneForFloor(ctx, state, transition.from, fromX, fromY, includeActors, includeForeground);
   ctx.restore();
 }
 
-function drawVerticalScene(ctx, state, tr) {
-  const progress = 1 - Math.max(0, Math.min(1, tr.t / tr.total));
-  const goingUp = tr.direction === 'up';
+function drawVerticalScene(ctx, state, transition, includeActors, includeForeground) {
+  const progress = 1 - Math.max(0, Math.min(1, transition.t / transition.total));
+  const goingUp = transition.direction === 'up';
   const targetScale = goingUp ? 1.12 - progress * .12 : .92 + progress * .08;
   const targetY = goingUp ? (1 - progress) * 26 : -(1 - progress) * 26;
   ctx.save();
   clipPlay(ctx);
-  drawSceneForFloor(ctx, state, tr.from, 0, 0);
+  drawSceneForFloor(ctx, state, transition.from, 0, 0, includeActors, includeForeground);
   ctx.globalAlpha = Math.max(.12, progress);
   ctx.translate(PLAY_W / 2, PLAY_H / 2 + targetY);
   ctx.scale(targetScale, targetScale);
   ctx.translate(-PLAY_W / 2, -PLAY_H / 2);
-  drawSceneForFloor(ctx, state, tr.to, 0, 0);
+  drawSceneForFloor(ctx, state, transition.to, 0, 0, includeActors, includeForeground);
   ctx.restore();
 }
 
-function drawSceneForFloor(ctx, state, floor, x, y) {
+function drawSceneForFloor(ctx, state, floor, x, y, includeActors, includeForeground) {
   const currentFloor = state.floor;
   state.floor = floor;
   ctx.save();
   ctx.translate(x, y);
-  drawScene(ctx, state);
+  drawScene(ctx, state, includeActors, includeForeground);
   ctx.restore();
   state.floor = currentFloor;
 }
@@ -188,6 +216,15 @@ function drawPoolFx(ctx, state) {
     ctx.beginPath();
     ctx.moveTo(game.cueLine.x1, game.cueLine.y1);
     ctx.lineTo(game.cueLine.x2, game.cueLine.y2);
+    ctx.stroke();
+  }
+  if (game.cueThrust?.t > 0) {
+    ctx.globalAlpha = Math.min(1, game.cueThrust.t * 2);
+    ctx.strokeStyle = '#c99d62';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(game.cueThrust.x1, game.cueThrust.y1);
+    ctx.lineTo(game.cueThrust.x2, game.cueThrust.y2);
     ctx.stroke();
   }
   if (game.messageT > 0 && game.message) {
