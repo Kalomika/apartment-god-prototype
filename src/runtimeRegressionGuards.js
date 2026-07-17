@@ -1,11 +1,13 @@
 import { approachPoint, clampToPlay, getObject, objects } from './world.js';
 import { commandObject } from './movement.js';
+import { cleanupInactivePoolChoreography } from './poolActivityCleanup.js';
 
 const COUCH_CLEARANCE = 38;
 const STOVE_CONTACT_LIMIT = 92;
 
 export function applyRuntimeRegressionGuards(state) {
   if (!state?.entities?.length) return;
+  cleanupInactivePoolChoreography(state);
   for (const entity of state.entities) {
     if (!entity || entity.hidden || entity.type !== 'person') continue;
     guardBadCookingContact(state, entity);
@@ -92,8 +94,8 @@ function nearestStair(entity) {
   const stairList = objects.filter(o => o.floor === entity.floor && o.kind === 'stairs');
   if (!stairList.length) return null;
   return stairList.reduce((best, stair) => {
-    const d = Math.hypot(entity.x - (stair.x + stair.w / 2), entity.y - (stair.y + stair.h / 2));
-    return !best || d < best.d ? { stair, d } : best;
+    const distance = Math.hypot(entity.x - (stair.x + stair.w / 2), entity.y - (stair.y + stair.h / 2));
+    return !best || distance < best.distance ? { stair, distance } : best;
   }, null)?.stair || null;
 }
 
