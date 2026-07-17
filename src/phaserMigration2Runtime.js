@@ -1,6 +1,6 @@
-import { CANVAS_H, CANVAS_W, PLAY_H, PLAY_W } from './config.js';
+import { CANVAS_H, CANVAS_W, PLAY_H } from './config.js';
 import { createState, selected } from './state.js';
-import { floors, getObject, objects } from './world.js';
+import { floors, objects } from './world.js';
 import { createUi } from './ui.js';
 import { updateMovement } from './movement.js';
 import { resolveArrival, updateActions } from './actions.js';
@@ -14,15 +14,18 @@ import { applyRuntimeRegressionGuards } from './runtimeRegressionGuards.js';
 import { updatePoolActivity } from './poolActivitySystem.js';
 import { updateHouseTidiness } from './tidinessSystem.js';
 import { formatTime } from './renderHelpers.js';
+import {
+  CHARACTER_ANIMATION_FPS,
+  clearCharacterVisuals,
+  registerCharacterAnimations,
+  syncCharacterVisuals
+} from './phaserCharacterAnimationSystem.js';
 
 const REFRESH_SAVE_KEY = 'apartment_god_test_refresh_state_v3';
 const ASSET_ROOT = 'assets/phaser-migration-2/sprites';
 
-const TEXTURES = {
+const OBJECT_TEXTURES = {
   room: `${ASSET_ROOT}/environment/room_panel.svg`,
-  resident: `${ASSET_ROOT}/characters/resident_topdown.svg`,
-  girlfriend: `${ASSET_ROOT}/characters/girlfriend_topdown.svg`,
-  dog: `${ASSET_ROOT}/characters/dog_topdown.svg`,
   generic: `${ASSET_ROOT}/objects/generic_object.svg`,
   furniture: `${ASSET_ROOT}/objects/furniture_set.svg`,
   bed: `${ASSET_ROOT}/objects/bed.svg`,
@@ -30,6 +33,13 @@ const TEXTURES = {
   bathroom: `${ASSET_ROOT}/objects/bathroom_fixture.svg`,
   kitchen: `${ASSET_ROOT}/objects/kitchen_fixture.svg`,
   stairs: `${ASSET_ROOT}/objects/stairs.svg`
+};
+
+const CHARACTER_SHEETS = {
+  'resident-sheet': `${ASSET_ROOT}/characters/resident_8fps_sheet.svg`,
+  'girlfriend-sheet': `${ASSET_ROOT}/characters/girlfriend_8fps_sheet.svg`,
+  'lab-subject-sheet': `${ASSET_ROOT}/characters/lab_subject_8fps_sheet.svg`,
+  'dog-sheet': `${ASSET_ROOT}/characters/dog_8fps_sheet.svg`
 };
 
 export async function bootPhaserMigration2Game() {
@@ -65,15 +75,19 @@ function createApartmentGodNativeScene(Phaser) {
       this.lastHiddenTick = 0;
       this.hiddenTicker = null;
       this.nativeObjects = [];
-      this.nativeActors = [];
+      this.pm2ActorVisuals = new Map();
     }
 
     preload() {
       this.loadText = this.add.text(28, 28, 'Apartment God Phaser Migration 2 loading...', {
         fontFamily: 'system-ui', fontSize: 20, fontStyle: '900', color: '#f1c66a'
       }).setDepth(10000);
-      for (const [key, url] of Object.entries(TEXTURES)) {
+
+      for (const [key, url] of Object.entries(OBJECT_TEXTURES)) {
         this.load.svg(`pm2-${key}`, url, { width: 128, height: 128 });
+      }
+      for (const [key, url] of Object.entries(CHARACTER_SHEETS)) {
+        this.load.svg(`pm2-${key}`, url, { width: 512, height: 512 });
       }
       this.load.on('loaderror', file => {
         console.error('[Apartment God] Phaser Migration 2 asset failed:', file?.key, file?.src);
@@ -91,10 +105,15 @@ function createApartmentGodNativeScene(Phaser) {
         this.objectLayer = this.add.container(0, 0).setDepth(20);
         this.actorLayer = this.add.container(0, 0).setDepth(60);
         this.fxLayer = this.add.container(0, 0).setDepth(90);
+        this.poolGraphics = this.add.graphics();
+        this.fxLayer.add(this.poolGraphics);
+
+        registerCharacterAnimations(this);
+
         this.statusText = this.add.text(12, 12, '', {
           fontFamily: 'system-ui', fontSize: 14, fontStyle: '900', color: '#f8fbff', backgroundColor: 'rgba(7,10,16,.55)', padding: { x: 8, y: 5 }
         }).setDepth(1000);
-        this.runtimeText = this.add.text(12, PLAY_H - 25, 'PHASER MIGRATION 2 | native scene | asset-backed bridge', {
+        this.runtimeText = this.add.text(12, PLAY_H - 25, `PHASER MIGRATION 2 | grounded directional sprites | ${CHARACTER_ANIMATION_FPS} FPS`, {
           fontFamily: 'system-ui', fontSize: 11, fontStyle: '900', color: '#f1c66a', backgroundColor: 'rgba(7,10,16,.45)', padding: { x: 7, y: 3 }
         }).setDepth(1000);
 
@@ -112,7 +131,7 @@ function createApartmentGodNativeScene(Phaser) {
         this.lastHiddenTick = performance.now();
         this.hiddenTicker = window.setInterval(() => this.hiddenTick(), 1000);
         window.addEventListener('beforeunload', () => window.clearInterval(this.hiddenTicker));
-        this.registry.set('apartmentGodRuntime', 'phaser-migration-2-native-asset-bridge');
+        this.registry.set('apartmentGodRuntime', 'phaser-migration-2-grounded-8fps-character-system');
         this.loadText?.destroy();
         this.renderNativeFrame();
         this.ui.renderHud();
@@ -157,7 +176,8 @@ function createApartmentGodNativeScene(Phaser) {
     renderNativeFrame() {
       if (this.currentFloor !== this.state.floor) this.rebuildFloor();
       this.refreshObjectStates();
-      this.rebuildActors();
+      syncCharacterVisuals(this, this.state, this.actorLayer);
+      this.refreshPoolFx();
       const actor = selected(this.state);
       const tidy = Number.isFinite(this.state.tidiness?.score) ? ` tidy ${Math.round(this.state.tidiness.score)}%` : '';
       this.statusText.setText(`${formatTime(this.state.time)}   $${Math.round(this.state.money ?? 0)}   ${this.state.autonomyMode}${tidy}   ${floors[this.state.floor]?.name || this.state.floor}   ${actor?.name || ''}: ${actor?.action || 'Idle'}`);
@@ -207,41 +227,43 @@ function createApartmentGodNativeScene(Phaser) {
           else sprite.setTint(0x5d6876);
         }
         if (obj.kind === 'shower') {
-          const active = this.state.entities?.some(e => e.showerObjectId === obj.id && e.actionT > 0);
+          const active = this.state.entities?.some(entity => entity.showerObjectId === obj.id && entity.actionT > 0);
           if (active) sprite.setTint(0x9feaff);
         }
         if (obj.kind === 'toilet') {
-          const active = this.state.entities?.some(e => e.toiletObjectId === obj.id && e.actionT > 0);
+          const active = this.state.entities?.some(entity => entity.toiletObjectId === obj.id && entity.actionT > 0);
           if (active) sprite.setTint(0xf1c66a);
         }
       }
     }
 
-    rebuildActors() {
-      this.actorLayer.removeAll(true);
-      this.nativeActors = [];
-      for (const entity of this.state.entities || []) {
-        if (entity.hidden || entity.floor !== this.state.floor) continue;
-        const texture = entity.type === 'dog' ? 'pm2-dog' : entity.id === 'girlfriend' ? 'pm2-girlfriend' : 'pm2-resident';
-        const pos = actorRenderPoint(entity);
-        const sprite = this.add.image(pos.x, pos.y, texture);
-        const scale = entity.type === 'dog' ? .72 : .76;
-        sprite.setScale(scale);
-        sprite.setDepth(pos.y + 80);
-        if (entity.type === 'dog') sprite.setRotation(directionAngle(entity));
-        if (this.state.selectedId === entity.id) {
-          const ring = this.add.ellipse(pos.x, pos.y + 12, entity.type === 'dog' ? 54 : 48, entity.type === 'dog' ? 30 : 32, 0xf1c66a, .0);
-          ring.setStrokeStyle(3, 0xf1c66a, .92);
-          ring.setDepth(pos.y + 79);
-          this.actorLayer.add(ring);
-        }
-        this.actorLayer.add(sprite);
-        if (entity.actionT > 0 || entity.bubbleT > 0) {
-          const text = this.add.text(pos.x, pos.y - 58, entity.bubbleT > 0 ? entity.bubble : String(entity.action || '').slice(0, 24), {
-            fontFamily: 'system-ui', fontSize: 10, fontStyle: '900', color: '#071018', backgroundColor: '#f8fbff', padding: { x: 5, y: 3 }
-          }).setOrigin(.5, .5).setDepth(pos.y + 120);
-          this.actorLayer.add(text);
-        }
+    refreshPoolFx() {
+      const graphics = this.poolGraphics;
+      graphics.clear();
+      const game = this.state.poolGame;
+      if (!game || game.floor !== this.state.floor || !Array.isArray(game.balls)) return;
+
+      if (game.cueLine?.t > 0) {
+        graphics.lineStyle(2, 0xf1c66a, Math.min(1, game.cueLine.t));
+        graphics.beginPath();
+        graphics.moveTo(game.cueLine.x1, game.cueLine.y1);
+        graphics.lineTo(game.cueLine.x2, game.cueLine.y2);
+        graphics.strokePath();
+      }
+      if (game.cueThrust?.t > 0) {
+        graphics.lineStyle(4, 0xc99d62, Math.min(1, game.cueThrust.t * 2));
+        graphics.beginPath();
+        graphics.moveTo(game.cueThrust.x1, game.cueThrust.y1);
+        graphics.lineTo(game.cueThrust.x2, game.cueThrust.y2);
+        graphics.strokePath();
+      }
+
+      for (const ball of game.balls) {
+        if (ball.pocketed) continue;
+        graphics.fillStyle(parseHexColor(ball.fill, 0xf8fbff), 1);
+        graphics.fillCircle(ball.x, ball.y, 7);
+        graphics.lineStyle(1.5, 0x111820, 1);
+        graphics.strokeCircle(ball.x, ball.y, 7);
       }
     }
 
@@ -253,6 +275,7 @@ function createApartmentGodNativeScene(Phaser) {
         sanitizeRuntimeState(this.state);
         for (const entity of this.state.entities || []) {
           entity.path = [];
+          entity.poolRoute = null;
           entity.target = null;
           entity.pending = null;
           entity.pose = 'stand';
@@ -262,6 +285,7 @@ function createApartmentGodNativeScene(Phaser) {
         this.state.saveStatus = { message: 'Phaser Migration 2 runtime error handled' };
         this.state.paused = this.frameErrorCount > 2;
       }
+      clearCharacterVisuals(this);
       this.children.removeAll(true);
       this.add.rectangle(0, 0, CANVAS_W, CANVAS_H, 0x171a22).setOrigin(0, 0);
       this.add.text(32, 64, boot ? 'Phaser Migration 2 boot recovery screen' : 'Phaser Migration 2 frame recovery screen', {
@@ -287,29 +311,10 @@ function textureForObject(obj) {
   return 'pm2-generic';
 }
 
-function actorRenderPoint(entity) {
-  const key = `${entity.currentActionId || ''} ${entity.action || ''} ${entity.pose || ''}`.toLowerCase();
-  if (entity.type === 'person' && (key.includes('sleep') || key.includes('nap') || key.includes('bed together') || key.includes('waking'))) {
-    const bed = getObject(entity.sleepObjectId || 'bed');
-    if (bed && bed.floor === entity.floor) {
-      const lane = entity.id === 'girlfriend' ? .64 : .38;
-      return { x: bed.x + bed.w * .56, y: bed.y + bed.h * lane };
-    }
-  }
-  return { x: entity.x, y: entity.y };
-}
-
-function directionAngle(entity) {
-  const target = Array.isArray(entity.path) && entity.path.length > 0 ? entity.path[0] : entity.target;
-  const dx = Number.isFinite(entity.vx) && Math.abs(entity.vx) > .01 ? entity.vx : target ? target.x - entity.x : 1;
-  const dy = Number.isFinite(entity.vy) && Math.abs(entity.vy) > .01 ? entity.vy : target ? target.y - entity.y : 0;
-  if (Math.abs(dx) >= Math.abs(dy)) return dx < 0 ? Math.PI : 0;
-  return dy < 0 ? -Math.PI / 2 : Math.PI / 2;
-}
-
 function loadRefreshStateSafely(state) {
-  try { return loadRefreshState(state); }
-  catch (error) {
+  try {
+    return loadRefreshState(state);
+  } catch (error) {
     console.error('[Apartment God] Bad refresh state skipped for Phaser Migration 2.', error);
     clearBadRefreshState();
     state.saveStatus = { message: 'Skipped bad refresh state' };
@@ -317,7 +322,11 @@ function loadRefreshStateSafely(state) {
   }
 }
 
-function clearBadRefreshState() { try { localStorage.removeItem(REFRESH_SAVE_KEY); } catch (_) {} }
+function clearBadRefreshState() {
+  try {
+    localStorage.removeItem(REFRESH_SAVE_KEY);
+  } catch (_) {}
+}
 
 function sanitizeRuntimeState(state) {
   state.entities = Array.isArray(state.entities) ? state.entities : [];
@@ -347,9 +356,10 @@ function sanitizeRuntimeState(state) {
 
 function cleanupStaleActorState(entity) {
   const hasPath = Array.isArray(entity.path) && entity.path.length > 0;
+  const hasPoolRoute = Array.isArray(entity.poolRoute?.points) && entity.poolRoute.points.length > 0;
   const hasTarget = Boolean(entity.target || entity.pending);
   const hasTimer = Number(entity.actionT || 0) > 0;
-  if (hasPath || hasTarget || hasTimer || entity.hidden) return;
+  if (hasPath || hasPoolRoute || hasTarget || hasTimer || entity.hidden) return;
   const action = String(entity.action || '').toLowerCase();
   if (action === 'recovered' || action === 'runtime recovered' || action === 'walking' || action === 'running' || action.startsWith('going to ')) {
     entity.action = 'Idle';
@@ -364,6 +374,8 @@ function runSimulationStep(state, dt) {
   updateHouseTidiness(state);
   updatePoolActivity(state, dt);
   for (const entity of state.entities) {
+    const isPoolChoreography = Array.isArray(entity.poolRoute?.points) || String(entity.action || '').toLowerCase().startsWith('pool:');
+    if (isPoolChoreography) continue;
     const arrived = updateMovement(state, entity, dt);
     if (arrived) resolveArrival(state, entity);
   }
@@ -388,6 +400,13 @@ function advanceSimulation(state, rawDt) {
     remaining -= step;
     guard += 1;
   }
+}
+
+function parseHexColor(value, fallback) {
+  if (typeof value !== 'string') return fallback;
+  const normalized = value.trim().replace('#', '');
+  const parsed = Number.parseInt(normalized, 16);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function drawHardBootError(canvas, error) {
