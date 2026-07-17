@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { createState } from '../src/state.js';
-import { DRIVEWAY_FLOOR, FRONT_YARD_FLOOR, beginFrontYardVehicleDeparture, beginFrontYardVehicleReturn, installFrontYardWorld, updateFrontYardVehicleDeparture, updateFrontYardVehicleReturn } from '../src/frontYardDriveway.js';
+import {
+  DRIVEWAY_FLOOR,
+  FRONT_YARD_FLOOR,
+  beginFrontYardVehicleDeparture,
+  beginFrontYardVehicleReturn,
+  installFrontYardWorld,
+  updateFrontYardEnvironment,
+  updateFrontYardVehicleDeparture,
+  updateFrontYardVehicleReturn
+} from '../src/frontYardDriveway.js';
 import { getObject, floors } from '../src/world.js';
 
 describe('front yard driveway slice', () => {
@@ -15,28 +24,34 @@ describe('front yard driveway slice', () => {
     expect(getObject('front_driveway_garage_mouth')?.toFloor).toBe(3);
   });
 
-  it('keeps the main front yard as porch garden and play frontage instead of driveway', () => {
+  it('keeps the main front yard as porch, garden, walk, curb, and road frontage instead of driveway', () => {
     installFrontYardWorld();
     const front = floors.find(floor => floor.id === FRONT_YARD_FLOOR);
     const driveway = floors.find(floor => floor.id === DRIVEWAY_FLOOR);
+    const frontRooms = front?.rooms.map(room => room.id) || [];
 
-    expect(front?.rooms.map(room => room.id)).toContain('front_porch');
-    expect(front?.rooms.map(room => room.id)).toContain('front_play_corner');
-    expect(front?.rooms.map(room => room.id)).not.toContain('west_driveway');
+    expect(frontRooms).toContain('front_porch');
+    expect(frontRooms).toContain('front_garden');
+    expect(frontRooms).toContain('front_walk');
+    expect(frontRooms).toContain('front_curb');
+    expect(frontRooms).toContain('front_road_view');
+    expect(frontRooms).not.toContain('west_driveway');
     expect(driveway?.rooms.map(room => room.id)).toContain('west_driveway');
     expect(driveway?.rooms.map(room => room.id)).toContain('driveway_garage_mouth');
   });
 
-  it('moves a departing vehicle from west driveway to road exit', () => {
+  it('moves a departing vehicle from west driveway to road exit after the gate opens', () => {
     const state = createState();
     const vehicle = { vehicleId: 'car_1', vehicleKind: 'car', actionId: 'work', partyIds: ['resident'], x: 196, y: 268, parkX: 196, parkY: 268, w: 126, h: 238, phase: 'leaving' };
 
     expect(beginFrontYardVehicleDeparture(state, vehicle)).toBe(true);
+    state.vehicleDeparture = vehicle;
     expect(state.floor).toBe(DRIVEWAY_FLOOR);
 
     let result = false;
-    for (let i = 0; i < 120 && result !== 'complete'; i++) {
+    for (let i = 0; i < 160 && result !== 'complete'; i += 1) {
       vehicle.t += 0.1;
+      updateFrontYardEnvironment(state, 0.1);
       result = updateFrontYardVehicleDeparture(state, vehicle, 0.1);
     }
 
@@ -48,11 +63,13 @@ describe('front yard driveway slice', () => {
     const vehicle = { vehicleId: 'car_1', vehicleKind: 'car', actionId: 'work', partyIds: ['resident'], x: 196, y: 268, parkX: 196, parkY: 268, w: 126, h: 238, phase: 'arriving' };
 
     expect(beginFrontYardVehicleReturn(state, vehicle)).toBe(true);
+    state.vehicleReturn = vehicle;
     expect(state.floor).toBe(DRIVEWAY_FLOOR);
 
     let result = false;
-    for (let i = 0; i < 160 && result !== 'garage'; i++) {
+    for (let i = 0; i < 200 && result !== 'garage'; i += 1) {
       vehicle.t += 0.1;
+      updateFrontYardEnvironment(state, 0.1);
       result = updateFrontYardVehicleReturn(state, vehicle, 0.1);
     }
 
