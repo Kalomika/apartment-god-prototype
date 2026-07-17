@@ -106,7 +106,7 @@ function syncActorVisual(scene, state, entity, profile, point, record) {
   entity.spriteDirection = direction;
 
   record.shadow.setPosition(point.x, point.y + (profile === 'dog' ? 15 : 19));
-  record.shadow.setSize(config.shadowW, config.shadowH);
+  record.shadow.setDisplaySize(config.shadowW, config.shadowH);
   record.shadow.setAlpha(moving ? .19 : .24);
   record.ring.setPosition(point.x, point.y + (profile === 'dog' ? 14 : 17));
   record.ring.setVisible(state.selectedId === entity.id);
