@@ -1,37 +1,33 @@
 ## 2026-07-17, Phaser Migration 2 Promoted for Render Testing
 
-Status: NEEDS_TESTING
-Branch: phaser-migration-2 promoted to main
-Commit: source promotion commit b8c03be0b4999f19269889b3fea0c4a66d7d65b8, this log commit follows it and main is synchronized to the resulting branch head
+Status: REVERTED FOR CORRECTION
+Branch: phaser-migration-2 promoted to main, then previous main restored
+Commit: source promotion commit b8c03be0b4999f19269889b3fea0c4a66d7d65b8, promotion log c8b0ce933328f8fea0c934ca7246b398b86b1fce, restore target 1ebc880bdf550faac16f6d4383ef9da18689efc4
 Files changed: branch pointer for main, docs/APARTMENT_GOD_RENDER_TESTING_DEFAULT.md, apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-17_PHASER_MIGRATION_2_RENDER_TEST.md, this append file
-Runtime files changed: no new runtime edits during promotion, existing Phaser Migration 2 runtime is now exposed through main
-Render playable branch updated: yes
+Runtime files changed: no new runtime edits during promotion or restore
+Render playable branch updated: yes, previous Canvas main restored
 Backup branch: backup/main-before-phaser-render-sync-2026-07-17
 Source backup branch: backup/phaser-migration-2-before-render-promotion-2026-07-17
 
 Summary:
-Kam confirmed that Apartment God work must be exposed through the Render watched main branch after the required backups so he can actually test it. The clean Phaser overhaul branch `phaser-migration-2` was reviewed and promoted temporarily to `main` for browser testing.
+Kam tested the clean Phaser overhaul and reported that pool players ran in place while marked as circling the table, and the dog and character bridge sprites did not meet the grounded anime quality target. The previous Canvas main is being restored while Phaser Migration 2 is corrected on its own branch.
 
 Implementation details:
-- Verified the repository is `Kalomika/apartment-god-prototype`.
-- Verified the intended source branch is `phaser-migration-2`.
-- Verified `src/main.js` boots `bootPhaserMigration2Game()`.
-- Verified the runtime loads Phaser through `/vendor/phaser.esm.js`, while `scripts/build.js` copies that file from the installed Phaser package into the built site.
-- Verified `render.yaml` uses `npm install && npm run build` and publishes `dist`.
-- Verified the branch has a visible recovery screen instead of a blank canvas when boot fails.
-- Confirmed the branch is a clean native Phaser test candidate with static asset backed sprites, not a finished feature parity replacement.
-- Preserved the previous Canvas main state before moving main.
-- Preserved the Phaser Migration 2 source state before promotion.
-- Updated only the GitHub main branch pointer. Render settings were not changed and no manual deployment was triggered.
+- The clean Phaser overhaul was temporarily exposed through main for testing.
+- Kam identified unacceptable pool movement and character visual quality.
+- Main is restored from `backup/main-before-phaser-render-sync-2026-07-17`.
+- Phaser Migration 2 remains preserved for focused correction.
+- The Render testing workflow now explicitly requires immediate restoration of the previous main when Kam requests it during a migration correction cycle.
+- Render settings are unchanged and no manual deployment is triggered.
 
 Testing performed:
-GitHub code inspection, branch comparison, entry point inspection, build script inspection, and Render configuration file inspection. No completed Render browser test yet. No CI status or workflow run was present on the promoted source head.
+Kam performed a direct Render browser visual test and rejected the pool circling behavior and current bridge character art.
 
 Testing requested:
-Open https://apartment-god-phaser.onrender.com after Render finishes rebuilding. Confirm the native Phaser loading message appears, the game does not show a black or blank canvas, rooms and objects render, Resident, Girlfriend, and Dog appear, selection works, object menus open, actors move, floors switch, phone UI opens, save and load work, and basic food, bathroom, sleep, dog, work, and offsite actions still function.
+After Render rebuilds the restored main, confirm the previous Canvas build is visible again. Phaser Migration 2 should not return to main until pool movement is spatially correct and all active characters have purposeful 8 FPS grounded true top down anime sprite animation.
 
 Known risks:
-`phaser-migration-2` is a native Phaser architecture preview, not a completed migration. It was 17 commits ahead of the previous main merge base and 19 commits behind the former Canvas main. Static SVG bridge sprites are present, but final PNG atlases, walk cycles, unique activity animation identities, exact object art, and full feature parity are incomplete. The purpose of this main replacement is direct Render testing and visual evaluation.
+The migration branch is not approved for Render promotion. Its static bridge character assets and actor rebuild strategy are insufficient for the intended quality bar. The pool action state currently presents movement intent without convincing movement around the table.
 
 Follow ups:
-Use Kam's Render test results to decide whether to continue building on `phaser-migration-2`, restore the previous Canvas main backup, or selectively port missing systems into the clean Phaser branch. Keep the previous main backup until Kam explicitly approves removal.
+Create a fresh migration backup, replace static bridge characters with directional animated sprite sheets, implement 8 FPS animation state control, fix pool route and arrival staging, test locally or through an isolated preview, then request Kam review before another main promotion.
