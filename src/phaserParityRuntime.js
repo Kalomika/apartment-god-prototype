@@ -1,4 +1,4 @@
-import { CANVAS_H, CANVAS_W } from './config.js';
+import { PLAY_H, PLAY_W } from './config.js';
 import { createState } from './state.js';
 import { createUi } from './ui.js';
 import { updateMovement } from './movement.js';
@@ -47,11 +47,11 @@ export async function bootPhaserParityGame() {
     return new Phaser.Game({
       type: Phaser.CANVAS,
       canvas,
-      width: CANVAS_W,
-      height: CANVAS_H,
+      width: PLAY_W,
+      height: PLAY_H,
       backgroundColor: '#101722',
       render: { antialias: true, pixelArt: false, transparent: false, clearBeforeRender: true },
-      scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: CANVAS_W, height: CANVAS_H },
+      scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: PLAY_W, height: PLAY_H },
       scene: [SceneClass]
     });
   } catch (error) {
@@ -200,7 +200,7 @@ function createApartmentGodParityScene(Phaser) {
       }
       clearCharacterVisuals(this);
       this.children.removeAll(true);
-      this.add.rectangle(0, 0, CANVAS_W, CANVAS_H, 0x171a22).setOrigin(0, 0);
+      this.add.rectangle(0, 0, PLAY_W, PLAY_H, 0x171a22).setOrigin(0, 0);
       this.add.text(32, 64, boot ? 'Apartment God Phaser parity boot recovery' : 'Apartment God Phaser parity frame recovery', {
         fontFamily: 'system-ui', fontSize: 28, fontStyle: '900', color: '#f1c66a'
       });
@@ -216,8 +216,8 @@ function createApartmentGodParityScene(Phaser) {
 
 function createRuntimeCanvas() {
   const canvas = document.createElement('canvas');
-  canvas.width = CANVAS_W;
-  canvas.height = CANVAS_H;
+  canvas.width = PLAY_W;
+  canvas.height = PLAY_H;
   const context = canvas.getContext('2d', { alpha: true });
   if (!context) throw new Error('Unable to create Phaser compatibility rendering context.');
   return { canvas, context };
