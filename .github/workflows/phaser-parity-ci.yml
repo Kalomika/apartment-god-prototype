@@ -25,10 +25,32 @@ jobs:
       - name: Repository checks
         run: npm run check
       - name: Unit tests
-        run: npm test
+        id: tests
+        continue-on-error: true
+        run: npx vitest run --reporter=json --outputFile=vitest-results.json
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-results
+          path: vitest-results.json
+          if-no-files-found: error
       - name: Static build
+        id: build
+        continue-on-error: true
         run: npm run build
       - name: Verify Phaser vendor output
+        id: vendor
+        continue-on-error: true
         run: test -f dist/vendor/phaser.esm.js
       - name: Verify Phaser entry point
+        id: entry
+        continue-on-error: true
         run: grep -q "bootPhaserParityGame" dist/src/main.js
+      - name: Enforce successful tests and build
+        if: always()
+        run: |
+          test "${{ steps.tests.outcome }}" = "success"
+          test "${{ steps.build.outcome }}" = "success"
+          test "${{ steps.vendor.outcome }}" = "success"
+          test "${{ steps.entry.outcome }}" = "success"
