@@ -1,0 +1,35 @@
+name: Phaser Parity CI
+
+on:
+  push:
+    branches:
+      - phaser-migration
+  pull_request:
+    branches:
+      - main
+      - phaser-migration
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Repository checks
+        run: npm run check
+      - name: Unit tests
+        run: npm test
+      - name: Static build
+        run: npm run build
+      - name: Verify Phaser vendor output
+        run: test -f dist/vendor/phaser.esm.js
+      - name: Verify Phaser entry point
+        run: grep -q "bootPhaserParityGame" dist/src/main.js
