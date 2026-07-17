@@ -5,10 +5,10 @@ export const CHARACTER_FRAME_SIZE = 128;
 
 const DIRECTION_ROWS = ['south', 'west', 'east', 'north'];
 const PROFILE_CONFIG = {
-  resident: { texture: 'pm2-resident-sheet', scale: .78, shadowW: 46, shadowH: 22 },
-  girlfriend: { texture: 'pm2-girlfriend-sheet', scale: .78, shadowW: 44, shadowH: 21 },
-  labSubject: { texture: 'pm2-lab-subject-sheet', scale: .78, shadowW: 46, shadowH: 22 },
-  dog: { texture: 'pm2-dog-sheet', scale: .72, shadowW: 58, shadowH: 25 }
+  resident: { texture: 'pm2-resident-sheet', fallback: 'pm2-resident-fallback', scale: .78, shadowW: 46, shadowH: 22 },
+  girlfriend: { texture: 'pm2-girlfriend-sheet', fallback: 'pm2-girlfriend-fallback', scale: .78, shadowW: 44, shadowH: 21 },
+  labSubject: { texture: 'pm2-lab-subject-sheet', fallback: 'pm2-resident-fallback', scale: .78, shadowW: 46, shadowH: 22 },
+  dog: { texture: 'pm2-dog-sheet', fallback: 'pm2-dog-fallback', scale: .72, shadowW: 58, shadowH: 25 }
 };
 
 export function registerCharacterAnimations(scene) {
@@ -81,7 +81,9 @@ function ensureActorVisual(scene, layer, entity, profile, point) {
   const shadow = scene.add.ellipse(point.x, point.y + 20, config.shadowW, config.shadowH, 0x05080d, .24);
   const ring = scene.add.ellipse(point.x, point.y + 17, profile === 'dog' ? 64 : 54, profile === 'dog' ? 34 : 31, 0xf1c66a, 0);
   ring.setStrokeStyle(3, 0xf1c66a, .94);
-  const sprite = scene.add.sprite(point.x, point.y, config.texture, 'south-1');
+  const texture = scene.textures.get(config.texture);
+  const animated = Boolean(texture && texture.key !== '__MISSING' && texture.has('south-1'));
+  const sprite = scene.add.sprite(point.x, point.y, animated ? config.texture : config.fallback, animated ? 'south-1' : undefined);
   sprite.setScale(config.scale);
   sprite.setOrigin(.5, .63);
   const cue = scene.add.graphics();
@@ -90,7 +92,7 @@ function ensureActorVisual(scene, layer, entity, profile, point) {
   }).setOrigin(.5, .5);
 
   for (const child of [shadow, ring, sprite, cue, label]) layer.add(child);
-  const record = { profile, shadow, ring, sprite, cue, label, lastX: point.x, lastY: point.y, direction: headingDirection(entity) };
+  const record = { profile, animated, shadow, ring, sprite, cue, label, lastX: point.x, lastY: point.y, direction: headingDirection(entity) };
   scene.pm2ActorVisuals.set(entity.id, record);
   return record;
 }
@@ -112,12 +114,13 @@ function syncActorVisual(scene, state, entity, profile, point, record) {
   record.ring.setVisible(state.selectedId === entity.id);
   record.sprite.setPosition(point.x, point.y);
 
-  if (moving) {
+  if (moving && record.animated) {
     const key = animationName(profile, direction);
     if (record.sprite.anims.currentAnim?.key !== key || !record.sprite.anims.isPlaying) record.sprite.play(key, true);
   } else {
     record.sprite.stop();
-    record.sprite.setFrame(`${direction}-${stationaryFrame(entity, scene.time.now)}`);
+    if (record.animated) record.sprite.setFrame(`${direction}-${stationaryFrame(entity, scene.time.now)}`);
+    else if (profile === 'dog') record.sprite.setRotation(directionRotation(direction));
   }
 
   const depth = point.y + (profile === 'dog' ? 46 : 58);
@@ -215,6 +218,12 @@ function headingDirection(entity) {
 }
 
 function animationName(profile, direction) { return `pm2-${profile}-walk-${direction}`; }
+function directionRotation(direction) {
+  if (direction === 'east') return Math.PI / 2;
+  if (direction === 'south') return Math.PI;
+  if (direction === 'west') return -Math.PI / 2;
+  return 0;
+}
 function offsetPoint(point, direction, distance) {
   if (direction === 'north') return { x: point.x, y: point.y - distance };
   if (direction === 'south') return { x: point.x, y: point.y + distance };
