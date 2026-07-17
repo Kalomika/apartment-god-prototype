@@ -9,15 +9,15 @@ Canonical merge pending: yes
 
 | System | Updated status | Source of truth | Current implementation | Required test |
 |---|---|---|---|---|
-| Phaser playable clone | NEEDS_RENDER_TESTING | `src/main.js`, `src/phaserParityRuntime.js` | The feature rich branch now boots through Phaser. Existing gameplay modules remain the source of simulation behavior. | Check boot, unit tests, build, Render, mobile input, every floor, and recovery behavior. |
+| Phaser playable clone | NEEDS_RENDER_TESTING | `src/main.js`, `src/phaserParityRuntime.js` | The feature rich branch now boots through Phaser. Existing gameplay modules remain the source of simulation behavior. | Check Render boot, mobile input, every floor, and recovery behavior. |
 | Phaser environment parity | NEEDS_RENDER_TESTING | `src/rendering.js`, existing world and object renderers | Current rooms, objects, corrections, vehicle art, dynamic props, and exterior systems are drawn into a Phaser managed environment texture below native actors. | Compare every area with the prior Canvas build and confirm no missing, duplicated, or wrongly ordered object. |
 | Phaser foreground parity | NEEDS_RENDER_TESTING | `src/rendering.js` | Blankets, shower foregrounds, lighting, carried items, arcade and basketball overlays, pool cues, HUD, and other actor covering effects are drawn into a transparent Phaser foreground texture. | Test sleep, nap, shower, toilet, arcade, basketball, pool, vehicle occupants, lighting, and carried props. |
 | Native Phaser characters | NEEDS_RENDER_TESTING | `src/phaserCharacterAnimationSystem.js`, character sheets, manifest | Persistent Resident, Girlfriend, female fallback, Lab Subject, and Dog sprites replace the old Canvas actor drawings. | Inspect frame crops, scale, depth, shadow, selection, direction, and activity alignment on mobile. |
 | Character timing | NEEDS_RENDER_TESTING | `src/phaserCharacterAnimationSystem.js` | Directional walk animation is locked to 8 FPS. Walk requires actual coordinate displacement. | Confirm no running in place and no speed change to simulation movement. |
 | Pool movement and game | NEEDS_RENDER_TESTING | `src/poolActivitySystem.js`, `src/poolActivityCleanup.js`, runtime guards | Shooters and waiting actors physically move around explicit table perimeter routes. Stance, cue, ball motion, turns, and interruption cleanup are committed. | Play several solo and together turns, interrupt at each phase, and confirm no table crossing, jitter, or stale cue state. |
 | Gameplay parity | NEEDS_RENDER_TESTING | Existing movement, actions, autonomy, vehicle, travel, career, calendar, save, arcade, basketball, dog, and life systems | Full current simulation loop is called from the Phaser scene rather than replaced by a reduced prototype. | Execute the parity audit checklist in `PHASER_PARITY_AUDIT_2026-07-17.md`. |
-| Phaser CI | BLOCKED | `.github/workflows/phaser-parity-ci.yml`, draft PR 28 | Check, tests, build, vendor output, and entry point verification are defined, but no workflow run appeared through the current GitHub connection. | Run locally or enable Actions, then record exact pass or failure results. |
-| Main Render build | RESTORED | `main`, `backup/main-before-phaser-render-sync-2026-07-17` | The previous Canvas main remains on Render during parity integration. | Keep until Phaser branch is tested, then create a new main backup before promotion. |
+| Phaser CI | PASSED | `.github/workflows/phaser-parity-ci.yml`, workflow run 29621367374 | Repository checks, 44 unit tests, static build, Phaser vendor output verification, and Phaser entry point verification passed on Node 24. | Preserve passing status after future runtime edits. |
+| Main Render build | READY_FOR_SYNC | `main`, `phaser-migration`, current main backups | The full Phaser parity branch has passed automated verification and is ready to replace the partial main state for direct Render browser testing. | Create a fresh backup of current main, synchronize main, then test Render. |
 
 ## Character matrix updates
 
@@ -42,4 +42,4 @@ Canonical merge pending: yes
 
 ## Promotion rule
 
-Do not update `main` until the Phaser branch passes the repository check, tests, build, and a browser parity review. Before promotion, create a fresh backup of the current `main`. Do not change Render settings or manually deploy.
+Automated verification passed. Before synchronizing `main`, create a fresh backup of its current commit. Do not change Render settings or manually deploy. After synchronization, retain `NEEDS_RENDER_TESTING` until Kam verifies the browser build.
