@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "status": "NEEDS_TESTING",
+  "branch": "phaser-migration",
+  "runtime": "Phaser compatibility renderer with persistent actor sprites",
+  "animationFps": 8,
+  "frameWidth": 128,
+  "frameHeight": 128,
+  "sheetWidth": 512,
+  "sheetHeight": 512,
+  "directionRows": ["south", "west", "east", "north"],
+  "framesPerDirection": 4,
+  "grounding": {
+    "camera": "true top down",
+    "shadow": "faint contact ellipse beneath every visible actor",
+    "walkTrigger": "actual world coordinate displacement greater than 0.08",
+    "stationaryRule": "action labels cannot create a walk cycle",
+    "activityExceptions": ["treadmill", "swim"]
+  },
+  "characters": [
+    {
+      "profile": "resident",
+      "runtimeIds": ["resident", "default adult male fallback"],
+      "sheet": "assets/sprites/characters/resident/resident_8fps_sheet.svg",
+      "textureKey": "ag-resident-sheet"
+    },
+    {
+      "profile": "girlfriend",
+      "runtimeIds": ["girlfriend", "lab_test_woman", "adult female fallback"],
+      "sheet": "assets/sprites/characters/girlfriend/girlfriend_8fps_sheet.svg",
+      "textureKey": "ag-girlfriend-sheet"
+    },
+    {
+      "profile": "labSubject",
+      "runtimeIds": ["lab_test_subject"],
+      "sheet": "assets/sprites/characters/lab_test_subject/lab_subject_8fps_sheet.svg",
+      "textureKey": "ag-lab-subject-sheet"
+    },
+    {
+      "profile": "dog",
+      "runtimeIds": ["dog", "future dog fallback"],
+      "sheet": "assets/sprites/characters/dog/dog_8fps_sheet.svg",
+      "textureKey": "ag-dog-sheet"
+    }
+  ],
+  "activityVisuals": {
+    "pool": "perimeter walk, fixed stance, cue through both hands, thrust, watch, turn exit",
+    "sleep": "horizontal body orientation under foreground blanket layer",
+    "treadmill": "8 FPS stationary locomotion exception",
+    "swim": "8 FPS directional stroke exception without ground shadow",
+    "weights": "specific prone alternating lift frames",
+    "heavyBag": "specific strike frame alternation",
+    "arcadeDeskReadingPhone": "specific seated compression and object overlay alignment",
+    "showerBath": "specific wash frame alternation behind shower foreground",
+    "basketball": "base sprite plus dedicated basketball foreground action overlays"
+  },
+  "knownLimitations": [
+    "Directional sheets require browser crop and scale approval.",
+    "Activity specific transforms are first pass sprite states and need later dedicated sheets where the matrix requires them.",
+    "Main remains on the previous Canvas build until the Phaser parity branch passes testing."
+  ]
+}
