@@ -138,7 +138,7 @@ function updateWorkoutGearDelivery(state, actor, job) {
     actor.actionTotal = 15;
     actor.pose = 'work';
     actor.carrying = 'gear boxes';
-    setMood(actor, 'focused');
+    setMood(actor, 'hyped');
     say(actor, 'SETUP');
     log(state, `${actor.name} brought the boxes inside and started installing the workout gear.`);
     return;
