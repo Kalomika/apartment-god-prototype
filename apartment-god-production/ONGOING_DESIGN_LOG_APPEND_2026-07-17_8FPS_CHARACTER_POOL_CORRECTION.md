@@ -2,7 +2,7 @@
 
 Status: NEEDS_TESTING
 Branch: phaser-migration-2
-Commit: implementation range caaa27e7b0f7c3de2fa6667dad7914f93275022a through f2b1dd170ad14dc20689e930d4dbee5d26d2112f
+Commit: implementation range caaa27e7b0f7c3de2fa6667dad7914f93275022a through 725a21318297d233c454f0f8ea3250e1aa4236e9, regression test c41431d512976f47ba9ff9d43967c4ac29c9c40e, matrix patch c60f6bbe65a8cda3d8c4480f78c038a1049d0681
 Files changed: assets/phaser-migration-2/sprites/characters/resident_8fps_sheet.svg, assets/phaser-migration-2/sprites/characters/girlfriend_8fps_sheet.svg, assets/phaser-migration-2/sprites/characters/lab_subject_8fps_sheet.svg, assets/phaser-migration-2/sprites/characters/dog_8fps_sheet.svg, assets/manifests/phaser-migration-2-character-sprite-manifest.json, src/phaserCharacterAnimationSystem.js, src/phaserMigration2Runtime.js, src/poolActivitySystem.js, tests/phaser-migration-2-animation-pool.test.js, apartment-god-production/PHASER_MIGRATION_2_8FPS_CHARACTER_AND_POOL_ANIMATION_SPEC.md, Render workflow documentation, and migration status append files
 Runtime files changed: yes
 Render playable branch updated: yes, previous Canvas main restored at 1ebc880bdf550faac16f6d4383ef9da18689efc4
