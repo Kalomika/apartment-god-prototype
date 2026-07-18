@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Grapple Gods hard cam wrestling ring sprite frame 0</title>
+  <desc id="desc">Painted side view hard camera wrestling ring approval sprite with white canvas, black ropes, posts, turnbuckles, apron, arena floor, and crowd.</desc>
+  <defs>
+    <linearGradient id="arenaBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#040404"/>
+      <stop offset="0.42" stop-color="#141414"/>
+      <stop offset="1" stop-color="#050505"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#202020"/>
+      <stop offset="1" stop-color="#111111"/>
+    </linearGradient>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffdf6"/>
+      <stop offset="0.55" stop-color="#f1eee6"/>
+      <stop offset="1" stop-color="#dad5ca"/>
+    </linearGradient>
+    <linearGradient id="apron" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#151515"/>
+      <stop offset="1" stop-color="#050505"/>
+    </linearGradient>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="8" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+
+  <rect width="960" height="540" fill="url(#arenaBg)"/>
+  <rect x="0" y="70" width="960" height="145" fill="#101010"/>
+  <path d="M0 214 L960 214" stroke="#242424" stroke-width="3"/>
+
+  <g opacity="0.76">
+    <g fill="#ffffff" opacity="0.13">
+      <circle cx="12" cy="84" r="3"/><circle cx="41" cy="86" r="3"/><circle cx="70" cy="83" r="4"/><circle cx="99" cy="87" r="3"/><circle cx="128" cy="84" r="3"/><circle cx="157" cy="86" r="4"/><circle cx="186" cy="82" r="3"/><circle cx="215" cy="86" r="3"/><circle cx="244" cy="84" r="4"/><circle cx="273" cy="87" r="3"/><circle cx="302" cy="84" r="3"/><circle cx="331" cy="85" r="4"/><circle cx="360" cy="83" r="3"/><circle cx="389" cy="86" r="3"/><circle cx="418" cy="84" r="4"/><circle cx="447" cy="87" r="3"/><circle cx="476" cy="84" r="3"/><circle cx="505" cy="86" r="4"/><circle cx="534" cy="82" r="3"/><circle cx="563" cy="86" r="3"/><circle cx="592" cy="84" r="4"/><circle cx="621" cy="87" r="3"/><circle cx="650" cy="84" r="3"/><circle cx="679" cy="85" r="4"/><circle cx="708" cy="83" r="3"/><circle cx="737" cy="86" r="3"/><circle cx="766" cy="84" r="4"/><circle cx="795" cy="87" r="3"/><circle cx="824" cy="84" r="3"/><circle cx="853" cy="86" r="4"/><circle cx="882" cy="82" r="3"/><circle cx="911" cy="86" r="3"/><circle cx="940" cy="84" r="4"/>
+      <circle cx="25" cy="111" r="4"/><circle cx="58" cy="114" r="3"/><circle cx="91" cy="110" r="4"/><circle cx="124" cy="115" r="4"/><circle cx="157" cy="111" r="3"/><circle cx="190" cy="114" r="4"/><circle cx="223" cy="110" r="4"/><circle cx="256" cy="115" r="3"/><circle cx="289" cy="111" r="4"/><circle cx="322" cy="114" r="4"/><circle cx="355" cy="110" r="3"/><circle cx="388" cy="115" r="4"/><circle cx="421" cy="111" r="4"/><circle cx="454" cy="114" r="3"/><circle cx="487" cy="110" r="4"/><circle cx="520" cy="115" r="4"/><circle cx="553" cy="111" r="3"/><circle cx="586" cy="114" r="4"/><circle cx="619" cy="110" r="4"/><circle cx="652" cy="115" r="3"/><circle cx="685" cy="111" r="4"/><circle cx="718" cy="114" r="4"/><circle cx="751" cy="110" r="3"/><circle cx="784" cy="115" r="4"/><circle cx="817" cy="111" r="4"/><circle cx="850" cy="114" r="3"/><circle cx="883" cy="110" r="4"/><circle cx="916" cy="115" r="4"/><circle cx="949" cy="111" r="3"/>
+      <circle cx="11" cy="140" r="4"/><circle cx="44" cy="137" r="4"/><circle cx="77" cy="142" r="5"/><circle cx="110" cy="138" r="4"/><circle cx="143" cy="141" r="4"/><circle cx="176" cy="137" r="5"/><circle cx="209" cy="142" r="4"/><circle cx="242" cy="138" r="4"/><circle cx="275" cy="141" r="5"/><circle cx="308" cy="137" r="4"/><circle cx="341" cy="142" r="4"/><circle cx="374" cy="138" r="5"/><circle cx="407" cy="141" r="4"/><circle cx="440" cy="137" r="4"/><circle cx="473" cy="142" r="5"/><circle cx="506" cy="138" r="4"/><circle cx="539" cy="141" r="4"/><circle cx="572" cy="137" r="5"/><circle cx="605" cy="142" r="4"/><circle cx="638" cy="138" r="4"/><circle cx="671" cy="141" r="5"/><circle cx="704" cy="137" r="4"/><circle cx="737" cy="142" r="4"/><circle cx="770" cy="138" r="5"/><circle cx="803" cy="141" r="4"/><circle cx="836" cy="137" r="4"/><circle cx="869" cy="142" r="5"/><circle cx="902" cy="138" r="4"/><circle cx="935" cy="141" r="4"/>
+    </g>
+  </g>
+
+  <rect x="0" y="414" width="960" height="126" fill="url(#floor)"/>
+  <path d="M0 414 H960" stroke="#000000" stroke-width="4"/>
+  <g stroke="#ffffff" stroke-width="1" opacity="0.06">
+    <path d="M0 438 H960"/><path d="M0 462 H960"/><path d="M0 486 H960"/><path d="M0 510 H960"/>
+  </g>
+
+  <path d="M260 189 L700 189 L820 438 L140 438 Z" fill="#000000" opacity="0.55" filter="url(#softShadow)"/>
+
+  <path d="M276 207 L684 207 L812 430 L148 430 Z" fill="url(#apron)" stroke="#000000" stroke-width="6"/>
+  <path d="M162 373 H798 V430 H148 Z" fill="#050505" opacity="0.86"/>
+  <path d="M258 211 L702 211 L805 366 L155 366 Z" fill="url(#canvas)" stroke="#050505" stroke-width="5"/>
+
+  <g opacity="0.22" fill="#ffffff">
+    <path d="M283 224 L674 224 L746 344 L214 344 Z"/>
+    <path d="M305 242 L404 230 L382 352 L237 350 Z" opacity="0.33"/>
+  </g>
+  <g stroke="#000000" opacity="0.13" stroke-width="1.5">
+    <path d="M246 251 L716 251"/><path d="M228 282 L736 282"/><path d="M207 319 L759 319"/>
+    <path d="M332 211 L286 366"/><path d="M406 211 L413 366"/><path d="M520 211 L515 366"/><path d="M629 211 L675 366"/>
+  </g>
+
+  <g id="posts" fill="#050505">
+    <rect x="252" y="124" width="12" height="250"/><rect x="696" y="124" width="12" height="250"/>
+    <rect x="140" y="118" width="16" height="324"/><rect x="804" y="118" width="16" height="324"/>
+    <rect x="257" y="128" width="3" height="235" fill="#ffffff" opacity="0.22"/><rect x="701" y="128" width="3" height="235" fill="#ffffff" opacity="0.18"/>
+    <rect x="146" y="124" width="3" height="300" fill="#ffffff" opacity="0.22"/><rect x="810" y="124" width="3" height="300" fill="#ffffff" opacity="0.18"/>
+  </g>
+
+  <g id="ropes" stroke-linecap="round">
+    <g stroke="#ffffff" stroke-width="8" opacity="0.22"><path d="M148 156 H812"/><path d="M148 214 H812"/><path d="M148 271 H812"/><path d="M258 156 H702"/><path d="M258 214 H702"/><path d="M258 271 H702"/><path d="M258 156 L148 156"/><path d="M258 214 L148 214"/><path d="M258 271 L148 271"/><path d="M702 156 L812 156"/><path d="M702 214 L812 214"/><path d="M702 271 L812 271"/></g>
+    <g stroke="#000000" stroke-width="4"><path d="M148 156 H812"/><path d="M148 214 H812"/><path d="M148 271 H812"/><path d="M258 156 H702"/><path d="M258 214 H702"/><path d="M258 271 H702"/><path d="M258 156 L148 156"/><path d="M258 214 L148 214"/><path d="M258 271 L148 271"/><path d="M702 156 L812 156"/><path d="M702 214 L812 214"/><path d="M702 271 L812 271"/></g>
+  </g>
+
+  <g id="turnbuckles">
+    <g fill="#000000"><rect x="126" y="143" width="44" height="24" rx="4"/><rect x="126" y="201" width="44" height="24" rx="4"/><rect x="126" y="258" width="44" height="24" rx="4"/><rect x="790" y="143" width="44" height="24" rx="4"/><rect x="790" y="201" width="44" height="24" rx="4"/><rect x="790" y="258" width="44" height="24" rx="4"/></g>
+    <g fill="#ffffff" stroke="#000000" stroke-width="3"><rect x="131" y="148" width="34" height="14" rx="3"/><rect x="131" y="206" width="34" height="14" rx="3"/><rect x="131" y="263" width="34" height="14" rx="3"/><rect x="795" y="148" width="34" height="14" rx="3"/><rect x="795" y="206" width="34" height="14" rx="3"/><rect x="795" y="263" width="34" height="14" rx="3"/></g>
+    <g fill="#000000"><rect x="244" y="148" width="34" height="18" rx="3" opacity="0.95"/><rect x="682" y="148" width="34" height="18" rx="3" opacity="0.95"/></g>
+    <g fill="#ffffff" stroke="#000000" stroke-width="2"><rect x="249" y="152" width="24" height="10" rx="2"/><rect x="687" y="152" width="24" height="10" rx="2"/></g>
+  </g>
+
+  <g font-family="Arial Black, Arial, sans-serif" text-anchor="middle">
+    <text x="480" y="414" font-size="30" fill="#ffffff" opacity="0.10">GRAPPLE GODS</text>
+    <text x="480" y="413" font-size="30" fill="#000000" opacity="0.52">GRAPPLE GODS</text>
+  </g>
+</svg>
