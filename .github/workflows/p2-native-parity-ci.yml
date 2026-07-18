@@ -1,0 +1,48 @@
+name: P2 Native Parity CI
+
+on:
+  push:
+    branches:
+      - phaser-migration-2
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install --no-package-lock
+
+      - name: Repository checks
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Static build
+        run: npm run build
+
+      - name: Verify native P2 entry and renderer
+        run: |
+          test -f dist/vendor/phaser.esm.js
+          grep -q "bootPhaserMigration2Game" dist/src/main.js
+          grep -q "phaser-migration-2-native-full-main-gameplay" dist/src/phaserMigration2Runtime.js
+          grep -q "updateArcadeSystem" dist/src/phaserMigration2Runtime.js
+          grep -q "updateBasketballSystem" dist/src/phaserMigration2Runtime.js
+          grep -q "updateFrontYardEnvironment" dist/src/phaserMigration2Runtime.js
+          ! grep -q "drawPhaserEnvironment" dist/src/phaserMigration2Runtime.js
+          ! grep -q "textures.addCanvas" dist/src/phaserMigration2Runtime.js
