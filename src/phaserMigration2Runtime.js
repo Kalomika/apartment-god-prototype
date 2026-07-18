@@ -33,32 +33,13 @@ import {
   destroyNativeGameplayVisuals,
   syncNativeGameplayVisuals
 } from './phaserMigration2GameplayVisuals.js';
+import { PM2_CHARACTER_SHEETS, PM2_OBJECT_TEXTURES, PM2_ROOM_TEXTURES, textureForObject, textureForRoom } from './phaserMigration2VisualCatalog.js';
 
 installFrontYardWorld();
 applyMainFloorLayoutPolish();
 applyRuntimeObjectCorrections();
 
 const REFRESH_SAVE_KEY = 'apartment_god_test_refresh_state_v3';
-const ASSET_ROOT = 'assets/phaser-migration-2/sprites';
-
-const OBJECT_TEXTURES = {
-  room: `${ASSET_ROOT}/environment/room_panel.svg`,
-  generic: `${ASSET_ROOT}/objects/generic_object.svg`,
-  furniture: `${ASSET_ROOT}/objects/furniture_set.svg`,
-  bed: `${ASSET_ROOT}/objects/bed.svg`,
-  tv: `${ASSET_ROOT}/objects/tv.svg`,
-  bathroom: `${ASSET_ROOT}/objects/bathroom_fixture.svg`,
-  kitchen: `${ASSET_ROOT}/objects/kitchen_fixture.svg`,
-  stairs: `${ASSET_ROOT}/objects/stairs.svg`
-};
-
-const CHARACTER_SHEETS = {
-  'resident-sheet': `${ASSET_ROOT}/characters/resident_8fps_sheet.svg`,
-  'girlfriend-sheet': `${ASSET_ROOT}/characters/girlfriend_8fps_sheet.svg`,
-  'lab-subject-sheet': `${ASSET_ROOT}/characters/lab_subject_8fps_sheet.svg`,
-  'dog-sheet': `${ASSET_ROOT}/characters/dog_8fps_sheet.svg`
-};
-
 export async function bootPhaserMigration2Game() {
   const canvas = document.getElementById('game');
   if (!canvas) return null;
@@ -103,8 +84,9 @@ function createApartmentGodNativeScene(Phaser) {
         fontFamily: 'system-ui', fontSize: 20, fontStyle: '900', color: '#f1c66a'
       }).setDepth(10000);
 
-      for (const [key, url] of Object.entries(OBJECT_TEXTURES)) this.load.svg(`pm2-${key}`, url, { width: 128, height: 128 });
-      for (const [key, url] of Object.entries(CHARACTER_SHEETS)) this.load.svg(`pm2-${key}`, url, { width: 512, height: 512 });
+      for (const [key, url] of Object.entries(PM2_ROOM_TEXTURES)) this.load.svg(`pm2-room-${key}`, url, { width: 128, height: 128 });
+      for (const [key, url] of Object.entries(PM2_OBJECT_TEXTURES)) this.load.svg(`pm2-object-${key}`, url, { width: 128, height: 128 });
+      for (const [key, url] of Object.entries(PM2_CHARACTER_SHEETS)) this.load.svg(`pm2-${key}`, url, { width: 512, height: 512 });
       this.load.on('loaderror', file => {
         this.assetFailures.push(file?.key || file?.src || 'unknown asset');
         console.error('[Apartment God] Phaser Migration 2 asset failed:', file?.key, file?.src);
@@ -229,7 +211,7 @@ function createApartmentGodNativeScene(Phaser) {
       if (!floor) return;
 
       for (const room of floor.rooms || []) {
-        const panel = this.add.image(room.x + room.w / 2, room.y + room.h / 2, 'pm2-room');
+        const panel = this.add.image(room.x + room.w / 2, room.y + room.h / 2, textureForRoom(room));
         panel.setDisplaySize(room.w, room.h);
         panel.setAlpha(roomAlpha(room.id));
         panel.setDepth(room.y - 1000);
@@ -237,7 +219,7 @@ function createApartmentGodNativeScene(Phaser) {
         const label = this.add.text(room.x + 10, room.y + 8, room.name, {
           fontFamily: 'system-ui', fontSize: 10, fontStyle: '900', color: '#d9e7f2', backgroundColor: 'rgba(7,10,16,.34)', padding: { x: 4, y: 2 }
         });
-        label.setAlpha(.62);
+        label.setVisible(Boolean(this.state.debugVisualLabels));
         label.setDepth(room.y - 900);
         this.roomLayer.add(label);
       }
@@ -436,16 +418,6 @@ function advanceSimulation(state, rawDt) {
     remaining -= step;
     guard += 1;
   }
-}
-
-function textureForObject(object) {
-  if (object.kind === 'bed') return 'pm2-bed';
-  if (object.kind === 'tv') return 'pm2-tv';
-  if (['toilet', 'shower', 'bathtub', 'sink', 'dog_bath'].includes(object.kind)) return 'pm2-bathroom';
-  if (['fridge', 'stove', 'coffee_maker', 'trash_can', 'outdoor_trash'].includes(object.kind)) return 'pm2-kitchen';
-  if (['stairs', 'door'].includes(object.kind)) return 'pm2-stairs';
-  if (['couch', 'dining_table', 'desk', 'bookshelf', 'pool_table', 'arcade_machine', 'game_console', 'dartboard', 'weight_bench', 'heavy_bag', 'treadmill', 'closet', 'basketball_court'].includes(object.kind)) return 'pm2-furniture';
-  return 'pm2-generic';
 }
 
 function roomAlpha(roomId) {
