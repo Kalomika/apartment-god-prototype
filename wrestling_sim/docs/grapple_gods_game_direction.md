@@ -2,11 +2,34 @@
 
 ## High Level Identity
 
-Grapple Gods is a sandbox top down automated wrestling RPG and booking sim.
+Grapple Gods is a sandbox automated wrestling RPG and booking sim.
 
 The player is not a traditional direct control fighter. The player is the general manager, booker, promoter, and sometimes the coach at ringside.
 
-Wrestlers are fully autonomous characters. They have goals, grudges, injuries, moods, ego, confidence, relationships, and career plans. They can request matches, complain, refuse ideas, demand title shots, ask for time off, get cleared or blocked by the doctor, and become a problem for management if they feel disrespected.
+Wrestlers are autonomous characters. They have goals, grudges, injuries, moods, ego, confidence, relationships, and career plans. They can request matches, complain, refuse ideas, demand title shots, ask for time off, get cleared or blocked by the doctor, and become a problem for management if they feel disrespected.
+
+## Active Camera Direction
+
+The active playable camera is a side view hard cam.
+
+The previous absolute top down experiment is archived. It should not drive new playable art, ring composition, or wrestler production.
+
+The current ring should be staged farther back in the arena so the presentation has stronger venue scale, clearer foreground crowd depth, and enough space for future side view wrestler sprites.
+
+Current approval image:
+
+```text
+painted side view arena
+hard cam wrestling ring pushed farther back
+white canvas
+black ropes
+visible turnbuckles
+corner posts
+front apron
+foreground crowd depth
+8 fps authored visual cadence
+no wrestlers until ring approval
+```
 
 ## Core Screen Split
 
@@ -20,15 +43,15 @@ It shows:
 arena
 crowd
 entrance way during walkouts
-ring
+hard cam ring
 referee
 wrestlers
 basic match action
 ```
 
-The first playable camera is absolute top down. It is not isometric and not an angled hard cam.
+The active match view should read like a side view wrestling broadcast game, not an overhead map and not an isometric room.
 
-The wrestlers should read from above, with visible shoulders, head, arms, legs, hair color, gear, and stance. We should see left leg forward and right leg back during movement states from a direct overhead view.
+Wrestlers should eventually use authored side view sprites with realistic proportions, readable gear, clear silhouettes, and 8 fps animation cycles.
 
 ### Bottom Half
 
@@ -42,14 +65,14 @@ The wrestler does not have to obey every suggestion. The wrestler evaluates the 
 
 ## First Playable Scope
 
-Start with two wrestlers only so we can prove the loop.
+Start with two wrestlers only after the ring approval gate is cleared.
 
 ```text
-one blonde wrestler
-one dark haired wrestler
-one referee
-one ring
-one basic crowd loop
+Rex Sterling
+Dante Crowe
+one moving referee
+one approved hard cam ring
+one foreground and background crowd loop
 a small move list
 a match log
 bottom half suggestion buttons
@@ -70,7 +93,29 @@ pin attempt
 recover
 ```
 
-The goal is not animation polish yet. The goal is to make sure wrestlers move, think, accept or ignore suggestions, perform basic wrestling states, and produce a readable match.
+The gameplay goal is to make sure wrestlers move, think, accept or ignore suggestions, perform basic wrestling states, and produce a readable match.
+
+The visual goal is not temporary programmer art. Ring, crowd, and wrestler sprite production should be good enough to approve before expanding scope.
+
+## Sprite Pipeline
+
+After ring approval, the first wrestler sprite set should include:
+
+```text
+idle cycle
+walk cycle
+run cycle
+strike cycle
+lockup cycle
+grapple move cycles
+hit reactions
+fall and downed cycles
+pin and kickout cycles
+rope contact cycle
+corner contact cycle
+```
+
+The authored sprite pipeline is the primary direction. Procedural drawing may remain in internal tools or as a failure fallback, but it should not define the active visual target.
 
 ## Future Roster Scope
 
@@ -122,15 +167,16 @@ booking preference
 A booked match should follow this basic loop:
 
 1. GM books a match.
-2. Camera zooms out to show more arena and the entrance way.
+2. Camera reveals more of the arena and entrance way.
 3. Wrestler one enters and performs a short character specific walkout pose.
 4. Wrestler two enters and performs a different pose.
-5. Referee starts in the ring but moves around to stay out of the way.
-6. Match begins.
-7. Wrestlers fight autonomously.
-8. Player can suggest moves or strategy from the bottom panel.
-9. Referee counts pins, checks rope breaks, counts out of bounds, and enforces match rules.
-10. Match result affects morale, feuds, injuries, popularity, and future booking requests.
+5. Camera settles into the approved hard cam match framing.
+6. Referee starts in the ring but moves around to stay out of the way.
+7. Match begins.
+8. Wrestlers fight autonomously.
+9. Player can suggest moves or strategy from the bottom panel.
+10. Referee counts pins, checks rope breaks, counts out of bounds, and enforces match rules.
+11. Match result affects morale, feuds, injuries, popularity, and future booking requests.
 
 ## Referee Behavior
 
@@ -161,20 +207,39 @@ Later, different promotions can use different count out rules and match customs.
 
 ## Visual Direction
 
-The first playable style should be readable and fast to iterate.
-
 Preferred direction:
 
 ```text
-Phaser based 2.5D top down presentation
-procedural vector based character parts at first
-future riggable sprites or generated sprite sheets
-realistic proportions rather than cartoon icons
+Phaser based side view hard cam presentation
+authored sprite sheets
+8 fps animation cadence
+painted video game arena and ring
+realistic proportions rather than arcade parody
 clear hair and gear differentiation
-proper ring based on approved design reference
+ring pushed farther back for stronger arena scale
+foreground crowd used to establish depth
 ```
 
-If vector based wrestler rigs become too slow or visually weak, low poly 3D wrestler proxies can be generated and rendered to top down sprite sheets. The long term goal is not crude placeholder art, but a practical top down visual pipeline that lets us rig, pose, and expand quickly.
+Avoid:
+
+```text
+top down symbols
+isometric camera
+chibi or toy proportions
+procedural capsule people
+rubbery scale pulsing
+placeholder art presented as final direction
+```
+
+## Development Studio
+
+The internal Studio lives in:
+
+```text
+wrestling_sim/studio/
+```
+
+It should be used to inspect camera blocking, ring placement, foreground crowd depth, sprite frames, animation timing, move states, AI logic, collision, and performance before changes enter the playable runtime.
 
 ## Core Design Rule
 
@@ -182,4 +247,4 @@ The player should not ask, why did my button miss.
 
 The player should ask, why did my wrestler make that choice.
 
-Every match choice should be explainable by the wrestler's logic, personality, stamina, injury state, and relationship context.
+Every match choice should be explainable by the wrestler's logic, personality, stamina, injury state, relationship context, ring position, and match rules.
