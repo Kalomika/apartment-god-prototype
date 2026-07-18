@@ -15,6 +15,8 @@ wrestling_sim/studio/index.html
 wrestling_sim/studio/styles.css
 wrestling_sim/studio/app.js
 wrestling_sim/studio/README.md
+wrestling_sim/README.md
+wrestling_sim/docs/grapple_gods_game_direction.md
 wrestling_sim/docs/grapple_gods_development_handbook.md
 wrestling_sim/docs/grapple_gods_development_matrix.md
 wrestling_sim/docs/ongoing_design_log.md
@@ -60,16 +62,21 @@ repository source inspection
 current branch head inspection
 active hard cam direction verification
 runtime asset path verification
+AppDeploy production build
+desktop automated QA
+mobile automated QA
+three Studio interaction tests passed
+no frontend runtime errors reported
+no network errors reported
 ```
 
 Testing not yet performed:
 
 ```text
-npm install
-npm run build
-browser visual inspection
-mobile visual inspection
-separate Studio deployment
+local npm install
+local npm run build
+human browser visual approval of the GitHub Studio build
+Render deployment confirmation for the playable service
 ```
 
 Known risks:
@@ -77,15 +84,43 @@ Known risks:
 ```text
 The current ring approval SVG is a composite arena plate. Studio push back controls scale the plate for camera blocking review rather than editing isolated ring geometry.
 Another AI is actively adding hard cam assets to the same branch, so future work must recheck the branch before every change.
-The existing Render service root is web_phaser and does not publish the Studio.
+The existing Render service root is web_phaser and does not publish the GitHub Studio folder.
+The AppDeploy preview is a separate deployment snapshot and is not automatically synchronized with future GitHub commits.
 ```
 
 Follow ups:
 
 ```text
-run and visually inspect the Studio
-approve the farther back ring composition
+review the farther back ring composition in the Studio preview
+approve or revise ring scale and vertical placement
 wire approved authored ring frames into the playable Phaser scene
-add a separate internal Studio deployment
+create a dedicated auto deployed Studio service if desired
 add character, animation, move, AI, and match inspection modules
 ```
+
+## 2026-07-18, Studio Preview Deployment
+
+Status: IMPLEMENTED
+
+Deployment environment: AppDeploy
+
+Public review URL:
+
+```text
+https://f4d17721dd2b55bb9c.v2.appdeploy.ai/
+```
+
+Deployment result:
+
+```text
+status ready
+three automated tests executed
+all reported tests passed
+desktop QA snapshot generated
+mobile QA snapshot generated
+no frontend errors
+no backend errors
+no network errors
+```
+
+The preview demonstrates the hard cam Studio workflow and farther back ring staging. The canonical source remains the GitHub Studio under `wrestling_sim/studio/`.
