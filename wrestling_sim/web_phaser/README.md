@@ -1,58 +1,73 @@
 # Grapple Gods Phaser Prototype
 
-This is the first mobile browser prototype for Grapple Gods.
+This is the mobile browser prototype for Grapple Gods.
 
-## Goal
+## Active Visual Direction
 
-Build the initial playable viewing layer:
+The playable graphics direction has pivoted to a side view hard cam wrestling game with a sprite oriented pipeline.
+
+The top down experiment is no longer the active playable target.
+
+## Current Approval Step
+
+The current build is a hard cam ring approval pass.
+
+It intentionally shows:
 
 ```text
-full width mobile browser
-ring and arena occupying the top half of the screen
-GM and move suggestion panel occupying the bottom half of the screen
-strict top down ring readability
-future sprite state support
+side view hard cam arena
+painted wrestling ring
+white canvas
+black ropes
+corner posts
+turnbuckle pads
+front apron
+crowd and floor framing
+8 fps visual cadence
+no wrestlers yet
 ```
+
+The wrestler sprites, walk cycles, run cycles, idle cycles, grapples, hit reactions, and move responses come after the ring is approved.
 
 ## Core Interaction
 
-Grapple Gods is a sandbox top down automated wrestling RPG and booking sim. The player books, manages, and watches the match.
+Grapple Gods is still a sandbox automated wrestling RPG and booking sim. The player books, manages, and suggests strategy instead of manually controlling every strike or grapple.
 
-The top half of the screen is the arena and ring. The bottom half of the screen is where the player chooses suggested moves or strategy calls for their wrestler.
-
-The player can suggest what the wrestler should try next, but the wrestler still acts through stats, stamina, position, move set, confidence, and match context.
+The top half of the screen is the match presentation. The bottom half is the manager and move suggestion interface.
 
 ## Current First Playable Scope
 
 ```text
-two active autonomous wrestlers
+two active autonomous wrestlers planned
 Rex Sterling, blonde powerhouse ace
 Dante Crowe, dark haired brawler
-one moving referee proxy
-proper top down ring renderer
+one referee planned
+hard cam ring renderer now active
 mobile bottom half move buttons
-autonomous match loop
+autonomous match loop still present under the hood
 GM suggestions can be accepted or ignored
-basic punch
-lockup
-grapple advantage
-Irish whip
-rope run
-basic slam
-pin attempt
-recover
 ```
 
-The full ten wrestler roster data is included for later, but the first active test match uses two wrestlers so the match loop can be proven before adding booking depth.
+The current visual build hides wrestlers on purpose until the hard cam ring is approved.
 
 ## Stack
 
 ```text
 Phaser for rendering and input
-Vite for fast browser builds
-XState for future sprite and match state machines
+Vite for browser builds
+XState for future deeper state machines
 Render static site hosting for mobile testing
 ```
+
+## Active Renderer
+
+The current active match view renderer is:
+
+```text
+src/render/HardCamRingRenderer.js
+```
+
+The abandoned top down canvas renderer has been removed from the playable view.
 
 ## Local Run
 
@@ -75,22 +90,9 @@ The build output goes to:
 dist/
 ```
 
-## Current Prototype Features
-
-```text
-responsive top half arena
-procedural top down ring drawing
-simple crowd loop hints
-procedural top down wrestler rigs
-manager choice buttons
-autonomous match engine
-mobile tap support
-future wrestler state machine file
-```
-
 ## Render Setup
 
-The repo root contains a `render.yaml` blueprint for this specific prototype.
+The repo root contains a `render.yaml` blueprint for this prototype.
 
 Render service name:
 
