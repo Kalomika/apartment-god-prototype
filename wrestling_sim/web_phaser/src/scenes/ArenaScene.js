@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { HardCamRingRenderer } from '../render/HardCamRingRenderer.js';
+import { HardCamSpriteRingRenderer } from '../render/HardCamSpriteRingRenderer.js';
 import { ChoicePanel } from '../ui/ChoicePanel.js';
 import { initialMatch, roster } from '../data/roster.js';
 import { MatchEngine } from '../sim/matchEngine.js';
@@ -11,12 +11,21 @@ export class ArenaScene extends Phaser.Scene {
     this.snapshot = null;
   }
 
+  preload() {
+    this.load.svg('hard-cam-crowd-bg-0', 'assets/crowd/hard_cam_crowd_background_frame_0.svg', { width: 960, height: 540 });
+    this.load.svg('hard-cam-crowd-bg-1', 'assets/crowd/hard_cam_crowd_background_frame_1.svg', { width: 960, height: 540 });
+    this.load.svg('hard-cam-ring-frame-0', 'assets/ring/hard_cam_ring_approval_frame_0.svg', { width: 960, height: 540 });
+    this.load.svg('hard-cam-ring-frame-1', 'assets/ring/hard_cam_ring_approval_frame_1.svg', { width: 960, height: 540 });
+    this.load.svg('hard-cam-crowd-fg-0', 'assets/crowd/hard_cam_crowd_foreground_frame_0.svg', { width: 960, height: 540 });
+    this.load.svg('hard-cam-crowd-fg-1', 'assets/crowd/hard_cam_crowd_foreground_frame_1.svg', { width: 960, height: 540 });
+  }
+
   create() {
     const red = roster.find((wrestler) => wrestler.id === initialMatch.redCornerId);
     const blue = roster.find((wrestler) => wrestler.id === initialMatch.blueCornerId);
 
     this.engine = new MatchEngine({ red, blue, ruleSet: initialMatch.ruleSet });
-    this.ringPreview = new HardCamRingRenderer(this);
+    this.ringPreview = new HardCamSpriteRingRenderer(this);
     this.choicePanel = new ChoicePanel(this);
     this.hudText = this.add.text(0, 0, '', {
       fontFamily: 'Arial Black, Arial, sans-serif',
@@ -24,7 +33,7 @@ export class ArenaScene extends Phaser.Scene {
       color: '#ffffff',
       stroke: '#000000',
       strokeThickness: 4
-    }).setOrigin(0.5, 0);
+    }).setOrigin(0.5, 0).setDepth(10);
 
     this.choicePanel.setMode('match');
     this.choicePanel.setChoices(this.engine.getChoiceList(), (choice) => {
@@ -34,7 +43,7 @@ export class ArenaScene extends Phaser.Scene {
 
     this.scale.on('resize', this.handleResize, this);
     this.handleResize({ width: this.scale.width, height: this.scale.height });
-    this.choicePanel.setDialogue('RING APPROVAL', 'Hard cam sprite wrestling ring proof. Characters are intentionally hidden until the ring is approved.');
+    this.choicePanel.setDialogue('RING APPROVAL', 'Layered hard cam sprite ring proof. Background crowd, ring, and foreground crowd are separate sprite plates. Wrestlers stay hidden until the ring is approved.');
   }
 
   handleResize(gameSize) {
@@ -52,7 +61,7 @@ export class ArenaScene extends Phaser.Scene {
     this.snapshot = this.engine.update(delta);
     this.ringPreview.update(time);
     this.positionFromSnapshot();
-    this.choicePanel.setLog('Ring approval pass only. Wrestlers and sprite cycles are disabled until the hard cam ring direction is approved.');
+    this.choicePanel.setLog('Ring approval pass only. Wrestlers and sprite cycles are disabled until the layered hard cam ring direction is approved.');
   }
 
   positionFromSnapshot() {
@@ -64,6 +73,6 @@ export class ArenaScene extends Phaser.Scene {
 
     this.hudText.setPosition(Math.round(this.layout.width * 0.5), 8);
     this.hudText.setFontSize(this.layout.width < 430 ? 12 : 15);
-    this.hudText.setText('HARD CAM RING PROOF   8 FPS VISUAL PASS   NO WRESTLERS YET');
+    this.hudText.setText('LAYERED HARD CAM SPRITE RING   8 FPS A/B CROWD   NO WRESTLERS YET');
   }
 }
