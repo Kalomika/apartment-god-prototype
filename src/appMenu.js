@@ -1,7 +1,8 @@
 import { handleBuildRequest } from './buildRequests.js';
 import { startObjectAction, startOffsite } from './actions.js';
-import { assignCareer, CAREER_TRACKS, careerFor, quitCareer, trackForCareer, workDueText } from './careerSystem.js';
+import { assignCareer, CAREER_TRACKS, careerFor, careerScheduleStatusLine, quitCareer, trackForCareer, workDueText } from './careerSystem.js';
 import { bookCalendarTravel, bookingCostLabel, bookingTimeLabel, calendarDateLabel, calendarMenuRows, cancelBooking, rescheduleBooking, updateBookingDestination, updateBookingDuration, vacationOptions } from './calendarSystem.js';
+import { calendarCompactHudLine, calendarPhoneSummaryRows } from './calendarDisplay.js';
 import { canSkipToBooking, skipToBookingPrep } from './calendarSkipSystem.js';
 import { startCookingFlow } from './cooking.js';
 import { orderFood, buyWorkoutGear } from './economy.js';
@@ -9,6 +10,7 @@ import { buyInvestment, investmentSummary, INVESTMENTS } from './investmentSyste
 import { lifeControlLabel, lifeQualityMenuRows, toggleLifeControlMode } from './lifeQualitySystem.js';
 import { relationshipLabel, relationshipSummary } from './reactionSystem.js';
 import { startMusic } from './music.js';
+import { GAME_TIME_SCALE_LABEL } from './timeSystem.js';
 import { objects } from './world.js';
 
 export function openDeviceHome(state, actor, openMenu) {
@@ -47,6 +49,7 @@ export function openDeviceHome(state, actor, openMenu) {
     const career = careerFor(state, actor);
     const track = trackForCareer(career);
     const items = [
+      { label: careerScheduleStatusLine(state, actor), run: careerMenu },
       { label: workDueText(state, actor), run: careerMenu },
       { label: track ? `Work Shift Now: ${track.label}` : 'Temp Work Shift Now', run: () => startOffsite(state, actor, 'work', [], 'auto') }
     ];
@@ -67,11 +70,16 @@ export function openDeviceHome(state, actor, openMenu) {
     cell('Relationships', items);
   };
   const calendarMenu = () => {
+    const summaryRows = calendarPhoneSummaryRows(state).map(label => ({ label, run: calendarMenu }));
     const upcoming = calendarMenuRows(state, actor).map(row => ({
       label: row.label,
       run: () => row.booking ? eventDetailMenu(row.booking) : calendarMenu()
     }));
     cell('Calendar', [
+      { label: calendarCompactHudLine(state), run: calendarMenu },
+      ...summaryRows,
+      { label: GAME_TIME_SCALE_LABEL, run: calendarMenu },
+      { label: careerScheduleStatusLine(state, actor), run: careerMenu },
       { label: `Today: ${calendarDateLabel(state)}`, run: calendarMenu },
       ...upcoming,
       { label: 'Book Movie Ticket...', run: () => bookingMenu('Movie Ticket', 'movies') },
@@ -146,6 +154,8 @@ export function openDeviceHome(state, actor, openMenu) {
     run: () => bookCalendarTravel(state, actor, destination.id, { daysFromNow: 1, hour: 9 }, { label: destination.label, duration: destination.duration })
   })));
   openMenu(660, 86, 'Cell', [
+    { label: calendarCompactHudLine(state), run: calendarMenu },
+    { label: careerScheduleStatusLine(state, actor), run: careerMenu },
     { label: 'Food / Delivery', run: foodMenu },
     { label: 'Calendar', run: calendarMenu },
     { label: 'Life Review', run: lifeMenu },

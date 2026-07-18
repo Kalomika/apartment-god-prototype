@@ -22,7 +22,14 @@ describe('book reading route floor safety', () => {
       skillCaps: { intellect: 6 },
       needs: { bladder: 100, hunger: 100, energy: 100 }
     };
-    const state = { time: 480, entities: [actor], objectState: {}, tidiness: { rooms: {} }, calendar: { bookings: [], history: [] } };
+    const state = {
+      time: 480,
+      entities: [actor],
+      objectState: {},
+      tidiness: { rooms: {} },
+      calendar: { bookings: [], history: [] },
+      notifications: []
+    };
 
     expect(shelf.floor).toBe(1);
     expect(startBookReadingRoute(state, actor, shelf)).toBe(true);

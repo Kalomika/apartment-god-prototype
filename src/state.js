@@ -59,6 +59,18 @@ function morningEntity(id, name, type, floor, x, y, color, bubble = '') {
   return e;
 }
 
+function labEntity(id, name, type, x, y, color, pose = 'stand') {
+  const e = entity(id, name, type, 5, x, y, color);
+  e.labOnly = true;
+  e.stopped = true;
+  e.pose = pose;
+  e.action = type === 'dog' ? 'Lab Dog Idle' : 'Lab Style Test';
+  e.bubble = '';
+  e.bubbleT = 0;
+  if (type !== 'dog') e.lastHeading = 0;
+  return e;
+}
+
 export function createState() {
   return {
     floor: 1,
@@ -118,7 +130,9 @@ export function createState() {
       morningEntity('resident', 'Resident', 'person', 1, 172, 138, '#79b7ff', 'morning'),
       morningEntity('girlfriend', 'Girlfriend', 'person', 1, 172, 194, '#f2a3d7', 'good morning'),
       morningEntity('dog', 'Dog', 'dog', 0, 632, 494, '#d7a66a'),
-      { ...entity('lab_test_subject', 'Test Subject', 'person', 5, 470, 414, '#74e6ff'), stopped: true, labOnly: true }
+      labEntity('lab_test_subject', 'Test Man', 'person', 426, 416, '#74e6ff'),
+      labEntity('lab_test_woman', 'Test Woman', 'person', 510, 416, '#ff75df'),
+      labEntity('lab_test_dog', 'Test Dog', 'dog', 594, 438, '#f6f2e8', 'dog_idle')
     ]
   };
 }

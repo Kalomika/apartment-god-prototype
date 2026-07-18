@@ -49,7 +49,7 @@ function activePoolActors(state, floor) {
 
 function ensurePoolGame(state, table) {
   if (state.poolGame?.tableId === table.id && Array.isArray(state.poolGame.balls)) return state.poolGame;
-  const cy = table.y + table.h / 2;
+  const centerY = table.y + table.h / 2;
   state.poolGame = {
     tableId: table.id,
     floor: table.floor,
@@ -63,11 +63,11 @@ function ensurePoolGame(state, table) {
     messageT: 1.5,
     pockets: pocketsFor(table),
     balls: [
-      { id: 'cue', x: table.x + 72, y: cy, vx: 0, vy: 0, fill: '#f8fbff' },
-      { id: 'one', value: 1, x: table.x + table.w - 78, y: cy, vx: 0, vy: 0, fill: '#f1c66a' },
-      { id: 'two', value: 2, x: table.x + table.w - 55, y: cy - 14, vx: 0, vy: 0, fill: '#74e6ff' },
-      { id: 'three', value: 3, x: table.x + table.w - 55, y: cy + 14, vx: 0, vy: 0, fill: '#ff75df' },
-      { id: 'four', value: 4, x: table.x + table.w - 32, y: cy, vx: 0, vy: 0, fill: '#b66d55' }
+      { id: 'cue', x: table.x + 72, y: centerY, vx: 0, vy: 0, fill: '#f8fbff' },
+      { id: 'one', value: 1, x: table.x + table.w - 78, y: centerY, vx: 0, vy: 0, fill: '#f1c66a' },
+      { id: 'two', value: 2, x: table.x + table.w - 55, y: centerY - 14, vx: 0, vy: 0, fill: '#74e6ff' },
+      { id: 'three', value: 3, x: table.x + table.w - 55, y: centerY + 14, vx: 0, vy: 0, fill: '#ff75df' },
+      { id: 'four', value: 4, x: table.x + table.w - 32, y: centerY, vx: 0, vy: 0, fill: '#b66d55' }
     ]
   };
   return state.poolGame;
@@ -183,23 +183,23 @@ function stepPoolRoute(actor, dt, speed) {
   let moved = false;
   while (remaining > 0 && route.points.length) {
     const point = route.points[0];
-    const dx = point.x - actor.x;
-    const dy = point.y - actor.y;
-    const distance = Math.hypot(dx, dy);
+    const deltaX = point.x - actor.x;
+    const deltaY = point.y - actor.y;
+    const distance = Math.hypot(deltaX, deltaY);
     if (distance <= Math.max(.01, remaining)) {
       actor.x = point.x;
       actor.y = point.y;
       route.points.shift();
       remaining -= distance;
       moved = moved || distance > .01;
-      if (distance > .01) setPoolMotion(actor, dx / distance, dy / distance, speed);
+      if (distance > .01) setPoolMotion(actor, deltaX / distance, deltaY / distance, speed);
       continue;
     }
-    const nx = dx / distance;
-    const ny = dy / distance;
-    actor.x += nx * remaining;
-    actor.y += ny * remaining;
-    setPoolMotion(actor, nx, ny, speed);
+    const normalX = deltaX / distance;
+    const normalY = deltaY / distance;
+    actor.x += normalX * remaining;
+    actor.y += normalY * remaining;
+    setPoolMotion(actor, normalX, normalY, speed);
     remaining = 0;
     moved = true;
   }
@@ -217,11 +217,11 @@ function stepPoolRoute(actor, dt, speed) {
   return false;
 }
 
-function setPoolMotion(actor, nx, ny, speed) {
-  actor.vx = nx * speed;
-  actor.vy = ny * speed;
-  actor.lastHeading = Math.atan2(ny, nx) + Math.PI / 2;
-  actor.spriteDirection = Math.abs(nx) >= Math.abs(ny) ? (nx < 0 ? 'west' : 'east') : (ny < 0 ? 'north' : 'south');
+function setPoolMotion(actor, normalX, normalY, speed) {
+  actor.vx = normalX * speed;
+  actor.vy = normalY * speed;
+  actor.lastHeading = Math.atan2(normalY, normalX) + Math.PI / 2;
+  actor.spriteDirection = Math.abs(normalX) >= Math.abs(normalY) ? (normalX < 0 ? 'west' : 'east') : (normalY < 0 ? 'north' : 'south');
 }
 
 function waitingStation(table, actorIndex, actorCount, turnIndex) {
@@ -283,14 +283,14 @@ function sideOfPoint(point, table) {
 }
 
 function clampToSide(point, table, side) {
-  const minY = table.y - TABLE_MARGIN_Y;
-  const maxY = table.y + table.h + TABLE_MARGIN_Y;
-  const minX = table.x - TABLE_MARGIN_X;
-  const maxX = table.x + table.w + TABLE_MARGIN_X;
-  if (side === 'west') return { x: table.x - TABLE_MARGIN_X, y: clamp(point.y, minY, maxY) };
-  if (side === 'east') return { x: table.x + table.w + TABLE_MARGIN_X, y: clamp(point.y, minY, maxY) };
-  if (side === 'north') return { x: clamp(point.x, minX, maxX), y: table.y - TABLE_MARGIN_Y };
-  return { x: clamp(point.x, minX, maxX), y: table.y + table.h + TABLE_MARGIN_Y };
+  const minimumY = table.y - TABLE_MARGIN_Y;
+  const maximumY = table.y + table.h + TABLE_MARGIN_Y;
+  const minimumX = table.x - TABLE_MARGIN_X;
+  const maximumX = table.x + table.w + TABLE_MARGIN_X;
+  if (side === 'west') return { x: table.x - TABLE_MARGIN_X, y: clamp(point.y, minimumY, maximumY) };
+  if (side === 'east') return { x: table.x + table.w + TABLE_MARGIN_X, y: clamp(point.y, minimumY, maximumY) };
+  if (side === 'north') return { x: clamp(point.x, minimumX, maximumX), y: table.y - TABLE_MARGIN_Y };
+  return { x: clamp(point.x, minimumX, maximumX), y: table.y + table.h + TABLE_MARGIN_Y };
 }
 
 function pathAroundTable(from, to, table) {
@@ -404,12 +404,12 @@ function updatePoolBallPhysics(state, dt, table) {
 }
 
 function resetRack(game, table) {
-  const cy = table.y + table.h / 2;
+  const centerY = table.y + table.h / 2;
   const rack = [
-    ['one', 1, table.x + table.w - 78, cy, '#f1c66a'],
-    ['two', 2, table.x + table.w - 55, cy - 14, '#74e6ff'],
-    ['three', 3, table.x + table.w - 55, cy + 14, '#ff75df'],
-    ['four', 4, table.x + table.w - 32, cy, '#b66d55']
+    ['one', 1, table.x + table.w - 78, centerY, '#f1c66a'],
+    ['two', 2, table.x + table.w - 55, centerY - 14, '#74e6ff'],
+    ['three', 3, table.x + table.w - 55, centerY + 14, '#ff75df'],
+    ['four', 4, table.x + table.w - 32, centerY, '#b66d55']
   ];
   for (const [id, value, x, y, fill] of rack) {
     let ball = game.balls.find(candidate => candidate.id === id);
@@ -419,7 +419,7 @@ function resetRack(game, table) {
     }
     Object.assign(ball, { x, y, vx: 0, vy: 0, pocketed: false, value, fill });
   }
-  Object.assign(cueBall(game, table), { x: table.x + 72, y: cy, vx: 0, vy: 0, pocketed: false });
+  Object.assign(cueBall(game, table), { x: table.x + 72, y: centerY, vx: 0, vy: 0, pocketed: false });
   game.turnStance = null;
   game.turnSerial = (game.turnSerial || 0) + 1;
 }
@@ -437,11 +437,11 @@ function pocketsFor(table) {
 
 function facePoint(actor, point) {
   actor.lastHeading = Math.atan2(point.y - actor.y, point.x - actor.x) + Math.PI / 2;
-  const dx = point.x - actor.x;
-  const dy = point.y - actor.y;
-  actor.spriteDirection = Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 'west' : 'east') : (dy < 0 ? 'north' : 'south');
+  const deltaX = point.x - actor.x;
+  const deltaY = point.y - actor.y;
+  actor.spriteDirection = Math.abs(deltaX) >= Math.abs(deltaY) ? (deltaX < 0 ? 'west' : 'east') : (deltaY < 0 ? 'north' : 'south');
 }
 
 function tableCenter(table) { return { x: table.x + table.w / 2, y: table.y + table.h / 2 }; }
 function unit(x, y) { const magnitude = Math.max(.001, Math.hypot(x, y)); return { x: x / magnitude, y: y / magnitude }; }
-function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+function clamp(value, minimum, maximum) { return Math.max(minimum, Math.min(maximum, value)); }

@@ -1,94 +1,106 @@
 import { changeNeed, log, say, setMood } from './state.js';
 
+const WORK_REAL_SECONDS_PER_SHIFT_HOUR = 2.75;
+
 export const CAREER_TRACKS = [
   {
     id: 'storyboard_artist',
     label: 'Storyboard Artist',
-    scheduleLabel: 'Mon, Tue, Thu, Fri, 10 AM to 2 PM',
-    startHour: 10,
-    endHour: 14,
+    scheduleLabel: 'Mon, Tue, Thu, Fri, 9 AM to 5 PM',
+    workloadLabel: 'Full day production schedule',
+    workloadTier: 'full_day_creative',
+    startHour: 9,
+    endHour: 17,
     days: [1, 2, 4, 5],
-    basePay: 165,
-    payRaise: 36,
-    xpPerShift: 24,
-    promoXp: 100,
-    staminaCost: 7,
-    energyCost: 8,
-    funCost: 2,
-    freshnessCost: 2,
-    socialCost: 2,
+    basePay: 285,
+    payRaise: 54,
+    xpPerShift: 36,
+    promoXp: 120,
+    staminaCost: 11,
+    energyCost: 16,
+    funCost: 7,
+    freshnessCost: 4,
+    socialCost: 5,
     perk: 'creative'
   },
   {
     id: 'remote_support',
     label: 'Remote Support Lead',
-    scheduleLabel: 'Mon, Wed, Fri, 9 AM to 1 PM',
+    scheduleLabel: 'Mon, Wed, Fri, 9 AM to 2 PM',
+    workloadLabel: 'Shorter remote steady shifts',
+    workloadTier: 'remote_part_time',
     startHour: 9,
-    endHour: 13,
+    endHour: 14,
     days: [1, 3, 5],
-    basePay: 125,
-    payRaise: 28,
-    xpPerShift: 20,
+    basePay: 135,
+    payRaise: 30,
+    xpPerShift: 21,
     promoXp: 90,
     staminaCost: 5,
-    energyCost: 7,
-    funCost: 2,
+    energyCost: 8,
+    funCost: 3,
     freshnessCost: 1,
-    socialCost: 1,
+    socialCost: 2,
     perk: 'steady'
   },
   {
     id: 'movie_theater',
     label: 'Movie Theater Crew',
-    scheduleLabel: 'Thu to Sun, 6 PM to 10 PM',
+    scheduleLabel: 'Fri, Sat, Sun, 6 PM to 11 PM',
+    workloadLabel: 'Evening part time shifts',
+    workloadTier: 'part_time_evening',
     startHour: 18,
-    endHour: 22,
-    days: [0, 4, 5, 6],
-    basePay: 92,
+    endHour: 23,
+    days: [5, 6, 0],
+    basePay: 105,
     payRaise: 18,
     xpPerShift: 18,
     promoXp: 80,
     staminaCost: 6,
-    energyCost: 6,
+    energyCost: 7,
     funCost: -4,
-    freshnessCost: 2,
+    freshnessCost: 3,
     socialCost: -3,
     perk: 'movie_tickets'
   },
   {
     id: 'airline_ground',
     label: 'Airline Ground Crew',
-    scheduleLabel: 'Tue, Fri, Sat, 8 AM to 12 PM',
-    startHour: 8,
-    endHour: 12,
-    days: [2, 5, 6],
-    basePay: 142,
-    payRaise: 30,
-    xpPerShift: 20,
-    promoXp: 95,
-    staminaCost: 8,
-    energyCost: 8,
-    funCost: 3,
-    freshnessCost: 3,
-    socialCost: 1,
+    scheduleLabel: 'Tue, Wed, Fri, Sat, 7 AM to 3 PM',
+    workloadLabel: 'Full day physical shifts',
+    workloadTier: 'full_day_physical',
+    startHour: 7,
+    endHour: 15,
+    days: [2, 3, 5, 6],
+    basePay: 225,
+    payRaise: 42,
+    xpPerShift: 32,
+    promoXp: 105,
+    staminaCost: 16,
+    energyCost: 15,
+    funCost: 7,
+    freshnessCost: 8,
+    socialCost: 2,
     perk: 'travel_standby'
   },
   {
     id: 'freelance_animator',
     label: 'Freelance Animator',
-    scheduleLabel: 'Flexible, four hour blocks, three or four days weekly',
-    startHour: 12,
-    endHour: 16,
-    days: [1, 2, 4, 6],
-    basePay: 118,
-    payRaise: 42,
-    xpPerShift: 24,
-    promoXp: 110,
-    staminaCost: 7,
-    energyCost: 8,
-    funCost: -3,
-    freshnessCost: 2,
-    socialCost: 4,
+    scheduleLabel: 'Tue, Thu, Sat, 11 AM to 5 PM',
+    workloadLabel: 'Long flexible creative blocks',
+    workloadTier: 'freelance_flexible',
+    startHour: 11,
+    endHour: 17,
+    days: [2, 4, 6],
+    basePay: 190,
+    payRaise: 58,
+    xpPerShift: 30,
+    promoXp: 120,
+    staminaCost: 10,
+    energyCost: 13,
+    funCost: -2,
+    freshnessCost: 3,
+    socialCost: 7,
     perk: 'creative'
   }
 ];
@@ -214,7 +226,26 @@ export function workDueText(state, actor) {
   const due = isWorkWindow(state, track) && career.lastWorkedDay !== gameDay(state);
   const level = career.level || 1;
   const pay = payForShift(track, level);
-  return `${track.label} L${level}, ${track.scheduleLabel}, max ${shiftHours(track)}h, $${pay}/shift${due ? ', due now' : ''}`;
+  return `${track.label} L${level}, ${track.workloadLabel}, ${track.scheduleLabel}, ${shiftHours(track)}h, $${pay}/shift${due ? ', due now' : ''}`;
+}
+
+export function careerScheduleStatusLine(state, actor) {
+  const career = careerFor(state, actor);
+  const track = trackForCareer(career);
+  if (!career || !track) return 'Work: no job assigned';
+  const day = gameDay(state) % 7;
+  const todayName = DAY_NAMES[day];
+  const worked = career.lastWorkedDay === gameDay(state);
+  const today = track.days.includes(day);
+  const dueNow = isWorkWindow(state, track) && !worked;
+  const missed = today && currentHour(state) >= track.endHour && !worked;
+  const window = shiftWindowLabel(track);
+  const workload = track.workloadLabel ? `, ${track.workloadLabel}` : '';
+  if (dueNow) return `Work: due now, ${track.label}, ${window}${workload}`;
+  if (worked) return `Work: already worked today, last pay $${Math.round(career.lastPay || 0)}${workload}`;
+  if (missed) return `Work: ${todayName} shift missed, ${track.label}, ${window}${workload}`;
+  if (today) return `Work: today ${window}, ${track.label}${workload}`;
+  return `Work: off today, ${track.label}, schedule ${track.scheduleLabel}${workload}`;
 }
 
 export function careerHudLine(state, actor) {
@@ -222,6 +253,13 @@ export function careerHudLine(state, actor) {
   const track = trackForCareer(career);
   if (!career || !track) return 'Career: none';
   return `Career: ${track.label} L${career.level} XP ${Math.round(career.xp)}/${promoThreshold(track, career.level)} Last $${Math.round(career.lastPay || 0)}`;
+}
+
+export function workOffsiteDurationForActor(state, actorId) {
+  const actor = (state.entities || []).find(entity => entity.id === actorId) || null;
+  const career = actor ? careerFor(state, actor) : null;
+  const track = trackForCareer(career);
+  return Math.max(8, Math.round(shiftHours(track) * WORK_REAL_SECONDS_PER_SHIFT_HOUR));
 }
 
 export function applyWorkCompletion(state, actor) {
@@ -234,13 +272,14 @@ export function applyWorkCompletion(state, actor) {
   }
 
   const pay = payForShift(track, career.level);
+  const hours = shiftHours(track);
   state.money += pay;
   career.lastPay = pay;
   career.lastWorkedDay = gameDay(state);
   career.shiftsWorked += 1;
   career.xp += track.xpPerShift;
-  state.careers.workHours = (state.careers.workHours || 0) + shiftHours(track);
-  state.careers.history.unshift({ actorId: actor.id, trackId: track.id, pay, day: gameDay(state), level: career.level });
+  state.careers.workHours = (state.careers.workHours || 0) + hours;
+  state.careers.history.unshift({ actorId: actor.id, trackId: track.id, pay, day: gameDay(state), level: career.level, hours, workloadTier: track.workloadTier || '' });
   state.careers.history = state.careers.history.slice(0, 12);
 
   let promoted = false;
@@ -256,7 +295,7 @@ export function applyWorkCompletion(state, actor) {
   applyCareerNeeds(actor, track);
   awardCareerPerk(state, actor, track);
   setMood(actor, 'calm');
-  log(state, `${actor.name} completed a four hour ${track.label} shift and earned $${pay}.`);
+  log(state, `${actor.name} completed a ${hours} hour ${track.label} shift and earned $${pay}.`);
   return { pay, promoted };
 }
 
@@ -298,6 +337,18 @@ function promoThreshold(track, level) {
 }
 
 function shiftHours(track) {
+  if (!track) return 4;
   const raw = track.endHour - track.startHour;
   return raw > 0 ? raw : raw + 24;
+}
+
+function shiftWindowLabel(track) {
+  return `${hourLabel(track.startHour)} to ${hourLabel(track.endHour)}`;
+}
+
+function hourLabel(hour) {
+  const normalized = ((hour % 24) + 24) % 24;
+  const suffix = normalized >= 12 ? 'PM' : 'AM';
+  const h = ((normalized + 11) % 12) + 1;
+  return `${h} ${suffix}`;
 }

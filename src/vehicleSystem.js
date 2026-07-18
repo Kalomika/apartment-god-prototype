@@ -3,6 +3,7 @@ import { byId, log, say } from './state.js';
 import { getObject, approachPoint } from './world.js';
 import { commandMove, commandObject } from './movement.js';
 import { createOffsiteJob } from './travelLocations.js';
+import { beginFrontYardVehicleDeparture, beginFrontYardVehicleReturn, updateFrontYardVehicleDeparture, updateFrontYardVehicleReturn } from './frontYardDriveway.js';
 
 const GARAGE_FLOOR = 3;
 const HOUSE_FLOOR = 0;
@@ -180,8 +181,8 @@ export function beginVehicleReturn(state, actionId, partyIds = [], vehicleId = s
   state.viewFocus = null;
   state.objectState.vehicleInUse = vehicle.id;
   state.vehicleReturn = { actionId, partyIds, vehicleId: vehicle.id, vehicleKind: vehicle.kind || 'car', vacation, luggage: vacation && !bikeLike ? makeLuggageManifest(state, partyIds, actionId) : [], seatAssignments: seats, t: 0, phase: 'arriving', floor: GARAGE_FLOOR, x: vertical ? vehicle.x : -vehicle.w - 40, y: vertical ? GARAGE_EXIT_Y : vehicle.y, parkX: vehicle.x, parkY: vehicle.y, w: vehicle.w, h: vehicle.h, dir: driveVector(vehicle, false), open: false, trunkOpen: false, mounted: bikeLike, remoteFlashT: 0, remoteLabel: '' };
-  state.objectState.garageDoorOpen = true; state.floor = GARAGE_FLOOR; state.viewHoldT = 10;
-  log(state, `${vehicle.label || 'Vehicle'} returning from ${actionId.replaceAll('_', ' ')}.`);
+  if (beginFrontYardVehicleReturn(state, state.vehicleReturn)) log(state, `${vehicle.label || 'Vehicle'} returning through the South front road.`);
+  else { state.objectState.garageDoorOpen = true; state.floor = GARAGE_FLOOR; state.viewHoldT = 10; log(state, `${vehicle.label || 'Vehicle'} returning from ${actionId.replaceAll('_', ' ')}.`); }
   return true;
 }
 
@@ -189,37 +190,22 @@ export function updateVehicleDeparture(state, dt) { updateVehicleLeaving(state, 
 
 function updateVehicleLeaving(state, dt) {
   const v = state.vehicleDeparture; if (!v) return; v.t += dt; v.rerouteT = Math.max(0, (v.rerouteT || 0) - dt); if (v.remoteFlashT > 0) v.remoteFlashT = Math.max(0, v.remoteFlashT - dt);
+  const frontStep = updateFrontYardVehicleDeparture(state, v, dt);
+  if (frontStep === 'complete') { state.vehicleDeparture = null; state.offsite = createOffsiteJob(v.actionId, v.partyIds || [], v.vehicleId); log(state, `Offsite travel began from the front road: ${state.offsite.label}.`); return; }
+  if (frontStep) return;
   const bikeLike = isBikeLikeVehicle(v);
   if (v.phase === 'walking_to_pack') { const packPoint = getObject('bed') ? approachPoint(getObject('bed'), 'pack_luggage') : { x: 170, y: 240 }; const humanIds = humansInParty(state, v.partyIds).map(e => e.id); if (allAtPoint(state, humanIds, PACK_FLOOR, packPoint, 115) || v.t > 12) { v.phase = 'packing'; v.t = 0; for (const e of humansInParty(state, v.partyIds)) { e.path = []; e.target = null; clearTimedAction(e); e.action = 'Packing luggage'; e.pose = 'packing'; e.carrying = null; say(e, 'PACK'); } log(state, 'Travelers are packing upstairs.'); } return; }
   if (v.phase === 'packing' && v.t > 2.4) { for (const item of v.luggage || []) { const e = byId(state, item.entityId); if (e) { clearTimedAction(e); e.carrying = luggageLabel(item.count); e.action = 'Carrying luggage'; e.pose = 'carry'; } } v.phase = 'walking_to_vehicle'; v.t = 0; v.rerouteT = 0; routePartyToVehicle(state, v); log(state, 'Packed bags are being carried to the garage.'); return; }
   if (v.phase === 'walking_to_vehicle') {
     if (allAtVehicle(state, v)) {
       v.t = 0;
-      if (bikeLike) {
-        v.phase = 'mounting';
-        v.open = false;
-        setPartyAction(state, v, 'Grabbing handlebars', 'bike_mount');
-        log(state, vehicleDoorText(v));
-        return;
-      }
-      v.phase = 'remote_unlock';
-      setRemoteFlash(v, 'UNLOCK');
-      setPartyAction(state, v, 'Unlocking vehicle', 'stand');
-      log(state, 'Remote unlock flashed the front and rear lights.');
-      return;
+      if (bikeLike) { v.phase = 'mounting'; v.open = false; setPartyAction(state, v, 'Grabbing handlebars', 'bike_mount'); log(state, vehicleDoorText(v)); return; }
+      v.phase = 'remote_unlock'; setRemoteFlash(v, 'UNLOCK'); setPartyAction(state, v, 'Unlocking vehicle', 'stand'); log(state, 'Remote unlock flashed the front and rear lights.'); return;
     }
     if (v.t > 6 && v.rerouteT <= 0) { routePartyToVehicle(state, v); v.rerouteT = 2.5; }
     return;
   }
-  if (v.phase === 'mounting' && v.t > 0.95) {
-    v.phase = 'mounted_ready';
-    v.mounted = true;
-    v.t = 0;
-    for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; e.hidden = true; e.action = 'Mounted on bike'; e.pose = 'mounted_bike'; clearTimedAction(e); e.path = []; e.target = null; e.pending = null; e.carrying = null; }
-    selectVisiblePerson(state);
-    log(state, vehicleBoardText(v));
-    return;
-  }
+  if (v.phase === 'mounting' && v.t > 0.95) { v.phase = 'mounted_ready'; v.mounted = true; v.t = 0; for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; e.hidden = true; e.action = 'Mounted on bike'; e.pose = 'mounted_bike'; clearTimedAction(e); e.path = []; e.target = null; e.pending = null; e.carrying = null; } selectVisiblePerson(state); log(state, vehicleBoardText(v)); return; }
   if (v.phase === 'mounted_ready' && v.t > 0.45) { v.phase = 'garage_opening'; v.t = 0; state.objectState.garageDoorOpen = true; log(state, 'Garage door opening for mounted rider.'); return; }
   if (v.phase === 'remote_unlock' && v.t > 0.85) { v.phase = v.vacation && v.luggage?.length ? 'trunk_opening' : 'door_opening'; v.t = 0; if (v.phase === 'trunk_opening') { v.trunkOpen = true; log(state, 'Trunk opened for luggage.'); } else { v.open = true; log(state, vehicleDoorText(v)); } return; }
   if (v.phase === 'trunk_opening' && v.t > 0.75) { v.phase = 'loading_luggage'; v.t = 0; for (const item of v.luggage || []) { const e = byId(state, item.entityId); if (e) { clearTimedAction(e); e.action = 'Loading luggage'; e.pose = 'loading_trunk'; say(e, 'BAG'); } } return; }
@@ -229,24 +215,20 @@ function updateVehicleLeaving(state, dt) {
   if (v.phase === 'boarding' && v.t > 0.85) { for (const id of v.partyIds || []) { const e = byId(state, id); if (!e) continue; e.hidden = true; e.action = v.actionId; clearTimedAction(e); e.path = []; e.target = null; e.pending = null; e.carrying = null; } selectVisiblePerson(state); v.phase = 'door_closing'; v.open = false; v.t = 0; log(state, vehicleCloseText(v)); return; }
   if (v.phase === 'door_closing' && v.t > 0.45) { v.phase = 'remote_lock'; v.t = 0; setRemoteFlash(v, 'LOCK'); log(state, 'Remote lock flashed the lights.'); return; }
   if (v.phase === 'remote_lock' && v.t > 0.8) { v.phase = 'garage_opening'; v.t = 0; state.objectState.garageDoorOpen = true; log(state, 'Garage door opening.'); return; }
-  if (v.phase === 'garage_opening' && v.t > 0.75) { v.phase = 'leaving'; v.t = 0; log(state, bikeLike ? 'Mounted rider is leaving through the garage exit.' : 'Vehicle leaving downward through the garage exit.'); return; }
-  if (v.phase === 'leaving') { v.x += v.dir.x * dt * 150; v.y += v.dir.y * dt * 150; }
+  if (v.phase === 'garage_opening' && v.t > 0.75) { v.phase = 'leaving'; v.t = 0; log(state, bikeLike ? 'Mounted rider is leaving through the garage exit toward the South driveway.' : 'Vehicle leaving toward the South driveway.'); return; }
+  if (v.phase === 'leaving') { v.x += v.dir.x * dt * 150; v.y += v.dir.y * dt * 150; if ((v.y > 692 || v.t > 1.4) && beginFrontYardVehicleDeparture(state, v)) { log(state, 'Vehicle entered the South driveway view.'); return; } }
   const gone = v.y + v.h < -30 || v.y > 780 || v.x + v.w < -30 || v.x > 990;
   if (gone || (v.phase === 'leaving' && v.t > 6)) { state.objectState.garageDoorOpen = false; state.vehicleDeparture = null; state.offsite = createOffsiteJob(v.actionId, v.partyIds || [], v.vehicleId); log(state, `Offsite travel began: ${state.offsite.label}.`); }
 }
 
 function updateVehicleReturning(state, dt) {
   const v = state.vehicleReturn; if (!v) return; v.t += dt; if (v.remoteFlashT > 0) v.remoteFlashT = Math.max(0, v.remoteFlashT - dt);
+  const frontStep = updateFrontYardVehicleReturn(state, v, dt);
+  if (frontStep === 'garage') { v.floor = GARAGE_FLOOR; v.phase = 'arriving'; v.t = 0; v.x = v.parkX; v.y = GARAGE_EXIT_Y; v.facing = 'down'; state.objectState.garageDoorOpen = true; state.floor = GARAGE_FLOOR; state.viewHoldT = 8; log(state, 'Vehicle turned from the front road into the garage driveway.'); return; }
+  if (frontStep) return;
   const bikeLike = isBikeLikeVehicle(v);
   if (v.phase === 'arriving') { v.x = approach(v.x, v.parkX, dt * 150); v.y = approach(v.y, v.parkY, dt * 150); if (Math.abs(v.x - v.parkX) < 1 && Math.abs(v.y - v.parkY) < 1) { v.x = v.parkX; v.y = v.parkY; v.phase = 'parking'; v.t = 0; log(state, 'The same vehicle parked in the garage.'); } return; }
-  if (v.phase === 'parking' && v.t > 0.65) {
-    v.t = 0;
-    if (bikeLike) { v.phase = 'dismounting'; v.mounted = true; log(state, 'Rider is putting feet down and dismounting from the bike.'); return; }
-    v.phase = 'remote_unlock';
-    setRemoteFlash(v, 'UNLOCK');
-    log(state, 'Remote unlock flashed on return.');
-    return;
-  }
+  if (v.phase === 'parking' && v.t > 0.65) { v.t = 0; if (bikeLike) { v.phase = 'dismounting'; v.mounted = true; log(state, 'Rider is putting feet down and dismounting from the bike.'); return; } v.phase = 'remote_unlock'; setRemoteFlash(v, 'UNLOCK'); log(state, 'Remote unlock flashed on return.'); return; }
   if (v.phase === 'dismounting' && v.t > 0.85) { v.mounted = false; v.phase = 'walking_in'; v.t = 0; spawnPartyAtSeats(state, v); routePartyInsideFromGarage(state, v); log(state, 'Rider dismounted and is walking through the garage entry.'); return; }
   if (v.phase === 'remote_unlock' && v.t > 0.8) { v.phase = 'door_opening'; v.t = 0; v.open = true; log(state, vehicleDoorText(v)); return; }
   if (v.phase === 'door_opening' && v.t > 0.7) { v.phase = v.vacation && v.luggage?.length ? 'trunk_opening' : 'walking_in'; v.t = 0; spawnPartyAtSeats(state, v); if (v.phase === 'trunk_opening') { v.trunkOpen = true; log(state, 'Trunk opened to unload luggage.'); } else { routePartyInsideFromGarage(state, v); log(state, 'Party exited the vehicle and is walking through the garage entry.'); } return; }

@@ -3,26 +3,29 @@ import { applyMainFloorLayoutPolish } from '../src/mainFloorLayoutPolish.js';
 import { getObject } from '../src/world.js';
 
 describe('main floor layout polish', () => {
-  it('places the L sectional against the living wall with a cushion-safe seat anchor', () => {
+  it('places the L sectional against the living wall with a blocked footprint and safe interaction approach', () => {
     applyMainFloorLayoutPolish();
     const couch = getObject('couch');
 
     expect(couch.floor).toBe(0);
     expect(couch.x).toBeLessThan(90);
     expect(couch.y).toBeGreaterThan(210);
-    expect(couch.h).toBeLessThan(95);
+    expect(couch.h).toBe(86);
     expect(couch.facing).toBe('up');
-    expect(couch.enterable).toBe(true);
+    expect(couch.enterable).toBe(false);
+    expect(couch.solid).toBe(true);
   });
 
-  it('keeps the cleaner dining layout as a single four-seat table zone', () => {
+  it('keeps the current cleaner dining layout as one compact four-seat table zone', () => {
     applyMainFloorLayoutPolish();
     const dining = getObject('dining_table');
 
     expect(dining.floor).toBe(0);
-    expect(dining.x).toBe(494);
-    expect(dining.w).toBe(190);
-    expect(dining.h).toBe(64);
+    expect(dining.x).toBe(498);
+    expect(dining.y).toBe(230);
+    expect(dining.w).toBe(174);
+    expect(dining.h).toBe(58);
+    expect(dining.solid).toBe(true);
   });
 
   it('moves dog and robot items into the pet robot nook instead of the walkway', () => {

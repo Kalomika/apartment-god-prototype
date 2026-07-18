@@ -1,6 +1,7 @@
 import { windowAt, toggleWindow } from './blueprint.js';
-import { careerHudLine } from './careerSystem.js';
+import { careerHudLine, careerScheduleStatusLine } from './careerSystem.js';
 import { calendarHudLine } from './calendarSystem.js';
+import { calendarCompactHudLine } from './calendarDisplay.js';
 import { ACTIONS, DOG_SOCIAL_ACTIONS, DOUBLE_TAP_MS, NEEDS, SOCIAL_ACTIONS } from './config.js';
 import { startObjectAction, startOffsite, startSocialAction, throwFetchBall } from './actions.js';
 import { interruptBookIfNeeded } from './bookSystem.js';
@@ -14,7 +15,6 @@ import { navigateView } from './cameraNavigation.js';
 import { clearRefreshState, loadGame, saveGame, slotSummary } from './saveSystem.js';
 import { log, resumeEntity, selected, stopEntity } from './state.js';
 import { floors, objectAt, objects } from './world.js';
-import { formatTime } from './renderHelpers.js';
 
 const TRAVEL_ACTIONS = ['work', 'errand', 'mall', 'movies', 'date'];
 
@@ -26,6 +26,7 @@ export function createUi(state, surface, options = {}) {
   const worldState = document.getElementById('world-state');
   const logEl = document.getElementById('log');
   const commandPanel = document.getElementById('command-panel');
+  const calendarPill = document.getElementById('hud-calendar-pill');
   let lastTap = 0;
 
   const closeMenu = () => { menu.classList.add('hidden'); menu.innerHTML = ''; state.menu = null; };
@@ -138,8 +139,10 @@ export function createUi(state, surface, options = {}) {
     openMenu(16, 74, 'House Map', [
       { label: 'Main House', run: () => jumpArea(0, 'Main House') },
       { label: 'Backyard North', run: () => jumpArea(4, 'Backyard North') },
+      { label: 'Front Yard South', run: () => jumpArea(6, 'Front Yard South') },
+      { label: 'Driveway West', run: () => jumpArea(7, 'Driveway West') },
       { label: 'Garage West', run: () => jumpArea(3, 'Garage West') },
-      { label: 'Front Patio', run: () => jumpArea(0, 'Front Patio / Entry') },
+      { label: 'Front Patio / Entry', run: () => jumpArea(0, 'Front Patio / Entry') },
       { label: 'Upstairs', run: () => jumpArea(1, 'Upstairs') },
       { label: 'Basement', run: () => jumpArea(2, 'Basement') }
     ]);
@@ -148,11 +151,11 @@ export function createUi(state, surface, options = {}) {
   function changeVertical(delta) {
     if (delta > 0) {
       if (state.floor === 2) return jumpArea(0, 'Main House');
-      if (state.floor === 0 || state.floor === 3 || state.floor === 4) return jumpArea(1, 'Upstairs');
+      if (state.floor === 0 || state.floor === 3 || state.floor === 4 || state.floor === 6 || state.floor === 7) return jumpArea(1, 'Upstairs');
       return jumpArea(1, 'Upstairs');
     }
     if (state.floor === 1) return jumpArea(0, 'Main House');
-    if (state.floor === 0 || state.floor === 3 || state.floor === 4) return jumpArea(2, 'Basement');
+    if (state.floor === 0 || state.floor === 3 || state.floor === 4 || state.floor === 6 || state.floor === 7) return jumpArea(2, 'Basement');
     return jumpArea(2, 'Basement');
   }
 
@@ -193,12 +196,13 @@ export function createUi(state, surface, options = {}) {
     if ((obj.kind === 'door' || obj.kind === 'car') && TRAVEL_ACTIONS.includes(actionId)) return guidedOffsite(actor, actionId, [], obj.kind === 'car' ? obj.id : 'auto');
     if (obj.kind === 'bike' && TRAVEL_ACTIONS.includes(actionId)) return guidedOffsite(actor, actionId, [], 'bike');
     if (obj.kind === 'motorbike' && TRAVEL_ACTIONS.includes(actionId)) return guidedOffsite(actor, actionId, [], 'motorbike');
+    if (obj.kind === 'atv' && TRAVEL_ACTIONS.includes(actionId)) return guidedOffsite(actor, actionId, [], 'atv');
     guidedObject(actor, obj, actionId);
   }
   function setFloor(floor) { jumpArea(floor, floors[floor]?.name || 'area'); }
 
   function bindButtons() {
-    const areaButtons = [[0, 'Main'], [1, 'Upstairs'], [2, 'Basement'], [3, 'Garage West'], [4, 'Yard North']];
+    const areaButtons = [[0, 'Main'], [1, 'Upstairs'], [2, 'Basement'], [3, 'Garage West'], [4, 'Yard North'], [6, 'Front South'], [7, 'Driveway West']];
     for (const [i, label] of areaButtons) { const btn = document.getElementById(`floor-${i}`); if (btn) { btn.textContent = label; btn.onclick = () => setFloor(i); } }
     document.getElementById('speed-1').onclick = () => { state.speed = 1; };
     document.getElementById('speed-3').onclick = () => { state.speed = 3; };
@@ -210,10 +214,21 @@ export function createUi(state, surface, options = {}) {
   }
 
   function renderHud() {
-    const actor = selected(state); selectedName.textContent = actor.name; currentAction.textContent = actor.action || 'Idle';
+    const actor = selected(state);
+    const compactDate = calendarCompactHudLine(state);
+    if (calendarPill) calendarPill.textContent = compactDate;
+    selectedName.textContent = actor.name;
+    currentAction.textContent = actor.action || 'Idle';
     needs.innerHTML = NEEDS.map(([key, label]) => { const value = Math.round(actor.needs[key] ?? 0); return `<div class="need-row"><span>${label}</span><div class="need-bar"><div class="need-fill" style="width:${value}%"></div></div><span>${value}</span></div>`; }).join('');
-    const music = state.music ? `<br>Music: ${state.music.genre}` : ''; const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : ''; const delivery = state.delivery ? `<br>Delivery: ${state.delivery.phase}` : ''; const save = state.saveStatus?.message ? `<br>Save: ${state.saveStatus.message}` : `<br>Slot 1: ${slotSummary(1)}`; const trash = state.garbage ? `<br>Trash: ${Math.round(state.garbage.kitchen || 0)}%` : ''; const career = actor.type === 'person' ? `<br>${careerHudLine(state, actor)}` : ''; const life = actor.type === 'person' ? `<br>${lifeQualityHudLine(state, actor)}` : '';
-    worldState.innerHTML = `Clock: ${formatTime(state.time)}<br>${calendarHudLine(state)}<br>Area: ${floors[state.floor]?.name || state.floor}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Money: $${Math.round(state.money ?? 0)}<br>Autonomy: ${state.autonomyMode}<br>${lifeControlLabel(state)}${career}${life}${music}${build}${delivery}${trash}${save}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
+    const music = state.music ? `<br>Music: ${state.music.genre}` : '';
+    const build = state.buildPick ? `<br>Build: tap ${state.buildPick.label} spot` : '';
+    const delivery = state.delivery ? `<br>Delivery: ${state.delivery.phase}` : '';
+    const save = state.saveStatus?.message ? `<br>Save: ${state.saveStatus.message}` : `<br>Slot 1: ${slotSummary(1)}`;
+    const trash = state.garbage ? `<br>Trash: ${Math.round(state.garbage.kitchen || 0)}%` : '';
+    const career = actor.type === 'person' ? `<br>${careerHudLine(state, actor)}<br>${careerScheduleStatusLine(state, actor)}` : '';
+    const life = actor.type === 'person' ? `<br>${lifeQualityHudLine(state, actor)}` : '';
+    const calendar = calendarHudLine(state).replace(/^Calendar: /, 'Plans: ');
+    worldState.innerHTML = `<strong>${compactDate}</strong><br>Money: $${Math.round(state.money ?? 0)}<br>${calendar}<br>Area: ${floors[state.floor]?.name || state.floor}<br>View hold: ${Math.ceil(state.viewHoldT || 0)}s<br>Speed: ${state.speed}x<br>Autonomy: ${state.autonomyMode}<br>${lifeControlLabel(state)}${career}${life}${music}${build}${delivery}${trash}${save}<br>Electric bill: $${Math.max(0, Math.round(state.bill))}`;
     logEl.innerHTML = state.notifications.map(item => `<li>${item}</li>`).join('');
   }
 
