@@ -1,3 +1,5 @@
-import { bootPhaserMigration2Game } from './phaserMigration2Runtime.js?v=20260714-phaser-migration-2-native';
+const gameCanvas = document.getElementById('game');
+if (gameCanvas) gameCanvas.dataset.phaserOwned = 'true';
 
+const { bootPhaserMigration2Game } = await import('./phaserMigration2Runtime.js?v=20260717-full-main-gameplay-sync');
 bootPhaserMigration2Game();
