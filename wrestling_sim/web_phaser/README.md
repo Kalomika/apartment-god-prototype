@@ -10,20 +10,22 @@ The top down experiment is no longer the active playable target.
 
 ## Current Approval Step
 
-The current build is a hard cam ring approval pass.
+The current build is a layered hard cam ring approval pass.
 
 It intentionally shows:
 
 ```text
 side view hard cam arena
-painted wrestling ring
+painted wrestling ring pushed farther from camera
+background crowd sprite plate
+ring sprite plate
+foreground crowd sprite plate
 white canvas
 black ropes
 corner posts
 turnbuckle pads
 front apron
-crowd and floor framing
-8 fps visual cadence
+8 fps A/B crowd and ring cadence
 no wrestlers yet
 ```
 
@@ -42,13 +44,13 @@ two active autonomous wrestlers planned
 Rex Sterling, blonde powerhouse ace
 Dante Crowe, dark haired brawler
 one referee planned
-hard cam ring renderer now active
+layered hard cam ring renderer now active
 mobile bottom half move buttons
 autonomous match loop still present under the hood
 GM suggestions can be accepted or ignored
 ```
 
-The current visual build hides wrestlers on purpose until the hard cam ring is approved.
+The current visual build hides wrestlers on purpose until the hard cam ring and crowd layer direction is approved.
 
 ## Stack
 
@@ -64,7 +66,14 @@ Render static site hosting for mobile testing
 The current active match view renderer is:
 
 ```text
-src/render/HardCamRingRenderer.js
+src/render/HardCamSpriteRingRenderer.js
+```
+
+It uses authored SVG sprite plates loaded from:
+
+```text
+public/assets/crowd/
+public/assets/ring/
 ```
 
 The abandoned top down canvas renderer has been removed from the playable view.
@@ -117,5 +126,3 @@ Root directory:
 ```text
 wrestling_sim/web_phaser
 ```
-
-Once the GitHub branch is connected to Render, the expected static site service name is `grapple-gods-phaser`.
