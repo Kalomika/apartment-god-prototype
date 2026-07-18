@@ -1,9 +1,14 @@
+const backgroundCrowdFrames = [
+  './assets/crowd/hard_cam_crowd_background_frame_0.svg',
+  './assets/crowd/hard_cam_crowd_background_frame_1.svg'
+];
+
 const ringFrames = [
   './assets/ring/hard_cam_ring_approval_frame_0.svg',
   './assets/ring/hard_cam_ring_approval_frame_1.svg'
 ];
 
-const crowdFrames = [
+const foregroundCrowdFrames = [
   './assets/crowd/hard_cam_crowd_foreground_frame_0.svg',
   './assets/crowd/hard_cam_crowd_foreground_frame_1.svg'
 ];
@@ -12,17 +17,20 @@ const DEFAULTS = Object.freeze({
   depth: 28,
   vertical: 15,
   zoom: 100,
-  crowd: true,
+  backgroundCrowd: true,
+  foregroundCrowd: true,
   grid: false,
   safe: true,
   playing: true
 });
 
 const elements = {
+  backgroundCrowdLayer: document.querySelector('#backgroundCrowdLayer'),
+  backgroundCrowdImage: document.querySelector('#backgroundCrowdImage'),
   ringLayer: document.querySelector('#ringLayer'),
   ringImage: document.querySelector('#ringImage'),
-  crowdLayer: document.querySelector('#crowdLayer'),
-  crowdImage: document.querySelector('#crowdImage'),
+  foregroundCrowdLayer: document.querySelector('#foregroundCrowdLayer'),
+  foregroundCrowdImage: document.querySelector('#foregroundCrowdImage'),
   gridLayer: document.querySelector('#gridLayer'),
   safeFrame: document.querySelector('#safeFrame'),
   assetError: document.querySelector('#assetError'),
@@ -36,7 +44,8 @@ const elements = {
   verticalOutput: document.querySelector('#verticalOutput'),
   zoomRange: document.querySelector('#zoomRange'),
   zoomOutput: document.querySelector('#zoomOutput'),
-  crowdToggle: document.querySelector('#crowdToggle'),
+  backgroundCrowdToggle: document.querySelector('#backgroundCrowdToggle'),
+  foregroundCrowdToggle: document.querySelector('#foregroundCrowdToggle'),
   gridToggle: document.querySelector('#gridToggle'),
   safeToggle: document.querySelector('#safeToggle'),
   playButton: document.querySelector('#playButton'),
@@ -72,14 +81,16 @@ function updateTransform() {
 }
 
 function updateLayers() {
-  elements.crowdLayer.hidden = !state.crowd;
+  elements.backgroundCrowdLayer.hidden = !state.backgroundCrowd;
+  elements.foregroundCrowdLayer.hidden = !state.foregroundCrowd;
   elements.gridLayer.classList.toggle('is-visible', state.grid);
   elements.safeFrame.hidden = !state.safe;
 }
 
 function renderFrame() {
+  elements.backgroundCrowdImage.src = backgroundCrowdFrames[state.frame];
   elements.ringImage.src = ringFrames[state.frame];
-  elements.crowdImage.src = crowdFrames[state.frame];
+  elements.foregroundCrowdImage.src = foregroundCrowdFrames[state.frame];
   elements.frameReadout.textContent = state.frame === 0 ? 'FRAME A' : 'FRAME B';
 }
 
@@ -118,7 +129,8 @@ function resetStudio() {
   elements.depthRange.value = String(state.depth);
   elements.verticalRange.value = String(state.vertical);
   elements.zoomRange.value = String(state.zoom);
-  elements.crowdToggle.checked = state.crowd;
+  elements.backgroundCrowdToggle.checked = state.backgroundCrowd;
+  elements.foregroundCrowdToggle.checked = state.foregroundCrowd;
   elements.gridToggle.checked = state.grid;
   elements.safeToggle.checked = state.safe;
 
@@ -129,15 +141,18 @@ function resetStudio() {
   startTimer();
 }
 
-function registerAssetFailure(event) {
-  state.failedAssets.add(event.currentTarget.src);
-  if (state.failedAssets.size >= 2) {
-    elements.assetError.hidden = false;
-  }
+function updateAssetError() {
+  elements.assetError.hidden = state.failedAssets.size === 0;
 }
 
-function registerAssetSuccess() {
-  elements.assetError.hidden = true;
+function registerAssetFailure(event) {
+  state.failedAssets.add(event.currentTarget.id);
+  updateAssetError();
+}
+
+function registerAssetSuccess(event) {
+  state.failedAssets.delete(event.currentTarget.id);
+  updateAssetError();
 }
 
 elements.depthRange.addEventListener('input', (event) => {
@@ -155,8 +170,13 @@ elements.zoomRange.addEventListener('input', (event) => {
   updateTransform();
 });
 
-elements.crowdToggle.addEventListener('change', (event) => {
-  state.crowd = event.currentTarget.checked;
+elements.backgroundCrowdToggle.addEventListener('change', (event) => {
+  state.backgroundCrowd = event.currentTarget.checked;
+  updateLayers();
+});
+
+elements.foregroundCrowdToggle.addEventListener('change', (event) => {
+  state.foregroundCrowd = event.currentTarget.checked;
   updateLayers();
 });
 
@@ -182,10 +202,14 @@ elements.stepButton.addEventListener('click', () => {
 
 elements.resetButton.addEventListener('click', resetStudio);
 
-elements.ringImage.addEventListener('error', registerAssetFailure);
-elements.crowdImage.addEventListener('error', registerAssetFailure);
-elements.ringImage.addEventListener('load', registerAssetSuccess);
-elements.crowdImage.addEventListener('load', registerAssetSuccess);
+[
+  elements.backgroundCrowdImage,
+  elements.ringImage,
+  elements.foregroundCrowdImage
+].forEach((image) => {
+  image.addEventListener('error', registerAssetFailure);
+  image.addEventListener('load', registerAssetSuccess);
+});
 
 document.addEventListener('keydown', (event) => {
   const target = event.target;
