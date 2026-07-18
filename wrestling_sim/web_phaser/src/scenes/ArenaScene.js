@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { TopDownCanvasRenderer } from '../render/TopDownCanvasRenderer.js';
+import { HardCamRingRenderer } from '../render/HardCamRingRenderer.js';
 import { ChoicePanel } from '../ui/ChoicePanel.js';
 import { initialMatch, roster } from '../data/roster.js';
 import { MatchEngine } from '../sim/matchEngine.js';
@@ -16,7 +16,7 @@ export class ArenaScene extends Phaser.Scene {
     const blue = roster.find((wrestler) => wrestler.id === initialMatch.blueCornerId);
 
     this.engine = new MatchEngine({ red, blue, ruleSet: initialMatch.ruleSet });
-    this.matchView = new TopDownCanvasRenderer(this);
+    this.ringPreview = new HardCamRingRenderer(this);
     this.choicePanel = new ChoicePanel(this);
     this.hudText = this.add.text(0, 0, '', {
       fontFamily: 'Arial Black, Arial, sans-serif',
@@ -34,7 +34,7 @@ export class ArenaScene extends Phaser.Scene {
 
     this.scale.on('resize', this.handleResize, this);
     this.handleResize({ width: this.scale.width, height: this.scale.height });
-    this.choicePanel.setDialogue('GM OFFICE', `${red.name} versus ${blue.name} is booked.`);
+    this.choicePanel.setDialogue('RING APPROVAL', 'Hard cam sprite wrestling ring proof. Characters are intentionally hidden until the ring is approved.');
   }
 
   handleResize(gameSize) {
@@ -42,7 +42,7 @@ export class ArenaScene extends Phaser.Scene {
     const height = gameSize.height;
     const arenaHeight = Math.floor(height * 0.50);
     this.layout = { width, height, arenaHeight };
-    this.matchView.layout(this.layout);
+    this.ringPreview.layout(this.layout);
     this.choicePanel.layout(this.layout);
     this.positionFromSnapshot();
   }
@@ -50,8 +50,9 @@ export class ArenaScene extends Phaser.Scene {
   update(time, delta) {
     if (!this.layout || !this.engine) return;
     this.snapshot = this.engine.update(delta);
+    this.ringPreview.update(time);
     this.positionFromSnapshot();
-    this.choicePanel.setLog(this.snapshot.log);
+    this.choicePanel.setLog('Ring approval pass only. Wrestlers and sprite cycles are disabled until the hard cam ring direction is approved.');
   }
 
   positionFromSnapshot() {
@@ -61,9 +62,8 @@ export class ArenaScene extends Phaser.Scene {
       this.snapshot = first;
     }
 
-    this.matchView.draw(this.layout, this.snapshot);
     this.hudText.setPosition(Math.round(this.layout.width * 0.5), 8);
-    this.hudText.setFontSize(this.layout.width < 430 ? 13 : 16);
-    this.hudText.setText(`${this.snapshot.red.profile.shortName} STA ${Math.round(this.snapshot.red.stamina)} DMG ${Math.round(this.snapshot.red.damage)}   ${this.snapshot.blue.profile.shortName} STA ${Math.round(this.snapshot.blue.stamina)} DMG ${Math.round(this.snapshot.blue.damage)}`);
+    this.hudText.setFontSize(this.layout.width < 430 ? 12 : 15);
+    this.hudText.setText('HARD CAM RING PROOF   8 FPS VISUAL PASS   NO WRESTLERS YET');
   }
 }
