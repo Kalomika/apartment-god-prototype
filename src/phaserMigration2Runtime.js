@@ -63,7 +63,7 @@ export async function bootPhaserMigration2Game() {
   const canvas = document.getElementById('game');
   if (!canvas) return null;
   try {
-    const phaserModule = await import('../vendor/phaser.esm.js');
+    const phaserModule = await import('../vendor/phaser.esm.js').catch(() => import('https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.esm.js'));
     const Phaser = phaserModule.default || phaserModule;
     const SceneClass = createApartmentGodNativeScene(Phaser);
     return new Phaser.Game({

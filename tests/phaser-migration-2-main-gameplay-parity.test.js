@@ -17,6 +17,7 @@ describe('Phaser Migration 2 full main gameplay synchronization', () => {
     expect(runtimeSource).not.toContain('textures.addCanvas');
     expect(runtimeSource).toContain("import('../vendor/phaser.esm.js')");
     expect(runtimeSource).not.toContain("import('/vendor/phaser.esm.js')");
+    expect(runtimeSource).toContain('cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.esm.js');
   });
 
   it('runs every synchronized current gameplay system in the native Phaser simulation', () => {
