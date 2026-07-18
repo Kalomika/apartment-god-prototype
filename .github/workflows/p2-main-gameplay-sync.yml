@@ -1,6 +1,7 @@
-name: Sync Main Gameplay Into P2
+name: Audit Main Gameplay Drift Against P2
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - phaser-migration-2
@@ -13,11 +14,10 @@ on:
       - 'tests/phaser-migration-2-main-gameplay-parity.test.js'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  sync-and-verify:
-    if: github.actor != 'github-actions[bot]'
+  audit-and-verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -26,7 +26,7 @@ jobs:
         with:
           ref: phaser-migration-2
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -36,55 +36,58 @@ jobs:
       - name: Fetch current main gameplay source
         run: git fetch origin main
 
-      - name: Copy current gameplay and regression files from main
+      - name: Report main gameplay drift without modifying P2
         run: |
-          git checkout origin/main -- \
-            src/actions.js \
-            src/appMenu.js \
-            src/arcadeSystem.js \
-            src/autonomy.js \
-            src/basketballSystem.js \
-            src/calendarDisplay.js \
-            src/cameraNavigation.js \
-            src/careerSystem.js \
-            src/config.js \
-            src/fit.js \
-            src/frontYardDriveway.js \
-            src/frontYardRoutingCorrection.js \
-            src/garageDoorAlignmentOverlay.js \
-            src/gateTraversalGuard.js \
-            src/mainFloorLayoutPolish.js \
-            src/offsiteOverlay.js \
-            src/panicRoomCorrection.js \
-            src/poolActivityCleanup.js \
-            src/poolActivitySystem.js \
-            src/runtimeObjectCorrections.js \
-            src/runtimeRegressionGuards.js \
-            src/state.js \
-            src/timeSystem.js \
-            src/travelLocations.js \
-            src/ui.js \
-            src/vehicleSystem.js \
-            tests/book-reading-floor-route.test.js \
-            tests/calendar-work-hud.test.js \
-            tests/front-yard-driveway.test.js \
-            tests/layer-vehicle-games-regression.test.js \
-            tests/main-floor-layout-polish.test.js \
-            tests/phaser-parity-cleanup.test.js \
+          files=(
+            src/actions.js
+            src/appMenu.js
+            src/arcadeSystem.js
+            src/autonomy.js
+            src/basketballSystem.js
+            src/calendarDisplay.js
+            src/cameraNavigation.js
+            src/careerSystem.js
+            src/config.js
+            src/fit.js
+            src/frontYardDriveway.js
+            src/frontYardRoutingCorrection.js
+            src/garageDoorAlignmentOverlay.js
+            src/gateTraversalGuard.js
+            src/mainFloorLayoutPolish.js
+            src/offsiteOverlay.js
+            src/panicRoomCorrection.js
+            src/poolActivityCleanup.js
+            src/poolActivitySystem.js
+            src/runtimeObjectCorrections.js
+            src/runtimeRegressionGuards.js
+            src/state.js
+            src/timeSystem.js
+            src/travelLocations.js
+            src/ui.js
+            src/vehicleSystem.js
+            tests/book-reading-floor-route.test.js
+            tests/calendar-work-hud.test.js
+            tests/front-yard-driveway.test.js
+            tests/layer-vehicle-games-regression.test.js
+            tests/main-floor-layout-polish.test.js
+            tests/phaser-parity-cleanup.test.js
             tests/pool-shot-movement.test.js
+          )
 
-      - name: Keep Driveway West directly testable in P2
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          const path = 'src/ui.js';
-          let source = fs.readFileSync(path, 'utf8');
-          const before = "const areaButtons = [[0, 'Main'], [1, 'Upstairs'], [2, 'Basement'], [3, 'Garage West'], [4, 'Yard North'], [6, 'Front South']];";
-          const after = "const areaButtons = [[0, 'Main'], [1, 'Upstairs'], [2, 'Basement'], [3, 'Garage West'], [4, 'Yard North'], [6, 'Front South'], [7, 'Driveway West']];";
-          if (!source.includes(before)) throw new Error('Current main UI floor button list changed. Review sync instead of silently patching.');
-          source = source.replace(before, after);
-          fs.writeFileSync(path, source);
-          NODE
+          drift=0
+          for file in "${files[@]}"; do
+            if ! git diff --quiet origin/main -- "$file"; then
+              echo "::warning file=$file::P2 differs from current main. Review intentionally before copying or merging."
+              git diff --stat origin/main -- "$file"
+              drift=1
+            fi
+          done
+
+          if [ "$drift" -eq 0 ]; then
+            echo "No drift detected across designated gameplay source files."
+          else
+            echo "Gameplay drift exists. This workflow is intentionally read-only and will not overwrite P2."
+          fi
 
       - name: Install dependencies
         run: npm install --no-package-lock
@@ -92,8 +95,8 @@ jobs:
       - name: Repository checks
         run: npm run check
 
-      - name: Unit tests with audit output
-        run: npx vitest run --reporter=json --outputFile=vitest-p2-results.json
+      - name: Unit tests
+        run: npx vitest run
 
       - name: Static build
         run: npm run build
@@ -109,28 +112,5 @@ jobs:
           ! grep -q "drawPhaserEnvironment" dist/src/phaserMigration2Runtime.js
           ! grep -q "textures.addCanvas" dist/src/phaserMigration2Runtime.js
 
-      - name: Write verification report
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          const data = JSON.parse(fs.readFileSync('vitest-p2-results.json', 'utf8'));
-          const suites = data.numTotalTestSuites ?? data.testResults?.length ?? 0;
-          const passedSuites = data.numPassedTestSuites ?? data.testResults?.filter(result => result.status === 'passed').length ?? 0;
-          const tests = data.numTotalTests ?? data.testResults?.reduce((total, result) => total + (result.assertionResults?.length || 0), 0) ?? 0;
-          const passedTests = data.numPassedTests ?? data.testResults?.reduce((total, result) => total + (result.assertionResults?.filter(test => test.status === 'passed').length || 0), 0) ?? 0;
-          const report = `# P2 Main Gameplay Sync Verification\n\nDate: 2026-07-17\nBranch: phaser-migration-2\nSource: current origin/main at workflow execution\nStatus: AUTOMATED_VERIFICATION_PASSED\n\n- Repository checks: passed\n- Test suites: ${passedSuites}/${suites} passed\n- Tests: ${passedTests}/${tests} passed\n- Static build: passed\n- Phaser vendor output: present\n- Entry point: bootPhaserMigration2Game\n- Native runtime marker: phaser-migration-2-native-full-main-gameplay\n- Main Canvas compatibility renderer imported by P2 runtime: no\n- Offscreen Canvas texture bridge used by P2 runtime: no\n\nBrowser and Render behavior remain NEEDS_TESTING.\n`;
-          fs.writeFileSync('apartment-god-production/P2_MAIN_GAMEPLAY_SYNC_VERIFICATION_2026-07-17.md', report);
-          fs.rmSync('vitest-p2-results.json');
-          NODE
-
-      - name: Commit verified gameplay synchronization
-        run: |
-          git config user.name "Apartment God Sync Bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add src tests apartment-god-production/P2_MAIN_GAMEPLAY_SYNC_VERIFICATION_2026-07-17.md
-          if git diff --cached --quiet; then
-            echo "P2 already contains current main gameplay files and verification report."
-            exit 0
-          fi
-          git commit -m "Verify full main gameplay sync on native Phaser Migration 2"
-          git push origin HEAD:phaser-migration-2
+      - name: Confirm workflow did not modify the checkout
+        run: git diff --exit-code
