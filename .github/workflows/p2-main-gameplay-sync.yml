@@ -92,8 +92,8 @@ jobs:
       - name: Repository checks
         run: npm run check
 
-      - name: Unit tests
-        run: npm test
+      - name: Unit tests with audit output
+        run: npx vitest run --reporter=json --outputFile=vitest-p2-results.json
 
       - name: Static build
         run: npm run build
@@ -103,16 +103,34 @@ jobs:
           test -f dist/vendor/phaser.esm.js
           grep -q "bootPhaserMigration2Game" dist/src/main.js
           grep -q "phaser-migration-2-native-full-main-gameplay" dist/src/phaserMigration2Runtime.js
+          grep -q "updateArcadeSystem" dist/src/phaserMigration2Runtime.js
+          grep -q "updateBasketballSystem" dist/src/phaserMigration2Runtime.js
+          grep -q "updateFrontYardEnvironment" dist/src/phaserMigration2Runtime.js
           ! grep -q "drawPhaserEnvironment" dist/src/phaserMigration2Runtime.js
+          ! grep -q "textures.addCanvas" dist/src/phaserMigration2Runtime.js
+
+      - name: Write verification report
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const data = JSON.parse(fs.readFileSync('vitest-p2-results.json', 'utf8'));
+          const suites = data.numTotalTestSuites ?? data.testResults?.length ?? 0;
+          const passedSuites = data.numPassedTestSuites ?? data.testResults?.filter(result => result.status === 'passed').length ?? 0;
+          const tests = data.numTotalTests ?? data.testResults?.reduce((total, result) => total + (result.assertionResults?.length || 0), 0) ?? 0;
+          const passedTests = data.numPassedTests ?? data.testResults?.reduce((total, result) => total + (result.assertionResults?.filter(test => test.status === 'passed').length || 0), 0) ?? 0;
+          const report = `# P2 Main Gameplay Sync Verification\n\nDate: 2026-07-17\nBranch: phaser-migration-2\nSource: current origin/main at workflow execution\nStatus: AUTOMATED_VERIFICATION_PASSED\n\n- Repository checks: passed\n- Test suites: ${passedSuites}/${suites} passed\n- Tests: ${passedTests}/${tests} passed\n- Static build: passed\n- Phaser vendor output: present\n- Entry point: bootPhaserMigration2Game\n- Native runtime marker: phaser-migration-2-native-full-main-gameplay\n- Main Canvas compatibility renderer imported by P2 runtime: no\n- Offscreen Canvas texture bridge used by P2 runtime: no\n\nBrowser and Render behavior remain NEEDS_TESTING.\n`;
+          fs.writeFileSync('apartment-god-production/P2_MAIN_GAMEPLAY_SYNC_VERIFICATION_2026-07-17.md', report);
+          fs.rmSync('vitest-p2-results.json');
+          NODE
 
       - name: Commit verified gameplay synchronization
         run: |
           git config user.name "Apartment God Sync Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add src tests
+          git add src tests apartment-god-production/P2_MAIN_GAMEPLAY_SYNC_VERIFICATION_2026-07-17.md
           if git diff --cached --quiet; then
-            echo "P2 already contains current main gameplay files."
+            echo "P2 already contains current main gameplay files and verification report."
             exit 0
           fi
-          git commit -m "Sync current main gameplay into native Phaser Migration 2"
+          git commit -m "Verify full main gameplay sync on native Phaser Migration 2"
           git push origin HEAD:phaser-migration-2
