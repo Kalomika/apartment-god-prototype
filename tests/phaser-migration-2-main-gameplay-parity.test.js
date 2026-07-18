@@ -15,6 +15,8 @@ describe('Phaser Migration 2 full main gameplay synchronization', () => {
     expect(runtimeSource).toContain('createApartmentGodNativeScene');
     expect(runtimeSource).not.toContain('drawPhaserEnvironment');
     expect(runtimeSource).not.toContain('textures.addCanvas');
+    expect(runtimeSource).toContain("import('../vendor/phaser.esm.js')");
+    expect(runtimeSource).not.toContain("import('/vendor/phaser.esm.js')");
   });
 
   it('runs every synchronized current gameplay system in the native Phaser simulation', () => {
