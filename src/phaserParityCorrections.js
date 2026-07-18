@@ -123,7 +123,8 @@ function handleParityPointerDown(scene, pointer) {
     closeInteractionMenu();
     return;
   }
-  const obj = objectAt(pointer.x, pointer.y, state.floor);
+  const worldPoint = pointerWorldPosition(pointer);
+  const obj = objectAt(worldPoint.x, worldPoint.y, state.floor);
   if (!obj || obj.kind !== 'arcade' || !game || game.machineId !== obj.id) return;
   const now = performance.now();
   const last = scene.__apartmentGodLastArcadeTap;
@@ -134,6 +135,13 @@ function handleParityPointerDown(scene, pointer) {
   game.playerControl = true;
   state.suppressNextCanvasClick = true;
   closeInteractionMenu();
+}
+
+function pointerWorldPosition(pointer) {
+  return {
+    x: Number.isFinite(pointer?.worldX) ? pointer.worldX : Number(pointer?.x || 0),
+    y: Number.isFinite(pointer?.worldY) ? pointer.worldY : Number(pointer?.y || 0)
+  };
 }
 
 function handleExpandedArcadePointer(game, pointer) {
@@ -191,3 +199,5 @@ function activityKey(entity) {
 function isSleeping(key) {
   return key.includes('sleep') || key.includes('nap') || key.includes('bed together') || key.includes('bed_together') || key.includes('waking');
 }
+
+export const pointerWorldPositionForTest = pointerWorldPosition;
