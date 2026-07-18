@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Grapple Gods Studio, an internal hard cam ring and asset review environment."
+    />
+    <title>Grapple Gods Studio</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">INTERNAL DEVELOPMENT ENVIRONMENT</p>
+          <h1>Grapple Gods Studio</h1>
+          <p class="subtitle">Hard cam ring staging, asset inspection, and visual approval.</p>
+        </div>
+        <div class="topbar-status" aria-label="Studio status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>Studio v0.1</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="metrics" aria-label="Current studio state">
+          <article class="metric">
+            <span class="metric-label">Camera</span>
+            <strong>Hard cam</strong>
+            <small>Side view presentation</small>
+          </article>
+          <article class="metric">
+            <span class="metric-label">Ring staging</span>
+            <strong id="depthMetric">72%</strong>
+            <small>Farther back baseline</small>
+          </article>
+          <article class="metric">
+            <span class="metric-label">Cadence</span>
+            <strong id="cadenceMetric">8 FPS</strong>
+            <small>Authored sprite timing</small>
+          </article>
+          <article class="metric">
+            <span class="metric-label">Runtime source</span>
+            <strong>Shared</strong>
+            <small>web_phaser/public assets</small>
+          </article>
+        </section>
+
+        <section class="workspace">
+          <div class="viewer-column">
+            <div class="viewer-toolbar" aria-label="Viewer toolbar">
+              <div>
+                <p class="panel-kicker">RING VIEWER</p>
+                <h2>Hard Cam Approval Stage</h2>
+              </div>
+              <div class="toolbar-actions">
+                <button id="playButton" class="primary-button" type="button" aria-pressed="true">Pause 8 FPS</button>
+                <button id="stepButton" class="secondary-button" type="button">Step frame</button>
+              </div>
+            </div>
+
+            <div class="stage-frame">
+              <div id="stage" class="stage" role="img" aria-label="Hard cam wrestling ring pushed farther back in the arena">
+                <div class="stage-backdrop" aria-hidden="true"></div>
+                <div id="ringLayer" class="ring-layer">
+                  <img id="ringImage" src="./assets/ring/hard_cam_ring_approval_frame_0.svg" alt="Grapple Gods hard cam wrestling ring" />
+                </div>
+                <div id="crowdLayer" class="crowd-layer">
+                  <img id="crowdImage" src="./assets/crowd/hard_cam_crowd_foreground_frame_0.svg" alt="Foreground crowd layer" />
+                </div>
+                <div id="gridLayer" class="grid-layer" aria-hidden="true"></div>
+                <div id="safeFrame" class="safe-frame" aria-hidden="true">
+                  <span>16:9 safe frame</span>
+                </div>
+                <div id="assetError" class="asset-error" hidden>
+                  Shared runtime assets could not be loaded. Run the Studio through Vite from this folder.
+                </div>
+                <div class="stage-readout" aria-live="polite">
+                  <span id="frameReadout">FRAME A</span>
+                  <span id="transformReadout">SCALE 72% · Y 15%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="viewer-footer">
+              <span class="approval-badge">ACTIVE DIRECTION</span>
+              <p>Top down is archived. This viewer is locked to the current side view hard cam direction with the ring staged farther into the arena.</p>
+            </div>
+          </div>
+
+          <aside class="controls-column" aria-label="Ring viewer controls">
+            <section class="control-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="panel-kicker">CAMERA BLOCKING</p>
+                  <h2>Ring placement</h2>
+                </div>
+                <button id="resetButton" class="text-button" type="button">Reset</button>
+              </div>
+
+              <label class="range-control" for="depthRange">
+                <span>
+                  <strong>Push ring back</strong>
+                  <output id="depthOutput" for="depthRange">28%</output>
+                </span>
+                <input id="depthRange" type="range" min="0" max="45" value="28" step="1" />
+                <small>Scales the ring down and raises it while the foreground crowd remains near camera.</small>
+              </label>
+
+              <label class="range-control" for="verticalRange">
+                <span>
+                  <strong>Vertical staging</strong>
+                  <output id="verticalOutput" for="verticalRange">15%</output>
+                </span>
+                <input id="verticalRange" type="range" min="4" max="28" value="15" step="1" />
+                <small>Moves the ring farther into the arena without changing the camera crop.</small>
+              </label>
+
+              <label class="range-control" for="zoomRange">
+                <span>
+                  <strong>Inspection zoom</strong>
+                  <output id="zoomOutput" for="zoomRange">100%</output>
+                </span>
+                <input id="zoomRange" type="range" min="80" max="135" value="100" step="1" />
+                <small>Viewer only. This does not alter the approved runtime asset.</small>
+              </label>
+            </section>
+
+            <section class="control-panel">
+              <p class="panel-kicker">LAYERS</p>
+              <h2>Review overlays</h2>
+
+              <label class="toggle-row" for="crowdToggle">
+                <span>
+                  <strong>Foreground crowd</strong>
+                  <small>Tests depth separation and ring visibility.</small>
+                </span>
+                <input id="crowdToggle" type="checkbox" checked />
+              </label>
+
+              <label class="toggle-row" for="gridToggle">
+                <span>
+                  <strong>Composition grid</strong>
+                  <small>Checks symmetry and camera staging.</small>
+                </span>
+                <input id="gridToggle" type="checkbox" />
+              </label>
+
+              <label class="toggle-row" for="safeToggle">
+                <span>
+                  <strong>Safe frame</strong>
+                  <small>Shows the protected gameplay composition area.</small>
+                </span>
+                <input id="safeToggle" type="checkbox" checked />
+              </label>
+            </section>
+
+            <section class="control-panel source-panel">
+              <p class="panel-kicker">SOURCE OF TRUTH</p>
+              <h2>Runtime assets</h2>
+              <dl>
+                <div>
+                  <dt>Ring frames</dt>
+                  <dd>web_phaser/public/assets/ring</dd>
+                </div>
+                <div>
+                  <dt>Crowd frames</dt>
+                  <dd>web_phaser/public/assets/crowd</dd>
+                </div>
+                <div>
+                  <dt>Studio policy</dt>
+                  <dd>Inspect shared assets. Do not duplicate production art.</dd>
+                </div>
+              </dl>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
