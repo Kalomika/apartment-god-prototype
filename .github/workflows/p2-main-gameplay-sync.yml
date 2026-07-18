@@ -1,0 +1,118 @@
+name: Sync Main Gameplay Into P2
+
+on:
+  push:
+    branches:
+      - phaser-migration-2
+    paths:
+      - '.github/workflows/p2-main-gameplay-sync.yml'
+      - 'src/phaserMigration2Runtime.js'
+      - 'src/phaserMigration2GameplayVisuals.js'
+      - 'src/main.js'
+      - 'index.html'
+      - 'tests/phaser-migration-2-main-gameplay-parity.test.js'
+
+permissions:
+  contents: write
+
+jobs:
+  sync-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Phaser Migration 2
+        uses: actions/checkout@v4
+        with:
+          ref: phaser-migration-2
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Fetch current main gameplay source
+        run: git fetch origin main
+
+      - name: Copy current gameplay and regression files from main
+        run: |
+          git checkout origin/main -- \
+            src/actions.js \
+            src/appMenu.js \
+            src/arcadeSystem.js \
+            src/autonomy.js \
+            src/basketballSystem.js \
+            src/calendarDisplay.js \
+            src/cameraNavigation.js \
+            src/careerSystem.js \
+            src/config.js \
+            src/fit.js \
+            src/frontYardDriveway.js \
+            src/frontYardRoutingCorrection.js \
+            src/garageDoorAlignmentOverlay.js \
+            src/gateTraversalGuard.js \
+            src/mainFloorLayoutPolish.js \
+            src/offsiteOverlay.js \
+            src/panicRoomCorrection.js \
+            src/poolActivityCleanup.js \
+            src/poolActivitySystem.js \
+            src/runtimeObjectCorrections.js \
+            src/runtimeRegressionGuards.js \
+            src/state.js \
+            src/timeSystem.js \
+            src/travelLocations.js \
+            src/ui.js \
+            src/vehicleSystem.js \
+            tests/book-reading-floor-route.test.js \
+            tests/calendar-work-hud.test.js \
+            tests/front-yard-driveway.test.js \
+            tests/layer-vehicle-games-regression.test.js \
+            tests/main-floor-layout-polish.test.js \
+            tests/phaser-parity-cleanup.test.js \
+            tests/pool-shot-movement.test.js
+
+      - name: Keep Driveway West directly testable in P2
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const path = 'src/ui.js';
+          let source = fs.readFileSync(path, 'utf8');
+          const before = "const areaButtons = [[0, 'Main'], [1, 'Upstairs'], [2, 'Basement'], [3, 'Garage West'], [4, 'Yard North'], [6, 'Front South']];";
+          const after = "const areaButtons = [[0, 'Main'], [1, 'Upstairs'], [2, 'Basement'], [3, 'Garage West'], [4, 'Yard North'], [6, 'Front South'], [7, 'Driveway West']];";
+          if (!source.includes(before)) throw new Error('Current main UI floor button list changed. Review sync instead of silently patching.');
+          source = source.replace(before, after);
+          fs.writeFileSync(path, source);
+          NODE
+
+      - name: Install dependencies
+        run: npm install --no-package-lock
+
+      - name: Repository checks
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Static build
+        run: npm run build
+
+      - name: Verify native P2 output
+        run: |
+          test -f dist/vendor/phaser.esm.js
+          grep -q "bootPhaserMigration2Game" dist/src/main.js
+          grep -q "phaser-migration-2-native-full-main-gameplay" dist/src/phaserMigration2Runtime.js
+          ! grep -q "drawPhaserEnvironment" dist/src/phaserMigration2Runtime.js
+
+      - name: Commit verified gameplay synchronization
+        run: |
+          git config user.name "Apartment God Sync Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src tests
+          if git diff --cached --quiet; then
+            echo "P2 already contains current main gameplay files."
+            exit 0
+          fi
+          git commit -m "Sync current main gameplay into native Phaser Migration 2"
+          git push origin HEAD:phaser-migration-2
