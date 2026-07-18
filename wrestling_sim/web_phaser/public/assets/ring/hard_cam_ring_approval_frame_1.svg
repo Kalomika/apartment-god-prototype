@@ -1,84 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
-  <title id="title">Grapple Gods hard cam wrestling ring sprite frame 1</title>
-  <desc id="desc">Second painted side view hard camera wrestling ring approval sprite frame with slight 8 fps light and crowd variation.</desc>
+  <title id="title">Grapple Gods hard cam wrestling ring sprite frame B</title>
+  <desc id="desc">Second original painted side view wrestling ring sprite plate with subtle 8 fps light variation. Transparent background for crowd layers.</desc>
   <defs>
-    <linearGradient id="arenaBg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#050505"/>
-      <stop offset="0.42" stop-color="#151515"/>
-      <stop offset="1" stop-color="#060606"/>
-    </linearGradient>
-    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#222222"/>
-      <stop offset="1" stop-color="#101010"/>
-    </linearGradient>
-    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fffef8"/>
-      <stop offset="0.55" stop-color="#f4f0e8"/>
-      <stop offset="1" stop-color="#dcd7cc"/>
-    </linearGradient>
-    <linearGradient id="apron" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#171717"/>
-      <stop offset="1" stop-color="#050505"/>
-    </linearGradient>
-    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="12" stdDeviation="8" flood-color="#000000" flood-opacity="0.55"/>
-    </filter>
+    <linearGradient id="mat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffef9"/><stop offset="0.58" stop-color="#f1ece2"/><stop offset="1" stop-color="#d9d3c7"/></linearGradient>
+    <linearGradient id="apron" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#181818"/><stop offset="1" stop-color="#050505"/></linearGradient>
+    <filter id="ringShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="12" stdDeviation="8" flood-color="#000" flood-opacity="0.55"/></filter>
   </defs>
-
-  <rect width="960" height="540" fill="url(#arenaBg)"/>
-  <rect x="0" y="70" width="960" height="145" fill="#111111"/>
-  <path d="M0 214 L960 214" stroke="#252525" stroke-width="3"/>
-
-  <g opacity="0.80">
-    <g fill="#ffffff" opacity="0.15">
-      <circle cx="14" cy="85" r="3"/><circle cx="43" cy="87" r="3"/><circle cx="72" cy="84" r="4"/><circle cx="101" cy="88" r="3"/><circle cx="130" cy="85" r="3"/><circle cx="159" cy="87" r="4"/><circle cx="188" cy="83" r="3"/><circle cx="217" cy="87" r="3"/><circle cx="246" cy="85" r="4"/><circle cx="275" cy="88" r="3"/><circle cx="304" cy="85" r="3"/><circle cx="333" cy="86" r="4"/><circle cx="362" cy="84" r="3"/><circle cx="391" cy="87" r="3"/><circle cx="420" cy="85" r="4"/><circle cx="449" cy="88" r="3"/><circle cx="478" cy="85" r="3"/><circle cx="507" cy="87" r="4"/><circle cx="536" cy="83" r="3"/><circle cx="565" cy="87" r="3"/><circle cx="594" cy="85" r="4"/><circle cx="623" cy="88" r="3"/><circle cx="652" cy="85" r="3"/><circle cx="681" cy="86" r="4"/><circle cx="710" cy="84" r="3"/><circle cx="739" cy="87" r="3"/><circle cx="768" cy="85" r="4"/><circle cx="797" cy="88" r="3"/><circle cx="826" cy="85" r="3"/><circle cx="855" cy="87" r="4"/><circle cx="884" cy="83" r="3"/><circle cx="913" cy="87" r="3"/><circle cx="942" cy="85" r="4"/>
-      <circle cx="27" cy="112" r="4"/><circle cx="60" cy="115" r="3"/><circle cx="93" cy="111" r="4"/><circle cx="126" cy="116" r="4"/><circle cx="159" cy="112" r="3"/><circle cx="192" cy="115" r="4"/><circle cx="225" cy="111" r="4"/><circle cx="258" cy="116" r="3"/><circle cx="291" cy="112" r="4"/><circle cx="324" cy="115" r="4"/><circle cx="357" cy="111" r="3"/><circle cx="390" cy="116" r="4"/><circle cx="423" cy="112" r="4"/><circle cx="456" cy="115" r="3"/><circle cx="489" cy="111" r="4"/><circle cx="522" cy="116" r="4"/><circle cx="555" cy="112" r="3"/><circle cx="588" cy="115" r="4"/><circle cx="621" cy="111" r="4"/><circle cx="654" cy="116" r="3"/><circle cx="687" cy="112" r="4"/><circle cx="720" cy="115" r="4"/><circle cx="753" cy="111" r="3"/><circle cx="786" cy="116" r="4"/><circle cx="819" cy="112" r="4"/><circle cx="852" cy="115" r="3"/><circle cx="885" cy="111" r="4"/><circle cx="918" cy="116" r="4"/><circle cx="951" cy="112" r="3"/>
-      <circle cx="13" cy="141" r="4"/><circle cx="46" cy="138" r="4"/><circle cx="79" cy="143" r="5"/><circle cx="112" cy="139" r="4"/><circle cx="145" cy="142" r="4"/><circle cx="178" cy="138" r="5"/><circle cx="211" cy="143" r="4"/><circle cx="244" cy="139" r="4"/><circle cx="277" cy="142" r="5"/><circle cx="310" cy="138" r="4"/><circle cx="343" cy="143" r="4"/><circle cx="376" cy="139" r="5"/><circle cx="409" cy="142" r="4"/><circle cx="442" cy="138" r="4"/><circle cx="475" cy="143" r="5"/><circle cx="508" cy="139" r="4"/><circle cx="541" cy="142" r="4"/><circle cx="574" cy="138" r="5"/><circle cx="607" cy="143" r="4"/><circle cx="640" cy="139" r="4"/><circle cx="673" cy="142" r="5"/><circle cx="706" cy="138" r="4"/><circle cx="739" cy="143" r="4"/><circle cx="772" cy="139" r="5"/><circle cx="805" cy="142" r="4"/><circle cx="838" cy="138" r="4"/><circle cx="871" cy="143" r="5"/><circle cx="904" cy="139" r="4"/><circle cx="937" cy="142" r="4"/>
+  <g id="ring-back-and-downstage" filter="url(#ringShadow)">
+    <ellipse cx="480" cy="356" rx="295" ry="54" fill="#000" opacity="0.42"/>
+    <path d="M306 218 L654 218 L744 375 L216 375 Z" fill="url(#apron)" stroke="#000" stroke-width="6"/>
+    <path d="M237 340 H723 V392 H206 Z" fill="#050505" opacity="0.94"/>
+    <path d="M292 197 L668 197 L735 336 L225 336 Z" fill="url(#mat)" stroke="#050505" stroke-width="5"/>
+    <path d="M310 212 L648 212 L702 313 L263 313 Z" fill="#fff" opacity="0.22"/>
+    <path d="M515 207 L641 211 L694 315 L528 323 Z" fill="#fff" opacity="0.08"/>
+    <g stroke="#000" stroke-width="1.4" opacity="0.14">
+      <path d="M276 238 L688 238"/><path d="M260 268 L707 268"/><path d="M242 300 L724 300"/>
+      <path d="M358 197 L323 336"/><path d="M429 197 L424 336"/><path d="M531 197 L533 336"/><path d="M604 197 L641 336"/>
     </g>
-  </g>
-
-  <rect x="0" y="414" width="960" height="126" fill="url(#floor)"/>
-  <path d="M0 414 H960" stroke="#000000" stroke-width="4"/>
-  <g stroke="#ffffff" stroke-width="1" opacity="0.07">
-    <path d="M0 438 H960"/><path d="M0 462 H960"/><path d="M0 486 H960"/><path d="M0 510 H960"/>
-  </g>
-
-  <path d="M260 189 L700 189 L820 438 L140 438 Z" fill="#000000" opacity="0.55" filter="url(#softShadow)"/>
-
-  <path d="M276 207 L684 207 L812 430 L148 430 Z" fill="url(#apron)" stroke="#000000" stroke-width="6"/>
-  <path d="M162 373 H798 V430 H148 Z" fill="#050505" opacity="0.88"/>
-  <path d="M258 211 L702 211 L805 366 L155 366 Z" fill="url(#canvas)" stroke="#050505" stroke-width="5"/>
-
-  <g opacity="0.25" fill="#ffffff">
-    <path d="M283 224 L674 224 L746 344 L214 344 Z"/>
-    <path d="M512 225 L659 229 L727 347 L532 352 Z" opacity="0.24"/>
-  </g>
-  <g stroke="#000000" opacity="0.14" stroke-width="1.5">
-    <path d="M246 251 L716 251"/><path d="M228 282 L736 282"/><path d="M207 319 L759 319"/>
-    <path d="M332 211 L286 366"/><path d="M406 211 L413 366"/><path d="M520 211 L515 366"/><path d="M629 211 L675 366"/>
-  </g>
-
-  <g id="posts" fill="#050505">
-    <rect x="252" y="124" width="12" height="250"/><rect x="696" y="124" width="12" height="250"/>
-    <rect x="140" y="118" width="16" height="324"/><rect x="804" y="118" width="16" height="324"/>
-    <rect x="258" y="128" width="3" height="235" fill="#ffffff" opacity="0.25"/><rect x="702" y="128" width="3" height="235" fill="#ffffff" opacity="0.20"/>
-    <rect x="147" y="124" width="3" height="300" fill="#ffffff" opacity="0.25"/><rect x="811" y="124" width="3" height="300" fill="#ffffff" opacity="0.20"/>
-  </g>
-
-  <g id="ropes" stroke-linecap="round">
-    <g stroke="#ffffff" stroke-width="8" opacity="0.27"><path d="M148 156 H812"/><path d="M148 214 H812"/><path d="M148 271 H812"/><path d="M258 156 H702"/><path d="M258 214 H702"/><path d="M258 271 H702"/><path d="M258 156 L148 156"/><path d="M258 214 L148 214"/><path d="M258 271 L148 271"/><path d="M702 156 L812 156"/><path d="M702 214 L812 214"/><path d="M702 271 L812 271"/></g>
-    <g stroke="#000000" stroke-width="4"><path d="M148 156 H812"/><path d="M148 214 H812"/><path d="M148 271 H812"/><path d="M258 156 H702"/><path d="M258 214 H702"/><path d="M258 271 H702"/><path d="M258 156 L148 156"/><path d="M258 214 L148 214"/><path d="M258 271 L148 271"/><path d="M702 156 L812 156"/><path d="M702 214 L812 214"/><path d="M702 271 L812 271"/></g>
-  </g>
-
-  <g id="turnbuckles">
-    <g fill="#000000"><rect x="126" y="143" width="44" height="24" rx="4"/><rect x="126" y="201" width="44" height="24" rx="4"/><rect x="126" y="258" width="44" height="24" rx="4"/><rect x="790" y="143" width="44" height="24" rx="4"/><rect x="790" y="201" width="44" height="24" rx="4"/><rect x="790" y="258" width="44" height="24" rx="4"/></g>
-    <g fill="#ffffff" stroke="#000000" stroke-width="3"><rect x="131" y="148" width="34" height="14" rx="3"/><rect x="131" y="206" width="34" height="14" rx="3"/><rect x="131" y="263" width="34" height="14" rx="3"/><rect x="795" y="148" width="34" height="14" rx="3"/><rect x="795" y="206" width="34" height="14" rx="3"/><rect x="795" y="263" width="34" height="14" rx="3"/></g>
-    <g fill="#000000"><rect x="244" y="148" width="34" height="18" rx="3" opacity="0.95"/><rect x="682" y="148" width="34" height="18" rx="3" opacity="0.95"/></g>
-    <g fill="#ffffff" stroke="#000000" stroke-width="2"><rect x="249" y="152" width="24" height="10" rx="2"/><rect x="687" y="152" width="24" height="10" rx="2"/></g>
-  </g>
-
-  <g font-family="Arial Black, Arial, sans-serif" text-anchor="middle">
-    <text x="480" y="414" font-size="30" fill="#ffffff" opacity="0.13">GRAPPLE GODS</text>
-    <text x="480" y="413" font-size="30" fill="#000000" opacity="0.52">GRAPPLE GODS</text>
+    <g id="posts" fill="#050505">
+      <rect x="286" y="130" width="12" height="238"/><rect x="662" y="130" width="12" height="238"/>
+      <rect x="212" y="118" width="16" height="284"/><rect x="732" y="118" width="16" height="284"/>
+      <rect x="293" y="134" width="3" height="220" fill="#fff" opacity="0.25"/><rect x="669" y="134" width="3" height="220" fill="#fff" opacity="0.20"/>
+      <rect x="219" y="124" width="3" height="260" fill="#fff" opacity="0.25"/><rect x="739" y="124" width="3" height="260" fill="#fff" opacity="0.20"/>
+    </g>
+    <g id="ropes" stroke-linecap="round">
+      <g stroke="#fff" stroke-width="8" opacity="0.30"><path d="M220 151 H740"/><path d="M220 203 H740"/><path d="M220 255 H740"/><path d="M292 151 H668"/><path d="M292 203 H668"/><path d="M292 255 H668"/></g>
+      <g stroke="#000" stroke-width="4"><path d="M220 151 H740"/><path d="M220 203 H740"/><path d="M220 255 H740"/><path d="M292 151 H668"/><path d="M292 203 H668"/><path d="M292 255 H668"/></g>
+    </g>
+    <g id="turnbuckles">
+      <g fill="#000"><rect x="197" y="139" width="44" height="24" rx="4"/><rect x="197" y="191" width="44" height="24" rx="4"/><rect x="197" y="243" width="44" height="24" rx="4"/><rect x="719" y="139" width="44" height="24" rx="4"/><rect x="719" y="191" width="44" height="24" rx="4"/><rect x="719" y="243" width="44" height="24" rx="4"/></g>
+      <g fill="#fff" stroke="#000" stroke-width="3"><rect x="202" y="144" width="34" height="14" rx="3"/><rect x="202" y="196" width="34" height="14" rx="3"/><rect x="202" y="248" width="34" height="14" rx="3"/><rect x="724" y="144" width="34" height="14" rx="3"/><rect x="724" y="196" width="34" height="14" rx="3"/><rect x="724" y="248" width="34" height="14" rx="3"/></g>
+      <g fill="#000"><rect x="277" y="143" width="34" height="18" rx="3"/><rect x="649" y="143" width="34" height="18" rx="3"/></g>
+      <g fill="#fff" stroke="#000" stroke-width="2"><rect x="282" y="147" width="24" height="10" rx="2"/><rect x="654" y="147" width="24" height="10" rx="2"/></g>
+    </g>
+    <text x="480" y="373" font-family="Arial Black, Arial, sans-serif" font-size="27" text-anchor="middle" fill="#fff" opacity="0.16">GRAPPLE GODS</text>
+    <text x="480" y="372" font-family="Arial Black, Arial, sans-serif" font-size="27" text-anchor="middle" fill="#000" opacity="0.55">GRAPPLE GODS</text>
   </g>
 </svg>
