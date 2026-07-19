@@ -8,7 +8,7 @@ on:
       - '.github/workflows/p2-mobile-canvas-scale-verify.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify-mobile-canvas-scale:
@@ -20,6 +20,7 @@ jobs:
         with:
           ref: phaser-migration-2
           fetch-depth: 0
+          persist-credentials: true
 
       - name: Verify protected scope and backup
         run: |
@@ -67,4 +68,28 @@ jobs:
           grep -q "autoCenter: Phaser.Scale.NO_CENTER" dist/src/phaserMigration2Runtime.js
           grep -q "const displayHeight = Math.round(displayWidth \* 3 / 4)" dist/src/fit.js
 
-# verification trigger after workflow registration
+      - name: Commit verification record
+        run: |
+          cat > apartment-god-production/P2_MOBILE_CANVAS_SCALE_VERIFICATION_2026-07-19.md <<'EOF'
+          # P2 Mobile Canvas Scale Verification
+
+          Date: 2026-07-19
+          Branch: phaser-migration-2
+          Status: AUTOMATED_VERIFICATION_PASSED
+
+          - Phaser Scale Manager mode: NONE
+          - Phaser auto centering: NO_CENTER
+          - Responsive display owner: src/fit.js
+          - Internal game coordinates: 960 by 720
+          - Repository checks: passed
+          - Unit tests: passed
+          - Static build: passed
+          - Legacy Canvas renderer restored: no
+          - Offscreen Canvas texture bridge restored: no
+          - Browser acceptance still required on Kam's Android device
+          EOF
+          git config user.name "Apartment God Canvas Scale Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add apartment-god-production/P2_MOBILE_CANVAS_SCALE_VERIFICATION_2026-07-19.md
+          git commit -m "Verify P2 mobile canvas scale fix"
+          git push origin HEAD:phaser-migration-2
