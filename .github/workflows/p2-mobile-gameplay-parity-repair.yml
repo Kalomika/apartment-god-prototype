@@ -93,3 +93,5 @@ jobs:
           git add src/phaserMigration2Runtime.js src/phaserMigration2VisualCatalog.js src/phaserMigration2ReferenceCompletion.js src/fit.js src/ui.js index.html styles.css tests/phaser-migration-2-mobile-gameplay-parity.test.js apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-19_MOBILE_GAMEPLAY_PARITY_REPAIR.md apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-19_MOBILE_GAMEPLAY_PARITY_REPAIR_COMMITTED.md
           git commit -m "Repair P2 mobile gameplay parity"
           git push origin HEAD:phaser-migration-2
+
+# retrigger: workflow now existed before this push
