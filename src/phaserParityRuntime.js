@@ -267,6 +267,76 @@ function sanitizeRuntimeState(state) {
     entity.pose ||= 'stand';
     entity.action ||= 'Idle';
     entity.floor = Number.isInteger(entity.floor) ? entity.floor : 0;
+    entity.x = Number.isFinite(entity.x) ? entity.x : 120;
+    entity.y = Number.isFinite(entity.y) ? entity.y : 120;
+    applyPoseOrientation(entity);
+    cleanupStaleActorState(entity);
+  }
+  updateHouseTidiness(state);
+}
+
+function applyPoseOrientation(entity) {
+  if (entity.type !== 'person') return;
+  const action = String(entity.action || '').toLowerCase();
+  const pose = String(entity.pose || '').toLowerCase();
+  const bedPose = pose === 'sleep' || action.includes('sleep') || action.includes('nap') || action.includes('bed together') || action.includes('waking up') || action.includes('king bed');
+  if (bedPose) entity.lastHeading = 0;
+}
+
+function cleanupStaleActorState(entity) {
+  const hasPath = Array.isArray(entity.path) && entity.path.length > 0;
+  const hasPoolRoute = Array.isArray(entity.poolRoute?.points) && entity.poolRoute.points.length > 0;
+  const hasTarget = Boolean(entity.target || entity.pending);
+  const hasTimer = Number(entity.actionT || 0) > 0;
+  if (hasPath || hasPoolRoute || hasTarget || hasTimer || entity.hidden) return;
+  const action = String(entity.action || '').toLowerCase();
+  if (action === 'recovered' || action === 'runtime recovered' || action === 'walking' || action === 'running' || action.startsWith('going to ')) {
+    entity.action = 'Idle';
+    entity.pose = 'stand';
+    entity.blockedT = 0;
+    entity.recoveryCount = 0;
+  }
+  if (['walk', 'sit'].includes(entity.pose) && (action === 'idle' || action === 'walking' || action === 'running' || action === 'recovered')) entity.pose = 'stand';
+}
+
+function runSimulationStep(state, dt) {
+  if (dt <= 0) return;
+  applyRuntimeObjectCorrections();
+  updateFrontYardEnvironment(state, dt);
+  requestGateForApproachingEntities(state, dt);
+  updateHouseTidiness(state);
+  updatePoolActivity(state, dt);
+  captureGateTraversalState(state);
+  for (const entity of state.entities) {
+    const poolChoreography = Array.isArray(entity.poolRoute?.points) || String(entity.action || '').toLowerCase().startsWith('pool:');
+    if (poolChoreography) continue;
+    const arrived = updateMovement(state, entity, dt);
+    if (arrived) resolveArrival(state, entity);
+  }
+  enforceGateTraversal(state);
+  updateActions(state, dt);
+  updateArcadeSystem(state, dt);
+  updateBasketballSystem(state, dt);
+  updateOffsiteHomeView(state);
+  updateCalendarRuntime(state);
+  updateAutoHooks(state, dt);
+  updateAutonomy(state, dt);
+  advanceGameClock(state, dt);
+  updateLifeQualitySystem(state);
+  updateHouseTidiness(state);
+}
+
+function advanceSimulation(state, rawDt) {
+  if (state.paused) return;
+  const maximumStep = document.hidden ? .2 : .05;
+  const maximumCatchup = document.hidden ? 4 : .2;
+  let remaining = Math.min(rawDt * state.speed, maximumCatchup);
+  let guard = 0;
+  while (remaining > .0001 && guard < 80) {
+    const step = Math.min(maximumStep, remaining);
+    runSimulationStep(state, step);
+    remaining -= step;
+    guard += 1;
   }
 }
 
@@ -284,28 +354,4 @@ function drawHardBootError(canvas, error) {
   context.fillStyle = '#aab2c5';
   context.font = '14px system-ui';
   context.fillText(String(error?.message || error || 'Unknown error').slice(0, 140), 32, 150);
-}
-
-function advanceSimulation(state, rawDt) {
-  if (state.paused) return;
-  const dt = rawDt * state.speed;
-  advanceGameClock(state, dt);
-  updateCalendarRuntime(state, dt);
-  updateLifeQualitySystem(state, dt);
-  updateHouseTidiness(state, dt);
-  updateFrontYardEnvironment(state, dt);
-  updateAutoHooks(state, dt);
-  updateAutonomy(state, dt);
-  const gateSnapshots = captureGateTraversalState(state);
-  requestGateForApproachingEntities(state);
-  for (const entity of state.entities) {
-    updateMovement(state, entity, dt);
-    resolveArrival(state, entity);
-  }
-  enforceGateTraversal(state, gateSnapshots);
-  updateActions(state, dt);
-  updatePoolActivity(state, dt);
-  updateArcadeSystem(state, dt);
-  updateBasketballSystem(state, dt);
-  updateOffsiteHomeView(state, dt);
 }
