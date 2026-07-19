@@ -14,6 +14,8 @@ export const PM2_ROOM_TEXTURES = {
   basement: `${ROOT}/environment/room_basement.svg`,
   garage: `${ROOT}/environment/room_garage.svg`,
   yard: `${ROOT}/environment/room_yard.svg`,
+  curb: `${ROOT}/environment/room_curb.svg`,
+  walkway: `${ROOT}/environment/room_walkway.svg`,
   pool_area: `${ROOT}/environment/room_pool_area.svg`,
   kennel_area: `${ROOT}/environment/room_kennel_area.svg`,
   lab: `${ROOT}/environment/room_lab.svg`,
@@ -98,6 +100,8 @@ export function textureForRoom(room) {
   else if (id === 'master_bath') key = 'master_bath';
   else if (id === 'panic_room') key = 'panic';
   else if (id === 'basement') key = 'basement';
+  else if (id.includes('curb')) key = 'curb';
+  else if (id.includes('walk')) key = 'walkway';
   else if (id === 'garage' || id.includes('driveway') || id.includes('road')) key = 'garage';
   else if (id === 'yard' || id.includes('garden')) key = 'yard';
   else if (id === 'pool_area') key = 'pool_area';
