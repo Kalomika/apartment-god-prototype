@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { ReferenceMatchRenderer } from '../render/ReferenceMatchRenderer.js';
 import { ChoicePanel } from '../ui/ChoicePanel.js';
 import { initialMatch, roster } from '../data/roster.js';
