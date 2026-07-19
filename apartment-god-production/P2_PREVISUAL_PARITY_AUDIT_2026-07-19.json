@@ -1,19 +1,43 @@
 {
-  "generatedAt": "2026-07-19T12:32:02.818Z",
+  "generatedAt": "2026-07-19T12:37:19.283Z",
   "baseline": "c8941bbe16e5725ad02eb20596ee5a07868303b8",
   "branch": "phaser-migration-2",
   "status": "PASS",
+  "expectedDynamicFloors": [
+    6,
+    7
+  ],
+  "baselineFloorIds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "currentFloorIds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
   "floorCount": {
-    "baseline": 6,
-    "current": 6
+    "baseline": 8,
+    "current": 8
   },
   "roomCount": {
-    "baseline": 20,
-    "current": 20
+    "baseline": 29,
+    "current": 29
   },
   "objectCount": {
-    "baseline": 81,
-    "current": 81
+    "baseline": 88,
+    "current": 88
   },
   "exactFloorData": true,
   "exactObjectData": true,
@@ -148,6 +172,12 @@
       "covered": true
     },
     {
+      "id": "basketball_court",
+      "kind": "basketball_court",
+      "texture": "pm2-object-basketball_court",
+      "covered": true
+    },
+    {
       "id": "bath_sink",
       "kind": "sink",
       "texture": "pm2-object-sink",
@@ -250,9 +280,33 @@
       "covered": true
     },
     {
+      "id": "driveway_yard_edge_entry",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    },
+    {
       "id": "fridge",
       "kind": "fridge",
       "texture": "pm2-object-fridge",
+      "covered": true
+    },
+    {
+      "id": "front_driveway_garage_mouth",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    },
+    {
+      "id": "front_yard_driveway_edge",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    },
+    {
+      "id": "front_yard_house_entry",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
       "covered": true
     },
     {
@@ -263,6 +317,12 @@
     },
     {
       "id": "garage_door",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    },
+    {
+      "id": "garage_driveway_exit",
       "kind": "stairs",
       "texture": "pm2-object-stairs",
       "covered": true
@@ -397,6 +457,12 @@
       "id": "light_office_lounge",
       "kind": "light",
       "texture": "pm2-object-light",
+      "covered": true
+    },
+    {
+      "id": "main_front_yard_exit",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
       "covered": true
     },
     {
@@ -718,9 +784,64 @@
       "id": "secret_lab",
       "texture": "pm2-room-lab",
       "covered": true
+    },
+    {
+      "floor": 6,
+      "id": "front_curb",
+      "texture": "pm2-room-neutral",
+      "covered": false
+    },
+    {
+      "floor": 6,
+      "id": "front_garden",
+      "texture": "pm2-room-yard",
+      "covered": true
+    },
+    {
+      "floor": 6,
+      "id": "front_porch",
+      "texture": "pm2-room-entry",
+      "covered": true
+    },
+    {
+      "floor": 6,
+      "id": "front_road_view",
+      "texture": "pm2-room-garage",
+      "covered": true
+    },
+    {
+      "floor": 6,
+      "id": "front_walk",
+      "texture": "pm2-room-neutral",
+      "covered": false
+    },
+    {
+      "floor": 7,
+      "id": "driveway_garage_mouth",
+      "texture": "pm2-room-garage",
+      "covered": true
+    },
+    {
+      "floor": 7,
+      "id": "driveway_road",
+      "texture": "pm2-room-garage",
+      "covered": true
+    },
+    {
+      "floor": 7,
+      "id": "driveway_yard_edge",
+      "texture": "pm2-room-garage",
+      "covered": true
+    },
+    {
+      "floor": 7,
+      "id": "west_driveway",
+      "texture": "pm2-room-garage",
+      "covered": true
     }
   ],
   "notes": [
+    "PASS includes dynamically installed Front Yard South and Driveway West floors and objects.",
     "PASS means the pre-overhaul gameplay data and core systems remain represented.",
     "PASS does not mean the temporary procedural art has final authored visual approval.",
     "Current main is audited separately and must not be merged blindly into this baseline contract."

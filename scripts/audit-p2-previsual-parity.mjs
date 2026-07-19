@@ -8,7 +8,7 @@ const baselineRoot=path.resolve(baselineRootArg);
 const currentRoot=path.resolve(currentRootArg);
 const BASELINE='c8941bbe16e5725ad02eb20596ee5a07868303b8';
 
-const importModule = async (root,file) => import(`${pathToFileURL(path.join(root,file)).href}?audit=${Date.now()}-${Math.random()}`);
+const importModule = async (root,file) => import(pathToFileURL(path.join(root,file)).href);
 const normalize = value => JSON.parse(JSON.stringify(value,(key,item)=>typeof item==='function'?`[Function:${item.name||'anonymous'}]`:item));
 const stable = value => JSON.stringify(normalize(value),Object.keys(normalize(value)||{}).sort());
 const read = (root,file) => fs.readFileSync(path.join(root,file),'utf8');
@@ -33,6 +33,8 @@ const normalizeObject=object=>{
 };
 const baselineFloors=baselineWorld.floors.map(normalizeFloor).sort((a,b)=>a.id-b.id);
 const currentFloors=currentWorld.floors.map(normalizeFloor).sort((a,b)=>a.id-b.id);
+const baselineFloorIds=baselineFloors.map(floor=>floor.id);
+const currentFloorIds=currentFloors.map(floor=>floor.id);
 const baselineObjects=baselineWorld.objects.map(normalizeObject).sort((a,b)=>a.id.localeCompare(b.id));
 const currentObjects=currentWorld.objects.map(normalizeObject).sort((a,b)=>a.id.localeCompare(b.id));
 
@@ -75,6 +77,9 @@ const report={
   baseline:BASELINE,
   branch:'phaser-migration-2',
   status:'PASS',
+  expectedDynamicFloors:[6,7],
+  baselineFloorIds,
+  currentFloorIds,
   floorCount:{baseline:baselineFloors.length,current:currentFloors.length},
   roomCount:{baseline:baselineFloors.reduce((sum,floor)=>sum+floor.rooms.length,0),current:currentFloors.reduce((sum,floor)=>sum+floor.rooms.length,0)},
   objectCount:{baseline:baselineObjects.length,current:currentObjects.length},
@@ -87,12 +92,17 @@ const report={
   visualCoverage,
   roomCoverage,
   notes:[
+    'PASS includes dynamically installed Front Yard South and Driveway West floors and objects.',
     'PASS means the pre-overhaul gameplay data and core systems remain represented.',
     'PASS does not mean the temporary procedural art has final authored visual approval.',
     'Current main is audited separately and must not be merged blindly into this baseline contract.'
   ]
 };
 const failures=[];
+for(const floorId of [6,7]){
+  if(!baselineFloorIds.includes(floorId))failures.push(`baseline dynamic floor ${floorId} missing from audited world instance`);
+  if(!currentFloorIds.includes(floorId))failures.push(`current dynamic floor ${floorId} missing from audited world instance`);
+}
 if(!report.exactFloorData)failures.push('floor or room data differs from baseline');
 if(!report.exactObjectData)failures.push('object data differs from baseline');
 if(!stateParity)failures.push('initial gameplay state structure differs from baseline');
