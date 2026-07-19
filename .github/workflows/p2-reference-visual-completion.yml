@@ -1,0 +1,94 @@
+name: P2 Reference Visual Completion
+
+on:
+  push:
+    branches:
+      - phaser-migration-2
+    paths:
+      - '.github/workflows/p2-reference-visual-completion.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  complete-reference-visuals:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout latest Phaser Migration 2
+        uses: actions/checkout@v4
+        with:
+          ref: phaser-migration-2
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Verify project and required rules
+        run: |
+          test "$(basename "$GITHUB_REPOSITORY")" = "apartment-god-prototype"
+          test -f docs/APARTMENT_GOD_DEVELOPMENT_HANDBOOK.md
+          test -f docs/APARTMENT_GOD_BACKUP_POLICY.md
+          test -f docs/APARTMENT_GOD_NO_BROAD_IMPLEMENTATION_RULE.md
+          test -f docs/APARTMENT_GOD_PNG_UPLOAD_FALLBACK.md
+          test -f apartment-god-production/ONGOING_DESIGN_LOG.md
+          test -f apartment-god-production/DEVELOPMENT_MATRIX.md
+          git branch --show-current | grep -qx phaser-migration-2
+          git log -8 --oneline
+          grep -q "Before any major overhaul" docs/APARTMENT_GOD_BACKUP_POLICY.md
+          grep -q "must not use broad" docs/APARTMENT_GOD_NO_BROAD_IMPLEMENTATION_RULE.md
+          grep -q "real.*png\|real .png" docs/APARTMENT_GOD_PNG_UPLOAD_FALLBACK.md
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install project and PNG renderer
+        run: |
+          npm install --no-package-lock
+          npm install --no-save sharp
+
+      - name: Generate and integrate complete visual systems
+        run: node scripts/p2-reference-visual-completion.mjs
+
+      - name: Verify PNG binaries
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files=list(Path('assets/phaser-migration-2/sprites/activities').rglob('*.png'))+list(Path('assets/phaser-migration-2/sprites/states').rglob('*.png'))
+          assert len(files) >= 110, len(files)
+          for p in files:
+              assert p.read_bytes()[:8] == b'\x89PNG\r\n\x1a\n', p
+          print('verified',len(files),'PNG assets')
+          PY
+
+      - name: Repository checks
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Static build
+        run: npm run build
+
+      - name: Verify built native Phaser completion
+        run: |
+          test -f dist/src/phaserMigration2ReferenceCompletion.js
+          test -f dist/assets/phaser-migration-2/sprites/activities/cook/resident.png
+          test -f dist/assets/phaser-migration-2/sprites/activities/shower/girlfriend.png
+          test -f dist/assets/phaser-migration-2/sprites/activities/dog_soccer/dog.png
+          test -f dist/assets/phaser-migration-2/sprites/states/fridge_open.png
+          test -f dist/assets/phaser-migration-2/sprites/states/bed_sleeping.png
+          grep -q "preloadReferenceCompletion" dist/src/phaserMigration2Runtime.js
+          grep -q "syncReferenceCompletion" dist/src/phaserMigration2Runtime.js
+          ! grep -q "drawPhaserEnvironment" dist/src/phaserMigration2Runtime.js
+          ! grep -q "textures.addCanvas" dist/src/phaserMigration2Runtime.js
+          grep -q "P2_REFERENCE_VISUAL_COMPLETION" dist/styles.css
+
+      - name: Commit verified visual completion
+        run: |
+          git config user.name "Apartment God Visual Completion Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add assets/phaser-migration-2/sprites/activities assets/phaser-migration-2/sprites/states assets/manifests/phaser-migration-2-reference-visual-completion.json src/phaserMigration2ReferenceCompletion.js src/phaserMigration2Runtime.js styles.css tests/phaser-migration-2-reference-visual-completion.test.js apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-19_REFERENCE_VISUAL_COMPLETION.md apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-19_REFERENCE_VISUAL_COMPLETION.md
+          git commit -m "Complete P2 reference visual systems"
+          git push origin HEAD:phaser-migration-2
