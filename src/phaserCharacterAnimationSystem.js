@@ -56,6 +56,14 @@ export function syncCharacterVisuals(scene, state, actorLayer) {
   if (typeof actorLayer?.sort === 'function') actorLayer.sort('depth');
 }
 
+export function setBaseActorVisualVisible(scene, entityId, visible) {
+  const record = scene.pm2ActorVisuals?.get?.(entityId);
+  if (!record) return false;
+  record.suppressedByActivity = !visible;
+  applyRecordVisibility(record);
+  return true;
+}
+
 export function clearCharacterVisuals(scene) {
   for (const record of scene.pm2ActorVisuals?.values?.() || []) destroyRecord(record);
   scene.pm2ActorVisuals?.clear?.();
@@ -89,8 +97,28 @@ function ensureActorVisual(scene, layer, entity, profile, point) {
     fontFamily: 'system-ui', fontSize: 10, fontStyle: '900', color: '#071018', backgroundColor: '#f8fbff', padding: { x: 5, y: 3 }
   }).setOrigin(.5, .5);
 
-  for (const child of [shadow, ring, sprite, cue, label]) layer.add(child);
-  const record = { profile, shadow, ring, sprite, cue, label, lastX: point.x, lastY: point.y, direction: headingDirection(entity) };
+  const roles = { shadow, ring, sprite, cue, label };
+  for (const [role, child] of Object.entries(roles)) {
+    child.pm2EntityId = entity.id;
+    child.pm2ActorRole = role;
+    layer.add(child);
+  }
+
+  const record = {
+    profile,
+    entityId: entity.id,
+    shadow,
+    ring,
+    sprite,
+    cue,
+    label,
+    lastX: point.x,
+    lastY: point.y,
+    direction: headingDirection(entity),
+    suppressedByActivity: false,
+    ringWanted: false,
+    labelWanted: false
+  };
   scene.pm2ActorVisuals.set(entity.id, record);
   return record;
 }
@@ -109,7 +137,7 @@ function syncActorVisual(scene, state, entity, profile, point, record) {
   record.shadow.setDisplaySize(config.shadowW, config.shadowH);
   record.shadow.setAlpha(moving ? .19 : .24);
   record.ring.setPosition(point.x, point.y + (profile === 'dog' ? 14 : 17));
-  record.ring.setVisible(state.selectedId === entity.id);
+  record.ringWanted = state.selectedId === entity.id;
   record.sprite.setPosition(point.x, point.y);
 
   if (moving) {
@@ -130,11 +158,21 @@ function syncActorVisual(scene, state, entity, profile, point, record) {
 
   const text = visibleActorText(entity);
   record.label.setText(text);
-  record.label.setVisible(Boolean(text));
+  record.labelWanted = Boolean(text);
   record.label.setPosition(point.x, point.y - (profile === 'dog' ? 54 : 68));
+  applyRecordVisibility(record);
 
   record.lastX = point.x;
   record.lastY = point.y;
+}
+
+function applyRecordVisibility(record) {
+  const visible = !record.suppressedByActivity;
+  record.shadow?.setVisible?.(visible);
+  record.sprite?.setVisible?.(visible);
+  record.cue?.setVisible?.(visible);
+  record.ring?.setVisible?.(visible && Boolean(record.ringWanted));
+  record.label?.setVisible?.(visible && Boolean(record.labelWanted));
 }
 
 function syncPoolCue(graphics, state, entity, point, direction, moving, now) {
