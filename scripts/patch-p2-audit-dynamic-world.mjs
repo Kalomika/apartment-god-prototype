@@ -22,5 +22,10 @@ source=source.replace(
   "    'PASS means the pre-overhaul gameplay data and core systems remain represented.',",
   "    'PASS includes dynamically installed Front Yard South and Driveway West floors and objects.',\n    'PASS means the pre-overhaul gameplay data and core systems remain represented.',"
 );
+source=source.replace(
+  "const uncovered=visualCoverage.filter(item=>!item.covered);\nif(uncovered.length)failures.push(`uncovered object visuals: ${uncovered.map(item=>item.id).join(', ')}`);",
+  "const uncovered=visualCoverage.filter(item=>!item.covered);\nif(uncovered.length)failures.push(`uncovered object visuals: ${uncovered.map(item=>item.id).join(', ')}`);\nconst uncoveredRooms=roomCoverage.filter(item=>!item.covered);\nif(uncoveredRooms.length)failures.push(`uncovered room visuals: ${uncoveredRooms.map(item=>`${item.floor}:${item.id}`).join(', ')}`);"
+);
 if(!source.includes("expectedDynamicFloors:[6,7]"))throw new Error('Dynamic floor audit patch did not apply.');
+if(!source.includes('const uncoveredRooms=roomCoverage.filter'))throw new Error('Room coverage audit patch did not apply.');
 fs.writeFileSync(file,source);
