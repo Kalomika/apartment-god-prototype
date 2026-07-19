@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <title>Top down landscaped front walkway</title>
+  <defs>
+    <linearGradient id="stone" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#a39b8c"/>
+      <stop offset="0.52" stop-color="#6f716d"/>
+      <stop offset="1" stop-color="#3a4445"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#4f654d"/>
+      <stop offset="1" stop-color="#24392d"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#030609" flood-opacity="0.48"/></filter>
+  </defs>
+  <rect width="128" height="128" fill="url(#edge)"/>
+  <g filter="url(#shadow)">
+    <path d="M20 0H108L101 128H27Z" fill="url(#stone)"/>
+    <path d="M20 0H108M22 24H106M23 49H104M24 75H103M26 101H102M27 126H101" stroke="#d7d1c4" stroke-opacity="0.32" stroke-width="2"/>
+    <path d="M64 0V24M45 24V49M83 24V49M64 49V75M44 75V101M84 75V101M64 101V128" stroke="#303a3d" stroke-opacity="0.42" stroke-width="2"/>
+  </g>
+  <path d="M15 13l5-9m-1 34l6-10m-8 36l7-11m-5 37l6-10m-4 34l6-9M112 15l-5-10m3 35l-6-10m8 35l-7-11m5 38l-6-10m4 33l-6-9" stroke="#78906d" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>
+  <path d="M20 0L27 128M108 0L101 128" stroke="#c2aa79" stroke-opacity="0.38" stroke-width="3"/>
+</svg>
