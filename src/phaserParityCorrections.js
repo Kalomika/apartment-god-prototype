@@ -75,9 +75,8 @@ function syncActionProgress(scene) {
   const activeIds = new Set();
   for (const entity of state.entities || []) {
     if (!entity || entity.hidden || entity.floor !== state.floor) continue;
-    const total = Number(entity.actionTotal || 0);
     const remaining = Number(entity.actionT || 0);
-    if (!(total > 0 && remaining > 0)) continue;
+    if (!(remaining > 0)) continue;
     const record = scene.apartmentGodActorVisuals.get(entity.id);
     if (!record) continue;
     activeIds.add(entity.id);
@@ -86,9 +85,16 @@ function syncActionProgress(scene) {
       const graphics = scene.add.graphics();
       const text = scene.add.text(0, 0, '', { fontFamily: 'system-ui', fontSize: 9, fontStyle: '900', color: '#f8fbff' }).setOrigin(.5, 1);
       scene.actorLayer.add([graphics, text]);
-      visual = { graphics, text };
+      visual = { graphics, text, actionKey: '', startRemaining: 0 };
       scene.__apartmentGodProgressVisuals.set(entity.id, visual);
     }
+    const actionKey = `${entity.currentActionId || ''}|${entity.action || ''}|${entity.pending?.actionId || ''}`;
+    const declaredTotal = Number(entity.actionTotal || 0);
+    if (visual.actionKey !== actionKey || !(visual.startRemaining > 0) || remaining > visual.startRemaining + .05) {
+      visual.actionKey = actionKey;
+      visual.startRemaining = Math.max(remaining, declaredTotal > 0 ? declaredTotal : 0);
+    }
+    const total = Math.max(remaining, visual.startRemaining, declaredTotal > 0 ? declaredTotal : 0, .001);
     const progress = Math.max(0, Math.min(1, 1 - remaining / total));
     const x = record.sprite.x;
     const y = record.sprite.y - (entity.type === 'dog' ? 46 : 60);
@@ -123,7 +129,9 @@ function handleParityPointerDown(scene, pointer) {
     closeInteractionMenu();
     return;
   }
-  const obj = objectAt(pointer.x, pointer.y, state.floor);
+  const worldX = Number.isFinite(pointer.worldX) ? pointer.worldX : pointer.x;
+  const worldY = Number.isFinite(pointer.worldY) ? pointer.worldY : pointer.y;
+  const obj = objectAt(worldX, worldY, state.floor);
   if (!obj || obj.kind !== 'arcade' || !game || game.machineId !== obj.id) return;
   const now = performance.now();
   const last = scene.__apartmentGodLastArcadeTap;
