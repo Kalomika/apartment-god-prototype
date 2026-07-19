@@ -1,7 +1,8 @@
 {
-  "version": 2,
-  "status": "implemented_needs_browser_approval",
+  "version": 3,
+  "status": "procedural_temporary_fallback_needs_authored_replacement",
   "branch": "phaser-migration-2",
+  "preVisualParityBaseline": "c8941bbe16e5725ad02eb20596ee5a07868303b8",
   "activityFps": 8,
   "humanActivities": [
     "cook",
@@ -71,5 +72,16 @@
   "foregroundOcclusion": true,
   "premiumUi": true,
   "nativePhaserOnly": true,
-  "backup": "backup/phaser-migration-2-before-reference-visual-completion-2026-07-19"
+  "authoredArtApproval": false,
+  "generatedActivityPngsAreFinal": false,
+  "generatedObjectStatePngsAreFinal": false,
+  "assetLoading": "lazy_optional_with_bounded_texture_pools",
+  "activityTextureLimit": 18,
+  "stateTextureLimit": 10,
+  "backup": "backup/phaser-migration-2-before-full-previsual-parity-repair-2026-07-19",
+  "notes": [
+    "Gameplay and object parity are audited separately from final art approval.",
+    "Generated activity and state PNGs are safe temporary fallbacks only.",
+    "Final characters, rooms, vehicles, architecture, furniture and activity art still require authored true top-down approval at Kam's target quality."
+  ]
 }
