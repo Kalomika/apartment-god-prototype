@@ -9,7 +9,7 @@ function fit() {
   const wide = window.innerWidth > window.innerHeight && window.innerWidth >= 900;
   const phaserOwned = canvas.dataset.phaserOwned === 'true';
 
-  if (!phaserOwned) {
+  if (canvas.dataset.phaserOwned !== 'true') {
     canvas.width = 960;
     canvas.height = 720;
   }
