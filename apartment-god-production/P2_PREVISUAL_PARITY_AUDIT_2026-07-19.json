@@ -1,0 +1,728 @@
+{
+  "generatedAt": "2026-07-19T12:30:48.341Z",
+  "baseline": "c8941bbe16e5725ad02eb20596ee5a07868303b8",
+  "branch": "phaser-migration-2",
+  "status": "PASS",
+  "floorCount": {
+    "baseline": 6,
+    "current": 6
+  },
+  "roomCount": {
+    "baseline": 20,
+    "current": 20
+  },
+  "objectCount": {
+    "baseline": 81,
+    "current": 81
+  },
+  "exactFloorData": true,
+  "exactObjectData": true,
+  "stateParity": true,
+  "gameplayFileParity": [
+    {
+      "file": "src/actions.js",
+      "identical": true
+    },
+    {
+      "file": "src/autoHooks.js",
+      "identical": true
+    },
+    {
+      "file": "src/autonomy.js",
+      "identical": true
+    },
+    {
+      "file": "src/basketballSystem.js",
+      "identical": true
+    },
+    {
+      "file": "src/calendarRuntime.js",
+      "identical": true
+    },
+    {
+      "file": "src/cameraNavigation.js",
+      "identical": true
+    },
+    {
+      "file": "src/frontYardDriveway.js",
+      "identical": true
+    },
+    {
+      "file": "src/gateTraversalGuard.js",
+      "identical": true
+    },
+    {
+      "file": "src/lifeQualitySystem.js",
+      "identical": true
+    },
+    {
+      "file": "src/mainFloorLayoutPolish.js",
+      "identical": true
+    },
+    {
+      "file": "src/movement.js",
+      "identical": true
+    },
+    {
+      "file": "src/offsiteOverlay.js",
+      "identical": true
+    },
+    {
+      "file": "src/phoneUI.js",
+      "identical": true
+    },
+    {
+      "file": "src/poolActivitySystem.js",
+      "identical": true
+    },
+    {
+      "file": "src/runtimeObjectCorrections.js",
+      "identical": true
+    },
+    {
+      "file": "src/runtimeRegressionGuards.js",
+      "identical": true
+    },
+    {
+      "file": "src/saveSystem.js",
+      "identical": true
+    },
+    {
+      "file": "src/state.js",
+      "identical": true
+    },
+    {
+      "file": "src/tidinessSystem.js",
+      "identical": true
+    },
+    {
+      "file": "src/timeSystem.js",
+      "identical": true
+    },
+    {
+      "file": "src/ui.js",
+      "identical": true
+    },
+    {
+      "file": "src/world.js",
+      "identical": true
+    }
+  ],
+  "missingControlIds": [],
+  "missingRuntimeCalls": [],
+  "visualCoverage": [
+    {
+      "id": "arcade_machine",
+      "kind": "arcade",
+      "texture": "pm2-object-arcade",
+      "covered": true
+    },
+    {
+      "id": "atv",
+      "kind": "atv",
+      "texture": "pm2-object-atv",
+      "covered": true
+    },
+    {
+      "id": "backyard_door",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    },
+    {
+      "id": "basement_couch",
+      "kind": "couch",
+      "texture": "pm2-object-couch",
+      "covered": true
+    },
+    {
+      "id": "basement_door",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    },
+    {
+      "id": "basement_stairs_up",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    },
+    {
+      "id": "bath_sink",
+      "kind": "sink",
+      "texture": "pm2-object-sink",
+      "covered": true
+    },
+    {
+      "id": "bed",
+      "kind": "bed",
+      "texture": "pm2-object-bed",
+      "covered": true
+    },
+    {
+      "id": "bedroom_tv",
+      "kind": "tv",
+      "texture": "pm2-object-tv",
+      "covered": true
+    },
+    {
+      "id": "bike",
+      "kind": "bike",
+      "texture": "pm2-object-bike",
+      "covered": true
+    },
+    {
+      "id": "bookshelf",
+      "kind": "bookshelf",
+      "texture": "pm2-object-bookshelf",
+      "covered": true
+    },
+    {
+      "id": "car_1",
+      "kind": "car",
+      "texture": "pm2-object-car",
+      "covered": true
+    },
+    {
+      "id": "car_2",
+      "kind": "car",
+      "texture": "pm2-object-car",
+      "covered": true
+    },
+    {
+      "id": "closet",
+      "kind": "closet",
+      "texture": "pm2-object-closet",
+      "covered": true
+    },
+    {
+      "id": "coffee_maker",
+      "kind": "coffee_maker",
+      "texture": "pm2-object-coffee_maker",
+      "covered": true
+    },
+    {
+      "id": "couch",
+      "kind": "couch",
+      "texture": "pm2-object-couch",
+      "covered": true
+    },
+    {
+      "id": "dartboard",
+      "kind": "dartboard",
+      "texture": "pm2-object-dartboard",
+      "covered": true
+    },
+    {
+      "id": "desk",
+      "kind": "desk",
+      "texture": "pm2-object-desk",
+      "covered": true
+    },
+    {
+      "id": "dining_table",
+      "kind": "dining_table",
+      "texture": "pm2-object-dining_table",
+      "covered": true
+    },
+    {
+      "id": "dog_bath",
+      "kind": "dog_bath",
+      "texture": "pm2-object-dog_bath",
+      "covered": true
+    },
+    {
+      "id": "dog_bed",
+      "kind": "dog_bed",
+      "texture": "pm2-object-dog_bed",
+      "covered": true
+    },
+    {
+      "id": "dog_bowl",
+      "kind": "dog_bowl",
+      "texture": "pm2-object-dog_bowl",
+      "covered": true
+    },
+    {
+      "id": "door",
+      "kind": "door",
+      "texture": "pm2-object-door",
+      "covered": true
+    },
+    {
+      "id": "fridge",
+      "kind": "fridge",
+      "texture": "pm2-object-fridge",
+      "covered": true
+    },
+    {
+      "id": "game_console",
+      "kind": "game_console",
+      "texture": "pm2-object-game_console",
+      "covered": true
+    },
+    {
+      "id": "garage_door",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    },
+    {
+      "id": "garage_entry_door",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    },
+    {
+      "id": "garage_overhead_door",
+      "kind": "garage_door",
+      "texture": "pm2-object-garage_door",
+      "covered": true
+    },
+    {
+      "id": "heavy_bag",
+      "kind": "heavy_bag",
+      "texture": "pm2-object-heavy_bag",
+      "covered": true
+    },
+    {
+      "id": "kennel",
+      "kind": "kennel",
+      "texture": "pm2-object-kennel",
+      "covered": true
+    },
+    {
+      "id": "lab_bed",
+      "kind": "bed",
+      "texture": "pm2-object-bed",
+      "covered": true
+    },
+    {
+      "id": "lab_dartboard",
+      "kind": "dartboard",
+      "texture": "pm2-object-dartboard",
+      "covered": true
+    },
+    {
+      "id": "lab_game_console",
+      "kind": "game_console",
+      "texture": "pm2-object-game_console",
+      "covered": true
+    },
+    {
+      "id": "lab_heavy_bag",
+      "kind": "heavy_bag",
+      "texture": "pm2-object-heavy_bag",
+      "covered": true
+    },
+    {
+      "id": "lab_laptop_desk",
+      "kind": "desk",
+      "texture": "pm2-object-desk",
+      "covered": true
+    },
+    {
+      "id": "lab_light",
+      "kind": "light",
+      "texture": "pm2-object-light",
+      "covered": true
+    },
+    {
+      "id": "lab_motion_screen",
+      "kind": "tv",
+      "texture": "pm2-object-tv",
+      "covered": true
+    },
+    {
+      "id": "lab_pool_table",
+      "kind": "pool_table",
+      "texture": "pm2-object-pool_table",
+      "covered": true
+    },
+    {
+      "id": "lab_pose_chair",
+      "kind": "couch",
+      "texture": "pm2-object-couch",
+      "covered": true
+    },
+    {
+      "id": "lab_shower",
+      "kind": "shower",
+      "texture": "pm2-object-shower",
+      "covered": true
+    },
+    {
+      "id": "lab_toilet",
+      "kind": "toilet",
+      "texture": "pm2-object-toilet",
+      "covered": true
+    },
+    {
+      "id": "lab_treadmill",
+      "kind": "treadmill",
+      "texture": "pm2-object-treadmill",
+      "covered": true
+    },
+    {
+      "id": "lab_weight_bench",
+      "kind": "weight_bench",
+      "texture": "pm2-object-weight_bench",
+      "covered": true
+    },
+    {
+      "id": "light_basement_game",
+      "kind": "light",
+      "texture": "pm2-object-light",
+      "covered": true
+    },
+    {
+      "id": "light_bedroom",
+      "kind": "light",
+      "texture": "pm2-object-light",
+      "covered": true
+    },
+    {
+      "id": "light_living",
+      "kind": "light",
+      "texture": "pm2-object-light",
+      "covered": true
+    },
+    {
+      "id": "light_master_bath",
+      "kind": "light",
+      "texture": "pm2-object-light",
+      "covered": true
+    },
+    {
+      "id": "light_office_lounge",
+      "kind": "light",
+      "texture": "pm2-object-light",
+      "covered": true
+    },
+    {
+      "id": "master_bath_sink",
+      "kind": "sink",
+      "texture": "pm2-object-sink",
+      "covered": true
+    },
+    {
+      "id": "master_bathtub",
+      "kind": "bathtub",
+      "texture": "pm2-object-bathtub",
+      "covered": true
+    },
+    {
+      "id": "master_shower",
+      "kind": "shower",
+      "texture": "pm2-object-shower",
+      "covered": true
+    },
+    {
+      "id": "master_toilet",
+      "kind": "toilet",
+      "texture": "pm2-object-toilet",
+      "covered": true
+    },
+    {
+      "id": "motorbike",
+      "kind": "motorbike",
+      "texture": "pm2-object-motorbike",
+      "covered": true
+    },
+    {
+      "id": "office_couch",
+      "kind": "couch",
+      "texture": "pm2-object-couch",
+      "covered": true
+    },
+    {
+      "id": "panic_alarm_panel",
+      "kind": "security_panel",
+      "texture": "pm2-object-security_panel",
+      "covered": true
+    },
+    {
+      "id": "panic_defense_locker",
+      "kind": "security_locker",
+      "texture": "pm2-object-security_locker",
+      "covered": true
+    },
+    {
+      "id": "panic_room_door",
+      "kind": "panic_room_door",
+      "texture": "pm2-object-panic_room_door",
+      "covered": true
+    },
+    {
+      "id": "panic_supply_bench",
+      "kind": "security_supply",
+      "texture": "pm2-object-security_supply",
+      "covered": true
+    },
+    {
+      "id": "pet_flap_front",
+      "kind": "door",
+      "texture": "pm2-object-door",
+      "covered": true
+    },
+    {
+      "id": "pet_flap_yard",
+      "kind": "door",
+      "texture": "pm2-object-door",
+      "covered": true
+    },
+    {
+      "id": "pool_table",
+      "kind": "pool_table",
+      "texture": "pm2-object-pool_table",
+      "covered": true
+    },
+    {
+      "id": "primary_nightstand_north",
+      "kind": "nightstand",
+      "texture": "pm2-object-nightstand",
+      "covered": true
+    },
+    {
+      "id": "primary_nightstand_south",
+      "kind": "nightstand",
+      "texture": "pm2-object-nightstand",
+      "covered": true
+    },
+    {
+      "id": "robot_vacuum",
+      "kind": "robot_vacuum",
+      "texture": "pm2-object-robot_vacuum",
+      "covered": true
+    },
+    {
+      "id": "service_closet",
+      "kind": "cleaning_closet",
+      "texture": "pm2-object-cleaning_closet",
+      "covered": true
+    },
+    {
+      "id": "shower",
+      "kind": "shower",
+      "texture": "pm2-object-shower",
+      "covered": true
+    },
+    {
+      "id": "sink",
+      "kind": "sink",
+      "texture": "pm2-object-sink",
+      "covered": true
+    },
+    {
+      "id": "soccer_field",
+      "kind": "soccer_field",
+      "texture": "pm2-object-soccer_field",
+      "covered": true
+    },
+    {
+      "id": "stairs_down",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    },
+    {
+      "id": "stairs_up",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    },
+    {
+      "id": "stereo",
+      "kind": "stereo",
+      "texture": "pm2-object-stereo",
+      "covered": true
+    },
+    {
+      "id": "stove",
+      "kind": "stove",
+      "texture": "pm2-object-stove",
+      "covered": true
+    },
+    {
+      "id": "swim_pool",
+      "kind": "swim_pool",
+      "texture": "pm2-object-swim_pool",
+      "covered": true
+    },
+    {
+      "id": "toilet",
+      "kind": "toilet",
+      "texture": "pm2-object-toilet",
+      "covered": true
+    },
+    {
+      "id": "trash_kitchen",
+      "kind": "trash_can",
+      "texture": "pm2-object-trash_can",
+      "covered": true
+    },
+    {
+      "id": "trash_outdoor",
+      "kind": "outdoor_trash",
+      "texture": "pm2-object-outdoor_trash",
+      "covered": true
+    },
+    {
+      "id": "treadmill",
+      "kind": "treadmill",
+      "texture": "pm2-object-treadmill",
+      "covered": true
+    },
+    {
+      "id": "tv",
+      "kind": "tv",
+      "texture": "pm2-object-tv",
+      "covered": true
+    },
+    {
+      "id": "vacuum_cleaner",
+      "kind": "vacuum_cleaner",
+      "texture": "pm2-object-vacuum_cleaner",
+      "covered": true
+    },
+    {
+      "id": "weight_bench",
+      "kind": "weight_bench",
+      "texture": "pm2-object-weight_bench",
+      "covered": true
+    },
+    {
+      "id": "yard_back_door",
+      "kind": "stairs",
+      "texture": "pm2-object-stairs",
+      "covered": true
+    }
+  ],
+  "roomCoverage": [
+    {
+      "floor": 0,
+      "id": "bath",
+      "texture": "pm2-room-bath",
+      "covered": true
+    },
+    {
+      "floor": 0,
+      "id": "entry",
+      "texture": "pm2-room-entry",
+      "covered": true
+    },
+    {
+      "floor": 0,
+      "id": "front_porch",
+      "texture": "pm2-room-entry",
+      "covered": true
+    },
+    {
+      "floor": 0,
+      "id": "kitchen",
+      "texture": "pm2-room-kitchen",
+      "covered": true
+    },
+    {
+      "floor": 0,
+      "id": "living",
+      "texture": "pm2-room-living",
+      "covered": true
+    },
+    {
+      "floor": 0,
+      "id": "stairs",
+      "texture": "pm2-room-stairs",
+      "covered": true
+    },
+    {
+      "floor": 1,
+      "id": "bedroom",
+      "texture": "pm2-room-bedroom",
+      "covered": true
+    },
+    {
+      "floor": 1,
+      "id": "hall",
+      "texture": "pm2-room-stairs",
+      "covered": true
+    },
+    {
+      "floor": 1,
+      "id": "master_bath",
+      "texture": "pm2-room-master_bath",
+      "covered": true
+    },
+    {
+      "floor": 1,
+      "id": "office",
+      "texture": "pm2-room-office",
+      "covered": true
+    },
+    {
+      "floor": 1,
+      "id": "panic_room",
+      "texture": "pm2-room-panic",
+      "covered": true
+    },
+    {
+      "floor": 1,
+      "id": "stairs2",
+      "texture": "pm2-room-stairs",
+      "covered": true
+    },
+    {
+      "floor": 1,
+      "id": "suite_foyer",
+      "texture": "pm2-room-stairs",
+      "covered": true
+    },
+    {
+      "floor": 1,
+      "id": "walkin_closet",
+      "texture": "pm2-room-closet",
+      "covered": true
+    },
+    {
+      "floor": 2,
+      "id": "basement",
+      "texture": "pm2-room-basement",
+      "covered": true
+    },
+    {
+      "floor": 3,
+      "id": "garage",
+      "texture": "pm2-room-garage",
+      "covered": true
+    },
+    {
+      "floor": 4,
+      "id": "kennel_area",
+      "texture": "pm2-room-kennel_area",
+      "covered": true
+    },
+    {
+      "floor": 4,
+      "id": "pool_area",
+      "texture": "pm2-room-pool_area",
+      "covered": true
+    },
+    {
+      "floor": 4,
+      "id": "yard",
+      "texture": "pm2-room-yard",
+      "covered": true
+    },
+    {
+      "floor": 5,
+      "id": "secret_lab",
+      "texture": "pm2-room-lab",
+      "covered": true
+    }
+  ],
+  "notes": [
+    "PASS means the pre-overhaul gameplay data and core systems remain represented.",
+    "PASS does not mean the temporary procedural art has final authored visual approval.",
+    "Current main is audited separately and must not be merged blindly into this baseline contract."
+  ]
+}
