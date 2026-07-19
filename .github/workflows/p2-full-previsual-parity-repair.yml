@@ -1,0 +1,97 @@
+name: P2 Full Previsual Parity Repair
+
+on:
+  push:
+    branches:
+      - phaser-migration-2
+    paths:
+      - '.github/workflows/p2-full-previsual-parity-repair.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair-and-audit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout latest Phaser Migration 2
+        uses: actions/checkout@v4
+        with:
+          ref: phaser-migration-2
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Verify repository, branch, backup and standing rules
+        run: |
+          test "$GITHUB_REPOSITORY" = "Kalomika/apartment-god-prototype"
+          test "$(git branch --show-current)" = "phaser-migration-2"
+          git ls-remote --exit-code --heads origin backup/phaser-migration-2-before-full-previsual-parity-repair-2026-07-19
+          test -f docs/APARTMENT_GOD_DEVELOPMENT_HANDBOOK.md
+          test -f docs/APARTMENT_GOD_BACKUP_POLICY.md
+          test -f docs/APARTMENT_GOD_NO_BROAD_IMPLEMENTATION_RULE.md
+          test -f docs/APARTMENT_GOD_PNG_UPLOAD_FALLBACK.md
+          test -f apartment-god-production/ONGOING_DESIGN_LOG.md
+          test -f apartment-god-production/DEVELOPMENT_MATRIX.md
+          test -f apartment-god-production/PHASER_MIGRATION_2_FULL_VISUAL_AND_RUNTIME_AUDIT_2026-07-19.md
+          git cat-file -e c8941bbe16e5725ad02eb20596ee5a07868303b8^{commit}
+          git log -12 --oneline
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install project
+        run: npm install --no-package-lock
+
+      - name: Apply full parity repair
+        run: node scripts/p2-full-previsual-parity-repair.mjs
+
+      - name: Create detached previsual baseline worktree
+        run: |
+          rm -rf /tmp/apartment-god-p2-previsual
+          git worktree add --detach /tmp/apartment-god-p2-previsual c8941bbe16e5725ad02eb20596ee5a07868303b8
+
+      - name: Run exact previsual parity audit
+        run: node scripts/audit-p2-previsual-parity.mjs /tmp/apartment-god-p2-previsual .
+
+      - name: Verify parity report
+        run: |
+          test -f apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json
+          grep -q '"status": "PASS"' apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json
+          grep -q '"exactFloorData": true' apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json
+          grep -q '"exactObjectData": true' apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json
+          grep -q '"stateParity": true' apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json
+
+      - name: Repository checks
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Static build
+        run: npm run build
+
+      - name: Verify built parity repair
+        run: |
+          test -f dist/src/phaserMigration2Runtime.js
+          test -f dist/src/phaserMigration2ReferenceCompletion.js
+          test -f dist/src/phaserCharacterAnimationSystem.js
+          grep -q "setCharacterVisualVisible" dist/src/phaserMigration2ReferenceCompletion.js
+          grep -q "entity.sleepObjectId" dist/src/phaserMigration2ReferenceCompletion.js
+          grep -q "this.optionalVisualFailures = \[\]" dist/src/phaserMigration2Runtime.js
+          grep -q "this.runtimeFailed = true" dist/src/phaserMigration2Runtime.js
+          grep -q "const underlay = scene.add.graphics().setDepth(-5)" dist/src/phaserMigration2ReferenceCompletion.js
+          ! grep -q "scene.roomLayer?.add?.(architecture)" dist/src/phaserMigration2ReferenceCompletion.js
+          ! grep -q "drawPhaserEnvironment" dist/src/phaserMigration2Runtime.js
+          ! grep -q "textures.addCanvas" dist/src/phaserMigration2Runtime.js
+
+      - name: Commit verified repair and audit
+        run: |
+          git config user.name "Apartment God Previsual Parity Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/phaserCharacterAnimationSystem.js src/phaserMigration2ReferenceCompletion.js src/phaserMigration2Runtime.js assets/manifests/phaser-migration-2-reference-visual-completion.json tests/phaser-migration-2-previsual-parity-repair.test.js apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-19_P2_FULL_PREVISUAL_PARITY_REPAIR.md apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-19_P2_FULL_PREVISUAL_PARITY_REPAIR.md
+          git commit -m "Repair full P2 previsual gameplay parity"
+          git push origin HEAD:phaser-migration-2
