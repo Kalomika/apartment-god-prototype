@@ -1,0 +1,68 @@
+name: P2 Mobile Canvas Scale Verify
+
+on:
+  push:
+    branches:
+      - phaser-migration-2
+    paths:
+      - '.github/workflows/p2-mobile-canvas-scale-verify.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-mobile-canvas-scale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout Phaser Migration 2
+        uses: actions/checkout@v4
+        with:
+          ref: phaser-migration-2
+          fetch-depth: 0
+
+      - name: Verify protected scope and backup
+        run: |
+          test "$GITHUB_REPOSITORY" = "Kalomika/apartment-god-prototype"
+          test "$(git branch --show-current)" = "phaser-migration-2"
+          git ls-remote --exit-code --heads origin backup/phaser-migration-2-before-mobile-canvas-scale-fix-2026-07-19
+          test -f docs/APARTMENT_GOD_DEVELOPMENT_HANDBOOK.md
+          test -f docs/APARTMENT_GOD_BACKUP_POLICY.md
+          test -f docs/APARTMENT_GOD_NO_BROAD_IMPLEMENTATION_RULE.md
+          test -f apartment-god-production/ONGOING_DESIGN_LOG.md
+          test -f apartment-god-production/DEVELOPMENT_MATRIX.md
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install project
+        run: npm install --no-package-lock
+
+      - name: Verify source guardrails
+        run: |
+          grep -q "mode: Phaser.Scale.NONE" src/phaserMigration2Runtime.js
+          grep -q "autoCenter: Phaser.Scale.NO_CENTER" src/phaserMigration2Runtime.js
+          ! grep -q "mode: Phaser.Scale.FIT" src/phaserMigration2Runtime.js
+          ! grep -q "autoCenter: Phaser.Scale.CENTER_BOTH" src/phaserMigration2Runtime.js
+          grep -q "const displayHeight = Math.round(displayWidth \* 3 / 4)" src/fit.js
+          ! grep -q "drawPhaserEnvironment" src/phaserMigration2Runtime.js
+          ! grep -q "textures.addCanvas" src/phaserMigration2Runtime.js
+
+      - name: Repository checks
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Static build
+        run: npm run build
+
+      - name: Verify built scale configuration
+        run: |
+          test -f dist/src/phaserMigration2Runtime.js
+          test -f dist/src/fit.js
+          grep -q "mode: Phaser.Scale.NONE" dist/src/phaserMigration2Runtime.js
+          grep -q "autoCenter: Phaser.Scale.NO_CENTER" dist/src/phaserMigration2Runtime.js
+          grep -q "const displayHeight = Math.round(displayWidth \* 3 / 4)" dist/src/fit.js
