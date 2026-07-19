@@ -33,14 +33,26 @@ import {
   destroyNativeGameplayVisuals,
   syncNativeGameplayVisuals
 } from './phaserMigration2GameplayVisuals.js';
-import { PM2_CHARACTER_SHEETS, PM2_OBJECT_TEXTURES, PM2_ROOM_TEXTURES, textureForObject, textureForRoom } from './phaserMigration2VisualCatalog.js';
-import { preloadReferenceCompletion, createReferenceCompletion, syncReferenceCompletion, destroyReferenceCompletion } from './phaserMigration2ReferenceCompletion.js';
+import {
+  PM2_CHARACTER_SHEETS,
+  PM2_OBJECT_TEXTURES,
+  PM2_ROOM_TEXTURES,
+  textureForObject,
+  textureForRoom
+} from './phaserMigration2VisualCatalog.js';
+import {
+  preloadReferenceCompletion,
+  createReferenceCompletion,
+  syncReferenceCompletion,
+  destroyReferenceCompletion
+} from './phaserMigration2ReferenceCompletion.js';
 
 installFrontYardWorld();
 applyMainFloorLayoutPolish();
 applyRuntimeObjectCorrections();
 
 const REFRESH_SAVE_KEY = 'apartment_god_test_refresh_state_v3';
+
 export async function bootPhaserMigration2Game() {
   const canvas = document.getElementById('game');
   if (!canvas) return null;
@@ -72,12 +84,16 @@ function createApartmentGodNativeScene(Phaser) {
       this.currentFloor = null;
       this.floorSignature = '';
       this.frameErrorCount = 0;
+      this.runtimeFailed = false;
       this.lastHiddenTick = 0;
       this.hiddenTicker = null;
       this.nativeObjects = [];
       this.pm2ActorVisuals = new Map();
       this.assetFailures = [];
       this.nativeGameplayVisuals = null;
+      this.beforeUnloadHandler = null;
+      this.visibilityHandler = null;
+      this.pointerHandler = null;
     }
 
     preload() {
@@ -90,16 +106,17 @@ function createApartmentGodNativeScene(Phaser) {
       for (const [key, url] of Object.entries(PM2_OBJECT_TEXTURES)) this.load.svg(`pm2-object-${key}`, url, { width: 128, height: 128 });
       for (const [key, url] of Object.entries(PM2_CHARACTER_SHEETS)) this.load.svg(`pm2-${key}`, url, { width: 512, height: 512 });
       this.load.on('loaderror', file => {
-        this.assetFailures.push(file?.key || file?.src || 'unknown asset');
-        console.error('[Apartment God] Phaser Migration 2 asset failed:', file?.key, file?.src);
+        const key = file?.key || file?.src || 'unknown asset';
+        if (!this.assetFailures.includes(key)) this.assetFailures.push(key);
+        console.warn('[Apartment God] Phaser Migration 2 visual asset failed safely:', file?.key, file?.src);
       });
     }
 
     create() {
       try {
-        if (this.assetFailures.length) throw new Error(`Required Phaser Migration 2 assets failed: ${this.assetFailures.join(', ')}`);
         this.state = createState();
         this.state.runtimeRenderer = 'phaser-migration-2-native-full-gameplay';
+        this.state.assetFailures = [...this.assetFailures];
         loadRefreshStateSafely(this.state);
         sanitizeRuntimeState(this.state);
         applyRuntimeRegressionGuards(this.state);
@@ -109,28 +126,34 @@ function createApartmentGodNativeScene(Phaser) {
         this.actorLayer = this.add.container(0, 0).setDepth(60);
         this.fxLayer = this.add.container(0, 0).setDepth(90);
         this.poolGraphics = this.add.graphics();
-        createReferenceCompletion(this);
         this.fxLayer.add(this.poolGraphics);
         this.nativeGameplayVisuals = createNativeGameplayVisuals(this, this.fxLayer);
-
+        createReferenceCompletion(this);
         registerCharacterAnimations(this);
 
         this.statusText = this.add.text(12, 12, '', {
           fontFamily: 'system-ui', fontSize: 14, fontStyle: '900', color: '#f8fbff', backgroundColor: 'rgba(7,10,16,.55)', padding: { x: 8, y: 5 }
         }).setDepth(1000);
-        this.runtimeText = this.add.text(12, PLAY_H - 25, `PHASER MIGRATION 2 | native world | full gameplay | ${CHARACTER_ANIMATION_FPS} FPS`, {
+        this.runtimeText = this.add.text(12, PLAY_H - 25, runtimeLabel(this.assetFailures), {
           fontFamily: 'system-ui', fontSize: 11, fontStyle: '900', color: '#f1c66a', backgroundColor: 'rgba(7,10,16,.45)', padding: { x: 7, y: 3 }
         }).setDepth(1000);
 
         installCameraSwipeNavigation(this.state, this.game.canvas);
         this.ui = createUi(this.state, this.game.canvas, { externalInput: true });
-        this.input.on('pointerdown', pointer => this.handleGamePointer(pointer));
+        this.pointerHandler = pointer => this.handleGamePointer(pointer);
+        this.input.on('pointerdown', this.pointerHandler);
 
-        window.addEventListener('beforeunload', () => saveRefreshState(this.state));
-        document.addEventListener('visibilitychange', () => {
+        this.beforeUnloadHandler = () => {
+          if (!this.runtimeFailed && this.state) saveRefreshState(this.state);
+        };
+        this.visibilityHandler = () => {
+          if (!this.state || this.runtimeFailed) return;
           this.state.backgroundMode = document.hidden;
           if (!document.hidden) this.state.saveStatus = { message: 'Returned from background' };
-        });
+        };
+        window.addEventListener('beforeunload', this.beforeUnloadHandler);
+        document.addEventListener('visibilitychange', this.visibilityHandler);
+
         this.lastHiddenTick = performance.now();
         this.hiddenTicker = window.setInterval(() => this.hiddenTick(), 1000);
         this.events.once('shutdown', () => this.shutdownRuntime());
@@ -138,16 +161,18 @@ function createApartmentGodNativeScene(Phaser) {
 
         this.registry.set('apartmentGodRuntime', 'phaser-migration-2-native-full-main-gameplay');
         this.registry.set('apartmentGodCharacterFps', CHARACTER_ANIMATION_FPS);
+        this.registry.set('apartmentGodAssetFallbackCount', this.assetFailures.length);
+        if (this.assetFailures.length) this.state.saveStatus = { message: `${this.assetFailures.length} visual asset fallback(s) active` };
         this.loadText?.destroy();
         this.renderNativeFrame();
-        this.ui.renderHud();
+        this.ui?.renderHud();
       } catch (error) {
         this.recoverFrame(error, true);
       }
     }
 
     update(_time, deltaMs) {
-      if (!this.state) return;
+      if (this.runtimeFailed || !this.state) return;
       try {
         sanitizeRuntimeState(this.state);
         applyRuntimeRegressionGuards(this.state);
@@ -166,7 +191,7 @@ function createApartmentGodNativeScene(Phaser) {
     }
 
     handleGamePointer(pointer) {
-      if (!this.ui?.handleCanvasPoint) return;
+      if (this.runtimeFailed || !this.ui?.handleCanvasPoint) return;
       const bounds = this.game.canvas.getBoundingClientRect();
       const event = pointer.event;
       const menuX = event?.clientX == null ? pointer.x : event.clientX - bounds.left;
@@ -175,7 +200,7 @@ function createApartmentGodNativeScene(Phaser) {
     }
 
     hiddenTick() {
-      if (!this.state || !document.hidden || this.state.paused) return;
+      if (this.runtimeFailed || !this.state || !document.hidden || this.state.paused) return;
       const now = performance.now();
       const elapsed = Math.min(4, Math.max(0, (now - this.lastHiddenTick) / 1000));
       this.lastHiddenTick = now;
@@ -185,11 +210,12 @@ function createApartmentGodNativeScene(Phaser) {
         advanceSimulation(this.state, elapsed);
         updateRefreshAutosave(this.state, Math.min(1, elapsed));
       } catch (error) {
-        console.error('[Apartment God] Phaser Migration 2 background tick recovered.', error);
+        this.recoverFrame(error, false);
       }
     }
 
     renderNativeFrame() {
+      if (this.runtimeFailed || !this.state) return;
       const signature = floorSignature(this.state.floor);
       if (this.currentFloor !== this.state.floor || this.floorSignature !== signature) this.rebuildFloor(signature);
       this.refreshObjectStates();
@@ -200,12 +226,13 @@ function createApartmentGodNativeScene(Phaser) {
       const actor = selected(this.state);
       const tidy = Number.isFinite(this.state.tidiness?.score) ? ` tidy ${Math.round(this.state.tidiness.score)}%` : '';
       const floor = floors.find(candidate => candidate.id === this.state.floor);
-      this.statusText.setText(`${formatTime(this.state.time)}   $${Math.round(this.state.money ?? 0)}   ${this.state.autonomyMode}${tidy}   ${floor?.name || this.state.floor}   ${actor?.name || ''}: ${actor?.action || 'Idle'}`);
-      this.statusText.setVisible(true);
-      this.runtimeText.setVisible(true);
+      this.statusText?.setText(`${formatTime(this.state.time)}   $${Math.round(this.state.money ?? 0)}   ${this.state.autonomyMode}${tidy}   ${floor?.name || this.state.floor}   ${actor?.name || ''}: ${actor?.action || 'Idle'}`);
+      this.statusText?.setVisible(true);
+      this.runtimeText?.setVisible(true);
     }
 
     rebuildFloor(signature = floorSignature(this.state.floor)) {
+      if (this.runtimeFailed || !this.roomLayer || !this.objectLayer) return;
       this.currentFloor = this.state.floor;
       this.floorSignature = signature;
       this.roomLayer.removeAll(true);
@@ -215,7 +242,9 @@ function createApartmentGodNativeScene(Phaser) {
       if (!floor) return;
 
       for (const room of floor.rooms || []) {
-        const panel = this.add.image(room.x + room.w / 2, room.y + room.h / 2, textureForRoom(room));
+        const requestedTexture = textureForRoom(room);
+        const texture = this.textures.exists(requestedTexture) ? requestedTexture : '__MISSING';
+        const panel = this.add.image(room.x + room.w / 2, room.y + room.h / 2, texture);
         panel.setDisplaySize(room.w, room.h);
         panel.setAlpha(roomAlpha(room.id));
         panel.setDepth(room.y - 1000);
@@ -228,9 +257,10 @@ function createApartmentGodNativeScene(Phaser) {
         this.roomLayer.add(label);
       }
 
-      const floorObjects = objects.filter(object => object.floor === this.state.floor);
-      for (const object of floorObjects) {
-        const sprite = this.add.image(object.x + object.w / 2, object.y + object.h / 2, textureForObject(object));
+      for (const object of objects.filter(candidate => candidate.floor === this.state.floor)) {
+        const requestedTexture = textureForObject(object);
+        const texture = this.textures.exists(requestedTexture) ? requestedTexture : '__MISSING';
+        const sprite = this.add.image(object.x + object.w / 2, object.y + object.h / 2, texture);
         sprite.pm2Object = object;
         this.objectLayer.add(sprite);
         this.nativeObjects.push(sprite);
@@ -239,6 +269,7 @@ function createApartmentGodNativeScene(Phaser) {
     }
 
     refreshObjectStates() {
+      if (this.runtimeFailed) return;
       for (const sprite of this.nativeObjects) {
         const object = sprite.pm2Object;
         if (!object) continue;
@@ -253,8 +284,9 @@ function createApartmentGodNativeScene(Phaser) {
         sprite.setAlpha(object.kind === 'light' ? .5 : 1);
 
         if (object.kind === 'tv') sprite.setTint(this.state.tv?.on ? 0x74e6ff : 0x5d6876);
-        if (object.kind === 'shower' || object.kind === 'bathtub' || object.kind === 'dog_bath') {
-          const active = this.state.entities?.some(entity => entity.showerObjectId === object.id && entity.actionT > 0) || this.state.entities?.some(entity => entity.currentActionId === 'wash_dog' && entity.actionT > 0 && entity.floor === object.floor);
+        if (['shower','bathtub','dog_bath'].includes(object.kind)) {
+          const active = this.state.entities?.some(entity => entity.showerObjectId === object.id && entity.actionT > 0)
+            || this.state.entities?.some(entity => entity.currentActionId === 'wash_dog' && entity.actionT > 0 && entity.floor === object.floor);
           if (active) sprite.setTint(0x9feaff);
         }
         if (object.kind === 'toilet') {
@@ -271,6 +303,7 @@ function createApartmentGodNativeScene(Phaser) {
 
     refreshPoolFx() {
       const graphics = this.poolGraphics;
+      if (!graphics || this.runtimeFailed) return;
       graphics.clear();
       const game = this.state.poolGame;
       if (!game || game.floor !== this.state.floor || !Array.isArray(game.balls)) return;
@@ -295,6 +328,12 @@ function createApartmentGodNativeScene(Phaser) {
     shutdownRuntime() {
       if (this.hiddenTicker) window.clearInterval(this.hiddenTicker);
       this.hiddenTicker = null;
+      if (this.beforeUnloadHandler) window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+      if (this.visibilityHandler) document.removeEventListener('visibilitychange', this.visibilityHandler);
+      if (this.pointerHandler) this.input?.off?.('pointerdown', this.pointerHandler);
+      this.beforeUnloadHandler = null;
+      this.visibilityHandler = null;
+      this.pointerHandler = null;
       destroyNativeGameplayVisuals(this.nativeGameplayVisuals);
       this.nativeGameplayVisuals = null;
       destroyReferenceCompletion(this);
@@ -302,11 +341,19 @@ function createApartmentGodNativeScene(Phaser) {
     }
 
     recoverFrame(error, boot = false) {
+      if (this.runtimeFailed) return;
+      this.runtimeFailed = true;
       this.frameErrorCount += 1;
-      console.error('[Apartment God] Phaser Migration 2 recovered instead of blanking.', error);
+      console.error('[Apartment God] Phaser Migration 2 entered terminal recovery instead of blanking.', error);
       clearBadRefreshState();
+
+      if (this.hiddenTicker) window.clearInterval(this.hiddenTicker);
+      this.hiddenTicker = null;
+      if (this.pointerHandler) this.input?.off?.('pointerdown', this.pointerHandler);
+      if (this.input) this.input.enabled = false;
+
       if (this.state) {
-        sanitizeRuntimeState(this.state);
+        try { sanitizeRuntimeState(this.state); } catch {}
         for (const entity of this.state.entities || []) {
           entity.path = [];
           entity.poolRoute = null;
@@ -316,26 +363,37 @@ function createApartmentGodNativeScene(Phaser) {
           entity.blockedT = 0;
           entity.recoveryCount = 0;
         }
-        this.state.saveStatus = { message: 'Phaser Migration 2 runtime error handled' };
-        this.state.paused = this.frameErrorCount > 2;
+        this.state.saveStatus = { message: 'Phaser Migration 2 stopped safely after a runtime error' };
+        this.state.paused = true;
       }
-      destroyNativeGameplayVisuals(this.nativeGameplayVisuals);
+
+      try { destroyNativeGameplayVisuals(this.nativeGameplayVisuals); } catch {}
       this.nativeGameplayVisuals = null;
-      destroyReferenceCompletion(this);
-      clearCharacterVisuals(this);
-      this.children.removeAll(true);
+      try { destroyReferenceCompletion(this); } catch {}
+      try { clearCharacterVisuals(this); } catch {}
+      try { this.children.removeAll(true); } catch {}
+
+      this.cameras?.main?.setBackgroundColor?.('#171a22');
       this.add.rectangle(0, 0, PLAY_W, PLAY_H, 0x171a22).setOrigin(0, 0);
-      this.add.text(32, 64, boot ? 'Phaser Migration 2 boot recovery screen' : 'Phaser Migration 2 frame recovery screen', {
+      this.add.text(32, 64, boot ? 'Phaser Migration 2 boot recovery screen' : 'Phaser Migration 2 runtime recovery screen', {
         fontFamily: 'system-ui', fontSize: 28, fontStyle: '900', color: '#f1c66a'
       });
-      this.add.text(32, 108, 'The branch did not blank. Check console and refresh once.', {
-        fontFamily: 'system-ui', fontSize: 18, fontStyle: '700', color: '#f0f2f7'
+      this.add.text(32, 108, 'The game stopped safely. The error screen will remain stable instead of looping or blanking.', {
+        fontFamily: 'system-ui', fontSize: 17, fontStyle: '700', color: '#f0f2f7', wordWrap: { width: PLAY_W - 64 }
       });
-      this.add.text(32, 144, String(error?.message || error || 'Unknown error').slice(0, 160), {
-        fontFamily: 'system-ui', fontSize: 14, color: '#aab2c5'
+      this.add.text(32, 158, String(error?.message || error || 'Unknown error').slice(0, 220), {
+        fontFamily: 'system-ui', fontSize: 14, color: '#aab2c5', wordWrap: { width: PLAY_W - 64 }
       });
+      this.registry.set('apartmentGodRuntimeFailed', true);
+      this.registry.set('apartmentGodRuntimeError', String(error?.message || error || 'Unknown error'));
+      this.scene.pause();
     }
   };
+}
+
+function runtimeLabel(assetFailures) {
+  const fallback = assetFailures.length ? ` | ${assetFailures.length} visual fallback${assetFailures.length === 1 ? '' : 's'}` : '';
+  return `PHASER MIGRATION 2 | native world | full gameplay | ${CHARACTER_ANIMATION_FPS} FPS${fallback}`;
 }
 
 function sanitizeRuntimeState(state) {
@@ -418,7 +476,7 @@ function advanceSimulation(state, rawDt) {
   const maximumCatchup = document.hidden ? 4 : .2;
   let remaining = Math.min(rawDt * state.speed, maximumCatchup);
   let guard = 0;
-  while (remaining > 0.0001 && guard < 40) {
+  while (remaining > .0001 && guard < 40) {
     const step = Math.min(maximumStep, remaining);
     runSimulationStep(state, step);
     remaining -= step;
@@ -474,5 +532,8 @@ function drawHardBootError(canvas, error) {
   context.fillText('Phaser Migration 2 could not boot', 42, 84);
   context.fillStyle = '#f0f2f7';
   context.font = '700 18px system-ui';
-  context.fillText(String(error?.message || error || 'Unknown error').slice(0, 150), 42, 128);
+  context.fillText('The game stopped on a visible error screen instead of showing a blank canvas.', 42, 122);
+  context.fillStyle = '#aab2c5';
+  context.font = '600 14px system-ui';
+  context.fillText(String(error?.message || error || 'Unknown error').slice(0, 150), 42, 160);
 }
