@@ -89,7 +89,8 @@ function ensureActorVisual(scene, layer, entity, profile, point) {
   const shadow = scene.add.ellipse(point.x, point.y + 20, config.shadowW, config.shadowH, 0x05080d, .24);
   const ring = scene.add.ellipse(point.x, point.y + 17, profile === 'dog' ? 64 : 54, profile === 'dog' ? 34 : 31, 0xf1c66a, 0);
   ring.setStrokeStyle(3, 0xf1c66a, .94);
-  const sprite = scene.add.sprite(point.x, point.y, config.texture, 'south-1');
+  const hasTexture = scene.textures.exists(config.texture);
+  const sprite = scene.add.sprite(point.x, point.y, hasTexture ? config.texture : '__MISSING', hasTexture ? 'south-1' : undefined);
   sprite.setScale(config.scale);
   sprite.setOrigin(.5, .63);
   const cue = scene.add.graphics();
@@ -140,12 +141,13 @@ function syncActorVisual(scene, state, entity, profile, point, record) {
   record.ringWanted = state.selectedId === entity.id;
   record.sprite.setPosition(point.x, point.y);
 
-  if (moving) {
-    const key = animationName(profile, direction);
-    if (record.sprite.anims.currentAnim?.key !== key || !record.sprite.anims.isPlaying) record.sprite.play(key, true);
+  const animationKey = animationName(profile, direction);
+  if (moving && scene.anims.exists(animationKey) && scene.textures.exists(config.texture)) {
+    if (record.sprite.texture?.key !== config.texture) record.sprite.setTexture(config.texture, `${direction}-1`);
+    if (record.sprite.anims.currentAnim?.key !== animationKey || !record.sprite.anims.isPlaying) record.sprite.play(animationKey, true);
   } else {
     record.sprite.stop();
-    record.sprite.setFrame(`${direction}-${stationaryFrame(entity, scene.time.now)}`);
+    setSafeCharacterFrame(scene, record.sprite, config.texture, `${direction}-${stationaryFrame(entity, scene.time.now)}`);
   }
 
   const depth = point.y + (profile === 'dog' ? 46 : 58);
@@ -164,6 +166,16 @@ function syncActorVisual(scene, state, entity, profile, point, record) {
 
   record.lastX = point.x;
   record.lastY = point.y;
+}
+
+function setSafeCharacterFrame(scene, sprite, textureKey, frameName) {
+  const texture = scene.textures.get(textureKey);
+  if (texture && texture.key !== '__MISSING' && texture.has(frameName)) {
+    if (sprite.texture?.key !== textureKey) sprite.setTexture(textureKey, frameName);
+    else sprite.setFrame(frameName);
+    return;
+  }
+  if (sprite.texture?.key !== '__MISSING') sprite.setTexture('__MISSING');
 }
 
 function applyRecordVisibility(record) {
