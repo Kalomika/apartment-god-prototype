@@ -7,7 +7,9 @@ const controlBar = document.getElementById('game-control-bar');
 function fit() {
   if (!shell || !wrap || !hud || !canvas) return;
   const wide = window.innerWidth > window.innerHeight && window.innerWidth >= 900;
-  if (canvas.dataset.phaserOwned !== 'true') {
+  const phaserOwned = canvas.dataset.phaserOwned === 'true';
+
+  if (!phaserOwned) {
     canvas.width = 960;
     canvas.height = 720;
   }
@@ -24,15 +26,25 @@ function fit() {
 
   canvas.style.display = 'block';
   canvas.style.aspectRatio = '4 / 3';
-  canvas.style.maxWidth = '100%';
-  canvas.style.maxHeight = '100%';
+  canvas.style.margin = '0';
+  canvas.style.marginTop = '0';
+  canvas.style.marginLeft = '0';
+  canvas.style.position = 'static';
+  canvas.style.transform = 'none';
 
   if (wide) {
     wrap.style.flex = '';
+    wrap.style.width = '';
     wrap.style.height = '100dvh';
+    wrap.style.minHeight = '0';
+    wrap.style.maxHeight = '100dvh';
     hud.style.height = '100dvh';
-    canvas.style.width = 'min(calc(100vw - 480px), calc(100dvh * 4 / 3))';
-    canvas.style.height = 'auto';
+    canvas.style.maxWidth = '100%';
+    canvas.style.maxHeight = '100%';
+    if (!phaserOwned) {
+      canvas.style.width = 'min(calc(100vw - 480px), calc(100dvh * 4 / 3))';
+      canvas.style.height = 'auto';
+    }
     if (controlBar) controlBar.style.height = '100dvh';
     return;
   }
@@ -40,15 +52,20 @@ function fit() {
   const displayWidth = Math.max(280, Math.min(window.innerWidth, 960));
   const displayHeight = Math.round(displayWidth * 3 / 4);
   wrap.style.flex = `0 0 ${displayHeight}px`;
+  wrap.style.width = `${displayWidth}px`;
   wrap.style.height = `${displayHeight}px`;
   wrap.style.minHeight = '0';
   wrap.style.maxHeight = `${displayHeight}px`;
-  canvas.style.width = `${displayWidth}px`;
-  canvas.style.height = `${displayHeight}px`;
+  wrap.style.alignSelf = 'center';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.maxWidth = 'none';
+  canvas.style.maxHeight = 'none';
   hud.style.height = '';
   if (controlBar) controlBar.style.height = '';
 }
 
 window.addEventListener('resize', fit);
 window.addEventListener('orientationchange', () => window.setTimeout(fit, 50));
+window.addEventListener('pageshow', () => window.setTimeout(fit, 0));
 fit();
