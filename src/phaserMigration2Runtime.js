@@ -55,7 +55,7 @@ export async function bootPhaserMigration2Game() {
       height: PLAY_H,
       backgroundColor: '#101722',
       render: { antialias: true, pixelArt: false, transparent: false, clearBeforeRender: true },
-      scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: PLAY_W, height: PLAY_H },
+      scale: { mode: Phaser.Scale.NONE, autoCenter: Phaser.Scale.NO_CENTER, width: PLAY_W, height: PLAY_H },
       scene: [SceneClass]
     });
   } catch (error) {
@@ -109,7 +109,7 @@ function createApartmentGodNativeScene(Phaser) {
         this.actorLayer = this.add.container(0, 0).setDepth(60);
         this.fxLayer = this.add.container(0, 0).setDepth(90);
         this.poolGraphics = this.add.graphics();
-      createReferenceCompletion(this);
+        createReferenceCompletion(this);
         this.fxLayer.add(this.poolGraphics);
         this.nativeGameplayVisuals = createNativeGameplayVisuals(this, this.fxLayer);
 
@@ -195,7 +195,7 @@ function createApartmentGodNativeScene(Phaser) {
       this.refreshObjectStates();
       syncCharacterVisuals(this, this.state, this.actorLayer);
       this.refreshPoolFx();
-        syncReferenceCompletion(this);
+      syncReferenceCompletion(this);
       syncNativeGameplayVisuals(this, this.state, this.nativeGameplayVisuals);
       const actor = selected(this.state);
       const tidy = Number.isFinite(this.state.tidiness?.score) ? ` tidy ${Math.round(this.state.tidiness.score)}%` : '';
@@ -418,7 +418,7 @@ function advanceSimulation(state, rawDt) {
   const maximumCatchup = document.hidden ? 4 : .2;
   let remaining = Math.min(rawDt * state.speed, maximumCatchup);
   let guard = 0;
-  while (remaining > .0001 && guard < 80) {
+  while (remaining > 0.0001 && guard < 40) {
     const step = Math.min(maximumStep, remaining);
     runSimulationStep(state, step);
     remaining -= step;
@@ -426,57 +426,53 @@ function advanceSimulation(state, rawDt) {
   }
 }
 
-function roomAlpha(roomId) {
-  if (roomId.includes('bath')) return .92;
-  if (roomId.includes('garage') || roomId.includes('driveway')) return .82;
-  if (roomId.includes('road')) return .74;
-  if (roomId.includes('garden') || roomId.includes('yard')) return .8;
-  return .88;
-}
-
 function floorSignature(floorId) {
-  const floor = floors.find(candidate => candidate.id === floorId);
-  const roomCount = floor?.rooms?.length || 0;
-  const objectCount = objects.filter(object => object.floor === floorId).length;
-  return `${floorId}:${roomCount}:${objectCount}`;
+  const floorRooms = floors.find(candidate => candidate.id === floorId)?.rooms || [];
+  const floorObjects = objects.filter(object => object.floor === floorId && !object.collisionOnly);
+  return `${floorId}|${floorRooms.map(room => `${room.id}:${room.x}:${room.y}:${room.w}:${room.h}`).join(';')}|${floorObjects.map(object => `${object.id}:${object.x}:${object.y}:${object.w}:${object.h}:${object.kind}:${object.hidden ? 1 : 0}`).join(';')}`;
 }
 
-function loadRefreshStateSafely(state) {
-  try {
-    return loadRefreshState(state);
-  } catch (error) {
-    console.error('[Apartment God] Bad refresh state skipped for Phaser Migration 2.', error);
-    clearBadRefreshState();
-    state.saveStatus = { message: 'Skipped bad refresh state' };
-    return false;
-  }
-}
-
-function clearBadRefreshState() {
-  try { localStorage.removeItem(REFRESH_SAVE_KEY); } catch (_) {}
+function roomAlpha(roomId) {
+  if (roomId === 'yard' || roomId === 'front_yard' || roomId === 'garden') return .92;
+  if (roomId.includes('pool')) return .9;
+  if (roomId.includes('garage') || roomId.includes('driveway') || roomId.includes('road')) return .9;
+  return .97;
 }
 
 function parseHexColor(value, fallback) {
   if (typeof value !== 'string') return fallback;
-  const normalized = value.trim().replace('#', '');
+  const normalized = value.replace('#', '');
   const parsed = Number.parseInt(normalized, 16);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function drawHardBootError(canvas, error) {
+function loadRefreshStateSafely(state) {
   try {
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = '#171a22';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = '#f1c66a';
-    context.font = '900 28px system-ui';
-    context.fillText('Apartment God Phaser Migration 2 could not start', 32, 70);
-    context.fillStyle = '#f0f2f7';
-    context.font = '700 18px system-ui';
-    context.fillText('This is a visible error screen, not a blank canvas.', 32, 106);
-    context.fillStyle = '#aab2c5';
-    context.font = '600 14px system-ui';
-    context.fillText(String(error?.message || error || 'Unknown error').slice(0, 160), 32, 142);
-  } catch (_) {}
+    const snapshot = loadRefreshState(state);
+    if (snapshot?.floor != null) state.floor = snapshot.floor;
+    return snapshot;
+  } catch (error) {
+    clearBadRefreshState();
+    console.warn('[Apartment God] Ignored incompatible refresh state.', error);
+    return null;
+  }
+}
+
+function clearBadRefreshState() {
+  try { localStorage.removeItem(REFRESH_SAVE_KEY); } catch {}
+}
+
+function drawHardBootError(canvas, error) {
+  const context = canvas.getContext('2d');
+  if (!context) return;
+  canvas.width = PLAY_W;
+  canvas.height = PLAY_H;
+  context.fillStyle = '#171a22';
+  context.fillRect(0, 0, PLAY_W, PLAY_H);
+  context.fillStyle = '#f1c66a';
+  context.font = '900 34px system-ui';
+  context.fillText('Phaser Migration 2 could not boot', 42, 84);
+  context.fillStyle = '#f0f2f7';
+  context.font = '700 18px system-ui';
+  context.fillText(String(error?.message || error || 'Unknown error').slice(0, 150), 42, 128);
 }
