@@ -89,3 +89,5 @@ jobs:
           git commit -m "Verify exact P2 previsual gameplay parity"
           git pull --rebase origin phaser-migration-2
           git push origin HEAD:phaser-migration-2
+
+# audit trigger after workflow registration
