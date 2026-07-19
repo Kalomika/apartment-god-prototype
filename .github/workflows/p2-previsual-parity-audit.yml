@@ -45,7 +45,7 @@ jobs:
       - name: Install project
         run: npm install --no-package-lock
 
-      - name: Correct audit module sharing
+      - name: Correct audit module sharing and room coverage
         run: node scripts/patch-p2-audit-dynamic-world.mjs
 
       - name: Create detached previsual baseline worktree
@@ -66,6 +66,7 @@ jobs:
           grep -q '"exactFloorData": true' apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json
           grep -q '"exactObjectData": true' apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json
           grep -q '"stateParity": true' apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json
+          ! grep -q '"covered": false' apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json
           grep -q "setBaseActorVisualVisible" src/phaserMigration2ReferenceCompletion.js
           grep -q "entity.sleepObjectId" src/phaserMigration2ReferenceCompletion.js
           grep -q "pm2ReferenceAssetMode = 'lazy-optional'" src/phaserMigration2ReferenceCompletion.js
@@ -87,11 +88,18 @@ jobs:
       - name: Static build
         run: npm run build
 
+      - name: Verify built exterior surfaces
+        run: |
+          test -f dist/assets/phaser-migration-2/sprites/environment/room_curb.svg
+          test -f dist/assets/phaser-migration-2/sprites/environment/room_walkway.svg
+          grep -q "room_curb.svg" dist/src/phaserMigration2VisualCatalog.js
+          grep -q "room_walkway.svg" dist/src/phaserMigration2VisualCatalog.js
+
       - name: Commit corrected audit source and report
         run: |
           git config user.name "Apartment God Parity Audit Bot"
           git config user.email "actions@users.noreply.github.com"
           git add scripts/audit-p2-previsual-parity.mjs apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json
-          git commit -m "Verify dynamic P2 exterior and gameplay parity"
+          git commit -m "Verify complete P2 room and gameplay parity"
           git pull --rebase origin phaser-migration-2
           git push origin HEAD:phaser-migration-2
