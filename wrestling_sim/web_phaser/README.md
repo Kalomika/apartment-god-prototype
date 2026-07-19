@@ -4,53 +4,36 @@ This is the mobile browser prototype for Grapple Gods.
 
 ## Active Visual Direction
 
-The playable graphics direction has pivoted to a side view hard cam wrestling game with a sprite oriented pipeline.
+The playable graphics direction is now a side view hard cam wrestling game with a sprite oriented pipeline.
 
 The top down experiment is no longer the active playable target.
 
-## Current Approval Step
+## Current Playtest
 
-The current build is a layered hard cam ring approval pass.
+The current build uses the approved generated hard cam wrestling screen as the visual shell for a playable Phaser test.
 
-It intentionally shows:
+It currently includes:
 
 ```text
-side view hard cam arena
-painted wrestling ring pushed farther from camera
-background crowd sprite plate
-ring sprite plate
-foreground crowd sprite plate
-white canvas
-black ropes
-corner posts
-turnbuckle pads
-front apron
-8 fps A/B crowd and ring cadence
-no wrestlers yet
+hard cam arena presentation
+two visible wrestlers in the ring
+referee and crowd presentation
+mobile move suggestion buttons
+autonomous match engine
+suggestions accepted or ignored
+live stamina and damage overlays
+match log updates
+8 fps visual cadence
+impact flashes and camera shake
 ```
 
-The wrestler sprites, walk cycles, run cycles, idle cycles, grapples, hit reactions, and move responses come after the ring is approved.
+The two wrestlers and crowd are currently baked into the reference match plate. Separate authored wrestler sprite cycles come next.
 
 ## Core Interaction
 
 Grapple Gods is still a sandbox automated wrestling RPG and booking sim. The player books, manages, and suggests strategy instead of manually controlling every strike or grapple.
 
 The top half of the screen is the match presentation. The bottom half is the manager and move suggestion interface.
-
-## Current First Playable Scope
-
-```text
-two active autonomous wrestlers planned
-Rex Sterling, blonde powerhouse ace
-Dante Crowe, dark haired brawler
-one referee planned
-layered hard cam ring renderer now active
-mobile bottom half move buttons
-autonomous match loop still present under the hood
-GM suggestions can be accepted or ignored
-```
-
-The current visual build hides wrestlers on purpose until the hard cam ring and crowd layer direction is approved.
 
 ## Stack
 
@@ -66,17 +49,14 @@ Render static site hosting for mobile testing
 The current active match view renderer is:
 
 ```text
-src/render/HardCamSpriteRingRenderer.js
+src/render/ReferenceMatchRenderer.js
 ```
 
-It uses authored SVG sprite plates loaded from:
+The active visual plate loads from:
 
 ```text
-public/assets/crowd/
-public/assets/ring/
+public/assets/reference/grapple_gods_reference_match.svg
 ```
-
-The abandoned top down canvas renderer has been removed from the playable view.
 
 ## Local Run
 
@@ -84,8 +64,6 @@ The abandoned top down canvas renderer has been removed from the playable view.
 npm install
 npm run dev
 ```
-
-Then open the Vite local URL in a browser.
 
 ## Production Build
 
@@ -100,8 +78,6 @@ dist/
 ```
 
 ## Render Setup
-
-The repo root contains a `render.yaml` blueprint for this prototype.
 
 Render service name:
 
