@@ -6,8 +6,8 @@ Source: current origin/main at workflow execution
 Status: AUTOMATED_VERIFICATION_PASSED
 
 - Repository checks: passed
-- Test suites: 32/32 passed
-- Tests: 56/56 passed
+- Test suites: 34/34 passed
+- Tests: 58/58 passed
 - Static build: passed
 - Phaser vendor output: present
 - Entry point: bootPhaserMigration2Game
