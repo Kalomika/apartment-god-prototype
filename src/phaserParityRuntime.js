@@ -47,11 +47,20 @@ export async function bootPhaserParityGame() {
     return new Phaser.Game({
       type: Phaser.CANVAS,
       canvas,
+      parent: 'game-wrap',
       width: PLAY_W,
       height: PLAY_H,
       backgroundColor: '#101722',
       render: { antialias: true, pixelArt: false, transparent: false, clearBeforeRender: true },
-      scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: PLAY_W, height: PLAY_H },
+      scale: {
+        parent: 'game-wrap',
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.NO_CENTER,
+        width: PLAY_W,
+        height: PLAY_H,
+        expandParent: false,
+        autoRound: true
+      },
       scene: [SceneClass]
     });
   } catch (error) {
@@ -258,93 +267,45 @@ function sanitizeRuntimeState(state) {
     entity.pose ||= 'stand';
     entity.action ||= 'Idle';
     entity.floor = Number.isInteger(entity.floor) ? entity.floor : 0;
-    entity.x = Number.isFinite(entity.x) ? entity.x : 120;
-    entity.y = Number.isFinite(entity.y) ? entity.y : 120;
-    applyPoseOrientation(entity);
-    cleanupStaleActorState(entity);
-  }
-  updateHouseTidiness(state);
-}
-
-function applyPoseOrientation(entity) {
-  if (entity.type !== 'person') return;
-  const action = String(entity.action || '').toLowerCase();
-  const pose = String(entity.pose || '').toLowerCase();
-  const bedPose = pose === 'sleep' || action.includes('sleep') || action.includes('nap') || action.includes('bed together') || action.includes('waking up') || action.includes('king bed');
-  if (bedPose) entity.lastHeading = 0;
-}
-
-function cleanupStaleActorState(entity) {
-  const hasPath = Array.isArray(entity.path) && entity.path.length > 0;
-  const hasPoolRoute = Array.isArray(entity.poolRoute?.points) && entity.poolRoute.points.length > 0;
-  const hasTarget = Boolean(entity.target || entity.pending);
-  const hasTimer = Number(entity.actionT || 0) > 0;
-  if (hasPath || hasPoolRoute || hasTarget || hasTimer || entity.hidden) return;
-  const action = String(entity.action || '').toLowerCase();
-  if (action === 'recovered' || action === 'runtime recovered' || action === 'walking' || action === 'running' || action.startsWith('going to ')) {
-    entity.action = 'Idle';
-    entity.pose = 'stand';
-    entity.blockedT = 0;
-    entity.recoveryCount = 0;
-  }
-  if (['walk', 'sit'].includes(entity.pose) && (action === 'idle' || action === 'walking' || action === 'running' || action === 'recovered')) entity.pose = 'stand';
-}
-
-function runSimulationStep(state, dt) {
-  if (dt <= 0) return;
-  applyRuntimeObjectCorrections();
-  updateFrontYardEnvironment(state, dt);
-  requestGateForApproachingEntities(state, dt);
-  updateHouseTidiness(state);
-  updatePoolActivity(state, dt);
-  captureGateTraversalState(state);
-  for (const entity of state.entities) {
-    const poolChoreography = Array.isArray(entity.poolRoute?.points) || String(entity.action || '').toLowerCase().startsWith('pool:');
-    if (poolChoreography) continue;
-    const arrived = updateMovement(state, entity, dt);
-    if (arrived) resolveArrival(state, entity);
-  }
-  enforceGateTraversal(state);
-  updateActions(state, dt);
-  updateArcadeSystem(state, dt);
-  updateBasketballSystem(state, dt);
-  updateOffsiteHomeView(state);
-  updateCalendarRuntime(state);
-  updateAutoHooks(state, dt);
-  updateAutonomy(state, dt);
-  advanceGameClock(state, dt);
-  updateLifeQualitySystem(state);
-  updateHouseTidiness(state);
-}
-
-function advanceSimulation(state, rawDt) {
-  if (state.paused) return;
-  const maximumStep = document.hidden ? .2 : .05;
-  const maximumCatchup = document.hidden ? 4 : .2;
-  let remaining = Math.min(rawDt * state.speed, maximumCatchup);
-  let guard = 0;
-  while (remaining > .0001 && guard < 80) {
-    const step = Math.min(maximumStep, remaining);
-    runSimulationStep(state, step);
-    remaining -= step;
-    guard += 1;
   }
 }
 
 function drawHardBootError(canvas, error) {
-  try {
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = '#171a22';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = '#f1c66a';
-    context.font = '900 28px system-ui';
-    context.fillText('Apartment God full Phaser parity runtime could not start', 32, 70);
-    context.fillStyle = '#f0f2f7';
-    context.font = '700 18px system-ui';
-    context.fillText('This is a visible error screen, not a blank canvas.', 32, 106);
-    context.fillStyle = '#aab2c5';
-    context.font = '600 14px system-ui';
-    context.fillText(String(error?.message || error || 'Unknown error').slice(0, 150), 32, 142);
-  } catch (_) {}
+  const context = canvas.getContext('2d');
+  if (!context) return;
+  context.fillStyle = '#171a22';
+  context.fillRect(0, 0, PLAY_W, PLAY_H);
+  context.fillStyle = '#f1c66a';
+  context.font = '900 28px system-ui';
+  context.fillText('Apartment God Phaser boot failed safely', 32, 74);
+  context.fillStyle = '#f0f2f7';
+  context.font = '700 18px system-ui';
+  context.fillText('Refresh once. If this remains, report the visible message below.', 32, 112);
+  context.fillStyle = '#aab2c5';
+  context.font = '14px system-ui';
+  context.fillText(String(error?.message || error || 'Unknown error').slice(0, 140), 32, 150);
+}
+
+function advanceSimulation(state, rawDt) {
+  if (state.paused) return;
+  const dt = rawDt * state.speed;
+  advanceGameClock(state, dt);
+  updateCalendarRuntime(state, dt);
+  updateLifeQualitySystem(state, dt);
+  updateHouseTidiness(state, dt);
+  updateFrontYardEnvironment(state, dt);
+  updateAutoHooks(state, dt);
+  updateAutonomy(state, dt);
+  const gateSnapshots = captureGateTraversalState(state);
+  requestGateForApproachingEntities(state);
+  for (const entity of state.entities) {
+    updateMovement(state, entity, dt);
+    resolveArrival(state, entity);
+  }
+  enforceGateTraversal(state, gateSnapshots);
+  updateActions(state, dt);
+  updatePoolActivity(state, dt);
+  updateArcadeSystem(state, dt);
+  updateBasketballSystem(state, dt);
+  updateOffsiteHomeView(state, dt);
 }
