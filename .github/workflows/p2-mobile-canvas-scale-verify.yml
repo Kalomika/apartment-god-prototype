@@ -66,3 +66,5 @@ jobs:
           grep -q "mode: Phaser.Scale.NONE" dist/src/phaserMigration2Runtime.js
           grep -q "autoCenter: Phaser.Scale.NO_CENTER" dist/src/phaserMigration2Runtime.js
           grep -q "const displayHeight = Math.round(displayWidth \* 3 / 4)" dist/src/fit.js
+
+# verification trigger after workflow registration
