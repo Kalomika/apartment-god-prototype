@@ -34,6 +34,7 @@ import {
   syncNativeGameplayVisuals
 } from './phaserMigration2GameplayVisuals.js';
 import { PM2_CHARACTER_SHEETS, PM2_OBJECT_TEXTURES, PM2_ROOM_TEXTURES, textureForObject, textureForRoom } from './phaserMigration2VisualCatalog.js';
+import { preloadReferenceCompletion, createReferenceCompletion, syncReferenceCompletion, destroyReferenceCompletion } from './phaserMigration2ReferenceCompletion.js';
 
 installFrontYardWorld();
 applyMainFloorLayoutPolish();
@@ -80,6 +81,7 @@ function createApartmentGodNativeScene(Phaser) {
     }
 
     preload() {
+      preloadReferenceCompletion(this);
       this.loadText = this.add.text(28, 28, 'Apartment God Phaser Migration 2 loading full gameplay...', {
         fontFamily: 'system-ui', fontSize: 20, fontStyle: '900', color: '#f1c66a'
       }).setDepth(10000);
@@ -107,6 +109,7 @@ function createApartmentGodNativeScene(Phaser) {
         this.actorLayer = this.add.container(0, 0).setDepth(60);
         this.fxLayer = this.add.container(0, 0).setDepth(90);
         this.poolGraphics = this.add.graphics();
+      createReferenceCompletion(this);
         this.fxLayer.add(this.poolGraphics);
         this.nativeGameplayVisuals = createNativeGameplayVisuals(this, this.fxLayer);
 
@@ -192,6 +195,7 @@ function createApartmentGodNativeScene(Phaser) {
       this.refreshObjectStates();
       syncCharacterVisuals(this, this.state, this.actorLayer);
       this.refreshPoolFx();
+        syncReferenceCompletion(this);
       syncNativeGameplayVisuals(this, this.state, this.nativeGameplayVisuals);
       const actor = selected(this.state);
       const tidy = Number.isFinite(this.state.tidiness?.score) ? ` tidy ${Math.round(this.state.tidiness.score)}%` : '';
@@ -293,6 +297,7 @@ function createApartmentGodNativeScene(Phaser) {
       this.hiddenTicker = null;
       destroyNativeGameplayVisuals(this.nativeGameplayVisuals);
       this.nativeGameplayVisuals = null;
+      destroyReferenceCompletion(this);
       clearCharacterVisuals(this);
     }
 
@@ -316,6 +321,7 @@ function createApartmentGodNativeScene(Phaser) {
       }
       destroyNativeGameplayVisuals(this.nativeGameplayVisuals);
       this.nativeGameplayVisuals = null;
+      destroyReferenceCompletion(this);
       clearCharacterVisuals(this);
       this.children.removeAll(true);
       this.add.rectangle(0, 0, PLAY_W, PLAY_H, 0x171a22).setOrigin(0, 0);
