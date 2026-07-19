@@ -47,7 +47,7 @@ jobs:
         run: npm install --no-package-lock
 
       - name: Apply full parity repair
-        run: node scripts/p2-full-previsual-parity-repair.mjs
+        run: node scripts/p2-full-previsual-parity-repair-v2.mjs
 
       - name: Create detached previsual baseline worktree
         run: |
@@ -79,11 +79,11 @@ jobs:
           test -f dist/src/phaserMigration2Runtime.js
           test -f dist/src/phaserMigration2ReferenceCompletion.js
           test -f dist/src/phaserCharacterAnimationSystem.js
-          grep -q "setCharacterVisualVisible" dist/src/phaserMigration2ReferenceCompletion.js
+          grep -q "setBaseActorVisualVisible" dist/src/phaserMigration2ReferenceCompletion.js
           grep -q "entity.sleepObjectId" dist/src/phaserMigration2ReferenceCompletion.js
           grep -q "this.optionalVisualFailures = \[\]" dist/src/phaserMigration2Runtime.js
-          grep -q "this.runtimeFailed = true" dist/src/phaserMigration2Runtime.js
-          grep -q "const underlay = scene.add.graphics().setDepth(-5)" dist/src/phaserMigration2ReferenceCompletion.js
+          grep -q "this.runtimeFailed=true" dist/src/phaserMigration2Runtime.js
+          grep -q "const underlay=scene.add.graphics().setDepth(-5)" dist/src/phaserMigration2ReferenceCompletion.js
           ! grep -q "scene.roomLayer?.add?.(architecture)" dist/src/phaserMigration2ReferenceCompletion.js
           ! grep -q "drawPhaserEnvironment" dist/src/phaserMigration2Runtime.js
           ! grep -q "textures.addCanvas" dist/src/phaserMigration2Runtime.js
@@ -92,6 +92,6 @@ jobs:
         run: |
           git config user.name "Apartment God Previsual Parity Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add src/phaserCharacterAnimationSystem.js src/phaserMigration2ReferenceCompletion.js src/phaserMigration2Runtime.js assets/manifests/phaser-migration-2-reference-visual-completion.json tests/phaser-migration-2-previsual-parity-repair.test.js apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-19_P2_FULL_PREVISUAL_PARITY_REPAIR.md apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-19_P2_FULL_PREVISUAL_PARITY_REPAIR.md
+          git add src/phaserMigration2ReferenceCompletion.js src/phaserMigration2Runtime.js assets/manifests/phaser-migration-2-reference-visual-completion.json tests/phaser-migration-2-previsual-parity-repair.test.js apartment-god-production/P2_PREVISUAL_PARITY_AUDIT_2026-07-19.json apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-19_P2_FULL_PREVISUAL_PARITY_REPAIR.md apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-19_P2_FULL_PREVISUAL_PARITY_REPAIR.md
           git commit -m "Repair full P2 previsual gameplay parity"
           git push origin HEAD:phaser-migration-2
