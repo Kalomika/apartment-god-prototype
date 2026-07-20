@@ -27,6 +27,8 @@ export function orderFood(state, actor, auto = false) {
     commandMove(actor, p.x, p.y);
   }
   actor.action = 'Waiting for food delivery';
+  actor.actionT = 7;
+  actor.actionTotal = 7;
   actor.pose = 'walk';
   setMood(actor, 'phone');
   say(actor, 'ORDER');
@@ -39,9 +41,24 @@ export function updateDelivery(state, dt) {
   const job = state.delivery;
   if (!job) return;
   const actor = state.entities.find(e => e.id === job.actorId);
-  if (!actor) { state.delivery = null; return; }
+  if (!actor) {
+    state.objectState.doorOpen = false;
+    state.delivery = null;
+    return;
+  }
   job.t -= dt;
 
+  if (job.type === 'food') {
+    updateFoodDelivery(state, actor, job);
+    return;
+  }
+
+  if (job.type === 'workoutGear') {
+    updateWorkoutGearDelivery(state, actor, job);
+  }
+}
+
+function updateFoodDelivery(state, actor, job) {
   if (job.phase === 'arriving' && job.t <= 0) {
     job.phase = 'exchange';
     job.t = 4;
@@ -50,8 +67,8 @@ export function updateDelivery(state, dt) {
     job.bubble = 'DELIVERY';
     state.objectState.doorOpen = true;
     actor.action = 'Receiving food delivery';
-    actor.actionT = Math.max(actor.actionT, 4);
-    actor.actionTotal = Math.max(actor.actionTotal || 0, 4);
+    actor.actionT = 4;
+    actor.actionTotal = 4;
     actor.pose = 'stand';
     actor.carrying = 'food bag';
     say(actor, 'THANKS');
@@ -91,19 +108,79 @@ export function updateDelivery(state, dt) {
   }
 }
 
-export function buyWorkoutGear(state, actor) {
-  if (state.objectState.workoutGear) return log(state, 'Workout gear is already here.');
-  if (!pay(state, 220, 'workout gear')) return false;
-  state.objectState.workoutGear = true;
-  if (!objects.some(o => o.id === 'workout_gear')) {
-    objects.push({ id: 'workout_gear', label: 'Workout Gear', kind: 'workout', floor: 0, room: 'living', x: 356, y: 240, w: 72, h: 42, solid: true });
+function updateWorkoutGearDelivery(state, actor, job) {
+  if (job.phase === 'arriving' && job.t <= 0) {
+    job.phase = 'exchange';
+    job.t = 5;
+    job.x = 286;
+    job.y = 622;
+    job.bubble = 'GEAR';
+    state.objectState.doorOpen = true;
+    actor.action = 'Receiving workout gear';
+    actor.actionT = 5;
+    actor.actionTotal = 5;
+    actor.pose = 'stand';
+    actor.carrying = 'workout boxes';
+    say(actor, 'YEAH');
+    log(state, 'The workout gear delivery arrived at the front porch.');
+    return;
   }
-  actor.action = 'Ordering workout gear';
-  actor.actionT = 5;
-  actor.actionTotal = 5;
-  actor.pose = 'sit';
+
+  if (job.phase === 'exchange' && job.t <= 0) {
+    job.phase = 'installing';
+    job.t = 15;
+    job.x = 356;
+    job.y = 240;
+    job.bubble = 'SETUP';
+    state.objectState.doorOpen = false;
+    actor.action = 'Installing workout gear';
+    actor.actionT = 15;
+    actor.actionTotal = 15;
+    actor.pose = 'stand';
+    actor.carrying = 'workout boxes';
+    say(actor, 'SETUP');
+    log(state, `${actor.name} brought the workout gear inside and started setting it up.`);
+    return;
+  }
+
+  if (job.phase === 'installing' && job.t <= 0) {
+    state.objectState.workoutGear = true;
+    if (!objects.some(o => o.id === 'workout_gear')) {
+      objects.push({ id: 'workout_gear', label: 'Workout Gear', kind: 'workout', floor: 0, room: 'living', x: 356, y: 240, w: 72, h: 42, solid: true });
+    }
+    actor.action = 'Finished installing workout gear';
+    actor.actionT = 0;
+    actor.actionTotal = 0;
+    actor.carrying = null;
+    setMood(actor, 'happy');
+    say(actor, 'DONE');
+    log(state, 'Workout gear was installed in the living room.');
+    state.delivery = null;
+  }
+}
+
+export function buyWorkoutGear(state, actor) {
+  if (state.objectState.workoutGear) {
+    log(state, 'Workout gear is already here.');
+    return false;
+  }
+  if (state.delivery) {
+    log(state, 'A delivery is already on the way.');
+    return false;
+  }
+  if (!pay(state, 220, 'workout gear')) return false;
+  const door = getObject('door');
+  if (door) {
+    const p = approachPoint(door, 'delivery');
+    commandMove(actor, p.x, p.y);
+  }
+  actor.action = 'Waiting for workout gear delivery';
+  actor.actionT = 12;
+  actor.actionTotal = 12;
+  actor.pose = 'walk';
   setMood(actor, 'phone');
   say(actor, 'GYM');
-  log(state, 'Workout gear was delivered to the living room.');
+  state.delivery = { type: 'workoutGear', phase: 'arriving', actorId: actor.id, t: 12, x: 220, y: 630, floor: 0, bubble: 'GEAR' };
+  log(state, `${actor.name} ordered workout gear. The delivery is on the way.`);
   return true;
 }
