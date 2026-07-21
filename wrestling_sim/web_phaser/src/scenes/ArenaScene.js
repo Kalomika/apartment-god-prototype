@@ -12,7 +12,7 @@ export class ArenaScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.svg('reference-match', 'assets/reference/grapple_gods_reference_match.svg', { width: 640, height: 360 });
+    this.load.image('reference-match', 'assets/reference/grapple_gods_reference_match.webp');
   }
 
   create() {
