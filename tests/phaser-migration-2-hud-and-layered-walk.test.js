@@ -5,6 +5,7 @@ import { wardrobeLayerColorsForTest } from '../src/phaserCharacterAnimationSyste
 const indexSource = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const mainSource = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 const hudSource = readFileSync(new URL('../src/phaserMigration2HudPlacement.js', import.meta.url), 'utf8');
+const paritySource = readFileSync(new URL('../src/phaserMigration2GameplayParityBridge.js', import.meta.url), 'utf8');
 const animationSource = readFileSync(new URL('../src/phaserCharacterAnimationSystem.js', import.meta.url), 'utf8');
 const catalogSource = readFileSync(new URL('../src/phaserMigration2VisualCatalog.js', import.meta.url), 'utf8');
 
@@ -21,12 +22,19 @@ describe('Phaser Migration 2 HUD and layered directional walking', () => {
     expect(hudSource).toContain('scene.runtimeText.destroy');
   });
 
+  it('removes the duplicate resource strip instead of appending it over the playfield', () => {
+    expect(paritySource).toContain("document.getElementById('hud-resource-strip')?.remove()");
+    expect(paritySource).not.toContain('wrap.appendChild(strip)');
+    expect(paritySource).not.toContain('#hud-resource-strip{position:absolute');
+    expect(paritySource).toContain("document.getElementById('hud-money-pill')");
+  });
+
   it('registers complete side-body assets instead of shifting only the head', () => {
     expect(catalogSource).toContain('resident-side-sheet');
     expect(catalogSource).toContain('girlfriend-side-sheet');
     expect(catalogSource).toContain('lab-subject-side-sheet');
     expect(animationSource).toContain("record.visualMode = sideDirection ? 'side' : 'vertical'");
-    expect(animationSource).toContain("record.sideSprite.setFlipX(flip)");
+    expect(animationSource).toContain('record.sideSprite.setFlipX(flip)');
     expect(animationSource).toContain('sideAssetsReady');
   });
 
