@@ -78,7 +78,14 @@ export const PM2_CHARACTER_SHEETS = {
   'resident-sheet': `${ROOT}/characters/resident_8fps_sheet.svg`,
   'girlfriend-sheet': `${ROOT}/characters/girlfriend_8fps_sheet.svg`,
   'lab-subject-sheet': `${ROOT}/characters/lab_subject_8fps_sheet.svg`,
-  'dog-sheet': `${ROOT}/characters/dog_8fps_sheet.svg`
+  'dog-sheet': `${ROOT}/characters/dog_8fps_sheet.svg`,
+  'resident-side-sheet': `${ROOT}/characters/resident_side_8fps_sheet.svg`,
+  'girlfriend-side-sheet': `${ROOT}/characters/girlfriend_side_8fps_sheet.svg`,
+  'lab-subject-side-sheet': `${ROOT}/characters/lab_subject_side_8fps_sheet.svg`,
+  'human-vertical-top-layer': `${ROOT}/characters/human_vertical_top_layer.svg`,
+  'human-vertical-bottom-layer': `${ROOT}/characters/human_vertical_bottom_layer.svg`,
+  'human-side-top-layer': `${ROOT}/characters/human_side_top_layer.svg`,
+  'human-side-bottom-layer': `${ROOT}/characters/human_side_bottom_layer.svg`
 };
 
 export function textureForObject(object) {
