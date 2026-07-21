@@ -31,8 +31,9 @@ if (!STEALTH_PHASES.includes(initialPhase)) throw new Error(`Stealth system init
 if (!state.fighters.every(f => f.awareness && STEALTH_PHASES.includes(f.awareness.phase))) throw new Error('Stealth update did not initialize every fighter awareness phase.');
 
 const quietVisual = visualDetectionScore(state.arena, b, a);
+const exposedVisual = visualDetectionScore(state.arena, a, b);
 if (quietVisual >= 80) throw new Error(`Shadow crouch detection too strong: ${quietVisual}`);
-if (state.stealth.phase === 'alert' && quietVisual < 76) throw new Error(`Stealth jumped to alert without hard visual confirmation. visual=${quietVisual}`);
+if (state.stealth.phase === 'alert' && Math.max(quietVisual, exposedVisual) < 76) throw new Error(`Stealth jumped to alert without hard visual confirmation. shadowVisual=${quietVisual}, exposedVisual=${exposedVisual}`);
 
 a.noise = 92;
 for (let i = 0; i < 90; i++) updateStealthSystem(state, 1 / 60);

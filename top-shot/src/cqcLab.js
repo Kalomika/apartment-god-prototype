@@ -1,10 +1,12 @@
 import { ARCHETYPES } from './archetypes.js';
-import { createArena, clampArena } from './arena.js';
+import { blocked, clampArena, createArena, slide } from './arena.js';
 import { clamp, dist } from './utils.js';
 
 const LAB_CENTER = { x: 480, y: 360 };
+const FALLBACK_CENTER = { x: 260, y: 360 };
 const LAB_SPACE = 64;
 const BODY_CORE_RADIUS = 30;
+const ENV_PAD = 30;
 const CONTACT_MIN = BODY_CORE_RADIUS * 2;
 const STRIKE_RANGE = 78;
 const BODY_RANGE = 72;
@@ -51,12 +53,15 @@ const AUTO_PROFILES = {
 
 export function createCqcLabState(aId = 'suit_operative', bId = 'survival_commando') {
   const arena = createArena();
-  const a = makeLabFighter('A', ARCHETYPES[aId], LAB_CENTER.x - LAB_SPACE, LAB_CENTER.y, 0);
-  const b = makeLabFighter('B', ARCHETYPES[bId], LAB_CENTER.x + LAB_SPACE, LAB_CENTER.y, Math.PI);
+  const safeAId = ARCHETYPES[aId] ? aId : 'suit_operative';
+  const safeBId = ARCHETYPES[bId] ? bId : 'survival_commando';
+  const anchors = legalPairAnchors(arena, LAB_CENTER, LAB_SPACE);
+  const a = makeLabFighter('A', ARCHETYPES[safeAId], anchors.a.x, anchors.a.y, anchors.facing, arena);
+  const b = makeLabFighter('B', ARCHETYPES[safeBId], anchors.b.x, anchors.b.y, anchors.facing + Math.PI, arena);
   return {
     mode: 'cqc',
     arena,
-    selectedFighters: { A: aId, B: bId },
+    selectedFighters: { A: safeAId, B: safeBId },
     paused: false,
     clock: 0,
     matchState: 'running',
@@ -82,17 +87,18 @@ export function createCqcLabState(aId = 'suit_operative', bId = 'survival_comman
       lastHitZone: null,
       notes: 'CQC Lab ready.'
     },
-    log: ['CQC Lab loaded. Manual moves test one action. Auto makes fighters close and exchange until stopped.']
+    log: ['CQC Lab loaded. Fighters are anchored in legal floor space and cannot pass through props.']
   };
 }
 
 export function triggerCqcAction(state, action) {
   if (!state || state.mode !== 'cqc') return false;
   const [a, b] = state.fighters;
+  resolveAllEnvironmentCollisions(state);
   state.lab.action = action;
   state.lab.actionT = 0;
   state.lab.exchange += 1;
-  state.effects.push({ type: 'command', x: LAB_CENTER.x, y: LAB_CENTER.y - 42, ttl: 0.5, label: action });
+  state.effects.push({ type: 'command', x: midpoint(a.x, b.x), y: midpoint(a.y, b.y) - 42, ttl: 0.5, label: action });
 
   if (action === 'reset') {
     resetLabSpacing(state);
@@ -106,7 +112,8 @@ export function triggerCqcAction(state, action) {
     state.lab.nextAuto = 0.2;
     a.currentMove = null;
     b.currentMove = null;
-    a.pose = b.pose = state.lab.auto ? 'idle_guard' : 'idle_guard';
+    a.pose = b.pose = 'idle_guard';
+    resolveAllEnvironmentCollisions(state);
     pushLog(state, state.lab.auto ? 'Auto CQC on. Fighters will close distance and keep fighting.' : 'Auto CQC off. Manual buttons now test isolated moves.');
     return true;
   }
@@ -116,6 +123,7 @@ export function triggerCqcAction(state, action) {
     b.pose = 'idle_guard';
     a.cqc.guard = 'high';
     b.cqc.guard = 'high';
+    resolveAllEnvironmentCollisions(state);
     pushLog(state, 'Both fighters guard and read each other.');
     return true;
   }
@@ -143,6 +151,7 @@ export function updateCqcLab(state, dt) {
 
   updateFighterTimers(a, scaledDt);
   updateFighterTimers(b, scaledDt);
+  resolveAllEnvironmentCollisions(state);
   updateGroundStates(state, scaledDt);
   updateMountAnchor(state);
   keepFacing(a, b);
@@ -150,6 +159,7 @@ export function updateCqcLab(state, dt) {
   if (state.lab.auto) updateAutoCombat(state, scaledDt);
 
   maintainLabSpacing(state, a, b, scaledDt);
+  resolveAllEnvironmentCollisions(state);
   updateHitboxes(a);
   updateHitboxes(b);
 
@@ -179,7 +189,7 @@ export function toggleCqcSlowMo(state) {
   return true;
 }
 
-function makeLabFighter(team, archetype, x, y, facing) {
+function makeLabFighter(team, archetype, x, y, facing, arena) {
   return {
     id: `${team}-${archetype.id}`, team, archetypeId: archetype.id, name: `${team}: ${archetype.name}`,
     color: archetype.color, accent: archetype.accent, weapon: archetype.weapon, melee: archetype.melee, special: archetype.special,
@@ -193,6 +203,7 @@ function makeLabFighter(team, archetype, x, y, facing) {
     currentMove: null, downT: 0, collisionT: 0, dizzyT: 0, stepPhase: 0, stepLock: 0, lastMove: 0,
     hitboxes: [],
     cqc: {
+      arena,
       coreRadius: BODY_CORE_RADIUS,
       guard: 'high',
       grounded: false,
@@ -205,6 +216,7 @@ function makeLabFighter(team, archetype, x, y, facing) {
       recoilX: 0,
       recoilY: 0,
       recoilT: 0,
+      envCorrectionT: 0,
       lastZone: null,
       lastIncomingSide: null,
       style: styleFor(archetype.id)
@@ -213,45 +225,23 @@ function makeLabFighter(team, archetype, x, y, facing) {
 }
 
 function resetLabSpacing(state) {
+  const anchors = legalPairAnchors(state.arena, LAB_CENTER, LAB_SPACE);
   const [a, b] = state.fighters;
-  for (const f of state.fighters) {
-    f.x = f.spawn.x;
-    f.y = f.spawn.y;
-    f.vx = 0;
-    f.vy = 0;
-    f.hp = 100;
-    f.stamina = 100;
-    f.block = 100;
-    f.dodge = 100;
-    f.pose = 'idle_guard';
-    f.currentMove = null;
-    f.defeated = false;
-    f.incapacitated = false;
-    f.prone = false;
-    f.crouch = false;
-    f.downT = 0;
-    f.dizzyT = 0;
-    f.cqc.grounded = false;
-    f.cqc.groundedT = 0;
-    f.cqc.mounting = null;
-    f.cqc.mountedBy = null;
-    f.cqc.mountRole = null;
-    f.cqc.controlledLimb = null;
-    f.cqc.disarmedT = 0;
-    f.cqc.recoilX = 0;
-    f.cqc.recoilY = 0;
-    f.cqc.recoilT = 0;
+  const resetData = [{ f: a, p: anchors.a, facing: anchors.facing }, { f: b, p: anchors.b, facing: anchors.facing + Math.PI }];
+  for (const { f, p, facing } of resetData) {
+    f.x = p.x; f.y = p.y; f.vx = 0; f.vy = 0; f.facing = facing; f.spawn = { x: p.x, y: p.y, facing };
+    f.hp = 100; f.stamina = 100; f.block = 100; f.dodge = 100; f.pose = 'idle_guard'; f.currentMove = null; f.defeated = false; f.incapacitated = false; f.prone = false; f.crouch = false;
+    f.downT = 0; f.dizzyT = 0; f.cqc.grounded = false; f.cqc.groundedT = 0; f.cqc.mounting = null; f.cqc.mountedBy = null; f.cqc.mountRole = null; f.cqc.controlledLimb = null; f.cqc.disarmedT = 0; f.cqc.recoilX = 0; f.cqc.recoilY = 0; f.cqc.recoilT = 0; f.cqc.envCorrectionT = 0;
   }
-  state.lab.auto = false;
-  state.lab.autoT = 0;
-  state.lab.nextAuto = 0.35;
+  state.lab.auto = false; state.lab.autoT = 0; state.lab.nextAuto = 0.35;
   keepFacing(a, b);
+  resolveAllEnvironmentCollisions(state);
 }
 
 function manualDefense(state, action) {
   state.lab.auto = false;
   const [a, b] = state.fighters;
-  approachToRange(b, a, STRIKE_RANGE - 5, 1);
+  approachToRange(state, b, a, STRIKE_RANGE - 5, 1);
   const incoming = action.includes('slip') ? 'jab' : 'cross';
   const spec = MOVE_LIBRARY[incoming];
   b.pose = spec.pose;
@@ -274,8 +264,7 @@ function manualDefense(state, action) {
   }
   const side = action === 'slip_left' ? -1 : 1;
   a.pose = action;
-  a.x += side * 12;
-  a.y += side * 8;
+  moveBy(state, a, side * 12, side * 8);
   a.dodge = clamp(a.dodge + 5, 0, 100);
   pushLog(state, `A slips ${side < 0 ? 'left' : 'right'} outside the punch.`);
   return true;
@@ -290,8 +279,8 @@ function performAction(state, attacker, defender, action, options = {}) {
     if (!manualMount(state, attacker, defender, false)) return false;
   }
 
-  if (action === 'throw' && !inRange(attacker, defender, spec.range)) approachToRange(attacker, defender, spec.range - 3, options.manual ? 1 : 0.8);
-  else if (!attacker.cqc.mounting && !defender.cqc.mountedBy) approachToRange(attacker, defender, spec.range - 4, options.manual ? 1 : 0.65);
+  if (action === 'throw' && !inRange(attacker, defender, spec.range)) approachToRange(state, attacker, defender, spec.range - 3, options.manual ? 1 : 0.8);
+  else if (!attacker.cqc.mounting && !defender.cqc.mountedBy) approachToRange(state, attacker, defender, spec.range - 4, options.manual ? 1 : 0.65);
 
   if (action === 'mount') return manualMount(state, attacker, defender);
   if (action === 'step_back') return stepBack(state, attacker, defender, options.manual ? 'manual' : 'auto');
@@ -356,7 +345,7 @@ function applyDamage(state, attacker, defender, spec) {
   defender.memory.lastHitBy = attacker.id;
   defender.cqc.lastZone = zone;
   state.lab.lastHitZone = zone;
-  applyDirectionalRecoil(attacker, defender, spec.push, zone);
+  applyDirectionalRecoil(state, attacker, defender, spec.push, zone);
   defender.pose = reactionPose(zone, spec);
   defender.dizzyT = Math.max(defender.dizzyT || 0, stunForZone(zone, spec));
   state.effects.push({ type: 'impact_flash', x: defender.x, y: defender.y, ttl: 0.1, kind: zone });
@@ -374,7 +363,7 @@ function applySweep(state, attacker, defender, spec) {
   const sweepPower = (attacker.stats?.grapple || 55) + attacker.stamina * 0.35 + (spec.kind === 'sweep' ? 15 : 0);
   if (Math.random() * 130 + balance * 0.25 > sweepPower) {
     defender.pose = 'stumble_leg';
-    applyDirectionalRecoil(attacker, defender, 7, spec.zone);
+    applyDirectionalRecoil(state, attacker, defender, 7, spec.zone);
     defender.stamina = clamp(defender.stamina - 8, 0, 100);
     pushLog(state, `${attacker.team} clips the leg with a sweep, ${defender.team} stumbles but stays up.`);
     return true;
@@ -384,7 +373,7 @@ function applySweep(state, attacker, defender, spec) {
   defender.cqc.grounded = true;
   defender.cqc.groundedT = 1.25;
   defender.downT = Math.max(defender.downT || 0, 1.15);
-  applyDirectionalRecoil(attacker, defender, 12, spec.zone);
+  applyDirectionalRecoil(state, attacker, defender, 12, spec.zone);
   pushLog(state, `${attacker.team} sweeps ${defender.team}'s legs and puts them on the floor.`);
   if (state.lab.auto && Math.random() < 0.48) manualMount(state, attacker, defender, true);
   return true;
@@ -396,7 +385,7 @@ function applyThrow(state, attacker, defender, spec) {
   defender.cqc.grounded = true;
   defender.cqc.groundedT = 1.5;
   defender.downT = Math.max(defender.downT || 0, 1.35);
-  applyDirectionalRecoil(attacker, defender, spec.push, spec.zone);
+  applyDirectionalRecoil(state, attacker, defender, spec.push, spec.zone);
   pushLog(state, `${attacker.team} turns the clinch into a judo style throw. ${defender.team} hits the ground.`);
   return true;
 }
@@ -423,6 +412,8 @@ function manualMount(state, attacker, defender, log = true) {
   if (!defender.cqc.grounded && !['swept_fall', 'thrown', 'down', 'mounted_bottom'].includes(defender.pose)) {
     performAction(state, attacker, defender, 'sweep', { manual: true });
   }
+  const mount = legalMountAnchor(state, attacker, defender);
+  attacker.x = mount.top.x; attacker.y = mount.top.y; defender.x = mount.bottom.x; defender.y = mount.bottom.y;
   defender.cqc.grounded = true;
   defender.cqc.mountedBy = attacker.id;
   defender.cqc.mountRole = 'bottom';
@@ -431,7 +422,7 @@ function manualMount(state, attacker, defender, log = true) {
   attacker.cqc.mountRole = 'top';
   attacker.pose = 'mount_top';
   attacker.currentMove = { id: 'mount_top', ttl: 0.42, limb: 'hips', kind: 'mount' };
-  positionMount(attacker, defender);
+  positionMount(state, attacker, defender);
   if (log) pushLog(state, `${attacker.team} jumps into mount and stays on top of the body instead of clipping through it.`);
   return true;
 }
@@ -460,6 +451,7 @@ function escapeMount(state, bottom, top) {
   bottom.pose = 'mount_escape_blocked';
   bottom.stamina = clamp(bottom.stamina - 9, 0, 100);
   top.pose = 'mount_pressure';
+  resolveAllEnvironmentCollisions(state);
   pushLog(state, `${bottom.team} tries to buck out, but ${top.team} keeps mount pressure.`);
   return true;
 }
@@ -468,8 +460,7 @@ function stepBack(state, actor, opponent, source) {
   const d = Math.max(0.001, dist(actor, opponent));
   const nx = (actor.x - opponent.x) / d;
   const ny = (actor.y - opponent.y) / d;
-  actor.x += nx * 32;
-  actor.y += ny * 32;
+  moveBy(state, actor, nx * 32, ny * 32);
   actor.pose = source === 'escape' ? actor.pose : 'step_back';
   opponent.pose = opponent.cqc?.grounded ? opponent.pose : 'pressure_step';
   clampFighter(actor);
@@ -482,8 +473,8 @@ function updateAutoCombat(state, dt) {
   const pair = mountedPair(state);
   state.lab.autoT += dt;
   if (!pair && dist(a, b) > STRIKE_RANGE - 3) {
-    approachToRange(a, b, STRIKE_RANGE - 8, 0.42);
-    approachToRange(b, a, STRIKE_RANGE - 8, 0.42);
+    approachToRange(state, a, b, STRIKE_RANGE - 8, 0.42);
+    approachToRange(state, b, a, STRIKE_RANGE - 8, 0.42);
     a.pose = a.pose === 'idle_guard' ? 'pressure_step' : a.pose;
     b.pose = b.pose === 'idle_guard' ? 'pressure_step' : b.pose;
   }
@@ -523,9 +514,9 @@ function updateFighterTimers(f, dt) {
   f.downT = Math.max(0, (f.downT || 0) - dt);
   f.cqc.disarmedT = Math.max(0, (f.cqc.disarmedT || 0) - dt);
   f.cqc.recoilT = Math.max(0, (f.cqc.recoilT || 0) - dt);
+  f.cqc.envCorrectionT = Math.max(0, (f.cqc.envCorrectionT || 0) - dt);
   f.anim += dt * 8;
-  f.x += (f.vx || 0) * dt;
-  f.y += (f.vy || 0) * dt;
+  moveBy(null, f, (f.vx || 0) * dt, (f.vy || 0) * dt);
   f.vx *= Math.pow(0.02, dt);
   f.vy *= Math.pow(0.02, dt);
   clampFighter(f);
@@ -539,6 +530,7 @@ function updateGroundStates(state, dt) {
     if (f.cqc.groundedT <= 0 && Math.random() < 0.18) {
       f.cqc.grounded = false;
       f.pose = 'get_up';
+      clampFighter(f);
       pushLog(state, `${f.team} scrambles back to their feet.`);
     }
   }
@@ -547,69 +539,68 @@ function updateGroundStates(state, dt) {
 function updateMountAnchor(state) {
   const pair = mountedPair(state);
   if (!pair) return;
-  positionMount(pair.top, pair.bottom);
+  positionMount(state, pair.top, pair.bottom);
 }
 
 function maintainLabSpacing(state, a, b, dt) {
   if (mountedPair(state)) return;
-  separateFighters(a, b, CONTACT_MIN);
+  separateFighters(state, a, b, CONTACT_MIN);
   const d = Math.max(0.001, dist(a, b));
   const shouldClose = state.lab.auto || state.lab.actionT < 0.48;
   if (shouldClose && d > STRIKE_RANGE) {
     const pull = Math.min(58 * dt, (d - STRIKE_RANGE) * 0.35);
-    moveToward(a, b, pull * 0.5);
-    moveToward(b, a, pull * 0.5);
+    moveToward(state, a, b, pull * 0.5);
+    moveToward(state, b, a, pull * 0.5);
   } else if (!state.lab.auto && d > MAX_IDLE_RANGE) {
     const pull = Math.min(18 * dt, (d - MAX_IDLE_RANGE) * 0.18);
-    moveToward(a, b, pull * 0.5);
-    moveToward(b, a, pull * 0.5);
+    moveToward(state, a, b, pull * 0.5);
+    moveToward(state, b, a, pull * 0.5);
   }
-  clampFighter(a);
-  clampFighter(b);
+  clampFighter(a); clampFighter(b);
 }
 
-function approachToRange(attacker, defender, desiredRange, amount = 1) {
+function approachToRange(state, attacker, defender, desiredRange, amount = 1) {
   const d = Math.max(0.001, dist(attacker, defender));
   const target = Math.max(CONTACT_MIN + 2, desiredRange);
   if (d <= target) return;
   const move = Math.min((d - target) * amount, d - CONTACT_MIN - 1);
-  moveToward(attacker, defender, move);
-  separateFighters(attacker, defender, CONTACT_MIN);
+  moveToward(state, attacker, defender, move);
+  separateFighters(state, attacker, defender, CONTACT_MIN);
   clampFighter(attacker);
 }
 
-function moveToward(actor, target, amount) {
+function moveToward(state, actor, target, amount) {
   const d = Math.max(0.001, dist(actor, target));
-  actor.x += (target.x - actor.x) / d * amount;
-  actor.y += (target.y - actor.y) / d * amount;
+  moveBy(state, actor, (target.x - actor.x) / d * amount, (target.y - actor.y) / d * amount);
   actor.lastMove = Math.max(actor.lastMove || 0, amount / 32);
 }
 
-function separateFighters(a, b, minDistance) {
+function moveBy(state, actor, dx, dy) {
+  const arena = state?.arena || actor.cqc?.arena;
+  const next = { x: actor.x + dx, y: actor.y + dy };
+  if (!arena) { actor.x = next.x; actor.y = next.y; return; }
+  const p = legalStep(arena, actor, next);
+  actor.x = p.x; actor.y = p.y;
+}
+
+function separateFighters(state, a, b, minDistance) {
   const d = Math.max(0.001, dist(a, b));
   if (d >= minDistance) return;
   const push = (minDistance - d) * 0.5;
   const nx = (a.x - b.x) / d;
   const ny = (a.y - b.y) / d;
-  a.x += nx * push;
-  a.y += ny * push;
-  b.x -= nx * push;
-  b.y -= ny * push;
+  moveBy(state, a, nx * push, ny * push);
+  moveBy(state, b, -nx * push, -ny * push);
   a.collisionT = b.collisionT = 0.15;
 }
 
-function applyDirectionalRecoil(attacker, defender, amount, zone) {
+function applyDirectionalRecoil(state, attacker, defender, amount, zone) {
   const d = Math.max(0.001, dist(attacker, defender));
   const nx = (defender.x - attacker.x) / d;
   const ny = (defender.y - attacker.y) / d;
   const sideKick = zone.includes('liver') || zone.includes('ribs') || zone.includes('calf') || zone.includes('thigh') ? 0.45 : 0;
-  defender.x += nx * amount + -ny * amount * sideKick;
-  defender.y += ny * amount + nx * amount * sideKick;
-  defender.vx = nx * amount * 14;
-  defender.vy = ny * amount * 14;
-  defender.cqc.recoilX = nx;
-  defender.cqc.recoilY = ny;
-  defender.cqc.recoilT = 0.32;
+  moveBy(state, defender, nx * amount + -ny * amount * sideKick, ny * amount + nx * amount * sideKick);
+  defender.vx = nx * amount * 14; defender.vy = ny * amount * 14; defender.cqc.recoilX = nx; defender.cqc.recoilY = ny; defender.cqc.recoilT = 0.32;
   clampFighter(defender);
 }
 
@@ -662,9 +653,12 @@ function keepFacing(a, b) {
 }
 
 function clampFighter(f) {
-  const point = clampArena(f, 16);
-  f.x = point.x;
-  f.y = point.y;
+  const arena = f.cqc?.arena;
+  const point = clampArena(f, ENV_PAD);
+  if (!arena) { f.x = point.x; f.y = point.y; return; }
+  const legal = legalPoint(arena, point, f.spawn || FALLBACK_CENTER, ENV_PAD);
+  if (dist(f, legal) > 1 && f.cqc) f.cqc.envCorrectionT = 0.18;
+  f.x = legal.x; f.y = legal.y;
 }
 
 function mountedPair(state) {
@@ -674,15 +668,83 @@ function mountedPair(state) {
   return bottom ? { top, bottom } : null;
 }
 
-function positionMount(top, bottom) {
-  const facing = bottom.facing || 0;
-  const nx = Math.cos(facing);
-  const ny = Math.sin(facing);
-  top.x = bottom.x - nx * 7;
-  top.y = bottom.y - ny * 7;
+function positionMount(state, top, bottom) {
+  const mount = legalMountAnchor(state, top, bottom);
+  bottom.x = mount.bottom.x; bottom.y = mount.bottom.y;
+  top.x = mount.top.x; top.y = mount.top.y;
   top.facing = Math.atan2(bottom.y - top.y, bottom.x - top.x);
+  bottom.facing = top.facing + Math.PI;
   bottom.pose = 'mounted_bottom';
   top.pose = top.currentMove?.id?.startsWith('ground') ? top.currentMove.id : 'mount_top';
+}
+
+function legalMountAnchor(state, top, bottom) {
+  const facing = bottom.facing || Math.atan2(bottom.y - top.y, bottom.x - top.x) || 0;
+  const nx = Math.cos(facing), ny = Math.sin(facing);
+  const base = legalPoint(state.arena, bottom, bottom.spawn || FALLBACK_CENTER, ENV_PAD);
+  const proposedTop = { x: base.x - nx * 18, y: base.y - ny * 18 };
+  const topPoint = legalPoint(state.arena, proposedTop, top.spawn || base, ENV_PAD);
+  if (dist(topPoint, base) < 10 || blocked(state.arena, topPoint, ENV_PAD)) {
+    const pair = legalPairAnchors(state.arena, base, CONTACT_MIN + 8);
+    return { top: pair.a, bottom: pair.b };
+  }
+  return { top: topPoint, bottom: base };
+}
+
+function legalPairAnchors(arena, desiredCenter = LAB_CENTER, spacing = LAB_SPACE) {
+  const dirs = [0, Math.PI, Math.PI / 2, -Math.PI / 2, Math.PI / 4, -Math.PI / 4, Math.PI * 0.75, -Math.PI * 0.75];
+  const centers = centerSearchPoints(desiredCenter);
+  for (const center of centers) {
+    for (const angle of dirs) {
+      const dx = Math.cos(angle) * spacing * 0.5;
+      const dy = Math.sin(angle) * spacing * 0.5;
+      const a = clampArena({ x: center.x - dx, y: center.y - dy }, ENV_PAD);
+      const b = clampArena({ x: center.x + dx, y: center.y + dy }, ENV_PAD);
+      if (legalFloor(arena, a) && legalFloor(arena, b) && dist(a, b) >= CONTACT_MIN - 2) return { a, b, facing: Math.atan2(b.y - a.y, b.x - a.x) };
+    }
+  }
+  const a = legalPoint(arena, FALLBACK_CENTER, FALLBACK_CENTER, ENV_PAD);
+  const b = legalPoint(arena, { x: a.x + spacing, y: a.y }, a, ENV_PAD);
+  return { a, b, facing: Math.atan2(b.y - a.y, b.x - a.x) };
+}
+
+function centerSearchPoints(center) {
+  const points = [center, FALLBACK_CENTER, { x: 260, y: 300 }, { x: 260, y: 420 }, { x: 690, y: 300 }, { x: 690, y: 420 }, { x: 480, y: 460 }, { x: 480, y: 250 }];
+  for (const r of [48, 86, 128, 170, 220, 280]) for (let i = 0; i < 16; i++) points.push({ x: center.x + Math.cos(i * Math.PI / 8) * r, y: center.y + Math.sin(i * Math.PI / 8) * r });
+  return points.map(p => clampArena(p, ENV_PAD));
+}
+
+function legalStep(arena, actor, next) {
+  const p = clampArena(next, ENV_PAD);
+  if (!blocked(arena, p, ENV_PAD)) return p;
+  const slid = slide(arena, actor, p);
+  if (!blocked(arena, slid, ENV_PAD)) return slid;
+  return legalPoint(arena, p, actor.spawn || FALLBACK_CENTER, ENV_PAD);
+}
+
+function legalPoint(arena, desired, fallback = FALLBACK_CENTER, pad = ENV_PAD) {
+  const start = clampArena(desired, pad);
+  if (!blocked(arena, start, pad)) return start;
+  const fallbackPoint = clampArena(fallback || FALLBACK_CENTER, pad);
+  if (!blocked(arena, fallbackPoint, pad)) return fallbackPoint;
+  for (const origin of [start, fallbackPoint, FALLBACK_CENTER, LAB_CENTER]) {
+    for (const r of [18, 32, 48, 72, 96, 128, 170, 220, 280]) {
+      for (let i = 0; i < 20; i++) {
+        const a = i * Math.PI * 2 / 20;
+        const p = clampArena({ x: origin.x + Math.cos(a) * r, y: origin.y + Math.sin(a) * r }, pad);
+        if (!blocked(arena, p, pad)) return p;
+      }
+    }
+  }
+  return clampArena({ x: 80, y: 80 }, pad);
+}
+
+function legalFloor(arena, p) { return !blocked(arena, p, ENV_PAD); }
+
+function resolveAllEnvironmentCollisions(state) {
+  for (const f of state.fighters) clampFighter(f);
+  const pair = mountedPair(state);
+  if (!pair) separateFighters(state, state.fighters[0], state.fighters[1], CONTACT_MIN);
 }
 
 function chooseZone(zone) {
