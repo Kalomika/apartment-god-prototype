@@ -8,13 +8,19 @@ on:
   push:
     branches:
       - top-shot-v0-1
+      - top-shot-full-stabilization-2026-07-21
     paths:
       - 'top-shot/**'
       - '.github/workflows/top-shot-checks.yml'
 
+concurrency:
+  group: top-shot-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   top-shot:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: top-shot
@@ -30,12 +36,30 @@ jobs:
           cache-dependency-path: top-shot/package-lock.json
 
       - name: Install
-        run: npm install
+        run: npm ci
 
       - name: Syntax check
         run: npm run check
 
-      - name: Smoke simulation
+      - name: Asset integrity
+        run: npm run assets:check
+
+      - name: Starshot smoke
+        run: npm run starshot-smoke
+
+      - name: Simulation smoke
+        run: npm run smoke:sim
+
+      - name: CQC smoke
+        run: npm run smoke:cqc
+
+      - name: Stealth smoke
+        run: npm run smoke:stealth
+
+      - name: Model smoke
+        run: npm run smoke:model
+
+      - name: Full smoke gate
         run: npm run smoke
 
       - name: Build
