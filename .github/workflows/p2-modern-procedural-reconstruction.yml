@@ -36,85 +36,150 @@ jobs:
           test -f apartment-god-production/ONGOING_DESIGN_LOG.md
           test -f apartment-god-production/DEVELOPMENT_MATRIX.md
           test -f apartment-god-production/APARTMENT_GOD_IDEA_BIBLE_APPEND_2026-07-21_P2_MODERN_PROCEDURAL_RECONSTRUCTION.md
-          git log -15 --oneline
 
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
 
-      - name: Install project dependencies
+      - name: Install dependencies
         run: npm install --no-package-lock
 
-      - name: Apply the native Phaser reconstruction
+      - name: Run reconstruction with complete diagnostics
+        id: reconstruction
+        shell: bash
         run: |
-          node scripts/install-p2-modern-procedural-reconstruction.mjs
-          node scripts/patch-p2-modern-procedural-cache-urls.mjs
-          node --check src/phaserMigration2ModernProceduralRenderer.js
-          node --check src/phaserMigration2Runtime.js
-          node --check src/phaserMigration2GameplayParityBridge.js
-          node --check src/phaserMigration2ReferenceCompletion.js
-          node --check src/phoneUI.js
-          node --check src/cameraNavigation.js
+          set +e
+          mkdir -p /tmp/p2-modern-reconstruction
+          overall=0
 
-      - name: Verify source replacement contract
+          node scripts/install-p2-modern-procedural-reconstruction.mjs > /tmp/p2-modern-reconstruction/installer.log 2>&1
+          installer_status=$?
+          if [ "$installer_status" -ne 0 ]; then overall=1; fi
+
+          if [ "$overall" -eq 0 ]; then
+            node scripts/patch-p2-modern-procedural-cache-urls.mjs > /tmp/p2-modern-reconstruction/cache.log 2>&1
+            cache_status=$?
+            if [ "$cache_status" -ne 0 ]; then overall=1; fi
+          else
+            cache_status=99
+          fi
+
+          if [ "$overall" -eq 0 ]; then
+            node --check src/phaserMigration2ModernProceduralRenderer.js > /tmp/p2-modern-reconstruction/syntax.log 2>&1
+            syntax_status=$?
+            for file in src/phaserMigration2Runtime.js src/phaserMigration2GameplayParityBridge.js src/phaserMigration2ReferenceCompletion.js src/phoneUI.js src/cameraNavigation.js; do
+              node --check "$file" >> /tmp/p2-modern-reconstruction/syntax.log 2>&1
+              current=$?
+              if [ "$current" -ne 0 ]; then syntax_status=$current; fi
+            done
+            if [ "$syntax_status" -ne 0 ]; then overall=1; fi
+          else
+            syntax_status=99
+          fi
+
+          if [ "$overall" -eq 0 ]; then
+            npm run check > /tmp/p2-modern-reconstruction/check.log 2>&1
+            check_status=$?
+            if [ "$check_status" -ne 0 ]; then overall=1; fi
+          else
+            check_status=99
+          fi
+
+          if [ "$overall" -eq 0 ]; then
+            npm test > /tmp/p2-modern-reconstruction/test.log 2>&1
+            test_status=$?
+            if [ "$test_status" -ne 0 ]; then overall=1; fi
+          else
+            test_status=99
+          fi
+
+          if [ "$overall" -eq 0 ]; then
+            npm run build > /tmp/p2-modern-reconstruction/build.log 2>&1
+            build_status=$?
+            if [ "$build_status" -ne 0 ]; then overall=1; fi
+          else
+            build_status=99
+          fi
+
+          if [ "$overall" -eq 0 ]; then
+            test -f dist/src/phaserMigration2ModernProceduralRenderer.js
+            verify_status=$?
+            grep -q "createModernProceduralRoom" dist/src/phaserMigration2Runtime.js || verify_status=1
+            grep -q "MODERN_PROCEDURAL_OBJECT_KINDS" dist/src/phaserMigration2ModernProceduralRenderer.js || verify_status=1
+            grep -q "drawSleepBlanket" dist/src/phaserMigration2ReferenceCompletion.js || verify_status=1
+            ! grep -q "this.add.image(room.x + room.w / 2" dist/src/phaserMigration2Runtime.js || verify_status=1
+            ! grep -q "this.add.image(object.x + object.w / 2" dist/src/phaserMigration2Runtime.js || verify_status=1
+            if [ "$verify_status" -ne 0 ]; then overall=1; fi
+          else
+            verify_status=99
+          fi
+
+          {
+            echo "# P2 Modern Procedural Reconstruction CI Report"
+            echo
+            echo "Generated: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "Branch start: $(git rev-parse HEAD)"
+            echo "Overall status: $([ "$overall" -eq 0 ] && echo PASS || echo FAIL)"
+            echo
+            echo "| Stage | Exit status |"
+            echo "|---|---:|"
+            echo "| Installer | $installer_status |"
+            echo "| Cache patch | $cache_status |"
+            echo "| Syntax | $syntax_status |"
+            echo "| Repository check | $check_status |"
+            echo "| Tests | $test_status |"
+            echo "| Build | $build_status |"
+            echo "| Built contract | $verify_status |"
+            for name in installer cache syntax check test build; do
+              echo
+              echo "## ${name^} log"
+              echo '```text'
+              if [ -f "/tmp/p2-modern-reconstruction/$name.log" ]; then tail -n 220 "/tmp/p2-modern-reconstruction/$name.log"; else echo "Not run."; fi
+              echo '```'
+            done
+          } > /tmp/p2-modern-reconstruction/report.md
+
+          echo "status=$overall" >> "$GITHUB_OUTPUT"
+
+      - name: Commit verified reconstruction or failure report
+        shell: bash
         run: |
-          grep -q "createModernProceduralRoom" src/phaserMigration2Runtime.js
-          grep -q "createModernProceduralObject" src/phaserMigration2Runtime.js
-          grep -q "refreshModernProceduralObject" src/phaserMigration2Runtime.js
-          ! grep -q "this.add.image(room.x + room.w / 2" src/phaserMigration2Runtime.js
-          ! grep -q "this.add.image(object.x + object.w / 2" src/phaserMigration2Runtime.js
-          grep -q "sprite.pm2ModernProcedural" src/phaserMigration2GameplayParityBridge.js
-          grep -q "if (sprite.pm2ModernProcedural) continue" src/phaserMigration2ReferenceCompletion.js
-          grep -q "drawSleepBlanket" src/phaserMigration2ReferenceCompletion.js
-          grep -q "bindImmediateTap(up" src/phoneUI.js
-          grep -q "bindImmediateTap(blueprint" src/cameraNavigation.js
-          grep -q "touch-action:manipulation" styles.css
-          ! grep -q "drawPhaserEnvironment" src/phaserMigration2Runtime.js
-          ! grep -q "textures.addCanvas" src/phaserMigration2Runtime.js
-
-      - name: Repository checks
-        run: npm run check
-
-      - name: Full unit and regression tests
-        run: npm test
-
-      - name: Static build
-        run: npm run build
-
-      - name: Verify built reconstruction
-        run: |
-          test -f dist/src/phaserMigration2ModernProceduralRenderer.js
-          test -f dist/src/phaserMigration2Runtime.js
-          test -f dist/src/phaserMigration2GameplayParityBridge.js
-          test -f dist/src/phaserMigration2ReferenceCompletion.js
-          grep -q "createModernProceduralRoom" dist/src/phaserMigration2Runtime.js
-          grep -q "MODERN_PROCEDURAL_OBJECT_KINDS" dist/src/phaserMigration2ModernProceduralRenderer.js
-          grep -q "drawSleepBlanket" dist/src/phaserMigration2ReferenceCompletion.js
-          ! grep -q "this.add.image(room.x + room.w / 2" dist/src/phaserMigration2Runtime.js
-          ! grep -q "this.add.image(object.x + object.w / 2" dist/src/phaserMigration2Runtime.js
-
-      - name: Write completion log and matrix patch
-        run: node scripts/finalize-p2-modern-procedural-reconstruction.mjs
-
-      - name: Commit verified reconstruction
-        run: |
+          set -e
+          status='${{ steps.reconstruction.outputs.status }}'
+          report=/tmp/p2-modern-reconstruction/report.md
           git config user.name "Apartment God Reconstruction Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add \
-            src/phaserMigration2ModernProceduralRenderer.js \
-            src/phaserMigration2Runtime.js \
-            src/phaserMigration2GameplayParityBridge.js \
-            src/phaserMigration2ReferenceCompletion.js \
-            src/phoneUI.js \
-            src/cameraNavigation.js \
-            src/main.js \
-            styles.css \
-            tests/phaser-migration-2-modern-procedural-reconstruction.test.js \
-            apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-21_P2_MODERN_PROCEDURAL_RECONSTRUCTION_READY.md \
-            apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-21_P2_MODERN_PROCEDURAL_RECONSTRUCTION_READY.md
-          git commit -m "Reconstruct P2 as a modern procedural Phaser game"
+
+          if [ "$status" = "0" ]; then
+            node scripts/finalize-p2-modern-procedural-reconstruction.mjs
+            cp "$report" apartment-god-production/P2_MODERN_PROCEDURAL_RECONSTRUCTION_CI_REPORT_2026-07-21.md
+            git add \
+              src/phaserMigration2ModernProceduralRenderer.js \
+              src/phaserMigration2Runtime.js \
+              src/phaserMigration2GameplayParityBridge.js \
+              src/phaserMigration2ReferenceCompletion.js \
+              src/phoneUI.js \
+              src/cameraNavigation.js \
+              src/main.js \
+              styles.css \
+              tests/phaser-migration-2-modern-procedural-reconstruction.test.js \
+              apartment-god-production/P2_MODERN_PROCEDURAL_RECONSTRUCTION_CI_REPORT_2026-07-21.md \
+              apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-21_P2_MODERN_PROCEDURAL_RECONSTRUCTION_READY.md \
+              apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-21_P2_MODERN_PROCEDURAL_RECONSTRUCTION_READY.md
+            git commit -m "Reconstruct P2 as a modern procedural Phaser game"
+          else
+            git reset --hard HEAD
+            cp "$report" apartment-god-production/P2_MODERN_PROCEDURAL_RECONSTRUCTION_CI_REPORT_2026-07-21.md
+            git add apartment-god-production/P2_MODERN_PROCEDURAL_RECONSTRUCTION_CI_REPORT_2026-07-21.md
+            git commit -m "Record P2 reconstruction verification failure"
+          fi
+
           git pull --rebase origin phaser-migration-2
           git push origin HEAD:phaser-migration-2
 
-# Registered workflow second-push trigger.
+      - name: Fail workflow after preserving diagnostics
+        if: steps.reconstruction.outputs.status != '0'
+        run: exit 1
+
+# Diagnostic-safe second trigger.
