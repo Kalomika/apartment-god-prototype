@@ -22,10 +22,12 @@ Summary:
 - Corrected deployment height scaling and terrain lift in the effects presentation layer.
 - Added `tests/renderPipelineSmoke.js`, split smoke scripts, and `npm run validate`.
 - Expanded Top Shot CI to use Node 24 and run the complete validation gate.
+- Removed the temporary payload installer, payload fragments, source artifact upload, and write-enabled workflow permissions before final verification.
 
 Files changed:
 
 - `.github/workflows/top-shot-checks.yml`
+- `top-shot/README.md`
 - `top-shot/package.json`
 - `top-shot/src/state.js`
 - `top-shot/src/cqcLab.js`
@@ -34,11 +36,18 @@ Files changed:
 - `top-shot/tests/cqcSmoke.js`
 - `top-shot/tests/stealthSmoke.js`
 - `top-shot/tests/renderPipelineSmoke.js`
-- Top Shot handoff, architecture, feature inventory, QA checklist, and coverage matrix docs.
+- `top-shot/docs/HANDOFF.md`
+- `top-shot/docs/DEVELOPMENT_LOG.md`
+- `top-shot/docs/FEATURE_INVENTORY.md`
+- `top-shot/docs/ARCHITECTURE.md`
+- `top-shot/docs/QA_CHECKLIST.md`
+- `top-shot/docs/COVERAGE_MATRIX.md`
 
 Testing:
 
 - Full `npm run validate` passed locally from the exact GitHub Actions source snapshot after the runtime fixes.
+- A clean `npm ci` followed by `npm run validate` also passed locally.
+- Final GitHub Actions run #328 passed on commit `4fb979094f6d730e348b81cb15fae1a5b87430ae`.
 - The validation includes syntax, binary assets, Starshot smoke, render pipeline smoke, all four smoke suites, and production build.
 - A 12-match repeated finite-state stress pass completed without invalid fighter or projectile fields after finite elevation initialization.
 
@@ -47,10 +56,11 @@ Known risks and deferred work:
 - Browser visual QA remains required for mount appearance, camera-facing effects, `D` debug overlay, `C` collision debug, and final top-down readability.
 - Several AI matchups can remain active at the 60-second smoke horizon. That is balance and pacing work, not an invalid-state failure.
 - The branch is experimental and not yet approved for stable merge.
+- The live Render app was not verified to show this branch.
 
 Exact next step:
 
-Run the final clean GitHub Actions gate on the documented branch, then perform browser QA on a branch preview before considering a merge into the studio pipeline or stable.
+Perform browser QA on a branch preview, especially mount appearance, deployment height, camera-facing effects, `D` and `C` debug toggles, and top-down readability. Then address the documented 60-second AI pacing stalemates before considering a merge into the studio pipeline or stable.
 
 ## 2026-07-13, Studio pipeline visual foundation
 
