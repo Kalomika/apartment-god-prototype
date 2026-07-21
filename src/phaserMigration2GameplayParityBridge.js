@@ -80,17 +80,10 @@ function syncDomGameplaySystems(scene) {
 }
 
 function ensureCriticalHud(state) {
-  const wrap = document.getElementById('game-wrap');
   const hud = document.getElementById('hud');
-  if (!wrap || !hud) return;
+  if (!hud) return;
 
-  if (!document.getElementById('hud-resource-strip')) {
-    const strip = document.createElement('div');
-    strip.id = 'hud-resource-strip';
-    strip.setAttribute('aria-live', 'polite');
-    strip.innerHTML = '<span id="resource-money">$0</span><span id="resource-utilities">Power $0</span><span id="resource-tidiness">Tidy 100%</span>';
-    wrap.appendChild(strip);
-  }
+  document.getElementById('hud-resource-strip')?.remove();
 
   if (!document.getElementById('utility-state')) {
     const section = document.createElement('section');
@@ -120,15 +113,11 @@ function syncResourceHud(state) {
   const money = Math.round(state.money ?? 0);
   const electric = Math.max(0, Math.round(state.bill ?? 0));
   const tidy = Math.round(state.tidiness?.score ?? 100);
-  const moneyEl = document.getElementById('resource-money');
-  const utilityEl = document.getElementById('resource-utilities');
-  const tidyEl = document.getElementById('resource-tidiness');
+  const moneyPill = document.getElementById('hud-money-pill');
   const panel = document.getElementById('utility-state');
 
-  if (moneyEl) moneyEl.textContent = `$${money}`;
-  if (utilityEl) utilityEl.textContent = `Power $${electric}`;
-  if (tidyEl) tidyEl.textContent = `Tidy ${tidy}%`;
-  if (panel) panel.innerHTML = `<div class="utility-grid"><span><strong>Money</strong>$${money}</span><span><strong>Electric</strong>$${electric}</span><span><strong>Tidiness</strong>${tidy}%</span><span><strong>Autonomy</strong>${state.autonomyMode}</span></div><p class="utility-note">Use the visible ↑ Up and ↓ Down controls on the game, or Map and Phone in the control bar.</p>`;
+  if (moneyPill) moneyPill.textContent = `$${money}`;
+  if (panel) panel.innerHTML = `<div class="utility-grid"><span><strong>Money</strong>$${money}</span><span><strong>Electric</strong>$${electric}</span><span><strong>Tidiness</strong>${tidy}%</span><span><strong>Autonomy</strong>${state.autonomyMode}</span></div><p class="utility-note">Use ↑ Up and ↓ Down, or Map and Phone in the control bar.</p>`;
 }
 
 function syncRoomArchitecture(scene) {
@@ -208,12 +197,8 @@ function ensureParityStyles() {
   const style = document.createElement('style');
   style.id = 'pm2-gameplay-parity-styles';
   style.textContent = `
-    #hud-resource-strip{position:absolute;right:10px;top:10px;z-index:43;display:flex;gap:6px;pointer-events:none;max-width:calc(100% - 390px)}
-    #hud-resource-strip span{padding:6px 9px;border:1px solid rgba(114,200,216,.38);border-radius:999px;background:rgba(8,14,21,.82);box-shadow:0 8px 22px rgba(0,0,0,.3);backdrop-filter:blur(8px);font-size:11px;font-weight:900;color:#eef5f6;white-space:nowrap}
-    #resource-money{color:#f2d587!important}#resource-utilities{color:#9edbe5!important}
     .utility-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.utility-grid span{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border:1px solid rgba(142,169,184,.2);border-radius:10px;background:rgba(5,11,17,.3);font-size:13px}.utility-grid strong{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#d6b36c}.utility-note{margin:9px 0 0;color:#9cabb4;font-size:11px;line-height:1.35}.utility-panel{border-color:rgba(214,179,108,.32)!important}
-    @media(max-width:899px){#hud-resource-strip{top:42px;right:8px;max-width:calc(100% - 16px);gap:4px}#hud-resource-strip span{padding:5px 7px;font-size:10px}#vertical-nav-dock{top:76px;bottom:8px}.compact-grid{position:static!important}}
-    @media(max-width:430px){#hud-resource-strip span:nth-child(3){display:none}.vertical-screen-button{min-width:64px!important;padding:0 10px!important}}
+    @media(max-width:899px){.compact-grid{position:static!important}}
   `;
   document.head.appendChild(style);
 }
