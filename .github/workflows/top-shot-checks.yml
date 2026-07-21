@@ -36,4 +36,21 @@ jobs:
           cache-dependency-path: top-shot/package-lock.json
 
       - name: Validate Top Shot
-        run: npm run validate
+        run: |
+          set +e
+          npm run validate > validation.log 2>&1
+          code=$?
+          cat validation.log
+          echo "$code" > validation-exit-code.txt
+          exit "$code"
+
+      - name: Upload validation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: top-shot-validation-log
+          path: |
+            top-shot/validation.log
+            top-shot/validation-exit-code.txt
+          if-no-files-found: error
+          retention-days: 7
