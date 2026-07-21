@@ -41,15 +41,15 @@ jobs:
           cache-dependency-path: top-shot/package-lock.json
 
       - name: Apply verified stabilization payload
-        if: github.event_name == 'push' && github.ref_name == 'top-shot-full-stabilization-2026-07-21'
+        if: github.event_name == 'push' && github.ref_name == 'top-shot-full-stabilization-2026-07-21' && hashFiles('top-shot/scripts/.stabilization-payload/READY') != ''
         run: |
           python scripts/apply-stabilization-payload.py
           cd ..
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add top-shot/package.json top-shot/src/cqcLab.js top-shot/src/three/effects3D.js top-shot/tests/stealthSmoke.js top-shot/tests/renderPipelineSmoke.js
+          git add top-shot/README.md top-shot/docs/ARCHITECTURE.md top-shot/docs/COVERAGE_MATRIX.md top-shot/docs/DEVELOPMENT_LOG.md top-shot/docs/FEATURE_INVENTORY.md top-shot/docs/HANDOFF.md top-shot/docs/QA_CHECKLIST.md top-shot/src/state.js top-shot/tests/simSmoke.js
           if ! git diff --cached --quiet; then
-            git commit -m "Fix Top Shot CQC collision and render pipeline"
+            git commit -m "Document and harden Top Shot full stabilization"
             git push origin HEAD:top-shot-full-stabilization-2026-07-21
           fi
 
