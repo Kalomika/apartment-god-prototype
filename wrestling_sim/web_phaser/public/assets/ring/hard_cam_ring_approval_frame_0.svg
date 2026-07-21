@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Grapple Gods hard cam wrestling ring sprite frame A</title>
+  <desc id="desc">Original painted side view wrestling ring sprite plate. Transparent background so crowd layers can sit behind and in front.</desc>
+  <defs>
+    <linearGradient id="mat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffdf7"/><stop offset="0.58" stop-color="#eee9de"/><stop offset="1" stop-color="#d6d0c4"/></linearGradient>
+    <linearGradient id="apron" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#161616"/><stop offset="1" stop-color="#050505"/></linearGradient>
+    <filter id="ringShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="12" stdDeviation="8" flood-color="#000" flood-opacity="0.55"/></filter>
+  </defs>
+  <g id="ring-back-and-downstage" filter="url(#ringShadow)">
+    <ellipse cx="480" cy="356" rx="295" ry="54" fill="#000" opacity="0.42"/>
+    <path d="M306 218 L654 218 L744 375 L216 375 Z" fill="url(#apron)" stroke="#000" stroke-width="6"/>
+    <path d="M237 340 H723 V392 H206 Z" fill="#050505" opacity="0.93"/>
+    <path d="M292 197 L668 197 L735 336 L225 336 Z" fill="url(#mat)" stroke="#050505" stroke-width="5"/>
+    <path d="M310 212 L648 212 L702 313 L263 313 Z" fill="#fff" opacity="0.16"/>
+    <g stroke="#000" stroke-width="1.4" opacity="0.13">
+      <path d="M276 238 L688 238"/><path d="M260 268 L707 268"/><path d="M242 300 L724 300"/>
+      <path d="M358 197 L323 336"/><path d="M429 197 L424 336"/><path d="M531 197 L533 336"/><path d="M604 197 L641 336"/>
+    </g>
+    <g id="posts" fill="#050505">
+      <rect x="286" y="130" width="12" height="238"/><rect x="662" y="130" width="12" height="238"/>
+      <rect x="212" y="118" width="16" height="284"/><rect x="732" y="118" width="16" height="284"/>
+      <rect x="292" y="134" width="3" height="220" fill="#fff" opacity="0.22"/><rect x="668" y="134" width="3" height="220" fill="#fff" opacity="0.18"/>
+      <rect x="218" y="124" width="3" height="260" fill="#fff" opacity="0.22"/><rect x="738" y="124" width="3" height="260" fill="#fff" opacity="0.18"/>
+    </g>
+    <g id="ropes" stroke-linecap="round">
+      <g stroke="#fff" stroke-width="8" opacity="0.25"><path d="M220 151 H740"/><path d="M220 203 H740"/><path d="M220 255 H740"/><path d="M292 151 H668"/><path d="M292 203 H668"/><path d="M292 255 H668"/></g>
+      <g stroke="#000" stroke-width="4"><path d="M220 151 H740"/><path d="M220 203 H740"/><path d="M220 255 H740"/><path d="M292 151 H668"/><path d="M292 203 H668"/><path d="M292 255 H668"/></g>
+    </g>
+    <g id="turnbuckles">
+      <g fill="#000"><rect x="197" y="139" width="44" height="24" rx="4"/><rect x="197" y="191" width="44" height="24" rx="4"/><rect x="197" y="243" width="44" height="24" rx="4"/><rect x="719" y="139" width="44" height="24" rx="4"/><rect x="719" y="191" width="44" height="24" rx="4"/><rect x="719" y="243" width="44" height="24" rx="4"/></g>
+      <g fill="#fff" stroke="#000" stroke-width="3"><rect x="202" y="144" width="34" height="14" rx="3"/><rect x="202" y="196" width="34" height="14" rx="3"/><rect x="202" y="248" width="34" height="14" rx="3"/><rect x="724" y="144" width="34" height="14" rx="3"/><rect x="724" y="196" width="34" height="14" rx="3"/><rect x="724" y="248" width="34" height="14" rx="3"/></g>
+      <g fill="#000"><rect x="277" y="143" width="34" height="18" rx="3"/><rect x="649" y="143" width="34" height="18" rx="3"/></g>
+      <g fill="#fff" stroke="#000" stroke-width="2"><rect x="282" y="147" width="24" height="10" rx="2"/><rect x="654" y="147" width="24" height="10" rx="2"/></g>
+    </g>
+    <text x="480" y="373" font-family="Arial Black, Arial, sans-serif" font-size="27" text-anchor="middle" fill="#fff" opacity="0.13">GRAPPLE GODS</text>
+    <text x="480" y="372" font-family="Arial Black, Arial, sans-serif" font-size="27" text-anchor="middle" fill="#000" opacity="0.55">GRAPPLE GODS</text>
+  </g>
+</svg>

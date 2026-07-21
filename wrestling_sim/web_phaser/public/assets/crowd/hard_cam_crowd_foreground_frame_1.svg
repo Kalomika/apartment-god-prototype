@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Hard cam wrestling crowd foreground frame B</title>
+  <desc id="desc">Second original foreground crowd sprite layer with subtle arms up and clapping variation.</desc>
+  <defs>
+    <linearGradient id="rail" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3a3a"/><stop offset="1" stop-color="#090909"/></linearGradient>
+    <symbol id="frontFan" viewBox="0 0 48 92"><circle cx="24" cy="18" r="12"/><path d="M4 92 C7 50 13 34 24 34 C35 34 42 50 44 92 Z"/><path d="M9 48 L2 24 M39 48 L46 24" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="seatFan" viewBox="0 0 38 70"><circle cx="19" cy="14" r="10"/><path d="M4 70 C7 39 11 28 19 28 C27 28 32 39 34 70 Z"/></symbol>
+    <symbol id="phoneFan" viewBox="0 0 42 82"><circle cx="21" cy="15" r="11"/><path d="M3 82 C6 45 12 31 21 31 C30 31 36 45 39 82 Z"/><rect x="31" y="12" width="7" height="13" rx="2" fill="#dfefff" stroke="#000" stroke-width="2"/></symbol>
+  </defs>
+  <g opacity="0.99">
+    <rect x="0" y="362" width="960" height="22" fill="url(#rail)"/>
+    <path d="M0 362 H960" stroke="#000" stroke-width="5"/><path d="M0 382 H960" stroke="#636363" stroke-width="2" opacity="0.48"/>
+    <g fill="#222228"><use href="#seatFan" x="10" y="340"/><use href="#seatFan" x="56" y="344"/><use href="#seatFan" x="102" y="337"/><use href="#seatFan" x="148" y="343"/><use href="#seatFan" x="194" y="338"/><use href="#seatFan" x="240" y="344"/><use href="#seatFan" x="286" y="337"/><use href="#seatFan" x="332" y="343"/><use href="#seatFan" x="378" y="338"/><use href="#seatFan" x="424" y="344"/><use href="#seatFan" x="470" y="337"/><use href="#seatFan" x="516" y="343"/><use href="#seatFan" x="562" y="338"/><use href="#seatFan" x="608" y="344"/><use href="#seatFan" x="654" y="337"/><use href="#seatFan" x="700" y="343"/><use href="#seatFan" x="746" y="338"/><use href="#seatFan" x="792" y="344"/><use href="#seatFan" x="838" y="337"/><use href="#seatFan" x="884" y="343"/><use href="#seatFan" x="930" y="338"/></g>
+    <g fill="#46392f" color="#46392f"><use href="#frontFan" x="-4" y="395"/><use href="#frontFan" x="70" y="389"/><use href="#frontFan" x="144" y="400"/><use href="#phoneFan" x="220" y="389"/><use href="#frontFan" x="292" y="396"/><use href="#frontFan" x="366" y="388"/><use href="#frontFan" x="440" y="401"/><use href="#phoneFan" x="516" y="389"/><use href="#frontFan" x="588" y="396"/><use href="#frontFan" x="662" y="388"/><use href="#frontFan" x="736" y="401"/><use href="#frontFan" x="812" y="389"/><use href="#phoneFan" x="888" y="394"/></g>
+    <g fill="#141417" color="#141417"><use href="#frontFan" x="32" y="422"/><use href="#frontFan" x="108" y="417"/><use href="#frontFan" x="184" y="428"/><use href="#frontFan" x="260" y="418"/><use href="#frontFan" x="336" y="425"/><use href="#frontFan" x="412" y="417"/><use href="#frontFan" x="488" y="428"/><use href="#frontFan" x="564" y="418"/><use href="#frontFan" x="640" y="425"/><use href="#frontFan" x="716" y="417"/><use href="#frontFan" x="792" y="428"/><use href="#frontFan" x="868" y="418"/><use href="#frontFan" x="944" y="425"/></g>
+  </g>
+</svg>

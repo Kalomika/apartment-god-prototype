@@ -1,7 +1,11 @@
 services:
   - type: web
-    name: apartment-god-prototype
+    name: grapple-gods-phaser
     runtime: static
+    rootDir: wrestling_sim/web_phaser
+    repo: https://github.com/Kalomika/apartment-god-prototype
+    branch: wrestling-sim-foundation
+    autoDeployTrigger: commit
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     routes:

@@ -1,0 +1,15 @@
+{
+  "name": "grapple-gods-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Internal hard cam visual review and development studio for Grapple Gods.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "devDependencies": {
+    "vite": "latest"
+  }
+}
