@@ -6,6 +6,7 @@ const indexSource = readFileSync(new URL('../index.html', import.meta.url), 'utf
 const mainSource = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 const hudSource = readFileSync(new URL('../src/phaserMigration2HudPlacement.js', import.meta.url), 'utf8');
 const paritySource = readFileSync(new URL('../src/phaserMigration2GameplayParityBridge.js', import.meta.url), 'utf8');
+const layerFallbackSource = readFileSync(new URL('../src/phaserMigration2LayerFallbackSafety.js', import.meta.url), 'utf8');
 const animationSource = readFileSync(new URL('../src/phaserCharacterAnimationSystem.js', import.meta.url), 'utf8');
 const catalogSource = readFileSync(new URL('../src/phaserMigration2VisualCatalog.js', import.meta.url), 'utf8');
 
@@ -56,5 +57,12 @@ describe('Phaser Migration 2 HUD and layered directional walking', () => {
     const second = wardrobeLayerColorsForTest(entity, 'resident');
     expect(first.top).not.toBe(second.top);
     expect(first.bottom).not.toBe(second.bottom);
+  });
+
+  it('hides a failed optional clothing layer instead of showing a missing texture box', () => {
+    expect(mainSource).toContain('installPhaserMigration2LayerFallbackSafety');
+    expect(layerFallbackSource).toContain("layer.texture?.key === '__MISSING'");
+    expect(layerFallbackSource).toContain('layer.setVisible(false)');
+    expect(layerFallbackSource).toContain("scene.events.on('postupdate', sync)");
   });
 });
