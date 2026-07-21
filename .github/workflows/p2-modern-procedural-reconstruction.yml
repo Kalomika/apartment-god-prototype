@@ -116,3 +116,5 @@ jobs:
           git commit -m "Reconstruct P2 as a modern procedural Phaser game"
           git pull --rebase origin phaser-migration-2
           git push origin HEAD:phaser-migration-2
+
+# Registered workflow second-push trigger.
