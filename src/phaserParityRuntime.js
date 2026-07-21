@@ -11,6 +11,7 @@ import { updateCameraTransition } from './cameraNavigation.js';
 import { installManagedCameraSwipeNavigation } from './managedCameraSwipeNavigation.js?v=20260721-full-audit-repair';
 import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
 import { applyRuntimeRegressionGuards } from './runtimeRegressionGuards.js';
+import { normalizeRuntimeEntity } from './runtimeStateNormalization.js';
 import { updatePoolActivity } from './poolActivitySystem.js';
 import { updateHouseTidiness } from './tidinessSystem.js';
 import { advanceGameClock } from './timeSystem.js';
@@ -292,24 +293,7 @@ function sanitizeRuntimeState(state) {
   state.lifeControl ??= { mode: 'semi_auto', pendingChoices: [] };
   state.lifeQuality ??= { lastMonthIndex: null, lastYearIndex: null, reviews: [], yearReviews: [] };
   applyRuntimeObjectCorrections();
-  for (const entity of state.entities) normalizeRuntimeEntityForTest(entity);
-}
-
-export function normalizeRuntimeEntityForTest(entity) {
-  entity.path = Array.isArray(entity.path) ? entity.path : [];
-  entity.needs ??= {};
-  entity.skills ??= {};
-  entity.pose ||= 'stand';
-  entity.action ||= 'Idle';
-  entity.floor = Number.isInteger(entity.floor) ? entity.floor : 0;
-  entity.actionT = Number.isFinite(entity.actionT) ? Math.max(0, entity.actionT) : 0;
-  entity.actionTotal = Number.isFinite(entity.actionTotal) ? Math.max(0, entity.actionTotal) : 0;
-  if (!(entity.actionT > 0)) {
-    entity.actionTotal = 0;
-    entity.currentActionId = null;
-    entity.activityObjectId = null;
-  }
-  return entity;
+  for (const entity of state.entities) normalizeRuntimeEntity(entity);
 }
 
 function drawHardBootError(canvas, error) {
