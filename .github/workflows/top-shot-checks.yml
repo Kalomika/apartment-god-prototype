@@ -54,3 +54,14 @@ jobs:
             top-shot/validation-exit-code.txt
           if-no-files-found: error
           retention-days: 7
+
+      - name: Upload source snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: top-shot-source-snapshot
+          path: |
+            top-shot
+            .github/workflows/top-shot-checks.yml
+          if-no-files-found: error
+          retention-days: 1
