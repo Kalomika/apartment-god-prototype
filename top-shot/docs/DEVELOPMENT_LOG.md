@@ -2,6 +2,56 @@
 
 This file tracks meaningful Top Shot repo changes so future AI agents, Codex, Copilot, Grok, or human developers can continue from the repository instead of chat history.
 
+## 2026-07-21, Full Top Shot stabilization and regression hardening
+
+Tool or person: ChatGPT
+
+Branch: `top-shot-full-stabilization-2026-07-21`
+
+Base branch: `top-shot-studio-pipeline`
+
+Backup branch: `backup/top-shot-studio-pipeline-2026-07-21-stabilization`
+
+Summary:
+
+- Started from PR #26's newest studio pipeline instead of the older stable branch.
+- Fixed the CQC Lab center-boulder spawn collision and made CQC movement, recoil, separation, resets, grounded recovery, and mount placement arena-aware.
+- Corrected stale stealth smoke assumptions without hiding valid immediate alert transitions.
+- Added finite match-state initialization, safe archetype fallbacks, stronger simulation diagnostics, and a direct dive-without-velocity regression.
+- Fixed a Three.js performance defect where the effects installer rendered the scene twice per frame.
+- Corrected deployment height scaling and terrain lift in the effects presentation layer.
+- Added `tests/renderPipelineSmoke.js`, split smoke scripts, and `npm run validate`.
+- Expanded Top Shot CI to use Node 24 and run the complete validation gate.
+
+Files changed:
+
+- `.github/workflows/top-shot-checks.yml`
+- `top-shot/package.json`
+- `top-shot/src/state.js`
+- `top-shot/src/cqcLab.js`
+- `top-shot/src/three/effects3D.js`
+- `top-shot/tests/simSmoke.js`
+- `top-shot/tests/cqcSmoke.js`
+- `top-shot/tests/stealthSmoke.js`
+- `top-shot/tests/renderPipelineSmoke.js`
+- Top Shot handoff, architecture, feature inventory, QA checklist, and coverage matrix docs.
+
+Testing:
+
+- Full `npm run validate` passed locally from the exact GitHub Actions source snapshot after the runtime fixes.
+- The validation includes syntax, binary assets, Starshot smoke, render pipeline smoke, all four smoke suites, and production build.
+- A 12-match repeated finite-state stress pass completed without invalid fighter or projectile fields after finite elevation initialization.
+
+Known risks and deferred work:
+
+- Browser visual QA remains required for mount appearance, camera-facing effects, `D` debug overlay, `C` collision debug, and final top-down readability.
+- Several AI matchups can remain active at the 60-second smoke horizon. That is balance and pacing work, not an invalid-state failure.
+- The branch is experimental and not yet approved for stable merge.
+
+Exact next step:
+
+Run the final clean GitHub Actions gate on the documented branch, then perform browser QA on a branch preview before considering a merge into the studio pipeline or stable.
+
 ## 2026-07-13, Studio pipeline visual foundation
 
 Branch: `top-shot-studio-pipeline`

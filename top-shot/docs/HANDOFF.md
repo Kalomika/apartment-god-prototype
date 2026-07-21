@@ -1,5 +1,40 @@
 # Top Shot Handoff
 
+## 2026-07-21 full stabilization pass
+
+Active branch: `top-shot-full-stabilization-2026-07-21`, based on `top-shot-studio-pipeline`.
+
+Backup branch: `backup/top-shot-studio-pipeline-2026-07-21-stabilization`.
+
+Draft PR: [PR #34, Stabilize full Top Shot validation and smoke coverage](https://github.com/Kalomika/apartment-god-prototype/pull/34).
+
+Implemented in this pass:
+
+- Corrected CQC Lab spawn placement so both full body radii begin on legal floor space instead of Fighter B spawning inside the center boulder.
+- Routed CQC movement, separation, recoil, reset placement, grounded recovery, and mount anchors through arena-aware collision correction.
+- Preserved body shots, sweeps, trips, throws, mounting, mounted attacks, mount escape, limb grabs, disarms, hitboxes, and auto CQC.
+- Fixed the stale stealth smoke expectation while retaining hard sight, sound suspicion, memory, and search-plan checks.
+- Added safe archetype fallbacks and initialized finite elevation, climb, jump, and object state on every match fighter.
+- Strengthened simulation smoke to check finite fighter and projectile state during deployment and combat, including the dive-without-velocity regression.
+- Removed the effects pipeline's second scene render per frame.
+- Corrected deployment and terrain height conversion in the Three.js effects presentation layer.
+- Added a render pipeline smoke test and a complete `npm run validate` gate.
+
+Verified locally from the exact CI source snapshot:
+
+- `npm run check`
+- `npm run assets:check`
+- `npm run starshot-smoke`
+- `npm run smoke:sim`
+- `npm run smoke:cqc`
+- `npm run smoke:stealth`
+- `npm run smoke:model`
+- `npm run smoke`
+- `npm run build`
+- `npm run validate`
+
+The branch remains experimental until the final GitHub Actions run and browser QA are complete. Stable remains untouched.
+
 ## Current status
 
 Top Shot is a top down Three.js AI arena combat prototype isolated under `top-shot/`.
@@ -25,9 +60,10 @@ Read these before any Top Shot task:
 5. `top-shot/docs/FEATURE_INVENTORY.md`
 6. `top-shot/docs/ARCHITECTURE.md`
 7. `top-shot/docs/QA_CHECKLIST.md`
-8. Recent commits on the active branch
-9. Open PRs related to Top Shot
-10. The exact files to edit
+8. `top-shot/docs/COVERAGE_MATRIX.md`
+9. Recent commits on the active branch
+10. Open PRs related to Top Shot
+11. The exact files to edit
 
 ## Latest Starshot pass
 
