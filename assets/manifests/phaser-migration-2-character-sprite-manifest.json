@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "status": "NEEDS_TESTING",
+  "schemaVersion": 2,
+  "status": "NEEDS_BROWSER_TESTING",
   "branch": "phaser-migration-2",
   "animationFps": 8,
   "frameWidth": 128,
@@ -9,35 +9,52 @@
   "sheetHeight": 512,
   "directionRows": ["south", "west", "east", "north"],
   "framesPerDirection": 4,
+  "frameCountClarification": "8 FPS is playback speed. The current walk loop contains four frames per direction, not eight or nine frames.",
   "grounding": {
-    "camera": "true top down",
+    "camera": "true top down target",
     "shadow": "faint contact ellipse beneath each active actor",
     "walkTrigger": "world coordinate displacement greater than 0.08",
-    "stationaryRule": "never play walk animation from an action label alone"
+    "stationaryRule": "never play walk animation from an action label alone",
+    "sideTurnRule": "human east and west movement uses a complete horizontal body sheet; west mirrors the east sheet and never shifts only the head"
+  },
+  "wardrobeLayers": {
+    "enabled": true,
+    "verticalTop": "assets/phaser-migration-2/sprites/characters/human_vertical_top_layer.svg",
+    "verticalBottom": "assets/phaser-migration-2/sprites/characters/human_vertical_bottom_layer.svg",
+    "sideTop": "assets/phaser-migration-2/sprites/characters/human_side_top_layer.svg",
+    "sideBottom": "assets/phaser-migration-2/sprites/characters/human_side_bottom_layer.svg",
+    "runtimeColorSource": "entity.wardrobe.colors[entity.wardrobe.currentDay]",
+    "currentScope": "top and bottom color layers; hair, body, shoes, accessories and garment silhouettes remain separate future authored layers"
   },
   "characters": [
     {
       "profile": "resident",
       "runtimeIds": ["resident"],
-      "sheet": "assets/phaser-migration-2/sprites/characters/resident_8fps_sheet.svg",
-      "textureKey": "pm2-resident-sheet"
+      "verticalSheet": "assets/phaser-migration-2/sprites/characters/resident_8fps_sheet.svg",
+      "sideSheet": "assets/phaser-migration-2/sprites/characters/resident_side_8fps_sheet.svg",
+      "textureKey": "pm2-resident-sheet",
+      "sideTextureKey": "pm2-resident-side-sheet"
     },
     {
       "profile": "girlfriend",
       "runtimeIds": ["girlfriend", "lab_test_woman", "future female human profiles"],
-      "sheet": "assets/phaser-migration-2/sprites/characters/girlfriend_8fps_sheet.svg",
-      "textureKey": "pm2-girlfriend-sheet"
+      "verticalSheet": "assets/phaser-migration-2/sprites/characters/girlfriend_8fps_sheet.svg",
+      "sideSheet": "assets/phaser-migration-2/sprites/characters/girlfriend_side_8fps_sheet.svg",
+      "textureKey": "pm2-girlfriend-sheet",
+      "sideTextureKey": "pm2-girlfriend-side-sheet"
     },
     {
       "profile": "labSubject",
       "runtimeIds": ["lab_test_subject"],
-      "sheet": "assets/phaser-migration-2/sprites/characters/lab_subject_8fps_sheet.svg",
-      "textureKey": "pm2-lab-subject-sheet"
+      "verticalSheet": "assets/phaser-migration-2/sprites/characters/lab_subject_8fps_sheet.svg",
+      "sideSheet": "assets/phaser-migration-2/sprites/characters/lab_subject_side_8fps_sheet.svg",
+      "textureKey": "pm2-lab-subject-sheet",
+      "sideTextureKey": "pm2-lab-subject-side-sheet"
     },
     {
       "profile": "dog",
       "runtimeIds": ["dog", "future dog profiles"],
-      "sheet": "assets/phaser-migration-2/sprites/characters/dog_8fps_sheet.svg",
+      "verticalSheet": "assets/phaser-migration-2/sprites/characters/dog_8fps_sheet.svg",
       "textureKey": "pm2-dog-sheet"
     }
   ],
@@ -49,8 +66,10 @@
     "fallback": "none, running in place is rejected"
   },
   "knownLimitations": [
-    "These first directional sheets still require browser visual approval at mobile game scale.",
-    "Unique activity sheets beyond pool stance remain a separate required animation expansion.",
+    "These sheets require direct mobile browser approval at actual game scale.",
+    "The current art remains temporary bridge art and is not the final approved character illustration standard.",
+    "The layered renderer currently changes top and bottom colors but does not yet swap authored garment silhouettes, hair, accessories or shoes.",
+    "Unique activity sheets remain under the separate activity replacement program.",
     "The migration branch is not approved for main promotion until direct browser testing passes."
   ]
 }
