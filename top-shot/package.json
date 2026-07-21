@@ -8,8 +8,13 @@
     "build": "node scripts/build.js",
     "check": "node scripts/check.js",
     "assets:check": "node scripts/audit-assets.js",
-    "smoke": "node tests/simSmoke.js && node tests/cqcSmoke.js && node tests/stealthSmoke.js && node tests/modelSmoke.js",
-    "starshot-smoke": "node tests/starshotSmoke.js && node tests/visualStyleSmoke.js"
+    "smoke:sim": "node tests/simSmoke.js",
+    "smoke:cqc": "node tests/cqcSmoke.js",
+    "smoke:stealth": "node tests/stealthSmoke.js",
+    "smoke:model": "node tests/modelSmoke.js",
+    "smoke": "npm run smoke:sim && npm run smoke:cqc && npm run smoke:stealth && npm run smoke:model",
+    "starshot-smoke": "node tests/starshotSmoke.js && node tests/visualStyleSmoke.js && node tests/renderPipelineSmoke.js",
+    "validate": "npm run check && npm run assets:check && npm run starshot-smoke && npm run smoke && npm run build"
   },
   "devDependencies": {}
 }

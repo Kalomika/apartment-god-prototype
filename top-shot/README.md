@@ -46,8 +46,11 @@ Open `http://localhost:5174`.
 
 ```bash
 npm run check
+npm run assets:check
+npm run starshot-smoke
 npm run smoke
 npm run build
+npm run validate
 ```
 
 ## Render

@@ -34,6 +34,7 @@ Every change must be additive, corrective, or an explicitly approved replacement
 - Knife/blade attacks.
 - Punches, kicks, elbows, knees, sweeps, trips, throws, headbutts, disarms, and blocks where implemented.
 - CQC hitboxes.
+- CQC fighters remain on legal floor space during spawn, movement, recoil, reset, and mounting.
 - Body zones.
 - Grounded states.
 - Mounting without clipping through bodies.
@@ -59,6 +60,8 @@ Every change must be additive, corrective, or an explicitly approved replacement
 - `topShot3D.js` creates the Three.js world.
 - `actors3D.js` creates segmented placeholder actors with readable body parts.
 - `effects3D.js` handles effects and CQC pose stabilization.
+- The effects layer must not add a second scene render per update.
+- Deployment altitude is converted to world scale and combined with terrain elevation.
 - `debugOverlay3D.js` handles dev visualization on branches where it exists.
 - Top down camera remains the primary view.
 - Experimental presentation uses outline free toon materials, 8 FPS stepped poses over smooth world updates, and camera facing 2D impact cards.

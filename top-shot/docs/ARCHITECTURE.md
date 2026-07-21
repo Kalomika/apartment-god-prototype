@@ -19,7 +19,7 @@ Top Shot is a lightweight browser game using JavaScript modules and Three.js. It
 - `src/main.js`: bootstraps UI, world creation, mode switching, controls, and frame loop.
 - `src/state.js`: creates and manages battle state and fighter state.
 - `src/systems.js`: runs match simulation and fighter system updates.
-- `src/cqcLab.js`: isolated CQC Lab behavior, actions, hitboxes, mounting, grounded behavior, and CQC testing.
+- `src/cqcLab.js`: isolated CQC Lab behavior, actions, hitboxes, mounting, grounded behavior, and arena-aware CQC collision safety.
 - `src/brain.js`: high level AI intent selection.
 - `src/perception.js`: line of sight, sound, movement, cover, and navigation helpers.
 - `src/tactics.js`: tactical and combat choices where implemented.
@@ -27,7 +27,7 @@ Top Shot is a lightweight browser game using JavaScript modules and Three.js. It
 - `src/stealth.js`: stealth, detection, and search behavior.
 - `src/three/topShot3D.js`: Three.js world, terrain, camera, actor sync, markers, and collision debug.
 - `src/three/actors3D.js`: segmented placeholder actors, poses, weapons, limb volumes, and body zones.
-- `src/three/effects3D.js`: effects, parachutes, tracers, impact visuals, CQC actor stabilization.
+- `src/three/effects3D.js`: effects, parachutes, tracers, impact visuals, CQC actor stabilization, deployment/terrain lift, and a single-render effects hook.
 - `src/three/debugOverlay3D.js`: debug telemetry and Starshot snapshot display where present.
 - `src/three/visualStyle3D.js`: canonical outline free toon, 8 FPS pose sampling, and 2D effects presentation policy.
 
@@ -57,6 +57,7 @@ Current integration:
 - `actorMotion3D.js` is now called after simulation actor sync on the studio pipeline branch. Simulation remains authoritative while presentation position and facing ease toward it.
 - Rig poses sample at 8 FPS while rendering, input, simulation, camera, and collision continue at the normal update rate.
 - Impact and muzzle flashes use camera facing planes as the first 2D effects slice.
+- `tests/renderPipelineSmoke.js` protects one-render-per-update and deployment-height scaling.
 
 ## Starshot architecture target
 
@@ -87,9 +88,11 @@ Top Shot is a static site. From `top-shot/`:
 
 ```bash
 npm run check
+npm run assets:check
 npm run starshot-smoke
 npm run smoke
 npm run build
+npm run validate
 ```
 
 The Render Blueprint should use `top-shot/render.yaml` and publish `dist`.

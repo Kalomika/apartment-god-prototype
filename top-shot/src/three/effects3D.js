@@ -17,8 +17,11 @@ export function installTopShotEffects3D(world) {
     for (const entity of entities) {
       const actor = this.actors.get(entity.id);
       if (!actor) continue;
-      const altitude = entity.deployAltitude || 0;
-      actor.group.position.y = actor.group.position.y || altitude;
+      const altitude = Number.isFinite(entity.deployAltitude) ? Math.max(0, entity.deployAltitude) : 0;
+      const terrainLift = Number.isFinite(entity.elevation) ? Math.max(0, entity.elevation) : 0;
+      actor.group.position.y = terrainLift + altitude * 0.08;
+      const movementT = entity.climbT || entity.jumpT || entity.grapple?.t || 0;
+      if (movementT > 0) actor.group.position.y += Math.sin(Math.min(1, Math.max(0, movementT)) * Math.PI) * 0.08;
       actor.group.scale.setScalar((entity.preview ? 1.14 : 1.2) * (altitude > 0 ? 0.94 : 1));
       if (state?.mode === 'cqc') stabilizeCqcActor(actor, entity);
       syncParachute(this, entity, actor.group.position, altitude);
@@ -33,10 +36,19 @@ export function installTopShotEffects3D(world) {
   };
 
   const baseUpdate = world.update.bind(world);
+  const baseRender = world.renderer.render.bind(world.renderer);
+  world.__topShotEffectsState = null;
+  world.renderer.render = function renderWithEffects(scene, camera) {
+    if (world.__topShotEffectsState) syncEffectMeshes(world, world.__topShotEffectsState);
+    return baseRender(scene, camera);
+  };
   world.update = function updateWithEffects(dt, state) {
-    baseUpdate(dt, state);
-    syncEffectMeshes(this, state);
-    this.renderer.render(this.scene, this.camera);
+    this.__topShotEffectsState = state || null;
+    try {
+      return baseUpdate(dt, state);
+    } finally {
+      this.__topShotEffectsState = null;
+    }
   };
 
   installTopShotDebugOverlay3D(world);

@@ -12,9 +12,17 @@ on:
       - 'top-shot/**'
       - '.github/workflows/top-shot-checks.yml'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: top-shot-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   top-shot:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: top-shot
@@ -22,21 +30,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node 20
+      - name: Use Node 24
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
           cache-dependency-path: top-shot/package-lock.json
 
       - name: Install
-        run: npm install
+        run: npm ci
 
-      - name: Syntax check
-        run: npm run check
+      - name: Validate Top Shot
+        run: |
+          set +e
+          npm run validate > validation.log 2>&1
+          code=$?
+          cat validation.log
+          exit "$code"
 
-      - name: Smoke simulation
-        run: npm run smoke
-
-      - name: Build
-        run: npm run build
+      - name: Upload validation log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: top-shot-validation-log
+          path: top-shot/validation.log
+          if-no-files-found: error
+          retention-days: 7

@@ -1,22 +1,34 @@
 # Top Shot Handoff
 
-## Current status
+## Current continuation state
 
-Top Shot is a top down Three.js AI arena combat prototype isolated under `top-shot/`.
+Top Shot is isolated under `top-shot/`. Do not edit Apartment God main runtime for Top Shot work.
 
-The stable branch is `top-shot-v0-1`.
+Current stabilization branch:
 
-A backup branch was created before Starshot work:
+`top-shot-full-stabilization-2026-07-21`
 
-`backup/top-shot-v0-1-2026-07-10`
+Base branch:
 
-The current experimental Starshot branch is:
+`top-shot-studio-pipeline`
 
-`top-shot-starshot-engine`
+Backup branch:
 
-## Source of truth
+`backup/top-shot-studio-pipeline-2026-07-21-stabilization`
 
-Read these before any Top Shot task:
+Draft pull request:
+
+[PR #34, Stabilize full Top Shot runtime, CQC, rendering, and validation](https://github.com/Kalomika/apartment-god-prototype/pull/34)
+
+Verified runtime stabilization head:
+
+`4fb979094f6d730e348b81cb15fae1a5b87430ae`
+
+GitHub Actions run #328 passed on that runtime head after a clean `npm ci` and the complete `npm run validate` gate. Later documentation-only commits also passed the same read-only validation workflow. Stable `top-shot-v0-1` was not modified.
+
+## Required reading
+
+Read these before the next Top Shot task:
 
 1. `top-shot/AGENTS.md`
 2. `top-shot/docs/TOP_SHOT_HANDBOOK.md`
@@ -25,141 +37,97 @@ Read these before any Top Shot task:
 5. `top-shot/docs/FEATURE_INVENTORY.md`
 6. `top-shot/docs/ARCHITECTURE.md`
 7. `top-shot/docs/QA_CHECKLIST.md`
-8. Recent commits on the active branch
-9. Open PRs related to Top Shot
-10. The exact files to edit
+8. `top-shot/docs/COVERAGE_MATRIX.md`
+9. Recent commits on the active branch
+10. Open Top Shot pull requests
+11. The exact files to edit
 
-## Latest Starshot pass
+## Implemented in the 2026-07-21 stabilization pass
 
-### 2026-07-13 studio pipeline slice
+- Corrected CQC Lab spawn placement so both fighters begin on legal floor space instead of Fighter B spawning inside the center boulder.
+- Routed CQC movement, separation, recoil, reset placement, grounded recovery, and mount anchors through arena-aware collision correction.
+- Preserved body shots, sweeps, trips, throws, mounting, mounted ground attacks, mount escape, limb grabs, disarms, hitboxes, and auto CQC.
+- Fixed the stale stealth smoke expectation while retaining hard sight, sound suspicion, memory, and search-plan checks.
+- Added safe archetype fallbacks and initialized finite elevation, climb, jump, and object state for match fighters.
+- Strengthened simulation smoke to validate fighter and projectile state during deployment and combat, including the dive-without-velocity regression.
+- Removed the effects pipeline's duplicate scene render per frame.
+- Corrected deployment-height world scaling while preserving terrain elevation.
+- Added `tests/renderPipelineSmoke.js` to protect one render per update and deployment-height conversion.
+- Split smoke commands and added one complete `npm run validate` gate.
+- Moved CI to Node 24, clean `npm ci`, read-only permissions, concurrency cancellation, and failure-log artifacts.
+- Removed all temporary stabilization payload files and write-enabled workflow machinery before final verification.
 
-Active branch: `top-shot-studio-pipeline`, based on `top-shot-starshot-engine`.
+## Verification completed
 
-Visual direction is now explicit in code: no outlines, color and lighting separate forms, 8 FPS stepped character poses, smooth simulation and camera, 2D camera facing effects, detailed human proportioned 3D characters, painterly environment target, and future anatomically rich GLTF rigs. This pass is experimental and requires browser QA before any stable merge.
+The following passed locally from the exact GitHub Actions source snapshot:
 
-The asset audit and visual smoke are implemented. Browser capture, profiling, batch analytics, verified preview automation, texture atlas support, and production rig importing remain next slices.
+```bash
+npm ci
+npm run check
+npm run assets:check
+npm run starshot-smoke
+npm run smoke:sim
+npm run smoke:cqc
+npm run smoke:stealth
+npm run smoke:model
+npm run smoke
+npm run build
+npm run validate
+```
 
-Remote publishing: `top-shot-studio-pipeline` was published through the authenticated GitHub connector after ordinary HTTPS push failed for lack of checkout credentials. Backup branch: `backup/top-shot-studio-pipeline-2026-07-13`. This branch is intended for a separate Render preview, not replacement of stable.
+A separate 12-match repeated stress pass completed without invalid fighter or projectile fields.
 
-Branch:
+The runtime stabilization head and subsequent documentation-only heads passed the complete GitHub Actions validation workflow.
 
-`top-shot-starshot-engine`
+## Remaining known risks
 
-Implemented:
+- Browser QA has not been completed on this branch. Mount appearance, deployment height, camera-facing effects, top-down readability, `D` debug overlay, and `C` collision debug still require visual verification.
+- Several AI matchups can remain active beyond the 60-second smoke horizon. This is a pacing and balance problem, not an invalid-state failure.
+- The branch is experimental and remains a draft pull request. It is not approved for stable merge.
+- The live Render app may still show the stable deployment rather than this branch.
+- PR #23 remains relevant for debug overlay review, and PR #26 remains the studio-pipeline base for this stabilization work.
 
-- Hardened the Starshot Phase 0 Meta-System scaffold.
-- Corrected the earlier connector confusion and used direct file fetches before patching.
-- Wired `debugOverlay3D.js` to the Starshot debug snapshot layer.
-- Added `npm run starshot-smoke` and `top-shot/tests/starshotSmoke.js`.
-- Updated the canonical `top-shot/docs/DEVELOPMENT_LOG.md` with the Starshot hardening pass.
-
-Files changed in latest pass:
-
-- `top-shot/src/starshot/eventBus.js`
-- `top-shot/src/starshot/timingController.js`
-- `top-shot/src/starshot/actorRuntimeState.js`
-- `top-shot/src/starshot/debugSnapshot.js`
-- `top-shot/src/starshot/actorUpdatePipeline.js`
-- `top-shot/src/three/debugOverlay3D.js`
-- `top-shot/tests/starshotSmoke.js`
-- `top-shot/package.json`
-- `top-shot/docs/DEVELOPMENT_LOG.md`
-- `top-shot/docs/HANDOFF.md`
-- `top-shot/docs/ARCHITECTURE.md`
-- `top-shot/docs/QA_CHECKLIST.md`
-- `top-shot/docs/FEATURE_INVENTORY.md`
-
-What changed in gameplay:
-
-- No core gameplay decisions were intentionally changed.
-- The debug overlay now builds and displays Starshot snapshot telemetry when toggled with `D`.
-- Match logic and CQC Lab were preserved.
-
-## Current Starshot state
-
-`top-shot-starshot-engine` is intended for ambitious engine work.
-
-It now has two foundations:
-
-1. Phase 0 Meta-System scaffold and debug visibility.
-2. First motion/animation scaffold files.
-
-Existing first Starshot slice files:
-
-- `top-shot/src/three/animationState3D.js`
-- `top-shot/src/three/actorMotion3D.js`
-
-Current Meta-System scaffold files:
-
-- `top-shot/src/starshot/eventBus.js`
-- `top-shot/src/starshot/timingController.js`
-- `top-shot/src/starshot/actorRuntimeState.js`
-- `top-shot/src/starshot/debugSnapshot.js`
-- `top-shot/src/starshot/actorUpdatePipeline.js`
-
-Treat this branch as experimental and not merge ready until checks run and browser behavior is verified.
-
-## Important branches
+## Branch map
 
 Stable:
 
 `top-shot-v0-1`
 
-Backup:
+Studio visual base:
 
-`backup/top-shot-v0-1-2026-07-10`
+`top-shot-studio-pipeline`
 
-Experimental:
+Current stabilization branch:
+
+`top-shot-full-stabilization-2026-07-21`
+
+Current stabilization backup:
+
+`backup/top-shot-studio-pipeline-2026-07-21-stabilization`
+
+Experimental Starshot branch:
 
 `top-shot-starshot-engine`
 
-Debug overlay PR branch:
+Debug overlay branch:
 
 `top-shot-debug-overlay`
 
-## Required checks
+## Exact next step
 
-From `top-shot/`:
+Perform browser QA on a preview of `top-shot-full-stabilization-2026-07-21`. Verify CQC mount geometry from more than one camera angle, parachute and terrain height, one-render effects behavior, top-down silhouette readability, and independent `D` and `C` toggles. Then make a focused AI pacing pass for matchups that stall beyond 60 seconds before considering a merge into `top-shot-studio-pipeline` or stable.
 
-```bash
-npm run check
-npm run starshot-smoke
-npm run smoke
-npm run build
-```
+## Playable and review links
 
-## Manual QA focus
-
-- Match mode loads.
-- CQC Lab loads.
-- Fighter selection works.
-- Fighters move, fight, use cover, and use stealth.
-- Mounting and grounded CQC still work.
-- Projectiles and effects render.
-- Debug overlay toggles with `D`.
-- Collision debug toggles with `C`.
-- Starshot debug line appears in the overlay.
-- Per-fighter Starshot animation/motion/combat telemetry is readable.
-- No console errors on start.
-- No obvious visual squashing.
-
-## Known current constraints
-
-- PR #5 notes a known smoke issue: `suit_operative vs survival_commando` can fail with `Invalid fighter state`.
-- PR #23, the debug overlay PR, remains open.
-- This environment did not run local `npm` checks.
-- Starshot timing is visible in debug snapshots but is not yet a gameplay timing source.
-- Starshot actor update pipeline is scaffolded but is not yet the main actor presentation pipeline.
-
-## Do not touch without explicit reason
-
-- Apartment God main runtime.
-- Stable Top Shot runtime for risky changes.
-- Existing working CQC behavior unless replacing it is the explicit task.
+- [Top Shot live app](https://top-shot-prototype.onrender.com/)
+- [Top Shot CQC Lab](https://top-shot-prototype.onrender.com/?mode=cqc)
+- [Stabilization PR #34](https://github.com/Kalomika/apartment-god-prototype/pull/34)
+- [Stabilization branch](https://github.com/Kalomika/apartment-god-prototype/tree/top-shot-full-stabilization-2026-07-21/top-shot)
+- [Studio pipeline PR #26](https://github.com/Kalomika/apartment-god-prototype/pull/26)
 
 ## Required completion report
 
-Every coding pass must report:
+Every meaningful Top Shot coding pass must report:
 
 - Branch used
 - Backup branch used or created
@@ -170,4 +138,5 @@ Every coding pass must report:
 - What failed or was deferred
 - Known risks
 - Exact next step
-- PR link or branch link
+- Pull request or branch link
+- Clickable playable links

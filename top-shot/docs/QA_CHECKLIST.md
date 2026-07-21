@@ -10,8 +10,13 @@ From `top-shot/`:
 npm run check
 npm run assets:check
 npm run starshot-smoke
+npm run smoke:sim
+npm run smoke:cqc
+npm run smoke:stealth
+npm run smoke:model
 npm run smoke
 npm run build
+npm run validate
 ```
 
 Do not claim these passed unless they were actually run.
@@ -50,6 +55,7 @@ Do not claim these passed unless they were actually run.
 - Mounted fighter can attempt escape.
 - Ground attacks or mounted attacks display correctly.
 - Hitbox debug data remains coherent.
+- CQC fighters never enter padded prop collision during spawn, movement, recoil, reset, or mount.
 
 ## 3D checks
 
@@ -65,6 +71,8 @@ Do not claim these passed unless they were actually run.
 - Toon color bands separate forms through light and color.
 - Character poses visibly step at 8 FPS without reducing camera, input, collision, or simulation rate.
 - Muzzle and impact flashes face the camera as 2D cards.
+- Effects installation causes exactly one renderer call per world update.
+- Deployment height uses world scaling and preserves terrain elevation.
 
 ## Debug checks
 
@@ -88,9 +96,9 @@ For experimental Starshot work, also verify:
 - Branch is clearly marked experimental if not merge-ready.
 - `npm run starshot-smoke` passes before using Starshot scaffold as a dependency for larger systems.
 
-## Known current smoke warning
+## Current validation note
 
-PR #5 documents a known Top Shot smoke issue: `suit_operative vs survival_commando` can fail with `Invalid fighter state`. Do not claim full `npm run smoke` health until that known issue is verified fixed.
+The previous invalid-state and stale stealth-smoke blockers are mitigated on `top-shot-full-stabilization-2026-07-21`. Keep the finite-state diagnostics and direct dive regression until this work is integrated and repeatedly verified. Browser QA remains required.
 
 ## Merge rule
 
