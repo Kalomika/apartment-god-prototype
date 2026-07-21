@@ -1,0 +1,118 @@
+name: P2 Modern Procedural Reconstruction
+
+on:
+  push:
+    branches:
+      - phaser-migration-2
+    paths:
+      - '.github/workflows/p2-modern-procedural-reconstruction.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  reconstruct-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout latest Phaser Migration 2
+        uses: actions/checkout@v4
+        with:
+          ref: phaser-migration-2
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Verify repository, branch, backup, and standing rules
+        run: |
+          test "$GITHUB_REPOSITORY" = "Kalomika/apartment-god-prototype"
+          test "$(git branch --show-current)" = "phaser-migration-2"
+          git ls-remote --exit-code --heads origin backup/phaser-migration-2-before-modern-procedural-reconstruction-2026-07-21
+          test -f docs/APARTMENT_GOD_DEVELOPMENT_HANDBOOK.md
+          test -f docs/APARTMENT_GOD_BACKUP_POLICY.md
+          test -f docs/APARTMENT_GOD_NO_BROAD_IMPLEMENTATION_RULE.md
+          test -f docs/APARTMENT_GOD_PNG_UPLOAD_FALLBACK.md
+          test -f docs/APARTMENT_GOD_IDEA_LOGGING_RULE.md
+          test -f apartment-god-production/ONGOING_DESIGN_LOG.md
+          test -f apartment-god-production/DEVELOPMENT_MATRIX.md
+          test -f apartment-god-production/APARTMENT_GOD_IDEA_BIBLE_APPEND_2026-07-21_P2_MODERN_PROCEDURAL_RECONSTRUCTION.md
+          git log -15 --oneline
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install project dependencies
+        run: npm install --no-package-lock
+
+      - name: Apply the native Phaser reconstruction
+        run: |
+          node scripts/install-p2-modern-procedural-reconstruction.mjs
+          node scripts/patch-p2-modern-procedural-cache-urls.mjs
+          node --check src/phaserMigration2ModernProceduralRenderer.js
+          node --check src/phaserMigration2Runtime.js
+          node --check src/phaserMigration2GameplayParityBridge.js
+          node --check src/phaserMigration2ReferenceCompletion.js
+          node --check src/phoneUI.js
+          node --check src/cameraNavigation.js
+
+      - name: Verify source replacement contract
+        run: |
+          grep -q "createModernProceduralRoom" src/phaserMigration2Runtime.js
+          grep -q "createModernProceduralObject" src/phaserMigration2Runtime.js
+          grep -q "refreshModernProceduralObject" src/phaserMigration2Runtime.js
+          ! grep -q "this.add.image(room.x + room.w / 2" src/phaserMigration2Runtime.js
+          ! grep -q "this.add.image(object.x + object.w / 2" src/phaserMigration2Runtime.js
+          grep -q "sprite.pm2ModernProcedural" src/phaserMigration2GameplayParityBridge.js
+          grep -q "if (sprite.pm2ModernProcedural) continue" src/phaserMigration2ReferenceCompletion.js
+          grep -q "drawSleepBlanket" src/phaserMigration2ReferenceCompletion.js
+          grep -q "bindImmediateTap(up" src/phoneUI.js
+          grep -q "bindImmediateTap(blueprint" src/cameraNavigation.js
+          grep -q "touch-action:manipulation" styles.css
+          ! grep -q "drawPhaserEnvironment" src/phaserMigration2Runtime.js
+          ! grep -q "textures.addCanvas" src/phaserMigration2Runtime.js
+
+      - name: Repository checks
+        run: npm run check
+
+      - name: Full unit and regression tests
+        run: npm test
+
+      - name: Static build
+        run: npm run build
+
+      - name: Verify built reconstruction
+        run: |
+          test -f dist/src/phaserMigration2ModernProceduralRenderer.js
+          test -f dist/src/phaserMigration2Runtime.js
+          test -f dist/src/phaserMigration2GameplayParityBridge.js
+          test -f dist/src/phaserMigration2ReferenceCompletion.js
+          grep -q "createModernProceduralRoom" dist/src/phaserMigration2Runtime.js
+          grep -q "MODERN_PROCEDURAL_OBJECT_KINDS" dist/src/phaserMigration2ModernProceduralRenderer.js
+          grep -q "drawSleepBlanket" dist/src/phaserMigration2ReferenceCompletion.js
+          ! grep -q "this.add.image(room.x + room.w / 2" dist/src/phaserMigration2Runtime.js
+          ! grep -q "this.add.image(object.x + object.w / 2" dist/src/phaserMigration2Runtime.js
+
+      - name: Write completion log and matrix patch
+        run: node scripts/finalize-p2-modern-procedural-reconstruction.mjs
+
+      - name: Commit verified reconstruction
+        run: |
+          git config user.name "Apartment God Reconstruction Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add \
+            src/phaserMigration2ModernProceduralRenderer.js \
+            src/phaserMigration2Runtime.js \
+            src/phaserMigration2GameplayParityBridge.js \
+            src/phaserMigration2ReferenceCompletion.js \
+            src/phoneUI.js \
+            src/cameraNavigation.js \
+            src/main.js \
+            styles.css \
+            tests/phaser-migration-2-modern-procedural-reconstruction.test.js \
+            apartment-god-production/ONGOING_DESIGN_LOG_APPEND_2026-07-21_P2_MODERN_PROCEDURAL_RECONSTRUCTION_READY.md \
+            apartment-god-production/DEVELOPMENT_MATRIX_PATCH_2026-07-21_P2_MODERN_PROCEDURAL_RECONSTRUCTION_READY.md
+          git commit -m "Reconstruct P2 as a modern procedural Phaser game"
+          git pull --rebase origin phaser-migration-2
+          git push origin HEAD:phaser-migration-2
