@@ -18,13 +18,13 @@ Backup branch:
 
 Draft pull request:
 
-[PR #34, Stabilize full Top Shot validation and smoke coverage](https://github.com/Kalomika/apartment-god-prototype/pull/34)
+[PR #34, Stabilize full Top Shot runtime, CQC, rendering, and validation](https://github.com/Kalomika/apartment-god-prototype/pull/34)
 
-Final verified head for this pass:
+Verified runtime stabilization head:
 
 `4fb979094f6d730e348b81cb15fae1a5b87430ae`
 
-GitHub Actions run #328 passed on that head after a clean `npm ci` and the complete `npm run validate` gate. Stable `top-shot-v0-1` was not modified.
+GitHub Actions run #328 passed on that runtime head after a clean `npm ci` and the complete `npm run validate` gate. Later documentation-only commits also passed the same read-only validation workflow. Stable `top-shot-v0-1` was not modified.
 
 ## Required reading
 
@@ -77,7 +77,7 @@ npm run validate
 
 A separate 12-match repeated stress pass completed without invalid fighter or projectile fields.
 
-Final GitHub Actions run #328 passed on commit `4fb979094f6d730e348b81cb15fae1a5b87430ae`.
+The runtime stabilization head and subsequent documentation-only heads passed the complete GitHub Actions validation workflow.
 
 ## Remaining known risks
 
