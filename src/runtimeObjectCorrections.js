@@ -7,7 +7,7 @@ const VEHICLE_KINDS = new Set(['car', 'bike', 'motorbike', 'atv']);
 const COLLISION_KIND = 'soccer_field';
 
 export function applyRuntimeObjectCorrections() {
-  patchObject('sink', { x: 716, y: 98, w: 44, h: 54, solid: true, enterable: false, facing: 'west' });
+  patchObject('sink', { x: 665, y: 88, w: 62, h: 52, solid: true, enterable: false, facing: 'diagonal_in' });
   patchObject('dining_table', { x: 498, y: 230, w: 174, h: 58, solid: true, enterable: false });
 
   for (const id of [
