@@ -95,10 +95,9 @@ describe('Phaser full audit regressions', () => {
   it('removes every managed surface listener during scene cleanup', () => {
     const listeners = new Map();
     const surface = {
-      addEventListener(type, handler, options) { listeners.set(`${type}:${String(options)}`, handler); },
-      removeEventListener(type, handler, options) {
-        const key = `${type}:${String(options)}`;
-        if (listeners.get(key) === handler) listeners.delete(key);
+      addEventListener(type, handler) { listeners.set(type, handler); },
+      removeEventListener(type, handler) {
+        if (listeners.get(type) === handler) listeners.delete(type);
       }
     };
     globalThis.window = { setTimeout, clearTimeout };
