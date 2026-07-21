@@ -8,6 +8,8 @@ await import('./fit.js?v=20260719-p2-mobile-gameplay-parity');
 const { bootPhaserMigration2Game } = await import('./phaserMigration2Runtime.js?v=20260719-p2-visual-completion');
 const { installPhaserMigration2GameplayParityBridge } = await import('./phaserMigration2GameplayParityBridge.js?v=20260719-p2-mobile-gameplay-parity');
 const { installPhaserMigration2BackdropSafety } = await import('./phaserMigration2BackdropSafety.js?v=20260721-p2-nonblack-backdrop');
+const { installPhaserMigration2HudPlacement } = await import('./phaserMigration2HudPlacement.js?v=20260721-p2-hud-placement');
 const game = await bootPhaserMigration2Game();
 installPhaserMigration2BackdropSafety(game, gameCanvas);
+installPhaserMigration2HudPlacement(game);
 installPhaserMigration2GameplayParityBridge(game);
