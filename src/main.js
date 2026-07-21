@@ -9,7 +9,9 @@ const { bootPhaserMigration2Game } = await import('./phaserMigration2Runtime.js?
 const { installPhaserMigration2GameplayParityBridge } = await import('./phaserMigration2GameplayParityBridge.js?v=20260721-p2-hud-off-canvas');
 const { installPhaserMigration2BackdropSafety } = await import('./phaserMigration2BackdropSafety.js?v=20260721-p2-nonblack-backdrop');
 const { installPhaserMigration2HudPlacement } = await import('./phaserMigration2HudPlacement.js?v=20260721-p2-hud-placement');
+const { installPhaserMigration2LayerFallbackSafety } = await import('./phaserMigration2LayerFallbackSafety.js?v=20260721-p2-layer-fallback');
 const game = await bootPhaserMigration2Game();
 installPhaserMigration2BackdropSafety(game, gameCanvas);
 installPhaserMigration2HudPlacement(game);
 installPhaserMigration2GameplayParityBridge(game);
+installPhaserMigration2LayerFallbackSafety(game);
