@@ -28,39 +28,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node 20
+      - name: Use Node 24
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
           cache-dependency-path: top-shot/package-lock.json
 
-      - name: Install
-        run: npm ci
-
-      - name: Syntax check
-        run: npm run check
-
-      - name: Asset integrity
-        run: npm run assets:check
-
-      - name: Starshot smoke
-        run: npm run starshot-smoke
-
-      - name: Simulation smoke
-        run: npm run smoke:sim
-
-      - name: CQC smoke
-        run: npm run smoke:cqc
-
-      - name: Stealth smoke
-        run: npm run smoke:stealth
-
-      - name: Model smoke
-        run: npm run smoke:model
-
-      - name: Full smoke gate
-        run: npm run smoke
-
-      - name: Build
-        run: npm run build
+      - name: Validate Top Shot
+        run: npm run validate
