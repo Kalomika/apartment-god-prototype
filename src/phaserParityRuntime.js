@@ -7,14 +7,15 @@ import { updateAutoHooks } from './autoHooks.js';
 import { updateAutonomy } from './autonomy.js';
 import { updateCalendarRuntime } from './calendarRuntime.js';
 import { updateLifeQualitySystem } from './lifeQualitySystem.js';
-import { installCameraSwipeNavigation, updateCameraTransition } from './cameraNavigation.js';
+import { updateCameraTransition } from './cameraNavigation.js';
+import { installManagedCameraSwipeNavigation } from './managedCameraSwipeNavigation.js?v=20260721-full-audit-repair';
 import { loadRefreshState, saveRefreshState, updateRefreshAutosave } from './saveSystem.js';
 import { applyRuntimeRegressionGuards } from './runtimeRegressionGuards.js';
 import { updatePoolActivity } from './poolActivitySystem.js';
 import { updateHouseTidiness } from './tidinessSystem.js';
 import { advanceGameClock } from './timeSystem.js';
 import { installFrontYardWorld, updateFrontYardEnvironment } from './frontYardDriveway.js';
-import { applyRuntimeObjectCorrections } from './runtimeObjectCorrections.js?v=20260717-phaser-parity';
+import { applyRuntimeObjectCorrections } from './runtimeObjectCorrections.js?v=20260721-full-audit-repair';
 import { updateArcadeSystem } from './arcadeSystem.js';
 import { updateBasketballSystem } from './basketballSystem.js';
 import { updateOffsiteHomeView } from './offsiteOverlay.js';
@@ -25,7 +26,7 @@ import {
   clearCharacterVisuals,
   registerCharacterAnimations,
   syncCharacterVisuals
-} from './phaserCharacterAnimationSystem.js?v=20260717-phaser-parity';
+} from './phaserCharacterAnimationSystem.js?v=20260721-full-audit-repair';
 
 installFrontYardWorld();
 
@@ -79,6 +80,11 @@ function createApartmentGodParityScene(Phaser) {
       this.hiddenTicker = null;
       this.assetFailures = [];
       this.apartmentGodActorVisuals = new Map();
+      this.beforeUnloadHandler = null;
+      this.visibilityHandler = null;
+      this.pointerHandler = null;
+      this.cameraSwipeCleanup = null;
+      this.runtimeCleaned = false;
     }
 
     preload() {
@@ -94,6 +100,7 @@ function createApartmentGodParityScene(Phaser) {
 
     create() {
       try {
+        this.runtimeCleaned = false;
         if (this.assetFailures.length) throw new Error(`Required Phaser actor assets failed: ${this.assetFailures.join(', ')}`);
         this.state = createState();
         this.state.runtimeRenderer = 'phaser-parity';
@@ -115,18 +122,23 @@ function createApartmentGodParityScene(Phaser) {
         this.foregroundImage = this.add.image(0, 0, 'ag-phaser-foreground').setOrigin(0, 0).setDepth(90);
 
         registerCharacterAnimations(this);
-        installCameraSwipeNavigation(this.state, this.game.canvas);
+        this.cameraSwipeCleanup = installManagedCameraSwipeNavigation(this.state, this.game.canvas);
         this.ui = createUi(this.state, this.game.canvas, { externalInput: true });
-        this.input.on('pointerdown', pointer => this.handleGamePointer(pointer));
+        this.pointerHandler = pointer => this.handleGamePointer(pointer);
+        this.input.on('pointerdown', this.pointerHandler);
 
-        window.addEventListener('beforeunload', () => saveRefreshState(this.state));
-        document.addEventListener('visibilitychange', () => {
+        this.beforeUnloadHandler = () => saveRefreshState(this.state);
+        this.visibilityHandler = () => {
           this.state.backgroundMode = document.hidden;
+          this.lastHiddenTick = performance.now();
           if (!document.hidden) this.state.saveStatus = { message: 'Returned from background' };
-        });
+        };
+        window.addEventListener('beforeunload', this.beforeUnloadHandler);
+        document.addEventListener('visibilitychange', this.visibilityHandler);
         this.lastHiddenTick = performance.now();
         this.hiddenTicker = window.setInterval(() => this.hiddenTick(), 1000);
-        window.addEventListener('beforeunload', () => window.clearInterval(this.hiddenTicker));
+        this.events.once('shutdown', () => this.cleanupRuntime());
+        this.events.once('destroy', () => this.cleanupRuntime());
 
         this.registry.set('apartmentGodRuntime', 'full-phaser-parity');
         this.registry.set('apartmentGodCharacterFps', CHARACTER_ANIMATION_FPS);
@@ -189,6 +201,22 @@ function createApartmentGodParityScene(Phaser) {
       this.foregroundTexture.refresh();
     }
 
+    cleanupRuntime() {
+      if (this.runtimeCleaned) return;
+      this.runtimeCleaned = true;
+      if (this.beforeUnloadHandler) window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+      if (this.visibilityHandler) document.removeEventListener('visibilitychange', this.visibilityHandler);
+      if (this.hiddenTicker != null) window.clearInterval(this.hiddenTicker);
+      if (this.pointerHandler) this.input?.off?.('pointerdown', this.pointerHandler);
+      this.cameraSwipeCleanup?.();
+      this.cameraSwipeCleanup = null;
+      this.beforeUnloadHandler = null;
+      this.visibilityHandler = null;
+      this.pointerHandler = null;
+      this.hiddenTicker = null;
+      if (this.state) this.state.backgroundMode = false;
+    }
+
     recoverFrame(error, boot = false) {
       this.frameErrorCount += 1;
       console.error('[Apartment God] Phaser parity runtime recovered instead of blanking.', error);
@@ -203,6 +231,10 @@ function createApartmentGodParityScene(Phaser) {
           entity.pose = 'stand';
           entity.blockedT = 0;
           entity.recoveryCount = 0;
+          entity.actionT = 0;
+          entity.actionTotal = 0;
+          entity.currentActionId = null;
+          entity.activityObjectId = null;
         }
         this.state.saveStatus = { message: 'Phaser parity runtime error handled' };
         if (this.frameErrorCount > 2) this.state.paused = true;
@@ -260,14 +292,24 @@ function sanitizeRuntimeState(state) {
   state.lifeControl ??= { mode: 'semi_auto', pendingChoices: [] };
   state.lifeQuality ??= { lastMonthIndex: null, lastYearIndex: null, reviews: [], yearReviews: [] };
   applyRuntimeObjectCorrections();
-  for (const entity of state.entities) {
-    entity.path = Array.isArray(entity.path) ? entity.path : [];
-    entity.needs ??= {};
-    entity.skills ??= {};
-    entity.pose ||= 'stand';
-    entity.action ||= 'Idle';
-    entity.floor = Number.isInteger(entity.floor) ? entity.floor : 0;
+  for (const entity of state.entities) normalizeRuntimeEntityForTest(entity);
+}
+
+export function normalizeRuntimeEntityForTest(entity) {
+  entity.path = Array.isArray(entity.path) ? entity.path : [];
+  entity.needs ??= {};
+  entity.skills ??= {};
+  entity.pose ||= 'stand';
+  entity.action ||= 'Idle';
+  entity.floor = Number.isInteger(entity.floor) ? entity.floor : 0;
+  entity.actionT = Number.isFinite(entity.actionT) ? Math.max(0, entity.actionT) : 0;
+  entity.actionTotal = Number.isFinite(entity.actionTotal) ? Math.max(0, entity.actionTotal) : 0;
+  if (!(entity.actionT > 0)) {
+    entity.actionTotal = 0;
+    entity.currentActionId = null;
+    entity.activityObjectId = null;
   }
+  return entity;
 }
 
 function drawHardBootError(canvas, error) {
@@ -299,6 +341,7 @@ function advanceSimulation(state, rawDt) {
   const gateSnapshots = captureGateTraversalState(state);
   requestGateForApproachingEntities(state);
   for (const entity of state.entities) {
+    if (entity.target?.type === 'object' && entity.target.objectId) entity.activityObjectId = entity.target.objectId;
     updateMovement(state, entity, dt);
     resolveArrival(state, entity);
   }
