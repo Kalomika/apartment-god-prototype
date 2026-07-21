@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { calculateActionProgressForTest } from '../src/phaserParityCorrections.js';
-import { normalizeRuntimeEntityForTest } from '../src/phaserParityRuntime.js';
+import { normalizeRuntimeEntityForTest } from '../src/runtimeStateNormalization.js';
 import { installManagedCameraSwipeNavigation, swipeTargetForTest } from '../src/managedCameraSwipeNavigation.js';
 import { mergeSavedObjectsForTest, mergeSavedStateForTest } from '../src/saveSystem.js';
 import { applyRuntimeObjectCorrections } from '../src/runtimeObjectCorrections.js';
