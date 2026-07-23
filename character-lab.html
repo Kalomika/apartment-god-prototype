@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apartment God — Modular Character Lab</title>
+    <style>
+      body { margin:0; background:#0f1420; color:#e7ddc7; font-family: system-ui, sans-serif; padding:20px; }
+      h1 { font-size:20px; color:#f1c66a; margin:0 0 4px; }
+      .sub { color:#9aa3b2; font-size:13px; margin:0 0 18px; }
+      h2 { font-size:15px; color:#f1c66a; margin:22px 0 10px; border-bottom:1px solid #2a3242; padding-bottom:6px; }
+      .grid { display:flex; flex-wrap:wrap; gap:14px; }
+      .cell { background:#171e2b; border:1px solid #2a3242; border-radius:10px; padding:8px; width:132px; text-align:center; }
+      .art { background:#c9b48f; border-radius:6px; display:flex; align-items:center; justify-content:center; height:118px; }
+      .art svg { display:block; }
+      .lbl { font-size:11px; color:#c3ccda; margin-top:6px; line-height:1.25; }
+    </style>
+  </head>
+  <body>
+    <h1>Apartment God — Modular Character Lab</h1>
+    <p class="sub">Proving slice: layered swappable top-down character (base body + hair + top + bottom + shoes + skin). First-pass interpretation on <code>claude/true-topdown-20260723</code>. Not yet wired into the game runtime.</p>
+    <div id="lab"></div>
+    <script type="module" src="./src/characterLab.js"></script>
+  </body>
+</html>
