@@ -16,6 +16,10 @@
 
 let __uid = 0;
 
+// Flat-anime "cut line" ink + single-source cel shade (light top-left, shade bottom-right).
+const INK = '#16181f';
+const SHADE = 'rgba(20,16,26,0.16)';
+
 export const SKIN_TONES = { light:'#e9c3a0', tan:'#cf9a6d', brown:'#9c6238', deep:'#5f3b23' };
 export const HAIR_STYLES = ['short','buzz','bob','ponytail','long','bald'];
 export const HAIR_COLORS = { black:'#1d1a20', brown:'#402c1e', blonde:'#c2a049', auburn:'#722f1c', ash:'#7f858f', teal:'#2c6560', magenta:'#8d2f63' };
@@ -108,7 +112,7 @@ function buildRig(pose){
 function shadow(){ return `<ellipse cx="32" cy="56" rx="14" ry="4.5" fill="rgba(0,0,0,0.22)"/>`; }
 
 function legsBase(rig,ap){ // thighs+calves as skin (Fire Pro: base body always present)
-  return rig.legs.map(l=>`<rect x="${l.x-3}" y="${l.y}" width="6" height="${l.len}" rx="3" fill="${ap.skinHex}"/>`).join('');
+  return rig.legs.map(l=>`<rect x="${l.x-3}" y="${l.y}" width="6" height="${l.len}" rx="3" fill="${ap.skinHex}" stroke="${INK}" stroke-width="0.7"/>`).join('');
 }
 function socksPart(rig,ap){
   if(!ap.socksHex) return '';
@@ -132,12 +136,13 @@ function bottomClothing(rig,ap){
 }
 function torsoBase(rig,ap){ // bare chest (male) / sports bra (female) — ALWAYS
   const t=rig.torso, sw=t.shoulderW, ww=t.waistW, top=t.y, bot=t.y+t.h;
-  const shape = (fill)=>`<path d="M ${32-sw/2} ${top+3} Q ${32-sw/2-2} ${top} 32 ${top} Q ${32+sw/2+2} ${top} ${32+sw/2} ${top+3} L ${32+ww/2} ${bot} Q 32 ${bot+2.5} ${32-ww/2} ${bot} Z" fill="${fill}"/>`;
-  let g = shape(ap.skinHex);
-  if(ap.build==='female'){ // sports two-piece top band
+  const shape = (fill,stroke)=>`<path d="M ${32-sw/2} ${top+3} Q ${32-sw/2-2} ${top} 32 ${top} Q ${32+sw/2+2} ${top} ${32+sw/2} ${top+3} L ${32+ww/2} ${bot} Q 32 ${bot+2.5} ${32-ww/2} ${bot} Z" fill="${fill}"${stroke?` stroke="${INK}" stroke-width="0.7"`:''}/>`;
+  let g = shape(ap.skinHex,true);
+  // female two-piece band drawn only when it would be visible (no top, or a tank that exposes it)
+  if(ap.build==='female' && (ap.top==='none' || ap.top==='tank')){
     g += `<path d="M ${32-sw/2+1} ${top+4} L ${32+sw/2-1} ${top+4} L ${32+ww/2} ${top+t.h*0.5} Q 32 ${top+t.h*0.5+2} ${32-ww/2} ${top+t.h*0.5} Z" fill="${ap.baseHex}"/>`;
     g += `<path d="M ${31} ${top+5} Q 32 ${top+8} 33 ${top+5}" stroke="rgba(0,0,0,0.12)" stroke-width="1.4" fill="none"/>`; // subtle bust read (implied, no detail)
-  } else {
+  } else if(ap.build==='male'){
     g += `<path d="M 30 ${top+5} Q 32 ${top+7} 34 ${top+5}" stroke="rgba(0,0,0,0.10)" stroke-width="1" fill="none"/>`; // pec line
   }
   return g;
@@ -153,9 +158,17 @@ function topClothing(rig,ap){
 }
 function armsPart(rig,ap){
   const sleeve = ap.top==='none'||ap.top==='tank' ? ap.skinHex : ap.topHex;
-  return rig.arms.map(a=>`<g><rect x="${a.x-2.3}" y="${a.y}" width="4.6" height="${a.len}" rx="2.3" fill="${sleeve}" transform="rotate(${a.rot} ${a.x} ${a.y})"/><circle cx="${a.hx}" cy="${a.hy}" r="2.5" fill="${ap.skinHex}"/></g>`).join('');
+  return rig.arms.map(a=>`<g><rect x="${a.x-2.3}" y="${a.y}" width="4.6" height="${a.len}" rx="2.3" fill="${sleeve}" stroke="${INK}" stroke-width="0.6" transform="rotate(${a.rot} ${a.x} ${a.y})"/><circle cx="${a.hx}" cy="${a.hy}" r="2.5" fill="${ap.skinHex}" stroke="${INK}" stroke-width="0.6"/></g>`).join('');
 }
-function headPart(rig,ap){ return `<ellipse cx="32" cy="${rig.headY}" rx="${HEAD_RX}" ry="${HEAD_RY}" fill="${ap.skinHex}"/>`; }
+// single-source cel shade over torso (contained to torso silhouette; light = top-left)
+function torsoShade(rig){
+  const t=rig.torso, sw=t.shoulderW, ww=t.waistW, top=t.y, bot=t.y+t.h;
+  return `<path d="M 32 ${top+1} Q ${32+sw/2+2} ${top} ${32+sw/2} ${top+3} L ${32+ww/2} ${bot} Q 32 ${bot+2.5} 32 ${bot} Z" fill="${SHADE}"/>`;
+}
+function headPart(rig,ap){
+  return `<ellipse cx="32" cy="${rig.headY}" rx="${HEAD_RX}" ry="${HEAD_RY}" fill="${ap.skinHex}" stroke="${INK}" stroke-width="0.7"/>`
+    + `<path d="M 32 ${rig.headY-HEAD_RY+1} A ${HEAD_RX} ${HEAD_RY} 0 0 1 32 ${rig.headY+HEAD_RY-1} Q ${32+2} ${rig.headY} 32 ${rig.headY-HEAD_RY+1} Z" fill="${SHADE}"/>`;
+}
 
 function facialHairPart(rig,ap,fv){
   if(ap.facialHair==='none') return '';
@@ -208,7 +221,7 @@ export function buildCharacterSVG(appearance={},direction='south',pose='idle',si
   const body=[
     legsBase(rig,ap), socksPart(rig,ap), shoesPart(rig,ap),
     hipsBase(rig,ap), bottomClothing(rig,ap),
-    torsoBase(rig,ap), topClothing(rig,ap),
+    torsoBase(rig,ap), topClothing(rig,ap), torsoShade(rig),
     armsPart(rig,ap),
     headPart(rig,ap), facialHairPart(rig,ap,fv), hairPart(rig,ap,fv)
   ].join('');

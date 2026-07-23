@@ -100,3 +100,18 @@ New directives folded into `src/character/modularCharacter.js` and `src/characte
   path (edge case, follow-up); dog still uses old renderer (separate pass).
 - **Not changed:** `main`, Render, boot handshake, `phaserParityRuntime.js` scale/boot. Backup branch
   `backup/phaser-migration-pre-claude-character-system-20260723` remains the restore point.
+
+---
+
+## Update 4 (same day) — flat-anime grit pass
+
+Applied the aesthetic-refinement pass Kam asked for (screenshots weren't reading the change at scale):
+- **Ink "cut line" outlines** on head/torso/arms/legs (Ghost in the Shell flat-cel line look).
+- **Single-source cel shade** (one flat darker tone, light top-left) — no painted/edge/rim lighting.
+- **Fixed female layer z-order** — two-piece band now only renders when visible (no top, or a tank),
+  so it no longer peeks above a shirt.
+- **Bumped in-game sprite scale** (DISPLAY 62→72) so the detail actually reads at room scale.
+- **Testing:** eslint 0 errors; lab re-render 30 sprites 0 errors; game rebuild + headless boot across
+  6 floors = 0 page errors; confirmed in-game. Screenshots shared.
+- **Still open (next):** sleep pose is upright (needs a true lying-in-bed pose — most visible remaining
+  issue); port grit to iso branch; dog modular pass; refine B&W lineart to clean outlines.

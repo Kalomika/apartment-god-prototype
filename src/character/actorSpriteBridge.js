@@ -5,7 +5,7 @@
 import { characterDataUri } from './modularCharacter.js';
 
 const RASTER = 256;   // offscreen raster resolution (crisp)
-const DISPLAY = 62;   // on-canvas draw size (px), tuned so feet/shadow sit at the actor origin
+const DISPLAY = 72;   // on-canvas draw size (px), tuned so feet/shadow sit at the actor origin
 const cache = new Map();
 
 // actor.id -> appearance record (flat anime cel look; single soft shadow comes from the SVG itself)
