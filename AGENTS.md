@@ -27,12 +27,22 @@ This repository currently contains legacy Top Shot branches as well as Apartment
 5. Commit every meaningful change with a clear message.
 6. Update repo memory files before ending a coding pass.
 
+## Apartment God Studio Protocol
+
+Before any Apartment God assignment, read `studio/START_HERE.md` and follow the repository-native studio protocol.
+
+A worker must inspect the current branch head, recent commits, active pull requests, append files, development matrix, tasks, and claims before selecting work. Claim one eligible bounded assignment before implementation, obey department ownership, record evidence, update both human-readable and machine-readable studio state, and release or hand off the claim after work.
+
+The studio protocol does not authorize runtime edits, updates to `main`, deployment, Render setting changes, or work in `Kalomika/ai-rpg-engine`.
+
 ## Repo memory rule
 
 Every coding pass must update at least:
 
 - `docs/DEVELOPMENT_LOG.md`
 - `docs/HANDOFF.md`
+
+Apartment God work must also update the canonical production memory required by its handbook, including `apartment-god-production/ONGOING_DESIGN_LOG.md` and `apartment-god-production/DEVELOPMENT_MATRIX.md`, or clearly named sidecar append and patch files when canonical editing is unsafe.
 
 Large structural changes should also update:
 
