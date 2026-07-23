@@ -48,3 +48,25 @@
 - **Follow-ups:** (1) Kam review/approve art direction. (2) Port to `claude/iso-20260723`.
   (3) Expand pose set (yoga, cook, guitar, read, shower) using `reference/visual_targets/`.
   (4) Integrate into runtime behind fallback. (5) Dog/pet modular pass.
+
+---
+
+## Update 2 (same day) — spec upgrade per Kam's expanded direction
+
+New directives folded into `src/character/modularCharacter.js` and `src/characterLab.js`:
+- **8 directions** (S/SE/E/NE/N/NW/W/SW) for all characters — logged as a standing DIRECTIVE
+  (Kam noted this should have been in the dev logs earlier; now recorded here + in the matrix patch +
+  `IDEA_LOG_CLAUDE_20260723.md`).
+- **Faceless sprites** — removed eye/face detail; only facial hair (none/stubble/mustache/goatee/beard).
+  Late-'80s/'90s rotoscope + Blade Runner/Bebop noir target.
+- **Fire Pro-style deep layering** with an **always-present base body layer** (never nude): male briefs
+  (+socks), female sports two-piece; clothing optional over base → swim/shower/undressed states covered.
+- **Render modes:** `color`, `noir` (desaturated Blade Runner mood), `lineart` (B&W outline concept /
+  race-neutral fallback — currently a rough silhouette, needs refinement to clean outlines).
+- **Yoga** pose added; pose set now idle/walk/sit/sleep/computer/yoga.
+- **Testing:** eslint 0 errors on both files; headless Chromium render of the lab → 30 character SVGs,
+  0 page/console errors. Screenshot shared with Kam. Still NOT wired into the game runtime.
+- **Honest limitations:** adjacent-diagonal direction distinction is subtle; lineart mode is a silhouette
+  not a clean outline; 80s-anime grit/shading not yet applied; sleep pose still upright placeholder.
+- **New docs added:** `GPT_SELF_ASSESSMENT_REQUEST_PHASER_MIGRATION_2_20260723.md` (retrospective for GPT
+  to complete) and `IDEA_LOG_CLAUDE_20260723.md` (all of Kam's ideas, tagged GREENLIT/DIRECTIVE/PARKED/MAYBE).

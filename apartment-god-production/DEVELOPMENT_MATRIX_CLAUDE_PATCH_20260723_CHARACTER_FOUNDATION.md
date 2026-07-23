@@ -18,6 +18,18 @@
 | Full pose set (yoga/cook/guitar/read/shower) | PLANNED | Author from `reference/visual_targets/character_poses/`. |
 | Dog/pet modular pass | PLANNED | From `reference/visual_targets/pets/`. |
 
+## Standing directives added 2026-07-23 (were missing from the matrix)
+
+| Directive | Status |
+|---|---|
+| **8 directions** for ALL characters (current + future) | DIRECTIVE — implemented in character system, NEEDS_REVIEW |
+| **Faceless** sprites (facial hair only) | DIRECTIVE — implemented |
+| **Fire Pro-style deep layering** (every part swappable) | DIRECTIVE — foundation implemented, deeper per-segment articulation roadmapped |
+| **Always-present base body layer** (never nude; male briefs+socks / female two-piece) | DIRECTIVE — implemented |
+| Nudity handling: implied-only, steam/towel/blur/covered dressing | DIRECTIVE — logged, runtime handling TBD |
+| Render modes: color / noir / B&W outline | color+noir OK; lineart = rough concept, NEEDS_REFINEMENT |
+| Two interpretation branches (true-topdown + iso) | true-topdown built; iso PLANNED next |
+
 ## Cross-build note
 Targets the single live build via a NEW isolated module; live boot path unchanged. No duplicate/parallel
 runtime system created. No `main`, Render, or `ai-rpg-engine` involvement.
