@@ -1,55 +1,44 @@
-// Character Lab — standalone preview of the modular top-down character.
-// Renders directions x poses and a wardrobe-swap row. Does NOT touch the game runtime.
-import {
-  buildCharacterSVG, DIRECTIONS, POSES, DEFAULT_APPEARANCE
-} from './character/modularCharacter.js';
+// Character Lab — standalone preview of the modular top-down character. Does NOT touch game runtime.
+import { buildCharacterSVG, DIRECTIONS, POSES, DEFAULT_APPEARANCE } from './character/modularCharacter.js';
 
 const root = document.getElementById('lab');
+function cell(svg,label){ const d=document.createElement('div'); d.className='cell'; d.innerHTML=`<div class="art">${svg}</div><div class="lbl">${label}</div>`; return d; }
+function section(title,note){ const h=document.createElement('h2'); h.textContent=title; root.appendChild(h);
+  if(note){ const p=document.createElement('p'); p.className='note'; p.textContent=note; root.appendChild(p); }
+  const g=document.createElement('div'); g.className='grid'; root.appendChild(g); return g; }
 
-function cell(svg, label) {
-  const d = document.createElement('div');
-  d.className = 'cell';
-  d.innerHTML = `<div class="art">${svg}</div><div class="lbl">${label}</div>`;
-  return d;
-}
+// 1) 8 directions
+const g1=section('8 directions (idle) — required for all characters');
+for(const d of DIRECTIONS) g1.appendChild(cell(buildCharacterSVG(DEFAULT_APPEARANCE,d,'idle',104),d));
 
-function section(title) {
-  const h = document.createElement('h2');
-  h.textContent = title;
-  root.appendChild(h);
-  const grid = document.createElement('div');
-  grid.className = 'grid';
-  root.appendChild(grid);
-  return grid;
-}
+// 2) Pose states
+const g2=section('Pose / activity states (south)');
+for(const p of POSES) g2.appendChild(cell(buildCharacterSVG(DEFAULT_APPEARANCE,'south',p,104),p));
 
-// 1) Directions (idle) — base figure readability from every facing
-const g1 = section('Base figure — 4 directions (idle)');
-for (const dir of DIRECTIONS) {
-  g1.appendChild(cell(buildCharacterSVG(DEFAULT_APPEARANCE, dir, 'idle', 110), dir));
-}
+// 3) Base underwear layer (never nude) — swim/shower ready
+const g3=section('Base body layer (never nude) — swim / shower / undressed states',
+  'Clothing is optional over an always-present base. Male = briefs (+socks); female = sports two-piece.');
+g3.appendChild(cell(buildCharacterSVG({build:'male',skin:'tan',hairStyle:'short',hairColor:'black',top:'none',bottom:'none',socks:'white',shoes:'none',baseColor:'charcoal'},'south','idle',104),'male base (briefs+socks)'));
+g3.appendChild(cell(buildCharacterSVG({build:'female',skin:'light',hairStyle:'ponytail',hairColor:'auburn',top:'none',bottom:'none',shoes:'none',baseColor:'crimson'},'south','idle',104),'female base (two-piece)'));
+g3.appendChild(cell(buildCharacterSVG({build:'male',skin:'brown',hairStyle:'short',hairColor:'black',facialHair:'beard',top:'none',bottom:'shorts',bottomColor:'denim',shoes:'none',baseColor:'black'},'south','idle',104),'+ swim shorts'));
 
-// 2) Pose states (facing south) — activity identities
-const g2 = section('Pose states (south) — activity identities');
-for (const pose of POSES) {
-  g2.appendChild(cell(buildCharacterSVG(DEFAULT_APPEARANCE, 'south', pose, 110), pose));
-}
+// 4) Facial hair (faceless otherwise)
+const g4=section('Faceless + facial hair only (small-scale rotoscope look)');
+for(const fh of ['none','stubble','mustache','goatee','beard'])
+  g4.appendChild(cell(buildCharacterSVG({build:'male',skin:'tan',hairStyle:'short',hairColor:'brown',facialHair:fh,top:'tee',topColor:'slate'},'south','idle',104),fh));
 
-// 3) Walk cycle frames
-const g3 = section('Walk cycle (south) — frames');
-g3.appendChild(cell(buildCharacterSVG(DEFAULT_APPEARANCE, 'south', 'idle', 110), 'frame 0 (idle)'));
-g3.appendChild(cell(buildCharacterSVG(DEFAULT_APPEARANCE, 'south', 'walk', 110), 'frame 1 (stride)'));
-
-// 4) Wardrobe swaps — SAME base body, different swappable parts
-const outfits = [
-  { name: 'Resident (default)', a: DEFAULT_APPEARANCE },
-  { name: 'Hoodie / denim / black boots', a: { skin:'light', hairStyle:'short', hairColor:'brown', top:'hoodie', topColor:'slate', bottom:'pants', bottomColor:'denim', shoes:'boots', shoesColor:'black' } },
-  { name: 'Girlfriend — ponytail / skirt / flats', a: { skin:'light', hairStyle:'ponytail', hairColor:'auburn', top:'tee', topColor:'crimson', bottom:'skirt', bottomColor:'black', shoes:'flats', shoesColor:'red' } },
-  { name: 'Tank / shorts / sneakers', a: { skin:'brown', hairStyle:'buzz', hairColor:'black', top:'tank', topColor:'mustard', bottom:'shorts', bottomColor:'khaki', shoes:'sneakers', shoesColor:'white' } },
-  { name: 'Jacket / long hair / teal', a: { skin:'deep', hairStyle:'long', hairColor:'teal', top:'jacket', topColor:'violet', bottom:'pants', bottomColor:'charcoal', shoes:'sneakers', shoesColor:'white' } },
-  { name: 'Bob / cream tee / tan flats', a: { skin:'tan', hairStyle:'bob', hairColor:'blonde', top:'tee', topColor:'cream', bottom:'pants', bottomColor:'khaki', shoes:'flats', shoesColor:'tan' } }
+// 5) Wardrobe swaps over base
+const outfits=[
+  {name:'Resident',a:DEFAULT_APPEARANCE},
+  {name:'Hoodie / denim / boots',a:{build:'male',skin:'light',hairStyle:'short',hairColor:'brown',facialHair:'stubble',top:'hoodie',topColor:'noir',bottom:'pants',bottomColor:'denim',socks:'black',shoes:'boots',shoesColor:'black'}},
+  {name:'Girlfriend — ponytail / skirt',a:{build:'female',skin:'light',hairStyle:'ponytail',hairColor:'auburn',top:'tee',topColor:'crimson',bottom:'skirt',bottomColor:'black',shoes:'flats',shoesColor:'red',baseColor:'crimson'}},
+  {name:'Tank / shorts',a:{build:'male',skin:'brown',hairStyle:'buzz',hairColor:'black',facialHair:'goatee',top:'tank',topColor:'mustard',bottom:'shorts',bottomColor:'khaki',shoes:'sneakers',shoesColor:'white'}},
+  {name:'Jacket / long teal hair',a:{build:'female',skin:'deep',hairStyle:'long',hairColor:'teal',top:'jacket',topColor:'violet',bottom:'pants',bottomColor:'charcoal',shoes:'sneakers',shoesColor:'white',baseColor:'violet'}}
 ];
-const g4 = section('Wardrobe swaps — same rig, swappable hair / top / bottom / shoes / skin');
-for (const o of outfits) {
-  g4.appendChild(cell(buildCharacterSVG(o.a, 'south', 'idle', 110), o.name));
-}
+const g5=section('Wardrobe swaps over base (Fire Pro-style layering)');
+for(const o of outfits) g5.appendChild(cell(buildCharacterSVG(o.a,'south','idle',104),o.name));
+
+// 6) Render modes (Blade Runner noir + B&W outline concept)
+const g6=section('Render modes — color / noir (Blade Runner) / B&W outline (race-neutral fallback)');
+const sample={build:'male',skin:'tan',hairStyle:'short',hairColor:'black',facialHair:'stubble',top:'jacket',topColor:'slate',bottom:'pants',bottomColor:'denim',shoes:'boots',shoesColor:'black'};
+for(const mode of ['color','noir','lineart']) g6.appendChild(cell(buildCharacterSVG({...sample,mode},'south','idle',104),mode));
