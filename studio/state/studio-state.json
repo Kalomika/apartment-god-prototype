@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "name": "Apartment God",
+    "repository": "Kalomika/apartment-god-prototype",
+    "developmentBranch": "phaser-migration",
+    "renderBranch": "main",
+    "protectedRepository": "Kalomika/ai-rpg-engine",
+    "deploymentAllowed": false,
+    "renderSettingsChangesAllowed": false
+  },
+  "roles": [
+    {
+      "id": "ROLE-PROD-01",
+      "department": "Producer",
+      "status": "AVAILABLE"
+    },
+    {
+      "id": "ROLE-ARCH-01",
+      "department": "Architecture Review",
+      "status": "AVAILABLE"
+    },
+    {
+      "id": "ROLE-QA-01",
+      "department": "QA",
+      "status": "AVAILABLE"
+    },
+    {
+      "id": "ROLE-INT-01",
+      "department": "Integration",
+      "status": "AVAILABLE"
+    },
+    {
+      "id": "ROLE-DOC-01",
+      "department": "Documentation and Memory",
+      "status": "AVAILABLE"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "STUDIO-001",
+      "title": "Install repository-native studio governance",
+      "department": "Documentation and Memory",
+      "status": "NEEDS_REVIEW",
+      "risk": "LOW",
+      "points": 8,
+      "dependencies": [],
+      "backupRequired": false,
+      "evidence": []
+    },
+    {
+      "id": "STUDIO-002",
+      "title": "Reconcile older production-manager department branch",
+      "department": "Producer",
+      "status": "READY",
+      "risk": "LOW",
+      "points": 3,
+      "dependencies": [
+        "STUDIO-001"
+      ],
+      "backupRequired": false,
+      "evidence": []
+    },
+    {
+      "id": "STUDIO-003",
+      "title": "Populate current gameplay task inventory from matrix and active PRs",
+      "department": "Producer",
+      "status": "READY",
+      "risk": "LOW",
+      "points": 5,
+      "dependencies": [
+        "STUDIO-001"
+      ],
+      "backupRequired": false,
+      "evidence": []
+    },
+    {
+      "id": "STUDIO-004",
+      "title": "Run first Architecture Review of active Apartment God systems",
+      "department": "Architecture Review",
+      "status": "READY",
+      "risk": "MEDIUM",
+      "points": 8,
+      "dependencies": [
+        "STUDIO-003"
+      ],
+      "backupRequired": false,
+      "evidence": []
+    },
+    {
+      "id": "STUDIO-008",
+      "title": "Audit canonical log and matrix sidecar merge debt",
+      "department": "Documentation and Memory",
+      "status": "READY",
+      "risk": "LOW",
+      "points": 5,
+      "dependencies": [
+        "STUDIO-001"
+      ],
+      "backupRequired": false,
+      "evidence": []
+    }
+  ],
+  "claims": [],
+  "decisions": [
+    {
+      "id": "ADR-AG-0001",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "ADR-AG-0002",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "ADR-AG-0003",
+      "status": "ACCEPTED"
+    }
+  ],
+  "lastAudit": null
+}
