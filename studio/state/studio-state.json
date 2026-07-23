@@ -41,12 +41,16 @@
       "id": "STUDIO-001",
       "title": "Install repository-native studio governance",
       "department": "Documentation and Memory",
-      "status": "NEEDS_REVIEW",
+      "status": "ACCEPTED",
       "risk": "LOW",
       "points": 8,
       "dependencies": [],
       "backupRequired": false,
-      "evidence": []
+      "evidence": [
+        "merge:a2ecddfd3a7fafe296a7eac6efe9f1bb53751efc",
+        "local-audit:PASS_WITH_WARNINGS:0-errors",
+        "branch-compare:14-governance-files:0-runtime-files"
+      ]
     },
     {
       "id": "STUDIO-002",
@@ -116,5 +120,14 @@
       "status": "ACCEPTED"
     }
   ],
-  "lastAudit": null
+  "lastAudit": {
+    "date": "2026-07-23",
+    "commit": "a2ecddfd3a7fafe296a7eac6efe9f1bb53751efc",
+    "result": "PASS_WITH_WARNINGS",
+    "errors": 0,
+    "warnings": [
+      "No active or historical claims are recorded yet"
+    ],
+    "method": "local fixture execution plus post-merge repository comparison"
+  }
 }
