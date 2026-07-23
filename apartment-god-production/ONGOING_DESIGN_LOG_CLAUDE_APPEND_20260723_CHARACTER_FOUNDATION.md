@@ -70,3 +70,33 @@ New directives folded into `src/character/modularCharacter.js` and `src/characte
   not a clean outline; 80s-anime grit/shading not yet applied; sleep pose still upright placeholder.
 - **New docs added:** `GPT_SELF_ASSESSMENT_REQUEST_PHASER_MIGRATION_2_20260723.md` (retrospective for GPT
   to complete) and `IDEA_LOG_CLAUDE_20260723.md` (all of Kam's ideas, tagged GREENLIT/DIRECTIVE/PARKED/MAYBE).
+
+---
+
+## Update 3 (same day) — LIVE INTEGRATION into the game runtime
+
+- **Status:** Committed — NEEDS_REVIEW (in-game aesthetic) / NEEDS_BROWSER_TEST (gameplay).
+  This is the first change that touches the **live render path** — done behind a safe fallback.
+- **Files:**
+  - NEW `src/character/actorSpriteBridge.js` — maps a live actor (id→appearance, heading→8-direction,
+    activity key→pose) to a modular character, rasterizes the SVG to a cached image, draws it at the
+    actor origin. Returns false (→ caller falls back to the original procedural renderer) if a sprite
+    isn't ready or anything throws.
+  - EDIT `src/renderEntities.js` — `drawTopDownActor` now tries `drawModularActor` first (upright,
+    self-facing, own soft shadow); on any failure it falls back to the exact original procedural path.
+    Flag `MODULAR_ACTORS = true`.
+- **Runtime files changed:** YES (`renderEntities.js` is in the live `rendering.js` → `drawEntities`
+  path). Fallback preserves original behavior if modular rendering fails.
+- **Aesthetic direction locked with Kam:** flat anime cel (Ghost in the Shell / one-light), single soft
+  shadow only, clean line work — NOT painted/edge/rim lighting. Pencil-line (Princess Kaguya) parked as
+  a possible later mode.
+- **Testing performed:** `npm run build` OK; eslint 0 errors on changed files; headless Chromium boot of
+  the built game across all 6 floors → **0 page errors**; modular characters confirmed rendering in-game
+  (resident at pee-stand with working urine stream; girlfriend upstairs). Screenshots + close-up shared
+  with Kam. NOT yet tested on a real device / Render.
+- **Known issues to fix next (honest):** characters read a bit dark at game scale (add single-source
+  light lift); female base two-piece band peeks above her top (layer z-order fix); heads slightly large
+  at scale; 80s-anime line work/grit not yet applied; towel-wrap shower overlay not drawn in modular
+  path (edge case, follow-up); dog still uses old renderer (separate pass).
+- **Not changed:** `main`, Render, boot handshake, `phaserParityRuntime.js` scale/boot. Backup branch
+  `backup/phaser-migration-pre-claude-character-system-20260723` remains the restore point.
