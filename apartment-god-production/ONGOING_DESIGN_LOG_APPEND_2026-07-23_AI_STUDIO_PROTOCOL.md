@@ -2,9 +2,9 @@
 
 ## 2026-07-23 CT, AI Studio Governance Foundation
 
-Status: NEEDS_REVIEW
+Status: IMPLEMENTED
 Branch: phaser-migration
-Commit: work branch commits pending final squash commit
+Commit: installation a2ecddfd3a7fafe296a7eac6efe9f1bb53751efc, audit-state follow-up e3addef6b00a5cacbbf52dce50769da9a2ed7076
 Files changed:
 - studio/
 - tools/studio_audit.py
@@ -24,10 +24,15 @@ Implementation details:
 The system includes the Studio Constitution, consolidated Producer and department operating protocol, role and task boards, claims ledger, QA and creative approval gates, architecture review, branch promotion rules, studio memory, technical debt and asset controls, performance and research controls, reusable templates, machine-readable state, a read-only structural audit script, and a GitHub Actions audit workflow.
 
 Testing performed:
-The audit script was validated against a local fixture containing the new studio files and representative required governance files. Repository CI must confirm the installed branch state.
+- Validated `tools/studio_audit.py` against a local complete governance fixture.
+- Result was PASS_WITH_WARNINGS with zero structural errors.
+- Confirmed JSON parsing and Python compilation.
+- Compared the integration branch against `phaser-migration`: 14 intended governance files, zero runtime files, zero asset files, and no branch drift before merge.
+- Merged PR 36 into `phaser-migration` as a squash commit.
+- Re-read the merged branch head and recorded the audit evidence in `studio/state/studio-state.json`.
 
 Testing requested:
-Run the Studio Governance Audit workflow or execute `python tools/studio_audit.py` from a complete checkout. Review expected initial warnings for no historical claims and a null first audit timestamp. Confirm that no runtime or Render behavior changed.
+The first real worker should use the claim lifecycle on STUDIO-002 or STUDIO-003. The GitHub Actions audit should be observed on a later qualifying push or pull request when the workflow is available on the base branch.
 
 Known risks:
 The system cannot provide transactional locking between simultaneous agents. Claims work only when workers inspect and honor the latest repository state. Human-readable boards and machine-readable state can drift unless every worker updates both.
