@@ -1,3 +1,8 @@
+// Modular character system — ISOMETRIC branch variant (claude/iso-20260723).
+// Same layered/swappable/faceless/8-direction/base-body spec as the true-top-down branch, but rendered
+// with a slight high-angle isometric projection (taller, more upright, stronger directional turn) to
+// match the rendered target_mockups (a0b9453d "Night City"). Compare against claude/true-topdown-20260723.
+//
 // Modular top-down character system — Fire Pro-style layered, swappable-part sprite.
 //
 // Direction (per Kam, 2026-07-23):
@@ -203,8 +208,8 @@ export function buildCharacterSVG(appearance={},direction='south',pose='idle',si
   const ap=resolve(appearance);
   const rig=buildRig(p);
   const fv=FACE_VEC[dir];
-  // subtle body turn toward facing (small; avoids the "lying down" read of full rotation)
-  const skew = fv[0]*12;
+  // ISO variant: stronger directional turn + vertical stretch => reads as an upright high-angle figure.
+  const skew = fv[0]*20;
   const body=[
     legsBase(rig,ap), socksPart(rig,ap), shoesPart(rig,ap),
     hipsBase(rig,ap), bottomClothing(rig,ap),
@@ -214,8 +219,10 @@ export function buildCharacterSVG(appearance={},direction='south',pose='idle',si
   ].join('');
   const id='m'+(++__uid);
   const defs=modeDefs(ap.mode,id);
-  const filtered = ap.mode==='color' ? `<g transform="rotate(${skew} 32 40)">${body}</g>`
-                                     : `<g filter="url(#${id})"><g transform="rotate(${skew} 32 40)">${body}</g></g>`;
+  // isometric projection: rotate toward facing, stretch vertically, slight shear for a high-angle read
+  const proj = `translate(32 42) scale(1 1.14) skewX(-7) rotate(${skew}) translate(-32 -42)`;
+  const filtered = ap.mode==='color' ? `<g transform="${proj}">${body}</g>`
+                                     : `<g filter="url(#${id})"><g transform="${proj}">${body}</g></g>`;
   const bg = ap.mode==='lineart' ? '<rect x="0" y="0" width="64" height="64" fill="#f4f1e8"/>' : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 64 64">${defs}${bg}${shadow()}${filtered}</svg>`;
 }
