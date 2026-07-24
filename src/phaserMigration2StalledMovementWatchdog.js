@@ -4,6 +4,7 @@ import { updateMovement } from './movement.js';
 const STALL_WINDOW_MS = 120;
 const MAX_FALLBACK_STEP_SECONDS = 0.05;
 const MOVEMENT_EPSILON = 0.35;
+export const WATCHDOG_INTERVAL_MS_FOR_TEST = 16;
 
 export function fallbackStepSecondsForTest(elapsedMs, simulationSpeed = 1) {
   const elapsedSeconds = Math.max(0, Number(elapsedMs || 0)) / 1000;
@@ -45,14 +46,13 @@ export function installPhaserMigration2StalledMovementWatchdog(scene) {
   scene.__pm2MovementWatchdogActive = false;
   scene.__pm2MovementWatchdogMaxJump = 0;
   const samples = new Map();
-  let animationFrameId = 0;
-  let previousFrameAt = performance.now();
-  let stopped = false;
+  let previousTickAt = performance.now();
 
-  const tick = now => {
+  const tick = () => {
+    const now = performance.now();
     try {
-      const elapsedMs = Math.min(50, Math.max(0, now - previousFrameAt));
-      previousFrameAt = now;
+      const elapsedMs = Math.min(50, Math.max(0, now - previousTickAt));
+      previousTickAt = now;
       const state = scene.state;
       let stepped = false;
       let fallbackActive = false;
@@ -111,15 +111,12 @@ export function installPhaserMigration2StalledMovementWatchdog(scene) {
     } catch (error) {
       scene.__pm2MovementWatchdogError = String(error?.message || error || 'watchdog frame error');
       console.error('[Apartment God] P2 movement watchdog frame recovered.', error);
-    } finally {
-      if (!stopped) animationFrameId = window.requestAnimationFrame(tick);
     }
   };
 
-  animationFrameId = window.requestAnimationFrame(tick);
+  const intervalId = window.setInterval(tick, WATCHDOG_INTERVAL_MS_FOR_TEST);
   const cleanup = () => {
-    stopped = true;
-    window.cancelAnimationFrame(animationFrameId);
+    window.clearInterval(intervalId);
     samples.clear();
     scene.__pm2MovementWatchdogInstalled = false;
     scene.__pm2MovementWatchdogActive = false;
