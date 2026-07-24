@@ -105,16 +105,22 @@ describe('Phaser Migration 2 character recovery', () => {
     expect(shouldPreferBaseActorVisualForTest({ hidden: false, path: [], vx: 0, vy: 0, actionT: 10 })).toBe(false);
   });
 
-  it('wakes a visible embedded Phaser loop but preserves hidden and terminal failure safety', () => {
+  it('restores Phaser TimeStep focus for a visible iframe while preserving safety', () => {
     const calls = [];
     const scene = {
       runtimeFailed: false,
       state: { paused: true },
-      game: { resume: () => calls.push('game'), loop: { wake: () => calls.push('loop') } },
+      game: {
+        resume: () => calls.push('game'),
+        loop: {
+          focus: () => calls.push('focus'),
+          wake: seamless => calls.push(seamless ? 'wake-seamless' : 'wake')
+        }
+      },
       scene: { resume: () => calls.push('scene') }
     };
     expect(wakeVisibleEmbeddedGameForTest(scene, false)).toBe(true);
-    expect(calls).toEqual(['game', 'loop', 'scene']);
+    expect(calls).toEqual(['focus', 'game', 'wake-seamless', 'scene']);
     expect(scene.state.paused).toBe(false);
     expect(wakeVisibleEmbeddedGameForTest(scene, true)).toBe(false);
     scene.runtimeFailed = true;
