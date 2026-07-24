@@ -4,6 +4,7 @@ import {
   defaultActorSpeedForTest,
   hasActivePoolChoreographyForTest,
   normalizeP2ActorMotionForTest,
+  prepareActorForManualRecoveryForTest,
   shouldPreferBaseActorVisualForTest
 } from '../src/phaserMigration2CharacterRecovery.js';
 
@@ -101,6 +102,24 @@ describe('Phaser Migration 2 character recovery', () => {
     expect(shouldPreferBaseActorVisualForTest({ hidden: false, path: [{ x: 2, y: 2 }], actionT: 10 })).toBe(true);
     expect(shouldPreferBaseActorVisualForTest({ hidden: false, path: [], vx: 0, vy: 0, actionT: 0 })).toBe(true);
     expect(shouldPreferBaseActorVisualForTest({ hidden: false, path: [], vx: 0, vy: 0, actionT: 10 })).toBe(false);
+  });
+
+  it('prepares a stuck actor for the visible manual recovery control', () => {
+    const actor = prepareActorForManualRecoveryForTest({
+      type: 'person', x: 20, y: 20, speed: 0, stopped: true, manualStop: true,
+      poolRoute: { key: 'stale', points: [{ x: 40, y: 40 }] }, action: 'Pool match', actionT: 120,
+      actionTotal: 300, currentActionId: 'pool_together', activityObjectId: 'pool_table', carrying: 'cue_stick', pose: 'pool'
+    });
+    expect(actor.stopped).toBe(false);
+    expect(actor.manualStop).toBe(false);
+    expect(actor.poolRoute).toBeNull();
+    expect(actor.actionT).toBe(0);
+    expect(actor.currentActionId).toBeNull();
+    expect(actor.activityObjectId).toBeNull();
+    expect(actor.carrying).toBeNull();
+    expect(actor.action).toBe('Idle');
+    expect(actor.pose).toBe('stand');
+    expect(actor.speed).toBeGreaterThan(0);
   });
 
   it('Stop and Resume fully clear pool state before autonomy resumes', () => {
