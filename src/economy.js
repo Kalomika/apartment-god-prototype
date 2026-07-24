@@ -12,6 +12,8 @@ const DELIVERY_TIMES = Object.freeze({
   workoutInstall: 15,
 });
 
+const WORKOUT_INSTALL_POINT = Object.freeze({ x: 356, y: 240 });
+
 function setTimedAction(actor, action, duration, pose = 'stand') {
   actor.action = action;
   actor.actionT = duration;
@@ -23,15 +25,40 @@ function closeDoor(state) {
   if (state.objectState) state.objectState.doorOpen = false;
 }
 
+function clearDeliveryActorState(actor) {
+  if (!actor) return;
+  actor.carrying = null;
+  actor.actionT = 0;
+  actor.actionTotal = 0;
+}
+
 function cancelDelivery(state, actor, message) {
   closeDoor(state);
-  if (actor) {
-    actor.carrying = null;
-    actor.actionT = 0;
-    actor.actionTotal = 0;
-  }
+  clearDeliveryActorState(actor);
   if (message) log(state, message);
   state.delivery = null;
+}
+
+export function deliveryReceiverAvailableForTest(actor, floor = 0) {
+  return Boolean(actor && !actor.hidden && actor.floor === floor);
+}
+
+function receiverCanOrder(state, actor, door) {
+  if (!deliveryReceiverAvailableForTest(actor, door?.floor ?? 0)) {
+    log(state, `${actor?.name || 'The selected resident'} must be available on the main floor to receive a delivery.`);
+    return false;
+  }
+  return true;
+}
+
+function beginDoorApproach(state, actor, door) {
+  const p = approachPoint(door, 'delivery');
+  commandMove(actor, p.x, p.y);
+  if (!actor.path?.length) {
+    log(state, `${actor.name} could not reach the front door, so the order was not placed.`);
+    return false;
+  }
+  return true;
 }
 
 export function pay(state, amount, label) {
@@ -51,11 +78,13 @@ export function orderFood(state, actor, auto = false) {
     log(state, 'A delivery is already on the way.');
     return false;
   }
-  if (!pay(state, 18, 'food delivery')) return false;
   const door = getObject('door');
-  if (door) {
-    const p = approachPoint(door, 'delivery');
-    commandMove(actor, p.x, p.y);
+  if (!door || !receiverCanOrder(state, actor, door)) return false;
+  if (!beginDoorApproach(state, actor, door)) return false;
+  if (!pay(state, 18, 'food delivery')) {
+    clearDeliveryActorState(actor);
+    actor.path = [];
+    return false;
   }
   setTimedAction(actor, 'Waiting for food delivery', DELIVERY_TIMES.foodArrival, 'walk');
   setMood(actor, 'phone');
@@ -78,10 +107,25 @@ export function updateDelivery(state, dt) {
   const job = state.delivery;
   if (!job) return;
   const actor = state.entities.find(entity => entity.id === job.actorId);
-  if (!actor) {
-    cancelDelivery(state, null, 'The delivery was cancelled because nobody was available to receive it.');
+  if (!deliveryReceiverAvailableForTest(actor, job.floor ?? 0)) {
+    cancelDelivery(state, actor, 'The delivery was cancelled because the receiver was no longer available at home.');
     return;
   }
+
+  if (job.type === 'workoutGear' && job.phase === 'moving_to_install') {
+    if (actor.path?.length) return;
+    job.phase = 'installing';
+    job.t = DELIVERY_TIMES.workoutInstall;
+    job.x = WORKOUT_INSTALL_POINT.x;
+    job.y = WORKOUT_INSTALL_POINT.y;
+    job.bubble = 'INSTALL';
+    setTimedAction(actor, 'Installing workout gear', DELIVERY_TIMES.workoutInstall);
+    actor.carrying = 'workout boxes';
+    say(actor, 'SETUP');
+    log(state, `${actor.name} reached the installation area and started setting up the workout gear.`);
+    return;
+  }
+
   job.t -= dt;
 
   if (job.type === 'food') {
@@ -120,9 +164,7 @@ export function updateDelivery(state, dt) {
       setMood(actor, 'happy');
       say(actor, 'DONE');
       actor.action = 'Finished delivery meal';
-      actor.actionT = 0;
-      actor.actionTotal = 0;
-      actor.carrying = null;
+      clearDeliveryActorState(actor);
       log(state, `${actor.name} finished the delivered food.`);
       state.delivery = null;
       return;
@@ -145,16 +187,21 @@ export function updateDelivery(state, dt) {
     }
 
     if (job.phase === 'exchange' && job.t <= 0) {
-      job.phase = 'installing';
-      job.t = DELIVERY_TIMES.workoutInstall;
-      job.x = 356;
-      job.y = 240;
-      job.bubble = 'INSTALL';
       closeDoor(state);
-      setTimedAction(actor, 'Installing workout gear', DELIVERY_TIMES.workoutInstall);
+      commandMove(actor, WORKOUT_INSTALL_POINT.x, WORKOUT_INSTALL_POINT.y);
+      if (!actor.path?.length) {
+        cancelDelivery(state, actor, `${actor.name} could not reach the workout installation area, so the delivery was cancelled safely.`);
+        return;
+      }
+      job.phase = 'moving_to_install';
+      job.t = 0;
+      job.x = 220;
+      job.y = 646;
+      job.bubble = 'MOVE';
+      actor.action = 'Carrying workout gear to the installation area';
       actor.carrying = 'workout boxes';
-      say(actor, 'SETUP');
-      log(state, `${actor.name} is installing the workout gear.`);
+      say(actor, 'MOVE');
+      log(state, `${actor.name} is carrying the workout boxes to the installation area.`);
       return;
     }
 
@@ -167,17 +214,15 @@ export function updateDelivery(state, dt) {
           kind: 'workout',
           floor: 0,
           room: 'living',
-          x: 356,
-          y: 240,
+          x: WORKOUT_INSTALL_POINT.x,
+          y: WORKOUT_INSTALL_POINT.y,
           w: 72,
           h: 42,
           solid: true,
         });
       }
       actor.action = 'Finished installing workout gear';
-      actor.actionT = 0;
-      actor.actionTotal = 0;
-      actor.carrying = null;
+      clearDeliveryActorState(actor);
       setMood(actor, 'happy');
       say(actor, 'DONE');
       log(state, 'Workout gear was installed in the living room.');
@@ -204,12 +249,13 @@ export function buyWorkoutGear(state, actor) {
     log(state, 'Another delivery is already on the way.');
     return false;
   }
-  if (!pay(state, 220, 'workout gear')) return false;
-
   const door = getObject('door');
-  if (door) {
-    const p = approachPoint(door, 'delivery');
-    commandMove(actor, p.x, p.y);
+  if (!door || !receiverCanOrder(state, actor, door)) return false;
+  if (!beginDoorApproach(state, actor, door)) return false;
+  if (!pay(state, 220, 'workout gear')) {
+    clearDeliveryActorState(actor);
+    actor.path = [];
+    return false;
   }
 
   setTimedAction(actor, 'Waiting for workout gear delivery', DELIVERY_TIMES.workoutArrival, 'walk');

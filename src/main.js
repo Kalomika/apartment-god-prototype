@@ -1,11 +1,11 @@
-import './runtimeObjectCorrections.js?v=20260719-mobile-scale-conflict-fix';
-import { installPhaserParityCorrections } from './phaserParityCorrections.js?v=20260719-mobile-scale-conflict-fix';
-import { installPhaserVisualParityOverlay } from './phaserVisualParityOverlay.js?v=20260719-mobile-scale-conflict-fix';
+import './runtimeObjectCorrections.js?v=20260721-full-audit-repair';
+import { installPhaserParityCorrections } from './phaserParityCorrections.js?v=20260721-full-audit-repair';
+import { installPhaserVisualParityOverlay } from './phaserVisualParityOverlay.js?v=20260721-full-audit-repair';
 
 const gameCanvas = document.getElementById('game');
 if (gameCanvas) gameCanvas.dataset.phaserOwned = 'true';
 
-const { bootPhaserParityGame } = await import('./phaserParityRuntime.js?v=20260719-mobile-scale-conflict-fix');
+const { bootPhaserParityGame } = await import('./phaserParityRuntime.js?v=20260721-full-audit-repair');
 const game = await bootPhaserParityGame();
 installPhaserParityCorrections(game);
 installPhaserVisualParityOverlay(game);

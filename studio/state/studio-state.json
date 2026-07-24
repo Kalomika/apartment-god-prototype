@@ -103,9 +103,44 @@
       ],
       "backupRequired": false,
       "evidence": []
+    },
+    {
+      "id": "STUDIO-009",
+      "title": "Consolidate verified open Apartment God repair branches",
+      "department": "Integration",
+      "status": "ACCEPTED",
+      "risk": "HIGH",
+      "points": 13,
+      "dependencies": [
+        "STUDIO-001"
+      ],
+      "backupRequired": true,
+      "evidence": [
+        "source:10e2bbc5bdb170e37f2039c1a0d45b48641921b0",
+        "backup:backup/phaser-migration-before-open-repair-consolidation-2026-07-23",
+        "merge:eed7c0a9f45759dc1504d5d42d4c9b29d1600521",
+        "merge:70fd85c53e71a866b84b8907c555670841cf9726",
+        "verified-head:fd33ad7a33824d23fe090dfd2143bb1b87860476",
+        "studio-audit:30065070336:SUCCESS",
+        "phaser-parity-ci:30065070340:SUCCESS"
+      ]
     }
   ],
-  "claims": [],
+  "claims": [
+    {
+      "id": "CLAIM-STUDIO-009-2026-07-23",
+      "taskId": "STUDIO-009",
+      "state": "RELEASED",
+      "department": "Integration",
+      "branch": "repair/consolidate-open-phaser-repairs-2026-07-23",
+      "startingCommit": "10e2bbc5bdb170e37f2039c1a0d45b48641921b0",
+      "verifiedCommit": "fd33ad7a33824d23fe090dfd2143bb1b87860476",
+      "backup": "backup/phaser-migration-before-open-repair-consolidation-2026-07-23",
+      "createdAt": "2026-07-23T22:40:00-05:00",
+      "lastActivityAt": "2026-07-23T22:55:00-05:00",
+      "releasedAt": "2026-07-23T22:55:00-05:00"
+    }
+  ],
   "decisions": [
     {
       "id": "ADR-AG-0001",
@@ -122,12 +157,10 @@
   ],
   "lastAudit": {
     "date": "2026-07-23",
-    "commit": "a2ecddfd3a7fafe296a7eac6efe9f1bb53751efc",
-    "result": "PASS_WITH_WARNINGS",
+    "commit": "fd33ad7a33824d23fe090dfd2143bb1b87860476",
+    "result": "PASS",
     "errors": 0,
-    "warnings": [
-      "No active or historical claims are recorded yet"
-    ],
-    "method": "local fixture execution plus post-merge repository comparison"
+    "warnings": [],
+    "method": "GitHub Actions Studio Governance Audit run 30065070336 plus Phaser Parity CI run 30065070340"
   }
 }
