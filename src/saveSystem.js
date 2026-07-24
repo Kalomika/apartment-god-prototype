@@ -5,11 +5,58 @@ const PREFIX = 'apartment_god_slot_';
 const AUTOSAVE_SLOT = 'autosave';
 const TEST_AUTOSAVE_KEY = 'apartment_god_test_refresh_state_v3';
 const RESET_GUARD_KEY = 'apartment_god_reset_guard_v1';
-const SAVE_VERSION = 2;
+const SAVE_VERSION = 3;
 const TEST_SAVE_VERSION = 3;
+const BLOCKED_MERGE_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
 
 function clone(value) {
+  if (value === undefined) return undefined;
   return JSON.parse(JSON.stringify(value));
+}
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function mergeDefaults(defaultValue, savedValue) {
+  if (savedValue === undefined) return clone(defaultValue);
+  if (!isPlainObject(defaultValue) || !isPlainObject(savedValue)) return clone(savedValue);
+  const merged = clone(defaultValue) || {};
+  for (const [key, value] of Object.entries(savedValue)) {
+    if (BLOCKED_MERGE_KEYS.has(key)) continue;
+    merged[key] = key in merged ? mergeDefaults(merged[key], value) : clone(value);
+  }
+  return merged;
+}
+
+function mergeEntities(defaultEntities, savedEntities) {
+  if (!Array.isArray(savedEntities)) return clone(defaultEntities || []);
+  const defaultsById = new Map((defaultEntities || []).map(entity => [entity.id, entity]));
+  const merged = savedEntities.map(saved => {
+    const defaults = defaultsById.get(saved?.id) || {};
+    defaultsById.delete(saved?.id);
+    return mergeDefaults(defaults, saved || {});
+  });
+  for (const defaults of defaultsById.values()) merged.push(clone(defaults));
+  return merged;
+}
+
+export function mergeSavedStateForTest(defaultState, savedState) {
+  const merged = mergeDefaults(defaultState || {}, savedState || {});
+  merged.entities = mergeEntities(defaultState?.entities || [], savedState?.entities);
+  return merged;
+}
+
+export function mergeSavedObjectsForTest(defaultObjects, savedObjects) {
+  if (!Array.isArray(savedObjects)) return clone(defaultObjects || []);
+  const savedById = new Map(savedObjects.filter(Boolean).map(object => [object.id, object]));
+  const merged = (defaultObjects || []).map(defaultObject => {
+    const saved = savedById.get(defaultObject.id);
+    savedById.delete(defaultObject.id);
+    return saved ? mergeDefaults(defaultObject, saved) : clone(defaultObject);
+  });
+  for (const saved of savedById.values()) merged.push(clone(saved));
+  return merged;
 }
 
 function safeLocalGet(key) {
@@ -75,37 +122,22 @@ function cleanStateForRefreshSave(state) {
 }
 
 function restoreObjects(savedObjects) {
-  if (!Array.isArray(savedObjects)) return;
-  objects.length = 0;
-  for (const obj of savedObjects) objects.push(obj);
+  const merged = mergeSavedObjectsForTest(objects, savedObjects);
+  objects.splice(0, objects.length, ...merged);
 }
 
 function restoreWholeState(target, saved) {
+  const merged = mergeSavedStateForTest(target, saved);
   for (const key of Object.keys(target)) delete target[key];
-  Object.assign(target, saved);
+  Object.assign(target, merged);
   scrubTransientState(target);
   target.saveStatus ??= {};
 }
 
 function mergeRefreshState(target, saved) {
-  const baseEntities = new Map((target.entities || []).map(entity => [entity.id, entity]));
-  const restoredEntities = Array.isArray(saved.entities)
-    ? saved.entities.map(entity => ({ ...(baseEntities.get(entity.id) || {}), ...entity }))
-    : target.entities;
-
-  Object.assign(target, {
-    ...target,
-    ...saved,
-    roomLights: { ...(target.roomLights || {}), ...(saved.roomLights || {}) },
-    objectState: { ...(target.objectState || {}), ...(saved.objectState || {}) },
-    investments: { ...(target.investments || {}), ...(saved.investments || {}) },
-    rewards: { ...(target.rewards || {}), ...(saved.rewards || {}) },
-    secretLog: { ...(target.secretLog || {}), ...(saved.secretLog || {}) },
-    careers: { ...(target.careers || {}), ...(saved.careers || {}) },
-    garbage: { ...(target.garbage || {}), ...(saved.garbage || {}) },
-    entities: restoredEntities
-  });
-
+  const merged = mergeSavedStateForTest(target, saved);
+  for (const key of Object.keys(target)) delete target[key];
+  Object.assign(target, merged);
   scrubTransientState(target);
   target.saveStatus = { message: 'Restored refresh state', slot: 'refresh', savedAt: null };
 }
@@ -245,7 +277,7 @@ function restoreLegacyState(state, data) {
   state.floor = data.floor ?? state.floor;
   state.selectedId = data.selectedId ?? state.selectedId;
   state.autonomyMode = data.autonomyMode ?? state.autonomyMode;
-  state.roomLights = data.roomLights || state.roomLights;
+  state.roomLights = { ...state.roomLights, ...(data.roomLights || {}) };
   state.objectState = { ...state.objectState, ...(data.objectState || {}) };
   state.routines = data.routines || [];
   state.appointments = data.appointments || [];
@@ -253,17 +285,15 @@ function restoreLegacyState(state, data) {
   for (const saved of data.entities || []) {
     const e = state.entities.find(x => x.id === saved.id);
     if (!e) continue;
-    e.floor = saved.floor;
-    e.x = saved.x;
-    e.y = saved.y;
-    e.needs = saved.needs || e.needs;
-    e.skills = saved.skills || e.skills;
-    e.skillCaps = saved.skillCaps || e.skillCaps;
-    e.traits = saved.traits || e.traits;
+    Object.assign(e, mergeDefaults(e, saved));
     e.path = [];
     e.target = null;
+    e.pending = null;
     e.action = 'Loaded';
     e.actionT = 0;
+    e.actionTotal = 0;
+    e.currentActionId = null;
+    e.activityObjectId = null;
     e.pose = 'stand';
     e.hidden = false;
   }
