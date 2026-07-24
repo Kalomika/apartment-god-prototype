@@ -1,5 +1,30 @@
 # Apartment God And Top Shot Repository Separation
 
+Status: current build migrated to `Kalomika/top-shot` on 2026-07-24. Original Top Shot branches preserved in this repository, nothing deleted.
+
+## Migration Record (2026-07-24)
+
+Top Shot now has its own private repository: `https://github.com/Kalomika/top-shot`.
+
+- Source: `top-shot-full-stabilization-2026-07-21` at commit `b1079369375dc145863890fe87f0a9da14d066f6` (newest verified Top Shot build).
+- The `top-shot/` subdirectory was lifted to the repository root using a history-preserving `git subtree split` (276 commits of Top Shot history carried over). No Apartment God files were included.
+- New repository `main` head: `e58e23d` (root `46d21b0` from the split, plus one commit fixing `render.yaml` `rootDir` now that `top-shot/` is the root).
+- Verified in the new repository: `npm run build` succeeds and `npm run smoke` passes (sim, CQC, stealth, model).
+- Contents migrated: `TOP_SHOT_HANDBOOK.md`, `COVERAGE_MATRIX.md`, `FEATURE_HANDBOOK.md`, `AI_DEVELOPMENT_HANDBOOK.md`, `STARSHOT_ROADMAP.md`, all other docs, the full `src/` (including `three/` and `starshot/`), tests, scripts, `AGENTS.md`, and all 20 reference-image assets. 111 files total.
+
+Preservation and safety:
+
+- All 34 `top-shot*` and `backup/top-shot*` branches remain intact in `Kalomika/apartment-god-prototype`. None were moved, rewritten, or deleted.
+- No Apartment God branch was touched. `main`, Render settings, and repository visibility of this repository were not changed.
+- Backup branches and full commit history remain available here until Kam confirms the new repository is verified and authorizes any archival of the legacy Top Shot branches.
+
+Remaining manual steps for Kam (require account/dashboard access this session does not have):
+
+- Point the Render service `top-shot-prototype` at the new `Kalomika/top-shot` repository (the migrated `render.yaml` builds from the repository root).
+- If desired, mirror the additional Top Shot development and backup branches into the new repository (currently they stay here as backups).
+
+---
+
 Status: migration required, no destructive migration authorized yet
 
 ## Root Cause
