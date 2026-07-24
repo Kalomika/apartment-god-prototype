@@ -1,11 +1,6 @@
 import { COLORS } from './config.js';
 import { roundRect } from './renderHelpers.js';
 import { getObject } from './world.js';
-import { drawModularActor } from './character/actorSpriteBridge.js';
-
-// Modular (Fire Pro-layered, 8-direction, faceless) character rendering. Safe: any failure or
-// not-yet-rasterized sprite falls back to the original procedural renderer below.
-const MODULAR_ACTORS = true;
 
 const INK = '#071018';
 const SKIN = '#3a241f';
@@ -66,20 +61,10 @@ function drawTopDownActor(ctx, actor, selected) {
   ctx.translate(anchor.x, anchor.y);
   if (selected) drawSelectionRing(ctx, actor.type);
   rememberHeading(actor, key, moving);
-
-  let drewModular = false;
-  if (MODULAR_ACTORS) {
-    // upright, self-facing modular sprite (own soft shadow); no ctx.rotate so 8-way facing reads
-    try { drewModular = drawModularActor(ctx, actor, female, key, moving); } catch { drewModular = false; }
-  }
-  if (!drewModular) {
-    ctx.save();
-    if (!sleeping) ctx.rotate(actor.lastHeading || 0);
-    drawGroundShadow(ctx, moving, sleeping, labStyle);
-    drawPerson(ctx, actor, female, cloth, accent, key, moving, labStyle);
-    if (actor.carrying === 'towel' || key.includes('towel')) drawTowelWrap(ctx, female, labStyle);
-    ctx.restore();
-  }
+  if (!sleeping) ctx.rotate(actor.lastHeading || 0);
+  drawGroundShadow(ctx, moving, sleeping, labStyle);
+  drawPerson(ctx, actor, female, cloth, accent, key, moving, labStyle);
+  if (actor.carrying === 'towel' || key.includes('towel')) drawTowelWrap(ctx, female, labStyle);
   if (actor.actionT > 0) drawActionBar(ctx, actor);
   if (actor.reaction?.t > 0) drawReactionBubble(ctx, actor.reaction);
   if (actor.bubble && actor.bubbleT > 0) drawBubble(ctx, actor.bubble, actor.reaction?.style || 'speech');

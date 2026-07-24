@@ -68,6 +68,40 @@ New directives folded into `src/character/modularCharacter.js` and `src/characte
   0 page/console errors. Screenshot shared with Kam. Still NOT wired into the game runtime.
 - **Honest limitations:** adjacent-diagonal direction distinction is subtle; lineart mode is a silhouette
   not a clean outline; 80s-anime grit/shading not yet applied; sleep pose still upright placeholder.
+
+---
+
+## Update 5 (2026-07-24) — ARCHITECTURE CORRECTION + true top-down, actually live in-game
+
+**Two real bugs found and fixed:**
+
+1. **Wrong integration point (the reason nothing changed in-game).** The canvas `drawEntities`
+   (`renderEntities.js`) path I first wired into is **dead in the Phaser runtime**: `rendering.js`
+   calls `drawScene(..., includeActors=false)` and never draws actors on canvas. Actors are actually
+   Phaser **sprite objects** built by `phaserCharacterAnimationSystem.js#syncCharacterVisuals` from 4x4
+   SVG **sheet textures** (`CHARACTER_SHEETS` → `assets/sprites/characters/*/*_8fps_sheet.svg`, rows =
+   south/west/east/north, cols = 4 walk frames). Proven by instrumentation: the canvas path's counters
+   never fired. **Correct fix:** generate those sheets from the modular system.
+   - Added `scripts/generate-character-sheets.mjs` — renders `modularCharacter` into the exact 512x512 /
+     4x4 / 128px sheet layout and overwrites the resident / girlfriend / lab-subject sheet SVGs.
+   - Reverted `renderEntities.js` to its original state; removed the now-unused `actorSpriteBridge.js`.
+     No live runtime code changed — only the **character sheet assets** were regenerated (the intended,
+     lowest-risk swap point; the loader/animation system is untouched).
+
+2. **Characters read as "lying on the floor" (Kam's callout).** The old geometry was a full
+   front-view standing figure; from a top-down camera that reads as lying down. **Rebuilt
+   `modularCharacter.js` as a real plan view:** head-crown + shoulders dominate, body foreshortened,
+   arms at the sides, feet poke toward the facing direction, whole figure rotates to face 8 ways.
+   Elongated body retained only for the sleep/lying pose.
+
+- **Runtime files changed:** No code in the live boot/render path — only regenerated sheet **assets**
+  and the build-time generator script. `main`, Render, boot, scale untouched. Backup branch intact.
+- **Testing:** eslint clean on changed files; `npm run build` OK; headless boot across floors → 0 page
+  errors; confirmed in-game the actors now render as the modular top-down sprites (resident at toilet,
+  girlfriend at vanity). Screenshots shared.
+- **Honest next:** characters read a bit dark/blobby at scale (lighten + sharpen shoulders); only 4
+  directions are in the sheet (system supports 8 — extend sheet rows + anim map to reach the 8-dir
+  goal); dog sheet not yet regenerated; walk-cycle timing/foot read can be tuned.
 - **New docs added:** `GPT_SELF_ASSESSMENT_REQUEST_PHASER_MIGRATION_2_20260723.md` (retrospective for GPT
   to complete) and `IDEA_LOG_CLAUDE_20260723.md` (all of Kam's ideas, tagged GREENLIT/DIRECTIVE/PARKED/MAYBE).
 
