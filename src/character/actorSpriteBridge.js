@@ -75,11 +75,20 @@ function sprite(appearance, dir, pose) {
 export function drawModularActor(ctx, actor, female, key, moving) {
   const ap = appearanceFor(actor, female);
   ap._k = actor.id + (female ? 'F' : 'M');
-  const dir = directionFor(actor);
   const pose = poseFor(actor, key, moving);
+  // sleeping actors lie flat along the bed (head to one side), not stand upright on it
+  const dir = pose === 'sleep' ? 'south' : directionFor(actor);
   const e = sprite(ap, dir, pose);
   if (!e || !e.ready) return false;
-  ctx.drawImage(e.img, -DISPLAY / 2, 6 - 52 * DISPLAY / 64, DISPLAY, DISPLAY);
+  const ox = -DISPLAY / 2, oy = 6 - 52 * DISPLAY / 64;
+  if (pose === 'sleep') {
+    ctx.save();
+    ctx.rotate(-Math.PI / 2);       // rotate upright sprite to horizontal (head toward headboard)
+    ctx.drawImage(e.img, ox, oy + DISPLAY * 0.18, DISPLAY, DISPLAY);
+    ctx.restore();
+  } else {
+    ctx.drawImage(e.img, ox, oy, DISPLAY, DISPLAY);
+  }
   return true;
 }
 
