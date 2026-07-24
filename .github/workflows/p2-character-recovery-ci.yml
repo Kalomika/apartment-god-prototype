@@ -1,0 +1,50 @@
+name: P2 Character Recovery CI
+
+on:
+  push:
+    branches:
+      - repair/phaser-migration-2-character-unfreeze-2026-07-24
+  pull_request:
+    branches:
+      - main
+      - ci/p2-character-recovery-gate-2026-07-24
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install --no-package-lock
+
+      - name: Repository checks
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Static build
+        run: npm run build
+
+      - name: Verify P2 character recovery output
+        run: |
+          test -f dist/src/phaserMigration2CharacterRecovery.js
+          test -f dist/src/phaserMigration2Runtime.js
+          test -f dist/src/phaserCharacterAnimationSystem.js
+          grep -q "installPhaserMigration2CharacterRecovery" dist/src/main.js
+          grep -q "normalizeP2ActorMotionForTest" dist/src/phaserMigration2CharacterRecovery.js
+          grep -q "poolRoute" dist/src/phaserMigration2CharacterRecovery.js
+          grep -q "manualStop" dist/src/state.js
+          grep -q "__APARTMENT_GOD_P2_ACTORS__" dist/src/phaserMigration2CharacterRecovery.js
+          grep -q "bootPhaserMigration2Game" dist/src/main.js
