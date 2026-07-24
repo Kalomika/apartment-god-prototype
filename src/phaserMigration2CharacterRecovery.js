@@ -3,18 +3,15 @@ import { setBaseActorVisualVisible } from './phaserCharacterAnimationSystem.js';
 const GAME_SCENE_KEY = 'ApartmentGodNativeScene';
 const HUMAN_SPEED = 92;
 const DOG_SPEED = 120;
-const STALE_IDLE_ACTION = /^(?:recovered|runtime recovered|walking|running|going to\b|waking up|blocked|no route\b|pool:)/i;
+const STALE_IDLE_ACTION = /^(?:recovered|runtime recovered|walking|running|going to\b|waking up|blocked|no route\b|pool:|pool practice|pool match)/i;
 
 export function defaultActorSpeedForTest(entity) {
   return entity?.type === 'dog' ? DOG_SPEED : HUMAN_SPEED;
 }
 
 export function hasActivePoolChoreographyForTest(entity) {
-  const points = entity?.poolRoute?.points;
-  const hasRoute = Array.isArray(points) && points.length > 0;
-  const action = `${entity?.currentActionId || ''} ${entity?.action || ''} ${entity?.pose || ''}`.toLowerCase();
-  const timedPoolAction = Number(entity?.actionT || 0) > 0 && action.includes('pool');
-  return hasRoute || timedPoolAction;
+  const action = `${entity?.action || ''} ${entity?.pose || ''}`.toLowerCase();
+  return Number(entity?.actionT || 0) > 0 && action.includes('pool');
 }
 
 export function shouldPreferBaseActorVisualForTest(entity) {
@@ -41,13 +38,24 @@ export function normalizeP2ActorMotionForTest(entity) {
     ? entity.speed
     : defaultActorSpeedForTest(entity);
 
-  const poolPoints = entity.poolRoute?.points;
-  if (entity.poolRoute && (!Array.isArray(poolPoints) || poolPoints.length === 0)) entity.poolRoute = null;
-
-  if (entity.stopped && !entity.labOnly && entity.manualStop !== true) entity.stopped = false;
-
   const activePool = hasActivePoolChoreographyForTest(entity);
+  if (!activePool) {
+    entity.poolRoute = null;
+    if (entity.carrying === 'cue_stick') entity.carrying = null;
+    if (String(entity.currentActionId || '').toLowerCase().includes('pool')) entity.currentActionId = null;
+  } else {
+    const poolPoints = entity.poolRoute?.points;
+    if (entity.poolRoute && !Array.isArray(poolPoints)) entity.poolRoute = null;
+  }
+
   const hasDestination = entity.path.length > 0 || Boolean(entity.target || entity.pending);
+  if (!entity.labOnly && hasDestination && entity.stopped) {
+    entity.stopped = false;
+    entity.manualStop = false;
+  } else if (entity.stopped && !entity.labOnly && entity.manualStop !== true) {
+    entity.stopped = false;
+  }
+
   if (!hasDestination && !activePool && entity.actionT <= 0 && !entity.hidden) {
     const action = String(entity.action || '');
     if (STALE_IDLE_ACTION.test(action)) {
@@ -123,8 +131,11 @@ function exposeRecoveryDiagnostics(scene) {
     y: entity.y,
     speed: entity.speed,
     stopped: Boolean(entity.stopped),
+    manualStop: Boolean(entity.manualStop),
     pathLength: Array.isArray(entity.path) ? entity.path.length : 0,
     poolRouteLength: Array.isArray(entity.poolRoute?.points) ? entity.poolRoute.points.length : 0,
+    poolActive: hasActivePoolChoreographyForTest(entity),
+    actionT: Number(entity.actionT || 0),
     action: entity.action || 'Idle',
     pose: entity.pose || 'stand'
   }));
