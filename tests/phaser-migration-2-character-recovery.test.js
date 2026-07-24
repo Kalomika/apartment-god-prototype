@@ -5,7 +5,8 @@ import {
   hasActivePoolChoreographyForTest,
   normalizeP2ActorMotionForTest,
   prepareActorForManualRecoveryForTest,
-  shouldPreferBaseActorVisualForTest
+  shouldPreferBaseActorVisualForTest,
+  wakeVisibleEmbeddedGameForTest
 } from '../src/phaserMigration2CharacterRecovery.js';
 
 describe('Phaser Migration 2 character recovery', () => {
@@ -102,6 +103,22 @@ describe('Phaser Migration 2 character recovery', () => {
     expect(shouldPreferBaseActorVisualForTest({ hidden: false, path: [{ x: 2, y: 2 }], actionT: 10 })).toBe(true);
     expect(shouldPreferBaseActorVisualForTest({ hidden: false, path: [], vx: 0, vy: 0, actionT: 0 })).toBe(true);
     expect(shouldPreferBaseActorVisualForTest({ hidden: false, path: [], vx: 0, vy: 0, actionT: 10 })).toBe(false);
+  });
+
+  it('wakes a visible embedded Phaser loop but preserves hidden and terminal failure safety', () => {
+    const calls = [];
+    const scene = {
+      runtimeFailed: false,
+      state: { paused: true },
+      game: { resume: () => calls.push('game'), loop: { wake: () => calls.push('loop') } },
+      scene: { resume: () => calls.push('scene') }
+    };
+    expect(wakeVisibleEmbeddedGameForTest(scene, false)).toBe(true);
+    expect(calls).toEqual(['game', 'loop', 'scene']);
+    expect(scene.state.paused).toBe(false);
+    expect(wakeVisibleEmbeddedGameForTest(scene, true)).toBe(false);
+    scene.runtimeFailed = true;
+    expect(wakeVisibleEmbeddedGameForTest(scene, false)).toBe(false);
   });
 
   it('prepares a stuck actor for the visible manual recovery control', () => {
