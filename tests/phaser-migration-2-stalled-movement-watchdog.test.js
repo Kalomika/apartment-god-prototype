@@ -3,7 +3,8 @@ import {
   advanceFallbackEntityForTest,
   fallbackStepSecondsForTest,
   renderFallbackFrameForTest,
-  shouldFallbackStepForTest
+  shouldFallbackStepForTest,
+  WATCHDOG_INTERVAL_MS_FOR_TEST
 } from '../src/phaserMigration2StalledMovementWatchdog.js';
 
 describe('Phaser Migration 2 stalled movement watchdog', () => {
@@ -37,6 +38,11 @@ describe('Phaser Migration 2 stalled movement watchdog', () => {
     expect(shouldFallbackStepForTest(actor, sample, 1400)).toBe(false);
   });
 
+  it('uses a smooth visible-iframe clock instead of the old 100 millisecond cadence', () => {
+    expect(WATCHDOG_INTERVAL_MS_FOR_TEST).toBe(16);
+    expect(WATCHDOG_INTERVAL_MS_FOR_TEST).toBeLessThan(25);
+  });
+
   it('uses frame paced fallback steps and the same maximum step as native simulation', () => {
     expect(fallbackStepSecondsForTest(16.667, 1)).toBeCloseTo(0.016667, 4);
     expect(fallbackStepSecondsForTest(16.667, 3)).toBeCloseTo(0.05, 4);
@@ -59,7 +65,7 @@ describe('Phaser Migration 2 stalled movement watchdog', () => {
     expect(resolve).toHaveBeenCalledWith(state, actor);
   });
 
-  it('contains a render failure without disabling future movement frames', () => {
+  it('contains a render failure without disabling future movement ticks', () => {
     const scene = {
       renderNativeFrame: () => { throw new Error('visual sync failure'); },
       ui: { renderHud: vi.fn() },
