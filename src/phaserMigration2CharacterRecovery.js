@@ -3,7 +3,7 @@ import { setBaseActorVisualVisible } from './phaserCharacterAnimationSystem.js';
 const GAME_SCENE_KEY = 'ApartmentGodNativeScene';
 const HUMAN_SPEED = 92;
 const DOG_SPEED = 120;
-const STALE_IDLE_ACTION = /^(?:recovered|runtime recovered|walking|running|going to\b|waking up|blocked|no route\b)/i;
+const STALE_IDLE_ACTION = /^(?:recovered|runtime recovered|walking|running|going to\b|waking up|blocked|no route\b|pool:)/i;
 
 export function defaultActorSpeedForTest(entity) {
   return entity?.type === 'dog' ? DOG_SPEED : HUMAN_SPEED;
