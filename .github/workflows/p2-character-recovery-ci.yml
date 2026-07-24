@@ -13,30 +13,39 @@ permissions:
   contents: read
 
 jobs:
-  verify:
+  focused-recovery:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
-
       - name: Install dependencies
-        run: npm install --no-package-lock
+        run: npm install --no-package-lock --silent
+      - name: Focused recovery tests
+        run: npx vitest run tests/phaser-migration-2-character-recovery.test.js --reporter=verbose
 
+  full-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: npm install --no-package-lock --silent
       - name: Repository checks
         run: npm run check
-
       - name: Unit tests
         run: npm test
-
       - name: Static build
         run: npm run build
-
       - name: Verify P2 character recovery output
         run: |
           test -f dist/src/phaserMigration2CharacterRecovery.js
