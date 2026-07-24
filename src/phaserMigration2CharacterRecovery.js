@@ -41,6 +41,15 @@ export function prepareActorForManualRecoveryForTest(entity) {
   return normalizeP2ActorMotionForTest(entity);
 }
 
+export function wakeVisibleEmbeddedGameForTest(scene, hidden = typeof document !== 'undefined' ? document.hidden : false) {
+  if (!scene || hidden || scene.runtimeFailed) return false;
+  scene.game?.resume?.();
+  scene.game?.loop?.wake?.();
+  scene.scene?.resume?.();
+  if (scene.state) scene.state.paused = false;
+  return true;
+}
+
 export function normalizeP2ActorMotionForTest(entity) {
   if (!entity) return entity;
 
@@ -131,18 +140,14 @@ function installSceneRecovery(scene) {
     }
   };
 
+  const wakeOnVisibleBlur = () => wakeVisibleEmbeddedGameForTest(scene);
   scene.events.on('preupdate', normalize);
   scene.events.on('postupdate', repairSpriteVisibility);
-  scene.events.once('shutdown', () => {
-    scene.events.off('preupdate', normalize);
-    scene.events.off('postupdate', repairSpriteVisibility);
-    removeRecoveryGlobals();
-  });
-  scene.events.once('destroy', () => {
-    scene.events.off('preupdate', normalize);
-    scene.events.off('postupdate', repairSpriteVisibility);
-    removeRecoveryGlobals();
-  });
+  scene.game?.events?.on?.('blur', wakeOnVisibleBlur);
+  scene.game?.events?.on?.('focus', wakeOnVisibleBlur);
+  scene.game?.events?.on?.('resume', wakeOnVisibleBlur);
+  scene.events.once('shutdown', () => cleanupSceneRecovery(scene, normalize, repairSpriteVisibility, wakeOnVisibleBlur));
+  scene.events.once('destroy', () => cleanupSceneRecovery(scene, normalize, repairSpriteVisibility, wakeOnVisibleBlur));
 
   if (typeof window !== 'undefined') {
     window.__APARTMENT_GOD_P2_RECOVER__ = () => forceRecoverPlayableActors(scene);
@@ -150,7 +155,17 @@ function installSceneRecovery(scene) {
     window.__APARTMENT_GOD_P2_RUNTIME_STATUS__ = () => runtimeStatus(scene);
   }
 
+  wakeVisibleEmbeddedGameForTest(scene);
   exposeRecoveryDiagnostics(scene);
+}
+
+function cleanupSceneRecovery(scene, normalize, repairSpriteVisibility, wakeOnVisibleBlur) {
+  scene.events.off('preupdate', normalize);
+  scene.events.off('postupdate', repairSpriteVisibility);
+  scene.game?.events?.off?.('blur', wakeOnVisibleBlur);
+  scene.game?.events?.off?.('focus', wakeOnVisibleBlur);
+  scene.game?.events?.off?.('resume', wakeOnVisibleBlur);
+  removeRecoveryGlobals();
 }
 
 function runtimeStatus(scene) {
@@ -163,9 +178,11 @@ function runtimeStatus(scene) {
     runtimeFailed,
     runtimeError,
     statePaused: Boolean(scene?.state?.paused),
+    gamePaused: Boolean(scene?.game?.isPaused),
     preupdateTicks: Number(scene?.__pm2RecoveryPreupdateTicks || 0),
     postupdateTicks: Number(scene?.__pm2RecoveryPostupdateTicks || 0),
-    gameLoopRunning: Boolean(scene?.game?.loop?.running)
+    gameLoopRunning: Boolean(scene?.game?.loop?.running),
+    gameLoopSleeping: Boolean(scene?.game?.loop?.sleeping)
   };
 }
 
@@ -173,8 +190,7 @@ function forceRecoverPlayableActors(scene) {
   if (!scene?.state) return { ok: false, reason: 'scene_unavailable', status: runtimeStatus(scene), actors: [] };
   const before = runtimeStatus(scene);
   if (before.runtimeFailed) return { ok: false, reason: 'runtime_failed', status: before, actors: [] };
-  if (before.scenePaused) scene.scene?.resume?.();
-  scene.state.paused = false;
+  wakeVisibleEmbeddedGameForTest(scene);
   for (const entity of scene.state.entities || []) {
     if (!entity || entity.hidden || entity.labOnly) continue;
     prepareActorForManualRecoveryForTest(entity);
@@ -202,6 +218,7 @@ function testMoveSelectedActor(scene) {
   for (const [dx, dy] of offsets) {
     commandMove(actor, start.x + dx, start.y + dy, false);
     if (actor.path?.length) {
+      wakeVisibleEmbeddedGameForTest(scene);
       state.floor = actor.floor;
       state.selectedId = actor.id;
       state.saveStatus = { message: `Movement test routed ${actor.name}` };
