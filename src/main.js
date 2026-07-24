@@ -5,12 +5,14 @@ if (gameCanvas) {
 }
 
 await import('./fit.js?v=20260719-p2-mobile-gameplay-parity');
-const { bootPhaserMigration2Game } = await import('./phaserMigration2Runtime.js?v=20260721-p2-layered-sidewalk');
+const { bootPhaserMigration2Game } = await import('./phaserMigration2Runtime.js?v=20260724-p2-character-unfreeze');
+const { installPhaserMigration2CharacterRecovery } = await import('./phaserMigration2CharacterRecovery.js?v=20260724-p2-character-unfreeze');
 const { installPhaserMigration2GameplayParityBridge } = await import('./phaserMigration2GameplayParityBridge.js?v=20260721-p2-hud-off-canvas');
 const { installPhaserMigration2BackdropSafety } = await import('./phaserMigration2BackdropSafety.js?v=20260721-p2-nonblack-backdrop');
 const { installPhaserMigration2HudPlacement } = await import('./phaserMigration2HudPlacement.js?v=20260721-p2-hud-placement');
 const { installPhaserMigration2LayerFallbackSafety } = await import('./phaserMigration2LayerFallbackSafety.js?v=20260721-p2-layer-fallback');
 const game = await bootPhaserMigration2Game();
+installPhaserMigration2CharacterRecovery(game);
 installPhaserMigration2BackdropSafety(game, gameCanvas);
 installPhaserMigration2HudPlacement(game);
 installPhaserMigration2GameplayParityBridge(game);
