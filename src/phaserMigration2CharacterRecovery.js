@@ -1,5 +1,6 @@
 import { setBaseActorVisualVisible } from './phaserCharacterAnimationSystem.js';
 import { commandMove } from './movement.js';
+import { installPhaserMigration2StalledMovementWatchdog } from './phaserMigration2StalledMovementWatchdog.js';
 
 const GAME_SCENE_KEY = 'ApartmentGodNativeScene';
 const HUMAN_SPEED = 92;
@@ -147,6 +148,7 @@ function installSceneRecovery(scene) {
   scene.__pm2CharacterRecoveryInstalled = true;
   scene.__pm2RecoveryPreupdateTicks = 0;
   scene.__pm2RecoveryPostupdateTicks = 0;
+  installPhaserMigration2StalledMovementWatchdog(scene);
 
   const normalize = () => {
     scene.__pm2RecoveryPreupdateTicks += 1;
@@ -210,6 +212,8 @@ function runtimeStatus(scene) {
     timeStepInFocus: Boolean(scene?.game?.loop?.inFocus),
     preupdateTicks: Number(scene?.__pm2RecoveryPreupdateTicks || 0),
     postupdateTicks: Number(scene?.__pm2RecoveryPostupdateTicks || 0),
+    watchdogSteps: Number(scene?.__pm2MovementWatchdogSteps || 0),
+    watchdogError: String(scene?.__pm2MovementWatchdogError || ''),
     gameLoopRunning: Boolean(scene?.game?.loop?.running),
     gameLoopSleeping: Boolean(scene?.game?.loop?.sleeping)
   };
