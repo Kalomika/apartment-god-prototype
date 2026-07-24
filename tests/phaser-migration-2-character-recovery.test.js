@@ -20,10 +20,23 @@ describe('Phaser Migration 2 character recovery', () => {
     expect(hasActivePoolChoreographyForTest(actor)).toBe(false);
   });
 
+  it('clears a nonempty stale pool route after the pool timer ends', () => {
+    const actor = normalizeP2ActorMotionForTest({
+      id: 'resident', type: 'person', x: 180, y: 180, speed: 84,
+      path: [{ x: 320, y: 180 }], poolRoute: { key: 'stale', points: [{ x: 200, y: 180 }] },
+      action: 'Walking', actionT: 0, pose: 'walk', currentActionId: 'pool_solo', carrying: 'cue_stick'
+    });
+    expect(actor.poolRoute).toBeNull();
+    expect(actor.currentActionId).toBeNull();
+    expect(actor.carrying).toBeNull();
+    expect(actor.path).toHaveLength(1);
+    expect(hasActivePoolChoreographyForTest(actor)).toBe(false);
+  });
+
   it('clears a completed stale Pool action so it cannot exclude normal movement forever', () => {
     const actor = normalizeP2ActorMotionForTest({
       id: 'resident', type: 'person', x: 180, y: 180, speed: 84,
-      path: [], poolRoute: { key: 'finished', points: [] },
+      path: [], poolRoute: { key: 'finished', points: [{ x: 200, y: 180 }] },
       action: 'Pool: watching balls', actionT: 0, pose: 'pool', currentActionId: 'pool_solo'
     });
     expect(actor.poolRoute).toBeNull();
@@ -33,7 +46,7 @@ describe('Phaser Migration 2 character recovery', () => {
     expect(actor.currentActionId).toBeNull();
   });
 
-  it('keeps a real pool route active while it still contains points', () => {
+  it('keeps a real pool route active only while a timed pool activity is active', () => {
     const actor = {
       type: 'person', x: 180, y: 180, speed: 84,
       path: [], poolRoute: { key: 'shot', points: [{ x: 200, y: 180 }] },
@@ -62,6 +75,16 @@ describe('Phaser Migration 2 character recovery', () => {
     expect(lab.stopped).toBe(true);
   });
 
+  it('releases a contradictory manual stop when a real destination exists', () => {
+    const actor = normalizeP2ActorMotionForTest({
+      type: 'person', stopped: true, manualStop: true, x: 1, y: 1, speed: 92,
+      path: [{ x: 20, y: 20 }], action: 'Walking', actionT: 0
+    });
+    expect(actor.stopped).toBe(false);
+    expect(actor.manualStop).toBe(false);
+    expect(actor.path).toHaveLength(1);
+  });
+
   it('clears stale waking and blocked sprite states when no activity or route remains', () => {
     const actor = normalizeP2ActorMotionForTest({
       type: 'person', x: 100, y: 100, speed: 92, path: [], target: null, pending: null,
@@ -80,13 +103,25 @@ describe('Phaser Migration 2 character recovery', () => {
     expect(shouldPreferBaseActorVisualForTest({ hidden: false, path: [], vx: 0, vy: 0, actionT: 10 })).toBe(false);
   });
 
-  it('marks only explicit player stops as persistent manual stops', () => {
-    const actor = { path: [{ x: 2, y: 2 }], target: {}, pending: {}, action: 'Walking', actionT: 3, pose: 'walk', stopped: false };
+  it('Stop and Resume fully clear pool state before autonomy resumes', () => {
+    const actor = {
+      path: [{ x: 2, y: 2 }], target: {}, pending: {}, action: 'Pool: circling table', actionT: 30,
+      actionTotal: 300, currentActionId: 'pool_solo', activityObjectId: 'pool_table', pose: 'walk',
+      poolRoute: { key: 'shot', points: [{ x: 3, y: 3 }] }, carrying: 'cue_stick', vx: 84, vy: 0, stopped: false
+    };
     stopEntity(actor);
     expect(actor.stopped).toBe(true);
     expect(actor.manualStop).toBe(true);
+    expect(actor.poolRoute).toBeNull();
+    expect(actor.currentActionId).toBeNull();
+    expect(actor.activityObjectId).toBeNull();
+    expect(actor.actionTotal).toBe(0);
+    expect(actor.carrying).toBeNull();
+    expect(actor.vx).toBe(0);
     resumeEntity(actor);
     expect(actor.stopped).toBe(false);
     expect(actor.manualStop).toBe(false);
+    expect(actor.action).toBe('Idle');
+    expect(actor.pose).toBe('stand');
   });
 });
