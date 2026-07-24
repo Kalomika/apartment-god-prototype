@@ -111,13 +111,17 @@ export function installPhaserMigration2CharacterRecovery(game) {
 function installSceneRecovery(scene) {
   if (scene.__pm2CharacterRecoveryInstalled) return;
   scene.__pm2CharacterRecoveryInstalled = true;
+  scene.__pm2RecoveryPreupdateTicks = 0;
+  scene.__pm2RecoveryPostupdateTicks = 0;
 
   const normalize = () => {
+    scene.__pm2RecoveryPreupdateTicks += 1;
     for (const entity of scene.state?.entities || []) normalizeP2ActorMotionForTest(entity);
     exposeRecoveryDiagnostics(scene);
   };
 
   const repairSpriteVisibility = () => {
+    scene.__pm2RecoveryPostupdateTicks += 1;
     for (const entity of scene.state?.entities || []) {
       if (!shouldPreferBaseActorVisualForTest(entity)) continue;
       const activityRecord = scene.referenceCompletion?.activitySprites?.get?.(entity.id);
@@ -132,25 +136,44 @@ function installSceneRecovery(scene) {
   scene.events.once('shutdown', () => {
     scene.events.off('preupdate', normalize);
     scene.events.off('postupdate', repairSpriteVisibility);
-    removeRecoveryGlobals(scene);
+    removeRecoveryGlobals();
   });
   scene.events.once('destroy', () => {
     scene.events.off('preupdate', normalize);
     scene.events.off('postupdate', repairSpriteVisibility);
-    removeRecoveryGlobals(scene);
+    removeRecoveryGlobals();
   });
 
   if (typeof window !== 'undefined') {
     window.__APARTMENT_GOD_P2_RECOVER__ = () => forceRecoverPlayableActors(scene);
     window.__APARTMENT_GOD_P2_TEST_MOVE__ = () => testMoveSelectedActor(scene);
+    window.__APARTMENT_GOD_P2_RUNTIME_STATUS__ = () => runtimeStatus(scene);
   }
 
-  normalize();
-  repairSpriteVisibility();
+  exposeRecoveryDiagnostics(scene);
+}
+
+function runtimeStatus(scene) {
+  const scenePaused = Boolean(scene?.scene?.isPaused?.() || scene?.sys?.isPaused?.());
+  const runtimeFailed = Boolean(scene?.runtimeFailed);
+  const runtimeError = String(scene?.registry?.get?.('apartmentGodRuntimeError') || '');
+  return {
+    sceneAvailable: Boolean(scene?.state),
+    scenePaused,
+    runtimeFailed,
+    runtimeError,
+    statePaused: Boolean(scene?.state?.paused),
+    preupdateTicks: Number(scene?.__pm2RecoveryPreupdateTicks || 0),
+    postupdateTicks: Number(scene?.__pm2RecoveryPostupdateTicks || 0),
+    gameLoopRunning: Boolean(scene?.game?.loop?.running)
+  };
 }
 
 function forceRecoverPlayableActors(scene) {
-  if (!scene?.state) return [];
+  if (!scene?.state) return { ok: false, reason: 'scene_unavailable', status: runtimeStatus(scene), actors: [] };
+  const before = runtimeStatus(scene);
+  if (before.runtimeFailed) return { ok: false, reason: 'runtime_failed', status: before, actors: [] };
+  if (before.scenePaused) scene.scene?.resume?.();
   scene.state.paused = false;
   for (const entity of scene.state.entities || []) {
     if (!entity || entity.hidden || entity.labOnly) continue;
@@ -162,16 +185,17 @@ function forceRecoverPlayableActors(scene) {
   }
   scene.state.saveStatus = { message: 'Character movement recovery applied' };
   exposeRecoveryDiagnostics(scene);
-  return window.__APARTMENT_GOD_P2_ACTORS__ || [];
+  return { ok: true, status: runtimeStatus(scene), actors: window.__APARTMENT_GOD_P2_ACTORS__ || [] };
 }
 
 function testMoveSelectedActor(scene) {
-  if (!scene?.state) return { ok: false, reason: 'scene_unavailable' };
-  forceRecoverPlayableActors(scene);
+  if (!scene?.state) return { ok: false, reason: 'scene_unavailable', status: runtimeStatus(scene) };
+  const recovery = forceRecoverPlayableActors(scene);
+  if (!recovery.ok) return recovery;
   const state = scene.state;
   const actor = state.entities?.find(entity => entity.id === state.selectedId && !entity.hidden && !entity.labOnly)
     || state.entities?.find(entity => !entity.hidden && !entity.labOnly && entity.type === 'person');
-  if (!actor) return { ok: false, reason: 'actor_unavailable' };
+  if (!actor) return { ok: false, reason: 'actor_unavailable', status: runtimeStatus(scene) };
 
   const start = { x: actor.x, y: actor.y };
   const offsets = [[96, 0], [-96, 0], [0, 96], [0, -96], [64, 64], [-64, 64]];
@@ -182,19 +206,20 @@ function testMoveSelectedActor(scene) {
       state.selectedId = actor.id;
       state.saveStatus = { message: `Movement test routed ${actor.name}` };
       exposeRecoveryDiagnostics(scene);
-      return { ok: true, actorId: actor.id, start, pathLength: actor.path.length };
+      return { ok: true, actorId: actor.id, start, pathLength: actor.path.length, status: runtimeStatus(scene) };
     }
   }
 
   state.saveStatus = { message: `Movement test could not route ${actor.name}` };
   exposeRecoveryDiagnostics(scene);
-  return { ok: false, reason: 'no_route', actorId: actor.id, start };
+  return { ok: false, reason: 'no_route', actorId: actor.id, start, status: runtimeStatus(scene) };
 }
 
-function removeRecoveryGlobals(scene) {
+function removeRecoveryGlobals() {
   if (typeof window === 'undefined') return;
-  if (window.__APARTMENT_GOD_P2_RECOVER__) delete window.__APARTMENT_GOD_P2_RECOVER__;
-  if (window.__APARTMENT_GOD_P2_TEST_MOVE__) delete window.__APARTMENT_GOD_P2_TEST_MOVE__;
+  delete window.__APARTMENT_GOD_P2_RECOVER__;
+  delete window.__APARTMENT_GOD_P2_TEST_MOVE__;
+  delete window.__APARTMENT_GOD_P2_RUNTIME_STATUS__;
 }
 
 function exposeRecoveryDiagnostics(scene) {
