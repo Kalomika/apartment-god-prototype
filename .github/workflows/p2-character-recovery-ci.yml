@@ -42,8 +42,21 @@ jobs:
         run: npm install --no-package-lock --silent
       - name: Repository checks
         run: npm run check
-      - name: Unit tests
-        run: npm test
+      - name: Run unit tests and capture result
+        run: |
+          set +e
+          npm test -- --reporter=json --outputFile=vitest-results.json
+          status=$?
+          echo "$status" > vitest-exit-code.txt
+          exit 0
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p2-character-recovery-vitest-results
+          path: |
+            vitest-results.json
+            vitest-exit-code.txt
       - name: Static build
         run: npm run build
       - name: Verify P2 character recovery output
@@ -57,3 +70,5 @@ jobs:
           grep -q "manualStop" dist/src/state.js
           grep -q "__APARTMENT_GOD_P2_ACTORS__" dist/src/phaserMigration2CharacterRecovery.js
           grep -q "bootPhaserMigration2Game" dist/src/main.js
+      - name: Enforce unit test success
+        run: test "$(cat vitest-exit-code.txt)" = "0"
