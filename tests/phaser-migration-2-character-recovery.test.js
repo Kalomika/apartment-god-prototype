@@ -5,6 +5,7 @@ import {
   defaultActorSpeedForTest,
   hasActivePoolChoreographyForTest,
   normalizeP2ActorMotionForTest,
+  normalizeP2SimulationStateForTest,
   prepareActorForManualRecoveryForTest,
   shouldPreferBaseActorVisualForTest,
   wakeVisibleEmbeddedGameForTest
@@ -69,6 +70,16 @@ describe('Phaser Migration 2 character recovery', () => {
     expect(dog.speed).toBeGreaterThan(0);
   });
 
+  it('repairs a zero global simulation speed and resumes only when requested', () => {
+    const state = { speed: 0, paused: true };
+    normalizeP2SimulationStateForTest(state, false);
+    expect(state.speed).toBe(1);
+    expect(state.paused).toBe(true);
+    normalizeP2SimulationStateForTest(state, true);
+    expect(state.speed).toBe(1);
+    expect(state.paused).toBe(false);
+  });
+
   it('releases a legacy stopped flag but preserves intentional and lab stops', () => {
     const legacy = normalizeP2ActorMotionForTest({ type: 'person', stopped: true, x: 1, y: 1, speed: 92, path: [], actionT: 0 });
     const manual = normalizeP2ActorMotionForTest({ type: 'person', stopped: true, manualStop: true, x: 1, y: 1, speed: 92, path: [], actionT: 0 });
@@ -118,7 +129,7 @@ describe('Phaser Migration 2 character recovery', () => {
     const calls = [];
     const scene = {
       runtimeFailed: false,
-      state: { paused: true },
+      state: { paused: true, speed: 0 },
       game: {
         resume: () => calls.push('game'),
         loop: {
@@ -131,6 +142,7 @@ describe('Phaser Migration 2 character recovery', () => {
     expect(wakeVisibleEmbeddedGameForTest(scene, false)).toBe(true);
     expect(calls).toEqual(['focus', 'game', 'wake-seamless', 'scene']);
     expect(scene.state.paused).toBe(false);
+    expect(scene.state.speed).toBe(1);
     expect(wakeVisibleEmbeddedGameForTest(scene, true)).toBe(false);
     scene.runtimeFailed = true;
     expect(wakeVisibleEmbeddedGameForTest(scene, false)).toBe(false);
