@@ -1,14 +1,21 @@
 import { resolveArrival } from './actions.js';
 import { updateMovement } from './movement.js';
 
-const STALL_WINDOW_MS = 350;
-const WATCHDOG_INTERVAL_MS = 100;
+const STALL_WINDOW_MS = 120;
+const MAX_FALLBACK_STEP_SECONDS = 0.05;
+const MOVEMENT_EPSILON = 0.35;
+
+export function fallbackStepSecondsForTest(elapsedMs, simulationSpeed = 1) {
+  const elapsedSeconds = Math.max(0, Number(elapsedMs || 0)) / 1000;
+  const speed = Number.isFinite(simulationSpeed) && simulationSpeed > 0 ? simulationSpeed : 1;
+  return Math.min(MAX_FALLBACK_STEP_SECONDS, elapsedSeconds * speed);
+}
 
 export function shouldFallbackStepForTest(entity, sample, now, statePaused = false, hidden = false, runtimeFailed = false) {
   if (!entity || entity.hidden || entity.labOnly || entity.stopped || statePaused || hidden || runtimeFailed) return false;
   if (!Array.isArray(entity.path) || entity.path.length === 0) return false;
   if (!sample) return false;
-  const moved = Math.hypot(Number(entity.x || 0) - sample.x, Number(entity.y || 0) - sample.y) > .5;
+  const moved = Math.hypot(Number(entity.x || 0) - sample.x, Number(entity.y || 0) - sample.y) > MOVEMENT_EPSILON;
   if (moved) return false;
   return Boolean(sample.fallbackActive) || now - sample.lastMovedAt >= STALL_WINDOW_MS;
 }
@@ -18,70 +25,97 @@ export function installPhaserMigration2StalledMovementWatchdog(scene) {
   scene.__pm2MovementWatchdogInstalled = true;
   scene.__pm2MovementWatchdogSteps = 0;
   scene.__pm2MovementWatchdogError = '';
+  scene.__pm2MovementWatchdogActive = false;
+  scene.__pm2MovementWatchdogMaxJump = 0;
   const samples = new Map();
+  let animationFrameId = 0;
+  let previousFrameAt = performance.now();
 
-  const tick = () => {
+  const tick = now => {
+    const elapsedMs = Math.min(50, Math.max(0, now - previousFrameAt));
+    previousFrameAt = now;
     const state = scene.state;
-    if (!state || document.hidden || state.paused || scene.runtimeFailed) return;
-    const now = performance.now();
     let stepped = false;
+    let fallbackActive = false;
 
-    for (const entity of state.entities || []) {
-      if (!entity) continue;
-      let sample = samples.get(entity.id);
-      if (!sample) {
-        sample = { x: Number(entity.x || 0), y: Number(entity.y || 0), lastMovedAt: now, fallbackActive: false };
-        samples.set(entity.id, sample);
-        continue;
-      }
+    if (state && !document.hidden && !state.paused && !scene.runtimeFailed) {
+      for (const entity of state.entities || []) {
+        if (!entity) continue;
+        let sample = samples.get(entity.id);
+        if (!sample) {
+          sample = { x: Number(entity.x || 0), y: Number(entity.y || 0), lastMovedAt: now, fallbackActive: false };
+          samples.set(entity.id, sample);
+          continue;
+        }
 
-      const moved = Math.hypot(Number(entity.x || 0) - sample.x, Number(entity.y || 0) - sample.y) > .5;
-      if (moved) {
-        sample.x = Number(entity.x || 0);
-        sample.y = Number(entity.y || 0);
-        sample.lastMovedAt = now;
-        sample.fallbackActive = false;
-        continue;
-      }
+        const moved = Math.hypot(Number(entity.x || 0) - sample.x, Number(entity.y || 0) - sample.y) > MOVEMENT_EPSILON;
+        if (moved) {
+          sample.x = Number(entity.x || 0);
+          sample.y = Number(entity.y || 0);
+          sample.lastMovedAt = now;
+          sample.fallbackActive = false;
+          continue;
+        }
 
-      if (!Array.isArray(entity.path) || entity.path.length === 0 || entity.hidden || entity.labOnly || entity.stopped) {
-        sample.lastMovedAt = now;
-        sample.fallbackActive = false;
-        continue;
-      }
+        if (!Array.isArray(entity.path) || entity.path.length === 0 || entity.hidden || entity.labOnly || entity.stopped) {
+          sample.lastMovedAt = now;
+          sample.fallbackActive = false;
+          continue;
+        }
 
-      if (!shouldFallbackStepForTest(entity, sample, now, state.paused, document.hidden, scene.runtimeFailed)) continue;
+        if (!shouldFallbackStepForTest(entity, sample, now, state.paused, document.hidden, scene.runtimeFailed)) continue;
+        fallbackActive = true;
 
-      try {
-        const simulationSpeed = Number.isFinite(state.speed) && state.speed > 0 ? state.speed : 1;
-        updateMovement(state, entity, Math.min(.2, .1 * simulationSpeed));
-        resolveArrival(state, entity);
-        sample.x = Number(entity.x || 0);
-        sample.y = Number(entity.y || 0);
-        sample.lastMovedAt = now;
-        sample.fallbackActive = Array.isArray(entity.path) && entity.path.length > 0;
-        scene.__pm2MovementWatchdogSteps += 1;
-        stepped = true;
-      } catch (error) {
-        scene.__pm2MovementWatchdogError = String(error?.message || error || 'watchdog error');
-        console.error('[Apartment God] P2 stalled movement watchdog recovered.', error);
+        try {
+          const dt = fallbackStepSecondsForTest(elapsedMs, state.speed);
+          if (dt <= 0) continue;
+          const beforeX = Number(entity.x || 0);
+          const beforeY = Number(entity.y || 0);
+          updateMovement(state, entity, dt);
+          resolveArrival(state, entity);
+          const jump = Math.hypot(Number(entity.x || 0) - beforeX, Number(entity.y || 0) - beforeY);
+          scene.__pm2MovementWatchdogMaxJump = Math.max(Number(scene.__pm2MovementWatchdogMaxJump || 0), jump);
+          sample.x = Number(entity.x || 0);
+          sample.y = Number(entity.y || 0);
+          sample.lastMovedAt = now;
+          sample.fallbackActive = Array.isArray(entity.path) && entity.path.length > 0;
+          scene.__pm2MovementWatchdogSteps += 1;
+          stepped = true;
+        } catch (error) {
+          scene.__pm2MovementWatchdogError = String(error?.message || error || 'watchdog error');
+          console.error('[Apartment God] P2 stalled movement watchdog recovered.', error);
+        }
       }
     }
 
-    if (!stepped) return;
-    scene.renderNativeFrame?.();
-    scene.ui?.renderHud?.();
-    const loop = scene.game?.loop;
-    if (loop && (!loop.running || loop.sleeping)) loop.tick?.();
+    scene.__pm2MovementWatchdogActive = fallbackActive;
+    if (stepped) {
+      advanceFallbackVisuals(scene, now, elapsedMs);
+      scene.ui?.renderHud?.();
+    }
+    animationFrameId = window.requestAnimationFrame(tick);
   };
 
-  const intervalId = window.setInterval(tick, WATCHDOG_INTERVAL_MS);
+  animationFrameId = window.requestAnimationFrame(tick);
   const cleanup = () => {
-    window.clearInterval(intervalId);
+    window.cancelAnimationFrame(animationFrameId);
     samples.clear();
     scene.__pm2MovementWatchdogInstalled = false;
+    scene.__pm2MovementWatchdogActive = false;
   };
   scene.events?.once?.('shutdown', cleanup);
   scene.events?.once?.('destroy', cleanup);
   return cleanup;
+}
+
+function advanceFallbackVisuals(scene, now, elapsedMs) {
+  if (scene.time && Number.isFinite(now)) {
+    try { scene.time.now = now; } catch {}
+  }
+  scene.renderNativeFrame?.();
+  for (const record of scene.pm2ActorVisuals?.values?.() || []) {
+    for (const sprite of [record.sprite, record.sideSprite, record.verticalTop, record.verticalBottom, record.sideTop, record.sideBottom]) {
+      sprite?.anims?.update?.(now, elapsedMs);
+    }
+  }
 }
