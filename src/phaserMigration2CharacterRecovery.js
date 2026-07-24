@@ -43,8 +43,9 @@ export function prepareActorForManualRecoveryForTest(entity) {
 
 export function wakeVisibleEmbeddedGameForTest(scene, hidden = typeof document !== 'undefined' ? document.hidden : false) {
   if (!scene || hidden || scene.runtimeFailed) return false;
+  scene.game?.loop?.focus?.();
   scene.game?.resume?.();
-  scene.game?.loop?.wake?.();
+  scene.game?.loop?.wake?.(true);
   scene.scene?.resume?.();
   if (scene.state) scene.state.paused = false;
   return true;
@@ -179,6 +180,7 @@ function runtimeStatus(scene) {
     runtimeError,
     statePaused: Boolean(scene?.state?.paused),
     gamePaused: Boolean(scene?.game?.isPaused),
+    timeStepInFocus: Boolean(scene?.game?.loop?.inFocus),
     preupdateTicks: Number(scene?.__pm2RecoveryPreupdateTicks || 0),
     postupdateTicks: Number(scene?.__pm2RecoveryPostupdateTicks || 0),
     gameLoopRunning: Boolean(scene?.game?.loop?.running),
