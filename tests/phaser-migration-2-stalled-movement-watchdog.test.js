@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
+  advanceFallbackEntityForTest,
   fallbackStepSecondsForTest,
+  renderFallbackFrameForTest,
   shouldFallbackStepForTest
 } from '../src/phaserMigration2StalledMovementWatchdog.js';
 
@@ -41,6 +43,31 @@ describe('Phaser Migration 2 stalled movement watchdog', () => {
     expect(fallbackStepSecondsForTest(100, 1)).toBe(0.05);
     expect(fallbackStepSecondsForTest(-10, 1)).toBe(0);
     expect(fallbackStepSecondsForTest(16.667, 0)).toBeCloseTo(0.016667, 4);
+  });
+
+  it('resolves arrival only after movement reports the route complete', () => {
+    const state = {};
+    const actor = movingActor();
+    const resolve = vi.fn();
+    const stillMoving = vi.fn(() => false);
+    expect(advanceFallbackEntityForTest(state, actor, 0.016, stillMoving, resolve)).toBe(false);
+    expect(resolve).not.toHaveBeenCalled();
+
+    const arrived = vi.fn(() => true);
+    expect(advanceFallbackEntityForTest(state, actor, 0.016, arrived, resolve)).toBe(true);
+    expect(resolve).toHaveBeenCalledTimes(1);
+    expect(resolve).toHaveBeenCalledWith(state, actor);
+  });
+
+  it('contains a render failure without disabling future movement frames', () => {
+    const scene = {
+      renderNativeFrame: () => { throw new Error('visual sync failure'); },
+      ui: { renderHud: vi.fn() },
+      __pm2MovementWatchdogError: ''
+    };
+    expect(renderFallbackFrameForTest(scene)).toBe(false);
+    expect(scene.__pm2MovementWatchdogError).toContain('visual sync failure');
+    expect(scene.ui.renderHud).not.toHaveBeenCalled();
   });
 
   it('does not move actors when the game or actor state prohibits movement', () => {
