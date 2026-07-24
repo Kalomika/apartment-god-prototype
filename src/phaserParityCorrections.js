@@ -37,6 +37,7 @@ function syncActorParity(scene) {
     const key = activityKey(entity);
     if (isSleeping(key) && entity.type === 'person') syncBedSleep(record, entity);
     else if (key.includes('make_bed') || key.includes('make bed')) syncBedMaking(record, entity, scene.time.now);
+    else syncObjectFacing(record, entity, key);
   }
 }
 
@@ -61,7 +62,7 @@ function syncBedSleep(record, entity) {
 }
 
 function syncBedMaking(record, entity, now) {
-  const bed = getObject(entity.pending?.objectId || entity.target?.objectId || 'bed');
+  const bed = getObject(entity.activityObjectId || entity.pending?.objectId || entity.target?.objectId || 'bed');
   if (!bed || bed.floor !== entity.floor) return;
   const tick = Math.floor(now / 125) % 4;
   record.sprite.stop();
@@ -70,14 +71,30 @@ function syncBedMaking(record, entity, now) {
   record.sprite.setPosition(bed.x + bed.w * .78, bed.y + bed.h * .54 + Math.sin(now / 160) * 2);
 }
 
+function syncObjectFacing(record, entity, key) {
+  if (!(Number(entity.actionT || 0) > 0) || !entity.activityObjectId) return;
+  if (key.includes('sleep') || key.includes('nap') || key.includes('bed together') || key.includes('swim') || key.includes('dog rest')) return;
+  const object = getObject(entity.activityObjectId);
+  if (!object || object.floor !== entity.floor) return;
+  const dx = object.x + object.w / 2 - entity.x;
+  const dy = object.y + object.h / 2 - entity.y;
+  const direction = directionFromDelta(dx, dy, record.direction || 'south');
+  record.direction = direction;
+  entity.spriteDirection = direction;
+  record.sprite.setRotation(0);
+  const currentFrame = String(record.sprite.frame?.name || 'south-1');
+  const frameIndex = currentFrame.match(/-(\d+)$/)?.[1] || '1';
+  if (record.sprite.anims?.isPlaying) record.sprite.play(`ag-${record.profile}-walk-${direction}`, true);
+  else record.sprite.setFrame(`${direction}-${frameIndex}`);
+}
+
 function syncActionProgress(scene) {
   const state = scene.state;
   const activeIds = new Set();
   for (const entity of state.entities || []) {
     if (!entity || entity.hidden || entity.floor !== state.floor) continue;
-    const total = Number(entity.actionTotal || 0);
     const remaining = Number(entity.actionT || 0);
-    if (!(total > 0 && remaining > 0)) continue;
+    if (!(remaining > 0)) continue;
     const record = scene.apartmentGodActorVisuals.get(entity.id);
     if (!record) continue;
     activeIds.add(entity.id);
@@ -86,10 +103,17 @@ function syncActionProgress(scene) {
       const graphics = scene.add.graphics();
       const text = scene.add.text(0, 0, '', { fontFamily: 'system-ui', fontSize: 9, fontStyle: '900', color: '#f8fbff' }).setOrigin(.5, 1);
       scene.actorLayer.add([graphics, text]);
-      visual = { graphics, text };
+      visual = { graphics, text, actionKey: '', startRemaining: 0 };
       scene.__apartmentGodProgressVisuals.set(entity.id, visual);
     }
-    const progress = Math.max(0, Math.min(1, 1 - remaining / total));
+    const actionKey = `${entity.currentActionId || ''}|${entity.action || ''}|${entity.activityObjectId || ''}`;
+    const progressState = calculateActionProgressForTest({
+      actionKey: visual.actionKey,
+      startRemaining: visual.startRemaining
+    }, actionKey, remaining, Number(entity.actionTotal || 0));
+    visual.actionKey = progressState.actionKey;
+    visual.startRemaining = progressState.startRemaining;
+    const progress = progressState.progress;
     const x = record.sprite.x;
     const y = record.sprite.y - (entity.type === 'dog' ? 46 : 60);
     visual.graphics.clear();
@@ -114,6 +138,21 @@ function syncActionProgress(scene) {
   }
 }
 
+export function calculateActionProgressForTest(previous, actionKey, remaining, declaredTotal = 0) {
+  const safeRemaining = Number.isFinite(remaining) ? Math.max(0, remaining) : 0;
+  const safeDeclared = Number.isFinite(declaredTotal) && declaredTotal >= safeRemaining ? declaredTotal : 0;
+  let startRemaining = Number(previous?.startRemaining || 0);
+  if (previous?.actionKey !== actionKey || !(startRemaining > 0) || safeRemaining > startRemaining + .05) {
+    startRemaining = safeDeclared > 0 ? safeDeclared : safeRemaining;
+  }
+  const total = Math.max(safeRemaining, startRemaining, .001);
+  return {
+    actionKey,
+    startRemaining: total,
+    progress: Math.max(0, Math.min(1, 1 - safeRemaining / total))
+  };
+}
+
 function handleParityPointerDown(scene, pointer) {
   const state = scene.state;
   const game = state.arcadeGame;
@@ -123,7 +162,9 @@ function handleParityPointerDown(scene, pointer) {
     closeInteractionMenu();
     return;
   }
-  const obj = objectAt(pointer.x, pointer.y, state.floor);
+  const worldX = Number.isFinite(pointer.worldX) ? pointer.worldX : pointer.x;
+  const worldY = Number.isFinite(pointer.worldY) ? pointer.worldY : pointer.y;
+  const obj = objectAt(worldX, worldY, state.floor);
   if (!obj || obj.kind !== 'arcade' || !game || game.machineId !== obj.id) return;
   const now = performance.now();
   const last = scene.__apartmentGodLastArcadeTap;
@@ -182,6 +223,12 @@ function destroyParityVisuals(scene) {
     visual.text?.destroy?.();
   }
   scene.__apartmentGodProgressVisuals?.clear?.();
+}
+
+function directionFromDelta(dx, dy, fallback = 'south') {
+  if (Math.hypot(dx, dy) <= 2) return fallback;
+  if (Math.abs(dx) >= Math.abs(dy)) return dx < 0 ? 'west' : 'east';
+  return dy < 0 ? 'north' : 'south';
 }
 
 function activityKey(entity) {
