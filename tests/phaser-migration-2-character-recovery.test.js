@@ -20,6 +20,19 @@ describe('Phaser Migration 2 character recovery', () => {
     expect(hasActivePoolChoreographyForTest(actor)).toBe(false);
   });
 
+  it('clears a completed stale Pool action so it cannot exclude normal movement forever', () => {
+    const actor = normalizeP2ActorMotionForTest({
+      id: 'resident', type: 'person', x: 180, y: 180, speed: 84,
+      path: [], poolRoute: { key: 'finished', points: [] },
+      action: 'Pool: watching balls', actionT: 0, pose: 'pool', currentActionId: 'pool_solo'
+    });
+    expect(actor.poolRoute).toBeNull();
+    expect(hasActivePoolChoreographyForTest(actor)).toBe(false);
+    expect(actor.action).toBe('Idle');
+    expect(actor.pose).toBe('stand');
+    expect(actor.currentActionId).toBeNull();
+  });
+
   it('keeps a real pool route active while it still contains points', () => {
     const actor = {
       type: 'person', x: 180, y: 180, speed: 84,
