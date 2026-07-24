@@ -37,7 +37,7 @@ function entity(id, name, type, floor, x, y, color) {
     vx: 0, vy: 0, speed: type === 'dog' ? 120 : 92,
     path: [], target: null, action: null, actionT: 0, pending: null,
     pose: 'stand', mood: type === 'dog' ? 'dog' : 'neutral', bubble: '', bubbleT: 0,
-    idleT: 0, stopped: false, hidden: false, trainingSkill: null, carrying: null,
+    idleT: 0, stopped: false, manualStop: false, hidden: false, trainingSkill: null, carrying: null,
     bookReading: false, bookTask: null,
     needs: baseNeeds(), skills: baseSkills(id, type), skillCaps: skillCaps(id, type),
     memory: { favorites: [], dislikes: [], activities: [], movies: [], foods: [] },
@@ -176,10 +176,12 @@ export function stopEntity(entity) {
   entity.action = null;
   entity.actionT = 0;
   entity.pose = 'stand';
+  entity.manualStop = true;
   entity.stopped = true;
 }
 
 export function resumeEntity(entity) {
+  entity.manualStop = false;
   entity.stopped = false;
   entity.idleT = 5;
 }
