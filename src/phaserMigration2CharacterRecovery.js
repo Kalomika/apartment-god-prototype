@@ -1,4 +1,5 @@
 import { setBaseActorVisualVisible } from './phaserCharacterAnimationSystem.js';
+import { commandMove } from './movement.js';
 
 const GAME_SCENE_KEY = 'ApartmentGodNativeScene';
 const HUMAN_SPEED = 92;
@@ -20,6 +21,24 @@ export function shouldPreferBaseActorVisualForTest(entity) {
   const movingVelocity = Math.hypot(Number(entity.vx || 0), Number(entity.vy || 0)) > .08;
   const activeTimedActivity = Number(entity.actionT || 0) > 0;
   return hasPath || movingVelocity || !activeTimedActivity;
+}
+
+export function prepareActorForManualRecoveryForTest(entity) {
+  if (!entity) return entity;
+  entity.poolRoute = null;
+  entity.poolShotCooldown = 0;
+  entity.actionT = 0;
+  entity.actionTotal = 0;
+  entity.currentActionId = null;
+  entity.activityObjectId = null;
+  entity.stopped = false;
+  entity.manualStop = false;
+  entity.vx = 0;
+  entity.vy = 0;
+  if (entity.carrying === 'cue_stick') entity.carrying = null;
+  entity.action = 'Idle';
+  entity.pose = 'stand';
+  return normalizeP2ActorMotionForTest(entity);
 }
 
 export function normalizeP2ActorMotionForTest(entity) {
@@ -113,14 +132,69 @@ function installSceneRecovery(scene) {
   scene.events.once('shutdown', () => {
     scene.events.off('preupdate', normalize);
     scene.events.off('postupdate', repairSpriteVisibility);
+    removeRecoveryGlobals(scene);
   });
   scene.events.once('destroy', () => {
     scene.events.off('preupdate', normalize);
     scene.events.off('postupdate', repairSpriteVisibility);
+    removeRecoveryGlobals(scene);
   });
+
+  if (typeof window !== 'undefined') {
+    window.__APARTMENT_GOD_P2_RECOVER__ = () => forceRecoverPlayableActors(scene);
+    window.__APARTMENT_GOD_P2_TEST_MOVE__ = () => testMoveSelectedActor(scene);
+  }
 
   normalize();
   repairSpriteVisibility();
+}
+
+function forceRecoverPlayableActors(scene) {
+  if (!scene?.state) return [];
+  scene.state.paused = false;
+  for (const entity of scene.state.entities || []) {
+    if (!entity || entity.hidden || entity.labOnly) continue;
+    prepareActorForManualRecoveryForTest(entity);
+    entity.path = [];
+    entity.target = null;
+    entity.pending = null;
+    entity.idleT = 0;
+  }
+  scene.state.saveStatus = { message: 'Character movement recovery applied' };
+  exposeRecoveryDiagnostics(scene);
+  return window.__APARTMENT_GOD_P2_ACTORS__ || [];
+}
+
+function testMoveSelectedActor(scene) {
+  if (!scene?.state) return { ok: false, reason: 'scene_unavailable' };
+  forceRecoverPlayableActors(scene);
+  const state = scene.state;
+  const actor = state.entities?.find(entity => entity.id === state.selectedId && !entity.hidden && !entity.labOnly)
+    || state.entities?.find(entity => !entity.hidden && !entity.labOnly && entity.type === 'person');
+  if (!actor) return { ok: false, reason: 'actor_unavailable' };
+
+  const start = { x: actor.x, y: actor.y };
+  const offsets = [[96, 0], [-96, 0], [0, 96], [0, -96], [64, 64], [-64, 64]];
+  for (const [dx, dy] of offsets) {
+    commandMove(actor, start.x + dx, start.y + dy, false);
+    if (actor.path?.length) {
+      state.floor = actor.floor;
+      state.selectedId = actor.id;
+      state.saveStatus = { message: `Movement test routed ${actor.name}` };
+      exposeRecoveryDiagnostics(scene);
+      return { ok: true, actorId: actor.id, start, pathLength: actor.path.length };
+    }
+  }
+
+  state.saveStatus = { message: `Movement test could not route ${actor.name}` };
+  exposeRecoveryDiagnostics(scene);
+  return { ok: false, reason: 'no_route', actorId: actor.id, start };
+}
+
+function removeRecoveryGlobals(scene) {
+  if (typeof window === 'undefined') return;
+  if (window.__APARTMENT_GOD_P2_RECOVER__) delete window.__APARTMENT_GOD_P2_RECOVER__;
+  if (window.__APARTMENT_GOD_P2_TEST_MOVE__) delete window.__APARTMENT_GOD_P2_TEST_MOVE__;
 }
 
 function exposeRecoveryDiagnostics(scene) {
