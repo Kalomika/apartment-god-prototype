@@ -103,9 +103,39 @@
       ],
       "backupRequired": false,
       "evidence": []
+    },
+    {
+      "id": "STUDIO-009",
+      "title": "Consolidate verified open Apartment God repair branches",
+      "department": "Integration",
+      "status": "NEEDS_TESTING",
+      "risk": "HIGH",
+      "points": 13,
+      "dependencies": [
+        "STUDIO-001"
+      ],
+      "backupRequired": true,
+      "evidence": [
+        "source:10e2bbc5bdb170e37f2039c1a0d45b48641921b0",
+        "backup:backup/phaser-migration-before-open-repair-consolidation-2026-07-23",
+        "merge:eed7c0a9f45759dc1504d5d42d4c9b29d1600521",
+        "merge:70fd85c53e71a866b84b8907c555670841cf9726"
+      ]
     }
   ],
-  "claims": [],
+  "claims": [
+    {
+      "id": "CLAIM-STUDIO-009-2026-07-23",
+      "taskId": "STUDIO-009",
+      "state": "HANDOFF_PENDING",
+      "department": "Integration",
+      "branch": "repair/consolidate-open-phaser-repairs-2026-07-23",
+      "startingCommit": "10e2bbc5bdb170e37f2039c1a0d45b48641921b0",
+      "backup": "backup/phaser-migration-before-open-repair-consolidation-2026-07-23",
+      "createdAt": "2026-07-23T22:40:00-05:00",
+      "lastActivityAt": "2026-07-23T22:45:00-05:00"
+    }
+  ],
   "decisions": [
     {
       "id": "ADR-AG-0001",
