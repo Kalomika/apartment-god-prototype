@@ -23,6 +23,23 @@ export function shouldPreferBaseActorVisualForTest(entity) {
   return hasPath || movingVelocity || !activeTimedActivity;
 }
 
+export function actorSnapshotsForTest(entities = []) {
+  return entities.map(entity => ({
+    id: entity.id,
+    x: entity.x,
+    y: entity.y,
+    speed: entity.speed,
+    stopped: Boolean(entity.stopped),
+    manualStop: Boolean(entity.manualStop),
+    pathLength: Array.isArray(entity.path) ? entity.path.length : 0,
+    poolRouteLength: Array.isArray(entity.poolRoute?.points) ? entity.poolRoute.points.length : 0,
+    poolActive: hasActivePoolChoreographyForTest(entity),
+    actionT: Number(entity.actionT || 0),
+    action: entity.action || 'Idle',
+    pose: entity.pose || 'stand'
+  }));
+}
+
 export function prepareActorForManualRecoveryForTest(entity) {
   if (!entity) return entity;
   entity.poolRoute = null;
@@ -154,6 +171,7 @@ function installSceneRecovery(scene) {
     window.__APARTMENT_GOD_P2_RECOVER__ = () => forceRecoverPlayableActors(scene);
     window.__APARTMENT_GOD_P2_TEST_MOVE__ = () => testMoveSelectedActor(scene);
     window.__APARTMENT_GOD_P2_RUNTIME_STATUS__ = () => runtimeStatus(scene);
+    window.__APARTMENT_GOD_P2_GET_ACTORS__ = () => actorSnapshotsForTest(scene.state?.entities || []);
   }
 
   wakeVisibleEmbeddedGameForTest(scene);
@@ -203,7 +221,7 @@ function forceRecoverPlayableActors(scene) {
   }
   scene.state.saveStatus = { message: 'Character movement recovery applied' };
   exposeRecoveryDiagnostics(scene);
-  return { ok: true, status: runtimeStatus(scene), actors: window.__APARTMENT_GOD_P2_ACTORS__ || [] };
+  return { ok: true, status: runtimeStatus(scene), actors: actorSnapshotsForTest(scene.state.entities || []) };
 }
 
 function testMoveSelectedActor(scene) {
@@ -239,23 +257,10 @@ function removeRecoveryGlobals() {
   delete window.__APARTMENT_GOD_P2_RECOVER__;
   delete window.__APARTMENT_GOD_P2_TEST_MOVE__;
   delete window.__APARTMENT_GOD_P2_RUNTIME_STATUS__;
+  delete window.__APARTMENT_GOD_P2_GET_ACTORS__;
 }
 
 function exposeRecoveryDiagnostics(scene) {
   if (typeof window === 'undefined') return;
-  const actors = (scene.state?.entities || []).map(entity => ({
-    id: entity.id,
-    x: entity.x,
-    y: entity.y,
-    speed: entity.speed,
-    stopped: Boolean(entity.stopped),
-    manualStop: Boolean(entity.manualStop),
-    pathLength: Array.isArray(entity.path) ? entity.path.length : 0,
-    poolRouteLength: Array.isArray(entity.poolRoute?.points) ? entity.poolRoute.points.length : 0,
-    poolActive: hasActivePoolChoreographyForTest(entity),
-    actionT: Number(entity.actionT || 0),
-    action: entity.action || 'Idle',
-    pose: entity.pose || 'stand'
-  }));
-  window.__APARTMENT_GOD_P2_ACTORS__ = actors;
+  window.__APARTMENT_GOD_P2_ACTORS__ = actorSnapshotsForTest(scene.state?.entities || []);
 }
