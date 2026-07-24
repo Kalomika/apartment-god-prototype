@@ -89,39 +89,70 @@ function uprightRig(pose, phase=0){
 const ellipse=(cx,cy,rx,ry,fill,stroke)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}"${stroke?` stroke="${INK}" stroke-width="0.8"`:''}/>`;
 const limb=(x1,y1,x2,y2,w,fill)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${INK}" stroke-width="${w+1.4}" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${fill}" stroke-width="${w}" stroke-linecap="round"/>`;
 
+function bentArm(sx,sy,hx,hy,out,sleeve,skin){
+  const ex = sx + out*2.6, ey = sy + (hy-sy)*0.5 + 1; // elbow pushed outward
+  const pts = `${sx},${sy} ${ex},${ey} ${hx},${hy}`;
+  return `<polyline points="${pts}" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`
+    + `<polyline points="${pts}" fill="none" stroke="${sleeve}" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/>`
+    + `<circle cx="${hx}" cy="${hy}" r="2.2" fill="${skin}" stroke="${INK}" stroke-width="0.7"/>`;
+}
+
 function uprightBody(ap, pose, phase){
   const r = uprightRig(pose, phase);
   const sleeve = (ap.top==='none'||ap.top==='tank') ? ap.skinHex : ap.topHex;
   const topFill = ap.top==='none' ? ap.skinHex : ap.topHex;
-  const hipFill = ap.bottom==='none' ? ap.baseHex : ap.bottomHex;
-  const [hx,hy]=r.head;
+  const botFill = ap.bottom==='none' ? ap.baseHex : ap.bottomHex;
+  const skin = ap.skinHex;
   let s = '';
-  // feet (shoes) + tiny leg stubs behind them
+
+  // ---- legs + crafted shoes (feet point toward facing = +y) ----
   for(const [fx,fy] of r.feet){
-    s += `<line x1="${fx}" y1="${(r.hip[1]+fy)/2}" x2="${fx}" y2="${fy}" stroke="${INK}" stroke-width="4.4" stroke-linecap="round"/>`;
-    s += `<line x1="${fx}" y1="${(r.hip[1]+fy)/2}" x2="${fx}" y2="${fy}" stroke="${ap.skinHex}" stroke-width="3" stroke-linecap="round"/>`;
-    s += ellipse(fx, fy, r.footR, r.footR*0.9, ap.shoes==='none'?ap.skinHex:ap.shoesHex, true);
+    const kneeX = 32 + (fx-32)*0.55;
+    s += `<polyline points="${kneeX},42 ${fx},${fy-1.5}" fill="none" stroke="${INK}" stroke-width="4.8" stroke-linecap="round"/>`;
+    s += `<polyline points="${kneeX},42 ${fx},${fy-1.5}" fill="none" stroke="${botFill}" stroke-width="3.2" stroke-linecap="round"/>`;
+    if(ap.shoes==='none'){ s += ellipse(fx,fy,2.4,3,skin,true); }
+    else { s += `<ellipse cx="${fx}" cy="${fy}" rx="2.7" ry="3.5" fill="${ap.shoesHex}" stroke="${INK}" stroke-width="0.7"/>`
+                + `<line x1="${fx-2}" y1="${fy+1.1}" x2="${fx+2}" y2="${fy+1.1}" stroke="${INK}" stroke-width="0.5" opacity="0.5"/>`; }
   }
-  // arms (behind torso so shoulders overlap the top of them)
-  for(const a of r.arms){ s += limb(a.s[0],a.s[1],a.h[0],a.h[1],4.4,sleeve); s += ellipse(a.h[0],a.h[1],2.4,2.4,ap.skinHex,true); }
-  // hips / bottom (peeks below shoulders)
-  s += ellipse(r.hip[0],r.hip[1],r.hipRX,r.hipRY,hipFill,true);
-  // shoulders / torso — the dominant wide oval (perpendicular to facing)
-  s += ellipse(r.shoulder[0],r.shoulder[1],r.shRX,r.shRY,topFill,true);
+
+  // ---- bent arms (behind the torso yoke) ----
+  for(const a of r.arms){ s += bentArm(a.s[0],a.s[1],a.h[0],a.h[1], a.s[0]<32?-1:1, sleeve, skin); }
+
+  // ---- torso: shoulder yoke narrowing to the waist (crafted, not an oval) ----
+  const wf = ap.build==='female' ? 0.92 : 1;      // slightly narrower shoulders for female
+  const SL=32-9.4*wf, SR=32+9.4*wf, WL=32-6.1, WR=32+6.1;
+  s += `<path d="M ${SL} 31 Q ${SL-0.6} 28.4 ${SL+2.6} 27.5 L 28.6 26.9 Q 32 26.3 35.4 26.9 L ${SR-2.6} 27.5 Q ${SR+0.6} 28.4 ${SR} 31 L ${WR} 43.7 Q 32 45.6 ${WL} 43.7 Z" fill="${topFill}" stroke="${INK}" stroke-width="0.9"/>`;
+  // crisp single-source cel shade (right half) + soft highlight (upper-left)
+  s += `<path d="M 32 27 L 35.4 26.9 L ${SR-2.6} 27.5 Q ${SR+0.6} 28.4 ${SR} 31 L ${WR} 43.7 Q 32 45.1 32 44.8 Z" fill="${SHADE}"/>`;
+  s += `<path d="M 28.6 26.9 Q ${SL+2.6} 27.5 ${SL} 31 L ${SL+1.6} 35 Q 30 29.5 30.4 27.2 Z" fill="rgba(255,255,255,0.09)"/>`;
+  // collar (neck skin), spine, shoulder seams, waist hem — the linework that reads as "drawn"
+  s += `<path d="M 29.4 27.1 Q 32 29.7 34.6 27.1 Q 32 26.4 29.4 27.1 Z" fill="${skin}"/>`;
+  s += `<line x1="32" y1="29.8" x2="32" y2="43.4" stroke="${INK}" stroke-width="0.55" opacity="0.45"/>`;
+  s += `<path d="M 29.6 27.5 Q 26 28.6 ${SL+1.4} 31" fill="none" stroke="${INK}" stroke-width="0.55" opacity="0.4"/>`;
+  s += `<path d="M 34.4 27.5 Q 38 28.6 ${SR-1.4} 31" fill="none" stroke="${INK}" stroke-width="0.55" opacity="0.4"/>`;
+  s += `<path d="M ${WL} 43.7 Q 32 45.4 ${WR} 43.7" fill="none" stroke="${INK}" stroke-width="0.55" opacity="0.4"/>`;
+  // garment specifics
+  if(ap.top==='hoodie') s += `<path d="M 29.4 27 Q 32 24.6 34.6 27" fill="none" stroke="${INK}" stroke-width="1.1" opacity="0.5"/>`;
   if(ap.build==='female' && (ap.top==='none'||ap.top==='tank'))
-    s += `<path d="M ${32-r.shRX+2} ${r.shoulder[1]} Q 32 ${r.shoulder[1]+r.shRY-1} ${32+r.shRX-2} ${r.shoulder[1]} Z" fill="${ap.baseHex}"/>`;
-  // single-source cel shade on one side of the torso
-  s += `<path d="M 32 ${r.shoulder[1]-r.shRY} Q ${32+r.shRX} ${r.shoulder[1]-r.shRY} ${32+r.shRX} ${r.shoulder[1]} Q ${32+r.shRX} ${r.shoulder[1]+r.shRY} 32 ${r.shoulder[1]+r.shRY} Z" fill="${SHADE}"/>`;
-  // head crown (skin) — sits on the shoulders
-  s += ellipse(hx,hy,HEAD_R,HEAD_R,ap.skinHex,true);
-  // facial hair at the FRONT edge of the head (toward facing = +y in base)
-  s += facialHair(ap, hx, hy+HEAD_R*0.62);
-  // hair covers the crown; a small skin sliver at the front reads as the face-direction (faceless)
+    s += `<path d="M ${SL+1} 30 Q 32 33.8 ${SR-1} 30 L ${WR-0.5} 36 Q 32 37.6 ${WL+0.5} 36 Z" fill="${ap.baseHex}"/>`;
+
+  // ---- head (smaller than shoulders) ----
+  s += ellipse(32, 24.5, 6, 6.6, skin, true);
+  s += facialHair(ap, 32, 28.2);
+  // ---- crafted hair: rounded crown, sideburn dips, face gap at front, part line ----
   if(ap.hairStyle!=='bald'){
-    s += ellipse(hx,hy-0.4,HEAD_R+0.7,HEAD_R+0.7,ap.hairHex,false);
-    if(ap.hairStyle==='ponytail') s += ellipse(hx,hy-HEAD_R-1.5,3.2,4,ap.hairHex,false);
-    if(ap.hairStyle==='long') s += ellipse(hx,hy-HEAD_R-1,4.6,5.5,ap.hairHex,false);
-    if(ap.hairStyle!=='buzz') s += ellipse(hx,hy+HEAD_R*0.66,3.4,2.9,ap.skinHex,false); // face sliver (front)
+    const c=ap.hairHex;
+    if(ap.hairStyle==='buzz'){
+      s += `<path d="M 26.4 25 Q 26 19.6 32 19.3 Q 38 19.6 37.6 25 Q 37 27.4 32 27.2 Q 27 27.4 26.4 25 Z" fill="${c}" opacity="0.9"/>`;
+    } else {
+      s += `<path d="M 26 25.4 Q 25.6 19.2 32 18.9 Q 38.4 19.2 38 25.4 Q 37.7 28 35.3 28.9 Q 34 26.7 32 26.7 Q 30 26.7 28.7 28.9 Q 26.3 28 26 25.4 Z" fill="${c}" stroke="${INK}" stroke-width="0.6"/>`;
+      s += `<path d="M 32 19.4 Q 33.6 22 32 24.4" fill="none" stroke="${INK}" stroke-width="0.5" opacity="0.5"/>`;
+      s += `<path d="M 28.4 20.4 Q 27.7 22.8 28.6 25" fill="none" stroke="${INK}" stroke-width="0.4" opacity="0.4"/>`;
+      s += `<path d="M 35.6 20.4 Q 36.3 22.8 35.4 25" fill="none" stroke="${INK}" stroke-width="0.4" opacity="0.4"/>`;
+      if(ap.hairStyle==='ponytail') s += `<path d="M 29.5 19.6 Q 32 17 34.5 19.6 Q 33 22 32 27 Q 31 22 29.5 19.6 Z" fill="${c}" stroke="${INK}" stroke-width="0.5"/>`;
+      if(ap.hairStyle==='long') s += `<path d="M 25.6 24 Q 24 30 26 33 L 38 33 Q 40 30 38.4 24 Q 38 28 35 28.8 Q 32 27 29 28.8 Q 26 28 25.6 24 Z" fill="${c}" stroke="${INK}" stroke-width="0.5"/>`;
+      if(ap.hairStyle==='bob') s += `<path d="M 25.4 24.5 Q 25 29.5 27.5 30.5 L 36.5 30.5 Q 39 29.5 38.6 24.5 Q 38 28 35 28.8 Q 32 27 29 28.8 Q 26 28 25.4 24.5 Z" fill="${c}" stroke="${INK}" stroke-width="0.5"/>`;
+    }
   }
   return s;
 }
