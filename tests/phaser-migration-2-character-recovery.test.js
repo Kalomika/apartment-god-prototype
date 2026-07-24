@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { resumeEntity, stopEntity } from '../src/state.js';
 import {
+  actorSnapshotsForTest,
   defaultActorSpeedForTest,
   hasActivePoolChoreographyForTest,
   normalizeP2ActorMotionForTest,
@@ -103,6 +104,14 @@ describe('Phaser Migration 2 character recovery', () => {
     expect(shouldPreferBaseActorVisualForTest({ hidden: false, path: [{ x: 2, y: 2 }], actionT: 10 })).toBe(true);
     expect(shouldPreferBaseActorVisualForTest({ hidden: false, path: [], vx: 0, vy: 0, actionT: 0 })).toBe(true);
     expect(shouldPreferBaseActorVisualForTest({ hidden: false, path: [], vx: 0, vy: 0, actionT: 10 })).toBe(false);
+  });
+
+  it('reads coordinates directly from the current actor state instead of a stale cache', () => {
+    const actors = [{ id: 'resident', x: 10, y: 20, speed: 92, path: [], action: 'Idle', pose: 'stand' }];
+    expect(actorSnapshotsForTest(actors)[0]).toMatchObject({ id: 'resident', x: 10, y: 20 });
+    actors[0].x = 44;
+    actors[0].y = 55;
+    expect(actorSnapshotsForTest(actors)[0]).toMatchObject({ id: 'resident', x: 44, y: 55 });
   });
 
   it('restores Phaser TimeStep focus for a visible iframe while preserving safety', () => {
