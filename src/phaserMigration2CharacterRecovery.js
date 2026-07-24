@@ -40,6 +40,13 @@ export function actorSnapshotsForTest(entities = []) {
   }));
 }
 
+export function normalizeP2SimulationStateForTest(state, resume = false) {
+  if (!state) return state;
+  state.speed = Number.isFinite(state.speed) && state.speed > 0 ? state.speed : 1;
+  if (resume) state.paused = false;
+  return state;
+}
+
 export function prepareActorForManualRecoveryForTest(entity) {
   if (!entity) return entity;
   entity.poolRoute = null;
@@ -64,7 +71,7 @@ export function wakeVisibleEmbeddedGameForTest(scene, hidden = typeof document !
   scene.game?.resume?.();
   scene.game?.loop?.wake?.(true);
   scene.scene?.resume?.();
-  if (scene.state) scene.state.paused = false;
+  normalizeP2SimulationStateForTest(scene.state, true);
   return true;
 }
 
@@ -143,6 +150,7 @@ function installSceneRecovery(scene) {
 
   const normalize = () => {
     scene.__pm2RecoveryPreupdateTicks += 1;
+    normalizeP2SimulationStateForTest(scene.state);
     for (const entity of scene.state?.entities || []) normalizeP2ActorMotionForTest(entity);
     exposeRecoveryDiagnostics(scene);
   };
@@ -197,6 +205,7 @@ function runtimeStatus(scene) {
     runtimeFailed,
     runtimeError,
     statePaused: Boolean(scene?.state?.paused),
+    stateSpeed: Number(scene?.state?.speed || 0),
     gamePaused: Boolean(scene?.game?.isPaused),
     timeStepInFocus: Boolean(scene?.game?.loop?.inFocus),
     preupdateTicks: Number(scene?.__pm2RecoveryPreupdateTicks || 0),
@@ -211,6 +220,7 @@ function forceRecoverPlayableActors(scene) {
   const before = runtimeStatus(scene);
   if (before.runtimeFailed) return { ok: false, reason: 'runtime_failed', status: before, actors: [] };
   wakeVisibleEmbeddedGameForTest(scene);
+  normalizeP2SimulationStateForTest(scene.state, true);
   for (const entity of scene.state.entities || []) {
     if (!entity || entity.hidden || entity.labOnly) continue;
     prepareActorForManualRecoveryForTest(entity);
@@ -238,6 +248,7 @@ function testMoveSelectedActor(scene) {
   for (const [dx, dy] of offsets) {
     commandMove(actor, start.x + dx, start.y + dy, false);
     if (actor.path?.length) {
+      normalizeP2SimulationStateForTest(state, true);
       wakeVisibleEmbeddedGameForTest(scene);
       state.floor = actor.floor;
       state.selectedId = actor.id;
