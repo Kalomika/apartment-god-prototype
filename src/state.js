@@ -169,6 +169,17 @@ export function changeNeed(entity, key, amount) {
   entity.needs[key] = Math.max(0, Math.min(100, entity.needs[key] + amount * multiplier));
 }
 
+function clearInterruptedMotionState(entity) {
+  entity.poolRoute = null;
+  entity.poolShotCooldown = 0;
+  entity.currentActionId = null;
+  entity.activityObjectId = null;
+  entity.actionTotal = 0;
+  entity.vx = 0;
+  entity.vy = 0;
+  if (entity.carrying === 'cue_stick') entity.carrying = null;
+}
+
 export function stopEntity(entity) {
   entity.path = [];
   entity.target = null;
@@ -176,12 +187,16 @@ export function stopEntity(entity) {
   entity.action = null;
   entity.actionT = 0;
   entity.pose = 'stand';
+  clearInterruptedMotionState(entity);
   entity.manualStop = true;
   entity.stopped = true;
 }
 
 export function resumeEntity(entity) {
+  clearInterruptedMotionState(entity);
   entity.manualStop = false;
   entity.stopped = false;
+  entity.action = 'Idle';
+  entity.pose = 'stand';
   entity.idleT = 5;
 }
