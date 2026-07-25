@@ -17,7 +17,7 @@ export function updateAutoHooks(state, dt) {
   updateFreshAir(state, dt);
   updateCooking(state);
   updateDelivery(state, dt);
-  updateFetch(state);
+  updateFetch(state, dt);
   updateGameActivities(state, dt);
   updateSoccerGame(state, dt);
   updateMusic(state);
